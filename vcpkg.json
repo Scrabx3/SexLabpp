@@ -1,7 +1,7 @@
 {
-  "name": "nightmarenight-skse",
+  "name": "slpp-skse",
   "version-string": "0.0.1",
-  "description": "Nightmare Night Widget Controller",
+  "description": "performance patch for sl",
   "dependencies": [
     "boost-stl-interfaces",
     "rsm-binary-io",
