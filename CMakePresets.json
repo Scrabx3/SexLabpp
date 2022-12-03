@@ -1,0 +1,87 @@
+{
+  "configurePresets": [
+    {
+      "errors": {
+        "deprecated": true
+      },
+      "hidden": true,
+      "name": "cmake-dev",
+      "warnings": {
+        "deprecated": true,
+        "dev": true
+      }
+    },
+    {
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "STRING",
+          "value": "$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }
+      },
+      "hidden": true,
+      "name": "vcpkg"
+    },
+    {
+      "cacheVariables": {
+        "CMAKE_MSVC_RUNTIME_LIBRARY": {
+          "type": "STRING",
+          "value": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+        },
+        "VCPKG_TARGET_TRIPLET": {
+          "type": "STRING",
+          "value": "x64-windows-static-md"
+        }
+      },
+      "hidden": true,
+      "name": "windows"
+    },
+    {
+      "architecture": {
+        "strategy": "set",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "/EHsc /MP /W4 /WX"
+      },
+      "generator": "Visual Studio 17 2022",
+      "inherits": [
+        "cmake-dev",
+        "vcpkg",
+        "windows"
+      ],
+      "name": "vs2022-windows-vcpkg",
+      "toolset": "v143",
+      "hidden": true
+    },
+    {
+      "cacheVariables": {
+        "SKYRIM_SUPPORT_AE": {
+          "type": "BOOL",
+          "value": "ON"
+        }
+      },
+      "binaryDir": "${sourceDir}/build/vs2022-AE",
+      "inherits": [
+        "vs2022-windows-vcpkg"
+      ],
+      "name": "vs2022-windows-vcpkg-ae"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "vs2022-windows-vcpkg-ae-Release",
+      "description": "",
+      "displayName": "",
+      "configurePreset": "vs2022-windows-vcpkg-ae",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2022-windows-vcpkg-ae-Debug",
+      "description": "",
+      "displayName": "",
+      "configurePreset": "vs2022-windows-vcpkg-ae",
+      "configuration": "Debug"
+    }
+  ],
+  "version": 3
+}
