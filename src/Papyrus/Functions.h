@@ -18,6 +18,7 @@ namespace SLPP
 	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* akCenterRef, float a_radius, float a_radiusz);
 	bool IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference);
 
+	RE::SpellItem* GetHDTHeelSpell(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference);
 
 	inline bool Register(VM* a_vm)
 	{
@@ -28,6 +29,7 @@ namespace SLPP
 		REGISTERFUNC(MatchTags, "sslpp");
 		REGISTERFUNC(FindBeds, "sslpp");
 		REGISTERFUNC(IsBed, "sslpp");
+		REGISTERFUNC(GetHDTHeelSpell, "sslpp");
 
 		return true;
 	}

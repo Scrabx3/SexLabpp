@@ -148,3 +148,25 @@ RE::TESAmmo* SLPP::GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFuncti
 	}
 	return a_actor->GetCurrentAmmo();
 }
+
+RE::SpellItem* SLPP::GetHDTHeelSpell(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference)
+{
+	if (!a_reference) {
+		a_vm->TraceStack("Cannot retrieve hdt spell from a none reference", a_stackID);
+		return nullptr;
+	}
+	static const auto* const heeleffect = RE::TESDataHandler::GetSingleton()->LookupForm<RE::EffectSetting>(0x800, "hdtHighHeel.esm"sv);
+	if (!heeleffect)
+		return nullptr;
+
+	for (const auto& spell : a_reference->GetActorRuntimeData().addedSpells) {
+		if (!spell || spell->effects.empty())
+			continue;
+
+		for (const auto& effect : spell->effects) {
+			if (effect && effect->baseEffect == heeleffect)
+				return spell;
+		}
+	}
+	return nullptr;
+}
