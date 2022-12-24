@@ -170,3 +170,32 @@ RE::SpellItem* SLPP::GetHDTHeelSpell(VM* a_vm, RE::VMStackID a_stackID, RE::Stat
 	}
 	return nullptr;
 }
+
+
+std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, uint32_t a_slotmask)
+{
+	if (!a_reference) {
+		a_vm->TraceStack("Cannot retrieve hdt spell from a none reference", a_stackID);
+		return {};
+	}
+	std::vector<RE::TESForm*> ret;
+	const auto& manager = RE::ActorEquipManager::GetSingleton();
+	const auto& inventory = a_reference->GetInventory();
+	for (const auto& [form, data] : inventory) {
+		if (form->Is(RE::FormType::LeveledItem) || !data.second->IsWorn() || !form->GetPlayable() || form->GetName()[0] == '\0') {
+			continue;
+		}
+		const auto& kwd = form->As<RE::BGSKeywordForm>();
+		if (kwd && kwd->ContainsKeywordString("NoStrip"))
+			continue;
+		const auto& biped = form->As<RE::BGSBipedObjectForm>();
+		if (!biped)
+			continue;
+		const auto& slots = static_cast<uint32_t>(biped->GetSlotMask());
+		if (slots & a_slotmask) {
+			manager->UnequipObject(a_reference, form, nullptr, data.first);
+			ret.push_back(form);
+		}
+	}
+	return ret;
+}

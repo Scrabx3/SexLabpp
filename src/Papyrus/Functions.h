@@ -11,7 +11,8 @@ namespace SLPP
 	std::vector<std::string> RemoveStringEx(RE::StaticFunctionTag*, std::vector<std::string> a_array, std::string a_remove);
 
 	void SetPositions(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, RE::TESObjectREFR* a_center);
-	RE::TESAmmo* GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
+	RE::TESAmmo* GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference);
+	std::vector<RE::TESForm*> StripActor(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, uint32_t a_slotmask);
 
 	bool MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tags, std::vector<std::string_view> a_match);
 
@@ -26,6 +27,7 @@ namespace SLPP
 		REGISTERFUNC(RemoveStringEx, "sslpp");
 		REGISTERFUNC(SetPositions, "sslpp");
 		REGISTERFUNC(GetEquippedAmmo, "sslpp");
+		REGISTERFUNC(StripActor, "sslpp");
 		REGISTERFUNC(MatchTags, "sslpp");
 		REGISTERFUNC(FindBeds, "sslpp");
 		REGISTERFUNC(IsBed, "sslpp");
