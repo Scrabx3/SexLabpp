@@ -9,7 +9,7 @@ std::vector<std::string> SLPP::MergeStringArrayEx(RE::StaticFunctionTag*, std::v
 	for (auto&& str : a_array2) {
 		if (a_removedupes && [&ret, &str]() -> bool {
 				for (auto&& s : ret) {
-					if (IsEqualString(str, s)) {
+					if (SexLab::IsEqualString(str, s)) {
 						return true;
 					}
 				}
@@ -25,7 +25,7 @@ std::vector<std::string> SLPP::MergeStringArrayEx(RE::StaticFunctionTag*, std::v
 std::vector<std::string> SLPP::RemoveStringEx(RE::StaticFunctionTag*, std::vector<std::string> a_array, std::string a_remove)
 {
 	decltype(a_array) ret{ a_array };
-	const auto where = std::remove_if(ret.begin(), ret.end(), [&a_remove](auto& str) { return IsEqualString(str, a_remove); });
+	const auto where = std::remove_if(ret.begin(), ret.end(), [&a_remove](auto& str) { return SexLab::IsEqualString(str, a_remove); });
 	ret.erase(where, ret.end());
 	return ret;
 }
@@ -68,14 +68,14 @@ bool SLPP::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tag
 		switch (tag[0]) {
 		case '~':
 			if (optional_match != 1)
-				optional_match = std::find_if(a_tags.begin(), a_tags.end(), [&tag](auto& str) { return IsEqualString(tag, str.substr(1)); }) != a_tags.end();
+				optional_match = std::find_if(a_tags.begin(), a_tags.end(), [&tag](auto& str) { return SexLab::IsEqualString(tag, str.substr(1)); }) != a_tags.end();
 			break;
 		case '-':
-			if (std::find_if(a_tags.begin(), a_tags.end(), [&tag](auto& str) { return IsEqualString(tag, str.substr(1)); }) != a_tags.end())
+			if (std::find_if(a_tags.begin(), a_tags.end(), [&tag](auto& str) { return SexLab::IsEqualString(tag, str.substr(1)); }) != a_tags.end())
 				return false;
 			break;
 		default:
-			if (std::find_if(a_tags.begin(), a_tags.end(), [&tag](auto& str) { return IsEqualString(tag, str); }) == a_tags.end())
+			if (std::find_if(a_tags.begin(), a_tags.end(), [&tag](auto& str) { return SexLab::IsEqualString(tag, str); }) == a_tags.end())
 				return false;
 			break;
 		}
@@ -93,7 +93,7 @@ std::vector<RE::TESObjectREFR*> SLPP::FindBeds(VM* a_vm, RE::VMStackID a_stackID
 	std::vector<RE::TESObjectREFR*> ret{};
 	const auto add = [&](RE::TESObjectREFR& ref) {
 		if (!ref.GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusz > 0.0f ? (std::fabs(center.z - ref.GetPosition().z) <= a_radiusz) : true)
-			if (GetIsBed(&ref))
+			if (SexLab::GetIsBed(&ref))
 				ret.push_back(&ref);
 		return RE::BSContainer::ForEachResult::kContinue;
 	};
@@ -137,7 +137,7 @@ bool SLPP::IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::
 		a_vm->TraceStack("Reference is none", a_stackID);
 		return false;
 	}
-  return GetIsBed(a_reference);
+  return SexLab::GetIsBed(a_reference);
 }
 
 RE::TESAmmo* SLPP::GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)

@@ -1,17 +1,24 @@
 #include "Papyrus/Functions.h"
+#include "Papyrus/sslDataKey.h"
 
-// static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
-// {
-// 	switch (message->type) {
-// 	case SKSE::MessagingInterface::kSaveGame:
-// 		break;
-// 	case SKSE::MessagingInterface::kDataLoaded:
-// 		break;
-// 	case SKSE::MessagingInterface::kNewGame:
-// 	case SKSE::MessagingInterface::kPostLoadGame:
-// 		break;
-// 	}
-// }
+static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
+{
+	switch (message->type) {
+	case SKSE::MessagingInterface::kSaveGame:
+		break;
+	case SKSE::MessagingInterface::kDataLoaded:
+		if (!GameForms::LoadData()) {
+			logger::critical("Unable to load esp objects");
+			if (MessageBox(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
+				std::_Exit(EXIT_FAILURE);
+			return;
+		}
+		break;
+	case SKSE::MessagingInterface::kNewGame:
+	case SKSE::MessagingInterface::kPostLoadGame:
+		break;
+	}
+}
 
 extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
 	SKSE::PluginVersionData v;
@@ -64,8 +71,15 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	SKSE::Init(a_skse);
 	logger::info("{} loaded"sv, Plugin::NAME);
 
+	const auto msging = SKSE::GetMessagingInterface();
+	if (!msging->RegisterListener("SKSE", SKSEMessageHandler)) {
+		logger::critical("Failed to register Listener");
+		return false;
+	}
+
 	const auto papyrus = SKSE::GetPapyrusInterface();
 	papyrus->Register(SLPP::Register);
+	papyrus->Register(SLPP::DataKey::Register);
 
 	logger::info("Initialization complete");
 

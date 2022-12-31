@@ -4,9 +4,6 @@ namespace SLPP
 {
 #define REGISTERFUNC(func, c) a_vm->RegisterFunction(#func##sv, c, func)
 
-	using VM = RE::BSScript::IVirtualMachine;
-	using StackID = RE::VMStackID;
-
 	std::vector<std::string> MergeStringArrayEx(RE::StaticFunctionTag*, std::vector<std::string> a_array1, std::vector<std::string> a_array2, bool a_removedupes);
 	std::vector<std::string> RemoveStringEx(RE::StaticFunctionTag*, std::vector<std::string> a_array, std::string a_remove);
 

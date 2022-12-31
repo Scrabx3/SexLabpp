@@ -58,7 +58,7 @@ IndentCaseBlocks: 'true'
 IndentCaseLabels: 'false'
 IndentGotoLabels: 'false'
 IndentPPDirectives: None
-IndentWidth: 4
+IndentWidth: 2
 IndentWrappedFunctionNames: 'true'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp
@@ -88,7 +88,7 @@ SpacesInContainerLiterals: 'true'
 SpacesInParentheses: 'false'
 SpacesInSquareBrackets: 'false'
 Standard: c++17
-TabWidth: 4
+TabWidth: 2
 UseCRLF: 'true'
 UseTab: Always
 

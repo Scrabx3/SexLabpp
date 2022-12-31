@@ -18,9 +18,10 @@
 #pragma warning(pop)
 
 // #include "Random.h"
-// #include "Script.h"
-#include "Singleton.h"
+#include "GameForms.h"
 #include "Misc.h"
+#include "Script.h"
+#include "Singleton.h"
 
 namespace logger = SKSE::log;
 namespace fs = std::filesystem;
@@ -45,6 +46,12 @@ namespace stl
 		REL::Relocation<std::uintptr_t> vtbl{ F::VTABLE[0] };
 		T::func = vtbl.write_vfunc(T::size, T::thunk);
 	}
+}
+
+namespace SLPP
+{
+	using VM = RE::BSScript::IVirtualMachine;
+	using StackID = RE::VMStackID;
 }
 
 #define DLLEXPORT __declspec(dllexport)

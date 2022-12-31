@@ -9,8 +9,9 @@ namespace Script
 		auto policy = vm->GetObjectHandlePolicy();
 		auto handle = policy->GetHandleForObject(form->GetFormType(), form);
 		ObjectPtr object = nullptr;
-		if (!vm->FindBoundObject(handle, classname, object))
-			logger::critical("Settings object not found");
+		vm->FindBoundObject(handle, classname, object);
+		// if (!vm->FindBoundObject(handle, classname, object))
+			// logger::critical("Settings object not found");
 		return object;
 	}
 
