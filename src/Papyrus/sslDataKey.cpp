@@ -34,6 +34,12 @@ namespace SLPP
 	bool DataKey::IsLess(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_cmp)
 	{
 		using Gender = SexLab::Gender;
+		// Sort blank keys to the very end
+		if (a_cmp == 0)
+			return false;
+		else if (a_key == 0)
+			return true;
+
 		// race id
 		if ((a_key & 0xFF00) > (a_cmp & 0xFF00))
 			return false;
