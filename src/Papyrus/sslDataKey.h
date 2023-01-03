@@ -45,8 +45,8 @@ namespace SLPP::DataKey
 	// std::vector<uint32_t> BuildDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t aiVictimIdx);
 	// std::vector<uint32_t> BuildDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_isvictim);
 
-	// std::vector<uint32_t> BuildSortedActorKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t a_victimidx);
-	// std::vector<uint32_t> BuildSortedActorKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_victimidx);
+	// std::vector<uint32_t> BuildSortedDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t a_victimidx);
+	// std::vector<uint32_t> BuildSortedDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_victimidx);
 
 	// Sort & Compare
 	std::vector<uint32_t> SortDataKeys(RE::StaticFunctionTag*, std::vector<uint32_t> a_keys);
@@ -76,6 +76,10 @@ namespace SLPP::DataKey
 	uint32_t GetLegacyGenderByKey(RE::StaticFunctionTag*, uint32_t a_key);
 	uint32_t BuildByLegacyGenderNative(RE::StaticFunctionTag*, uint32_t a_legacygender, int a_raceid);
 
+	uint32_t AddGenderToKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender);
+	uint32_t RemoveGenderFromKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender);
+	void NeutralizeCreatureGender(RE::StaticFunctionTag*, std::vector<uint32_t> a_keys);
+
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(BuildDataKeyNative, "sslActorData");
@@ -102,6 +106,10 @@ namespace SLPP::DataKey
 
 		REGISTERFUNC(GetLegacyGenderByKey, "sslActorData");
 		REGISTERFUNC(BuildByLegacyGenderNative, "sslActorData");
+
+		REGISTERFUNC(AddGenderToKey, "sslActorData");
+		REGISTERFUNC(RemoveGenderFromKey, "sslActorData");
+		REGISTERFUNC(NeutralizeCreatureGender, "sslActorData");
 
 		return true;
 	}

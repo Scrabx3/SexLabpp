@@ -117,12 +117,6 @@ namespace SLPP
 	uint32_t DataKey::BuildByLegacyGenderNative(RE::StaticFunctionTag*, uint32_t a_legacygender, int a_raceid)
 	{
 		using Gender = SexLab::Gender;
-		if (a_legacygender == -1) {
-			return 0b111 | (a_raceid << 8);
-		}
-		else if (a_legacygender == -2) {
-			return 0b00011 | (a_raceid << 8);
-		}
 		uint32_t g;
 		switch (a_legacygender) {
 		case 0:
@@ -137,6 +131,11 @@ namespace SLPP
 		case 3:
 			g = Gender::Crt_Female;
 			break;
+		case -1:
+			return 0b111;
+		case -2:
+			g = 0b00011;
+			break;
 		default:
 			g = Gender::Male;
 			break;
@@ -144,4 +143,49 @@ namespace SLPP
 		return g | (a_raceid << 8);
 	}
 
+	uint32_t DataKey::AddGenderToKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender)
+	{
+		using Gender = SexLab::Gender;
+		switch (a_gender) {
+		case 0:
+			return a_key | Gender::Male;
+		case 1:
+			return a_key | Gender::Female;
+		case 2:
+			return a_key | Gender::Female;
+		case 3:
+			return a_key | Gender::Crt_Male;
+		case 4:
+			return a_key | Gender::Crt_Female;
+		default:
+			return a_key;
+		}
+	}
+
+	uint32_t DataKey::RemoveGenderFromKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender)
+	{
+		using Gender = SexLab::Gender;
+		switch (a_gender) {
+		case 0:
+			return a_key & (~Gender::Male);
+		case 1:
+			return a_key & (~Gender::Female);
+		case 2:
+			return a_key & (~Gender::Female);
+		case 3:
+			return a_key & (~Gender::Crt_Male);
+		case 4:
+			return a_key & (~Gender::Crt_Female);
+		default:
+			return a_key;
+		}
+	}
+
+	void DataKey::NeutralizeCreatureGender(RE::StaticFunctionTag*, std::vector<uint32_t> a_keys)
+	{
+		using Gender = SexLab::Gender;
+		for (auto&& k : a_keys) {
+			k |= Gender::Crt_Male | Gender::Crt_Female;
+		}
+	}
 }
