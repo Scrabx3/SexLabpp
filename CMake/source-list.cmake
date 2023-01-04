@@ -9,6 +9,7 @@ set(CXX_FILES
 	src/GameForms.h
 
 	src/SexLab/DataKey.h
+	src/SexLab/DataKey.cpp
 
 	src/Papyrus/Functions.h
 	src/Papyrus/Functions.cpp
