@@ -22,7 +22,7 @@ namespace GameForms
 	inline bool LoadData()
 	{
 		// LOOKUPMOD(Config, 0xD62, "SexLab.esp");
-		LOOKUPMOD(GenderFaction, 0xE50F, "SexLab.esp");
+		LOOKUPMOD(GenderFaction, 0xE50F, "SexLab.esm");
 
 		return true;
 	}
