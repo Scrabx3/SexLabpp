@@ -13,7 +13,7 @@ namespace SexLab::DataKey
 
 		Crt_Male = 1U << 3,
 		Crt_Female = 1U << 4,
-        Creature = (Crt_Male | Crt_Female),
+		Creature = (Crt_Male | Crt_Female),
 
 		Overwrite_Male = 1U << 5,
 		Overwrite_Female = 1U << 6,
@@ -45,10 +45,10 @@ namespace SexLab::DataKey
 
 	uint32_t BuildKey(RE::Actor* a_ref, bool a_victim, uint32_t a_raceid);
 
-    std::vector<uint32_t> SortKeys(const std::vector<uint32_t>& a_keys);
+	std::vector<uint32_t> SortKeys(const std::vector<uint32_t>& a_keys);
 
-    bool IsLess(uint32_t a_key, uint32_t a_cmp);
-    bool MatchKey(uint32_t a_key, uint32_t a_match);
-    bool MatchArray(const std::vector<uint32_t>& a_key, const std::vector<uint32_t>& a_match);
+	bool IsLess(uint32_t a_key, uint32_t a_cmp);
+	bool MatchKey(uint32_t a_key, uint32_t a_match);
+	bool MatchArray(const std::vector<uint32_t>& a_key, const std::vector<uint32_t>& a_match);
 
 }	 // namespace SexLab::DataKey

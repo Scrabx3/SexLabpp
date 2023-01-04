@@ -81,6 +81,11 @@ namespace SexLab::DataKey
 		if ((a_key & Key::CrtTotal) != (a_match & Key::CrtTotal))
 			return false;
 
+		if (a_key & Key::Overwrite_Male) {
+			a_key |= a_key & Key::Human ? Key::Male : Key::Crt_Male;
+		} else if (a_key & Key::Overwrite_Female) {
+			a_key |= a_key & Key::Human ? Key::Female : Key::Crt_Female;
+		}
 		const auto match = a_match & (~Key::CrtTotal);
 		return ((a_key & (~Key::CrtTotal)) & match) == match;
 	}
