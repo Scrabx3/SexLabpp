@@ -199,3 +199,13 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 	}
 	return ret;
 }
+
+
+std::string SLPP::GetEditorID(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
+{
+	if (!a_form) {
+		a_vm->TraceStack("Cannot retrieve editor ID. Form is none", a_stackID);
+		return ""s;
+	}
+	return a_form->GetFormEditorID();
+}

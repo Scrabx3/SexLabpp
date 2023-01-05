@@ -89,6 +89,10 @@ namespace SLPP
 			return a_key | Key::Crt_Male;
 		case 4:
 			return a_key | Key::Crt_Female;
+		case 5:
+			return a_key | Key::Overwrite_Male;
+		case 6:
+			return a_key | Key::Overwrite_Female;
 		default:
 			return a_key;
 		}
@@ -107,6 +111,10 @@ namespace SLPP
 			return a_key & (~Key::Crt_Male);
 		case 4:
 			return a_key & (~Key::Crt_Female);
+		case 5:
+			return a_key & (~Key::Overwrite_Male);
+		case 6:
+			return a_key & (~Key::Overwrite_Female);
 		default:
 			return a_key;
 		}

@@ -18,7 +18,9 @@ namespace SLPP
 
 	RE::SpellItem* GetHDTHeelSpell(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference);
 
-	inline bool Register(VM* a_vm)
+	std::string GetEditorID(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form);
+
+			inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(MergeStringArrayEx, "sslpp");
 		REGISTERFUNC(RemoveStringEx, "sslpp");
@@ -29,7 +31,7 @@ namespace SLPP
 		REGISTERFUNC(FindBeds, "sslpp");
 		REGISTERFUNC(IsBed, "sslpp");
 		REGISTERFUNC(GetHDTHeelSpell, "sslpp");
-
+		REGISTERFUNC(GetEditorID, "sslpp");
 		return true;
 	}
 }  // namespace SLPP

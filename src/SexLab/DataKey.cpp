@@ -41,11 +41,6 @@ namespace SexLab::DataKey
       return crt_key < crt_cmp;
 
     // gender
-		if (a_cmp & Key::UNDEFINED)
-      return true;
-    else if (a_key & Key::UNDEFINED)
-      return false;
-
 		const auto minimizegender = [](uint32_t a_key) -> uint32_t {
 			if (a_key & Key::Overwrite_Male) {
 				return a_key & Key::Human ? Key::Male : Key::Crt_Male;

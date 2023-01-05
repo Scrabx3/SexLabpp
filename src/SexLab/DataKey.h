@@ -6,19 +6,19 @@ namespace SexLab::DataKey
 	enum Key : uint32_t
 	{
 		// Gender
-		Male = 1U << 0,
-		Female = 1U << 1,
-		Futa = 1U << 2,
+		Male = SexLab::Gender::Male,
+		Female = SexLab::Gender::Female,
+		Futa = SexLab::Gender::Futa,
 		Human = (Male | Female | Futa),
 
-		Crt_Male = 1U << 3,
-		Crt_Female = 1U << 4,
+		Crt_Male = SexLab::Gender::Crt_Male,
+		Crt_Female = SexLab::Gender::Crt_Female,
 		Creature = (Crt_Male | Crt_Female),
 
-		Overwrite_Male = 1U << 5,
-		Overwrite_Female = 1U << 6,
+		Overwrite_Male = SexLab::Gender::Overwrite_Male,
+		Overwrite_Female = SexLab::Gender::Overwrite_Female,
 
-		UNDEFINED = 1U << 7,
+		UNDEFINED = SexLab::Gender::UNDEFINED,
 
 		// Race
 		Crt0 = 1U << 8,
