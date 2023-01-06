@@ -18,7 +18,8 @@ namespace SexLab::DataKey
       uint32_t key = ret[i];
       size_t j = i - 1;
       while (j >= 0 && IsLess(key, ret[j])) {
-        ret[j + 1] = ret[j--];
+        ret[j + 1] = ret[j];
+				j--;
       }
       ret[j + 1] = key;
     }
