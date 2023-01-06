@@ -65,10 +65,7 @@ namespace SLPP
 			g = Key::Crt_Female;
 			break;
 		case -1:
-			return 0b111;
-		case -2:
-			g = 0b00011;
-			break;
+			return Key::Male | Key::Female | Key::Futa;
 		default:
 			g = Key::Male;
 			break;

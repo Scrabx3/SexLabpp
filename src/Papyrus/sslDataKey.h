@@ -40,7 +40,16 @@ namespace SLPP::DataKey
 	inline bool IsMaleOverwrite(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Overwrite_Male; }
 	inline bool IsFemaleOverwrite(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Overwrite_Female; }
 
-	inline uint32_t GetRaceID(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::CrtTotal; }
+	inline uint32_t GetRaceID(RE::StaticFunctionTag*, uint32_t a_key) { return (a_key & Key::CrtTotal) >> 8; }
+	// {
+	// 	constexpr auto crt = Key::Crt_Male | Key::Crt0 | Key::Crt1;
+	// 	constexpr auto check = 0b11;
+	// 	constexpr auto crt_id = crt & Key::CrtTotal;
+	// 	constexpr auto check_id = crt_id >> 8;
+	// 	static_assert(check == check_id);
+	// }
+
+
 	// std::string GetRaceKey(RE::StaticFunctionTag*, uint32_t a_key);
 	// uint32_t GetRaceIDByRaceKey(RE::StaticFunctionTag*, std::string a_racekey);
 
