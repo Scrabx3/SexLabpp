@@ -8,13 +8,13 @@ std::vector<std::string> SLPP::MergeStringArrayEx(RE::StaticFunctionTag*, std::v
 	decltype(a_array1) ret{ a_array1 };
 	for (auto&& str : a_array2) {
 		if (a_removedupes && [&ret, &str]() -> bool {
-				for (auto&& s : ret) {
-					if (SexLab::IsEqualString(str, s)) {
-						return true;
+					for (auto&& s : ret) {
+						if (SexLab::IsEqualString(str, s)) {
+							return true;
+						}
 					}
-				}
-				return false;
-			}()) {
+					return false;
+				}()) {
 			continue;
 		}
 		ret.push_back(str);
@@ -58,9 +58,57 @@ void SLPP::SetPositions(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag
 	std::for_each(a_positions.begin(), a_positions.end(), [&setposition](RE::Actor* subject) { std::thread(setposition, subject).detach(); });
 }
 
+void SLPP::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center, std::vector<float> a_offsets)
+{
+	if (!a_center) {
+		a_vm->TraceStack("Cannot center Actors around a none Reference", a_stackID);
+		return;
+	} else if (a_refs.empty()) {
+		a_vm->TraceStack("Empty Array. Nothing to do", a_stackID);
+		return;
+	} else if (a_refs.size() * 4 != a_offsets.size()) {
+		a_vm->TraceStack("Offsets needs to be a mx4 matrix", a_stackID);
+		return;
+	}
+	const auto centerPos = a_center->GetPosition();
+	const auto centerAng = a_center->GetAngle();
+
+	std::vector<RE::NiPoint3> positions{}, angles{};
+	positions.reserve(a_refs.size());
+	angles.reserve(a_refs.size());
+	for (size_t i = 0; i < a_refs.size(); i++) {
+		RE::NiPoint3 pos{ centerPos }, ang{ centerAng };
+		pos.x = a_offsets[i * 4 + 0];
+		pos.y = a_offsets[i * 4 + 1];
+		pos.z = a_offsets[i * 4 + 2];
+		ang.z = a_offsets[i * 4 + 3];
+		positions.push_back(pos);
+		angles.push_back(ang);
+	}
+	for (size_t i = 0; i < a_refs.size(); i++) {
+		a_refs[i]->data.angle = angles[i];
+		a_refs[i]->SetPosition(positions[i], true);
+		a_refs[i]->Update3DPosition(true);
+	}
+	// the game will sometimes do minor adjustments to the actor position up to 1 sec after placing
+	for (size_t i = 0; i < a_refs.size(); i++) {
+		std::thread(
+				[](RE::Actor* a_ref, const RE::NiPoint3 a_position, const RE::NiPoint3 a_angle) {
+					for (size_t i = 0; i < 6; i++) {
+						std::this_thread::sleep_for(std::chrono::milliseconds(300));
+						a_ref->data.angle.z = a_angle.z;
+						a_ref->SetPosition(a_position, false);
+					}
+				},
+				a_refs[i], positions[i], angles[i])
+				.detach();
+	}
+}
+
+
 bool SLPP::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tags, std::vector<std::string_view> a_match)
 {
-	auto optional_match = 2;  // 0 - No match | 1 - Matched | 2 - Undefined
+	auto optional_match = 2;	// 0 - No match | 1 - Matched | 2 - Undefined
 	for (auto&& tag : a_match) {
 		if (tag.empty()) {
 			continue;
@@ -79,8 +127,8 @@ bool SLPP::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tag
 				return false;
 			break;
 		}
-  }
-  return optional_match != 0;
+	}
+	return optional_match != 0;
 }
 
 std::vector<RE::TESObjectREFR*> SLPP::FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusz)
@@ -137,7 +185,7 @@ bool SLPP::IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::
 		a_vm->TraceStack("Reference is none", a_stackID);
 		return false;
 	}
-  return SexLab::GetIsBed(a_reference);
+	return SexLab::GetIsBed(a_reference);
 }
 
 RE::TESAmmo* SLPP::GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
