@@ -27,9 +27,9 @@ namespace SLPP::DataKey
 
 	inline bool IsMale(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Male; }
 	inline bool IsFemale(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Female; }
-	inline bool IsPureFemale(RE::StaticFunctionTag*, uint32_t a_key) { return (a_key & (Key::Female | Key::Futa)) == Key::Female; }
+	inline bool IsPureFemale(RE::StaticFunctionTag*, uint32_t a_key) { return (a_key & Key::Human) == Key::Female; }
 	inline bool IsFuta(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Futa; }
-	inline bool IsCreature(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & (Key::Crt_Male | Key::Crt_Female); }
+	inline bool IsCreature(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Creature; }
 	inline bool IsMaleCreature(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Crt_Male; }
 	inline bool IsFemaleCreature(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Crt_Female; }
 
