@@ -48,14 +48,14 @@ void SLPP::SetPositions(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag
 		subject->Update3DPosition(true);
 	}
 
-	const auto setposition = [centerAng, centerPos](RE::Actor* actor) {
-		for (size_t i = 0; i < 6; i++) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(300));
-			actor->data.angle.z = centerAng.z;
-			actor->SetPosition(centerPos, false);
-		}
-	};
-	std::for_each(a_positions.begin(), a_positions.end(), [&setposition](RE::Actor* subject) { std::thread(setposition, subject).detach(); });
+	// const auto setposition = [centerAng, centerPos](RE::Actor* actor) {
+	// 	for (size_t i = 0; i < 6; i++) {
+	// 		std::this_thread::sleep_for(std::chrono::milliseconds(300));
+	// 		actor->data.angle.z = centerAng.z;
+	// 		actor->SetPosition(centerPos, false);
+	// 	}
+	// };
+	// std::for_each(a_positions.begin(), a_positions.end(), [&setposition](RE::Actor* subject) { std::thread(setposition, subject).detach(); });
 }
 
 void SLPP::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center, std::vector<float> a_offsets)
@@ -63,25 +63,31 @@ void SLPP::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, s
 	if (!a_center) {
 		a_vm->TraceStack("Cannot center Actors around a none Reference", a_stackID);
 		return;
-	} else if (a_refs.empty()) {
-		a_vm->TraceStack("Empty Array. Nothing to do", a_stackID);
+	} else if (a_refs.empty() || std::find(a_refs.begin(), a_refs.end(), nullptr) != a_refs.end()) {
+		a_vm->TraceStack("Empty reference array. Nothing to do", a_stackID);
 		return;
 	} else if (a_refs.size() * 4 != a_offsets.size()) {
 		a_vm->TraceStack("Offsets needs to be a mx4 matrix", a_stackID);
 		return;
 	}
 	const auto centerPos = a_center->GetPosition();
-	const auto centerAng = a_center->GetAngle();
+	const auto centerAng = [&a_center]() { auto ret = a_center->GetAngle(); ret.z += static_cast<float>(std::_Pi); return ret; }();
 
 	std::vector<RE::NiPoint3> positions{}, angles{};
 	positions.reserve(a_refs.size());
 	angles.reserve(a_refs.size());
 	for (size_t i = 0; i < a_refs.size(); i++) {
 		RE::NiPoint3 pos{ centerPos }, ang{ centerAng };
-		pos.x = a_offsets[i * 4 + 0];
-		pos.y = a_offsets[i * 4 + 1];
-		pos.z = a_offsets[i * 4 + 2];
-		ang.z = a_offsets[i * 4 + 3];
+		const auto forward = a_offsets[i * 4 + 0];
+		pos.x += forward * sin(ang.z);
+		pos.y += forward * cos(ang.z);
+
+		const auto side = a_offsets[i * 4 + 1];
+		pos.x += side * cos(ang.z);
+		pos.y += side * sin(ang.z);
+
+		pos.z += a_offsets[i * 4 + 2];
+		ang.z += a_offsets[i * 4 + 3] * static_cast<float>(std::_Pi / 180.0);
 		positions.push_back(pos);
 		angles.push_back(ang);
 	}
@@ -91,18 +97,18 @@ void SLPP::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, s
 		a_refs[i]->Update3DPosition(true);
 	}
 	// the game will sometimes do minor adjustments to the actor position up to 1 sec after placing
-	for (size_t i = 0; i < a_refs.size(); i++) {
-		std::thread(
-				[](RE::Actor* a_ref, const RE::NiPoint3 a_position, const RE::NiPoint3 a_angle) {
-					for (size_t i = 0; i < 6; i++) {
-						std::this_thread::sleep_for(std::chrono::milliseconds(300));
-						a_ref->data.angle.z = a_angle.z;
-						a_ref->SetPosition(a_position, false);
-					}
-				},
-				a_refs[i], positions[i], angles[i])
-				.detach();
-	}
+	// for (size_t i = 0; i < a_refs.size(); i++) {
+	// 	std::thread(
+	// 			[](RE::Actor* a_ref, const RE::NiPoint3 a_position, const RE::NiPoint3 a_angle) {
+	// 				for (size_t i = 0; i < 6; i++) {
+	// 					std::this_thread::sleep_for(std::chrono::milliseconds(300));
+	// 					a_ref->data.angle.z = a_angle.z;
+	// 					a_ref->SetPosition(a_position, false);
+	// 				}
+	// 			},
+	// 			a_refs[i], positions[i], angles[i])
+	// 			.detach();
+	// }
 }
 
 

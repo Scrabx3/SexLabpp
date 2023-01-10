@@ -26,6 +26,7 @@ namespace SLPP
 		REGISTERFUNC(MergeStringArrayEx, "sslpp");
 		REGISTERFUNC(RemoveStringEx, "sslpp");
 		REGISTERFUNC(SetPositions, "sslpp");
+		REGISTERFUNC(SetPositionsEx, "sslpp");
 		REGISTERFUNC(GetEquippedAmmo, "sslpp");
 		REGISTERFUNC(StripActor, "sslpp");
 		REGISTERFUNC(MatchTags, "sslpp");
