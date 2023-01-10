@@ -50,9 +50,10 @@ namespace SexLab
 			break;
 		case RE::SEXES::kFemale:
 			if (IsNPC(a_actor)) {
-				ret.set(Gender::Female);
 				if (HasSchlong(a_actor)) {
 					ret.set(Gender::Futa);
+				} else {
+					ret.set(Gender::Female);
 				}
 			} else {
 				ret.set(Gender::Crt_Female);
