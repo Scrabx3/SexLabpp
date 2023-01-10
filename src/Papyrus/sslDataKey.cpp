@@ -11,6 +11,15 @@ namespace SLPP
 		return SexLab::DataKey::BuildKey(a_ref, a_isvictim, a_raceid);
 	}
 
+	uint32_t DataKey::BuildCustomKey(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata)
+	{
+		if (a_gender < 0 || a_gender > 4) {
+			a_vm->TraceStack("Custom keys require a gender", a_stackID);
+			return 0;
+		}
+		return SexLab::DataKey::BuildCustomKey(a_gender, a_raceid, a_extradata);
+	}
+
 	std::vector<uint32_t> DataKey::SortDataKeys(RE::StaticFunctionTag*, std::vector<uint32_t> a_keys)
 	{
 		return SexLab::DataKey::SortKeys(a_keys);

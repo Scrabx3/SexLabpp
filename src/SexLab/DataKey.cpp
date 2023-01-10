@@ -11,7 +11,36 @@ namespace SexLab::DataKey
 		return static_cast<uint32_t>(g.underlying()) | (a_raceid << 8) | (a_victim << 16) | (IsVampire(a_ref) << 17);
 	}
 
-  std::vector<uint32_t> SortKeys(const std::vector<uint32_t>& a_keys)
+	uint32_t BuildCustomKey(uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata)
+	{
+		uint32_t ret;
+		switch (a_gender) {
+		default:
+		case 0:
+			ret = Key::Male;
+			break;
+		case 1:
+			ret = Key::Female;
+			break;
+		case 2:
+			ret = Key::Futa;
+			break;
+		case 3:
+			ret = Key::Crt_Male;
+			break;
+		case 4:
+			ret = Key::Crt_Female;
+			break;
+		}
+		const size_t limit = a_extradata.size() > ExtraDataCount ? ExtraDataCount : a_extradata.size();
+		for (size_t i = 0; i < limit; i++) {
+			if (a_extradata[i])
+				ret |= 1 << (16 + i);
+		}
+		return ret | (a_raceid << 8);
+	}
+
+	std::vector<uint32_t> SortKeys(const std::vector<uint32_t>& a_keys)
   {
     std::vector<uint32_t> ret{ a_keys };
     for (size_t i = 1; i < ret.size(); i++) {

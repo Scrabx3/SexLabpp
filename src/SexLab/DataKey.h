@@ -36,6 +36,8 @@ namespace SexLab::DataKey
 		Victim = 1U << 16,
 		Vampire = 1U << 17,
 
+		ExtraDataCount = 2,
+
 		// Blank
 		Empty = 0,
 		Blank = 1U << 31
@@ -44,6 +46,7 @@ namespace SexLab::DataKey
 	// TODO: uint32_t GetRaceID(RE::Actor*);
 
 	uint32_t BuildKey(RE::Actor* a_ref, bool a_victim, uint32_t a_raceid);
+	uint32_t BuildCustomKey(uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata);
 
 	std::vector<uint32_t> SortKeys(const std::vector<uint32_t>& a_keys);
 

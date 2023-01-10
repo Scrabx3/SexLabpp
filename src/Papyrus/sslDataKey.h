@@ -10,6 +10,7 @@ namespace SLPP::DataKey
 
 	// Building
 	uint32_t BuildDataKeyNative(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_ref, bool abIsVictim, uint32_t a_raceid);
+	uint32_t BuildCustomKey(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata);
 
 	// std::vector<uint32_t> BuildDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t aiVictimIdx);
 	// std::vector<uint32_t> BuildDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_isvictim);
@@ -64,6 +65,7 @@ namespace SLPP::DataKey
 	{
 		REGISTERFUNC(BuildDataKeyNative, "sslActorData");
 		REGISTERFUNC(BuildBlankKey, "sslActorData");
+		REGISTERFUNC(BuildCustomKey, "sslActorData");
 
 		REGISTERFUNC(SortDataKeys, "sslActorData");
 		REGISTERFUNC(IsLess, "sslActorData");
