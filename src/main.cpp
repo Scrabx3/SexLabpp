@@ -27,7 +27,7 @@ extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
 	v.AuthorName("Scrab Joséline"sv);
 	v.UsesAddressLibrary(true);
 	v.UsesStructsPost629(true);
-	v.CompatibleVersions({ SKSE::RUNTIME_SSE_LATEST_AE });
+	v.CompatibleVersions({ SKSE::RUNTIME_LATEST_VR, SKSE::RUNTIME_SSE_LATEST_SE, SKSE::RUNTIME_SSE_LATEST });
 	return v;
 }();
 
