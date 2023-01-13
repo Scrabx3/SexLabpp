@@ -46,7 +46,23 @@ namespace SLPP
 		std::vector<uint32_t> key{ a_key.begin(), a_key.end() }, cmp{ a_cmp.begin(), a_cmp.end() };
 		return SexLab::DataKey::MatchArray(key, cmp);
 	}
-	
+
+	int32_t DataKey::GetGender(RE::StaticFunctionTag*, uint32_t a_key)
+	{
+		if (a_key & Key::Crt_Male)
+			return 3;
+		if (a_key & Key::Crt_Female)
+			return 4;
+
+		if (a_key & Key::Futa)
+			return 2;
+		if (a_key & Key::Female)
+			return 1;
+		// if (a_key & Key::Male)
+		// 	return 0;
+		return 0;
+	}
+
 	int32_t DataKey::GetLegacyGenderByKey(RE::StaticFunctionTag*, uint32_t a_key)
 	{
 		if (a_key & Key::Male)
@@ -82,28 +98,28 @@ namespace SLPP
 			g = Key::Male;
 			break;
 		}
-		return g | (a_raceid << 8);
+		return static_cast<int32_t>(g | (a_raceid << 8));
 	}
 
 	int32_t DataKey::AddGenderToKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender)
 	{
 		switch (a_gender) {
 		case 0:
-			return a_key | Key::Male;
+			return static_cast<int32_t>(a_key | Key::Male);
 		case 1:
-			return a_key | Key::Female;
+			return static_cast<int32_t>(a_key | Key::Female);
 		case 2:
-			return a_key | Key::Female;
+			return static_cast<int32_t>(a_key | Key::Futa);
 		case 3:
-			return a_key | Key::Crt_Male;
+			return static_cast<int32_t>(a_key | Key::Crt_Male);
 		case 4:
-			return a_key | Key::Crt_Female;
+			return static_cast<int32_t>(a_key | Key::Crt_Female);
 		case 5:
-			return a_key | Key::Overwrite_Male;
+			return static_cast<int32_t>(a_key | Key::Overwrite_Male);
 		case 6:
-			return a_key | Key::Overwrite_Female;
+			return static_cast<int32_t>(a_key | Key::Overwrite_Female);
 		default:
-			return a_key;
+			return static_cast<int32_t>(a_key);
 		}
 	}
 
@@ -111,21 +127,21 @@ namespace SLPP
 	{
 		switch (a_gender) {
 		case 0:
-			return a_key & (~Key::Male);
+			return static_cast<int32_t>(a_key & (~Key::Male));
 		case 1:
-			return a_key & (~Key::Female);
+			return static_cast<int32_t>(a_key & (~Key::Female));
 		case 2:
-			return a_key & (~Key::Female);
+			return static_cast<int32_t>(a_key & (~Key::Futa));
 		case 3:
-			return a_key & (~Key::Crt_Male);
+			return static_cast<int32_t>(a_key & (~Key::Crt_Male));
 		case 4:
-			return a_key & (~Key::Crt_Female);
+			return static_cast<int32_t>(a_key & (~Key::Crt_Female));
 		case 5:
-			return a_key & (~Key::Overwrite_Male);
+			return static_cast<int32_t>(a_key & (~Key::Overwrite_Male));
 		case 6:
-			return a_key & (~Key::Overwrite_Female);
+			return static_cast<int32_t>(a_key & (~Key::Overwrite_Female));
 		default:
-			return a_key;
+			return static_cast<int32_t>(a_key);
 		}
 	}
 

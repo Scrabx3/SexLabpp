@@ -18,7 +18,7 @@ namespace SLPP::DataKey
 	// std::vector<int32_t> BuildSortedDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t a_victimidx);
 	// std::vector<int32_t> BuildSortedDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_victimidx);
 
-	inline int32_t BuildBlankKey(RE::StaticFunctionTag*) { return 1U << 31; }
+	inline int32_t BuildBlankKey(RE::StaticFunctionTag*) { return static_cast<int32_t>(1U << 31); }
 
 	// Sort & Compare
 	std::vector<int32_t> SortDataKeys(RE::StaticFunctionTag*, std::vector<int32_t> a_keys);
@@ -26,6 +26,7 @@ namespace SLPP::DataKey
 	bool Match(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_cmp);
 	bool MatchArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<int32_t> a_key, std::vector<int32_t> a_cmp);
 
+	int32_t GetGender(RE::StaticFunctionTag*, uint32_t a_key);
 	inline bool IsMale(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Male; }
 	inline bool IsFemale(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Female; }
 	inline bool IsPureFemale(RE::StaticFunctionTag*, uint32_t a_key) { return (a_key & Key::Human) == Key::Female; }
@@ -64,6 +65,7 @@ namespace SLPP::DataKey
 		REGISTERFUNC(Match, "sslActorData");
 		REGISTERFUNC(MatchArray, "sslActorData");
 
+		REGISTERFUNC(GetGender, "sslActorData");
 		REGISTERFUNC(IsMale, "sslActorData");
 		REGISTERFUNC(IsFemale, "sslActorData");
 		REGISTERFUNC(IsPureFemale, "sslActorData");
