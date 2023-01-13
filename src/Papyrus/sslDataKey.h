@@ -4,7 +4,7 @@
 
 namespace SLPP::DataKey
 {
-#define REGISTERFUNC(func, c) a_vm->RegisterFunction(#func##sv, c, func, true)
+#define REGISTERFUNC(func, c) a_vm->RegisterFunction(#func##sv, c, func)
 
 	using Key = SexLab::DataKey::Key;
 
@@ -12,19 +12,19 @@ namespace SLPP::DataKey
 	uint32_t BuildDataKeyNative(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_ref, bool abIsVictim, uint32_t a_raceid);
 	uint32_t BuildCustomKey(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata);
 
-	// std::vector<uint32_t> BuildDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t aiVictimIdx);
-	// std::vector<uint32_t> BuildDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_isvictim);
+	// std::vector<int32_t> BuildDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t aiVictimIdx);
+	// std::vector<int32_t> BuildDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_isvictim);
 
-	// std::vector<uint32_t> BuildSortedDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t a_victimidx);
-	// std::vector<uint32_t> BuildSortedDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_victimidx);
+	// std::vector<int32_t> BuildSortedDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t a_victimidx);
+	// std::vector<int32_t> BuildSortedDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_victimidx);
 
 	inline uint32_t BuildBlankKey(RE::StaticFunctionTag*) { return 1U << 31; }
 
 	// Sort & Compare
-	std::vector<uint32_t> SortDataKeys(RE::StaticFunctionTag*, std::vector<uint32_t> a_keys);
+	std::vector<int32_t> SortDataKeys(RE::StaticFunctionTag*, std::vector<int32_t> a_keys);
 	bool IsLess(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_cmp);
 	bool Match(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_cmp);
-	bool MatchArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<uint32_t> a_key, std::vector<uint32_t> a_cmp);
+	bool MatchArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<int32_t> a_key, std::vector<int32_t> a_cmp);
 
 	inline bool IsMale(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Male; }
 	inline bool IsFemale(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Female; }
@@ -59,7 +59,7 @@ namespace SLPP::DataKey
 
 	uint32_t AddGenderToKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender);
 	uint32_t RemoveGenderFromKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender);
-	void NeutralizeCreatureGender(RE::StaticFunctionTag*, std::vector<uint32_t> a_keys);
+	void NeutralizeCreatureGender(RE::StaticFunctionTag*, std::vector<int32_t> a_keys);
 
 	inline bool Register(VM* a_vm)
 	{

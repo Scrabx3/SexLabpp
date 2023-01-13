@@ -232,7 +232,7 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 		a_vm->TraceStack("Cannot retrieve hdt spell from a none reference", a_stackID);
 		return {};
 	}
-	std::vector<RE::TESForm*> ret;
+	std::vector<RE::TESForm*> ret{};
 	const auto& manager = RE::ActorEquipManager::GetSingleton();
 	const auto& inventory = a_reference->GetInventory();
 	for (const auto& [form, data] : inventory) {
@@ -247,8 +247,8 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 			continue;
 		const auto& slots = static_cast<uint32_t>(biped->GetSlotMask());
 		if (slots & a_slotmask) {
-			manager->UnequipObject(a_reference, form, nullptr, data.first);
 			ret.push_back(form);
+			manager->UnequipObject(a_reference, form);
 		}
 	}
 	return ret;
@@ -261,5 +261,6 @@ std::string SLPP::GetEditorID(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunct
 		a_vm->TraceStack("Cannot retrieve editor ID. Form is none", a_stackID);
 		return ""s;
 	}
-	return a_form->GetFormEditorID();
+	const auto ret = a_form->GetFormEditorID();
+	return ret ? ret : ""s;
 }

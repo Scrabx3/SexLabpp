@@ -103,4 +103,18 @@ namespace SexLab
 		return node && !node->markers.empty() && node->markers[0].animationType.all(RE::BSFurnitureMarker::AnimationType::kSleep);
 	}
 
+	template <class T>
+	std::string ToStringVec(T v)
+	{
+		std::stringstream ss;
+		for(size_t i = 0; i < v.size(); ++i)
+		{
+			if(i != 0)
+				ss << ",";
+			ss << v[i];
+		}
+		std::string s = ss.str();
+		return s;
+	}
+
 }	 // namespace SexLab

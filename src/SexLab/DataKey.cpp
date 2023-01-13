@@ -40,20 +40,20 @@ namespace SexLab::DataKey
 		return ret | (a_raceid << 8);
 	}
 
-	std::vector<uint32_t> SortKeys(const std::vector<uint32_t>& a_keys)
+	void SortKeys(std::vector<uint32_t>& a_keys)
   {
-    std::vector<uint32_t> ret{ a_keys };
-    for (size_t i = 1; i < ret.size(); i++) {
-      uint32_t key = ret[i];
+		logger::info("Sorting Keys: [{}]", ToStringVec(a_keys));
+		for (size_t i = 1; i < a_keys.size(); i++) {
+      uint32_t key = a_keys[i];
       size_t j = i - 1;
-      while (j >= 0 && IsLess(key, ret[j])) {
-        ret[j + 1] = ret[j];
+      while (j >= 0 && IsLess(key, a_keys[j])) {
+        a_keys[j + 1] = a_keys[j];
 				j--;
       }
-      ret[j + 1] = key;
-    }
-    return ret;
-  }
+      a_keys[j + 1] = key;
+		}
+		logger::info("After sorting: [{}]", ToStringVec(a_keys));
+	}
 
 	// a_key <= a_cmp
 	bool IsLess(uint32_t a_key, uint32_t a_cmp)
@@ -117,10 +117,14 @@ namespace SexLab::DataKey
 
 	bool MatchArray(const std::vector<uint32_t>& a_key, const std::vector<uint32_t>& a_match)
 	{
+		logger::info("Matching array: [{}] against [{}]", ToStringVec(a_key), ToStringVec(a_match));
 		for (size_t i = 0; i < a_key.size(); i++) {
-			if (!MatchKey(a_key[i], a_match[i]))
+			if (!MatchKey(a_key[i], a_match[i])) {
+				logger::info("Key at {} does not match", i);
 				return false;
+			}
 		}
+		logger::info("Successfully validated match");
 		return true;
 	}
 }

@@ -48,7 +48,7 @@ namespace SexLab::DataKey
 	uint32_t BuildKey(RE::Actor* a_ref, bool a_victim, uint32_t a_raceid);
 	uint32_t BuildCustomKey(uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata);
 
-	std::vector<uint32_t> SortKeys(const std::vector<uint32_t>& a_keys);
+	void SortKeys(std::vector<uint32_t>& a_keys);
 
 	bool IsLess(uint32_t a_key, uint32_t a_cmp);
 	bool MatchKey(uint32_t a_key, uint32_t a_match);

@@ -20,9 +20,11 @@ namespace SLPP
 		return SexLab::DataKey::BuildCustomKey(a_gender, a_raceid, a_extradata);
 	}
 
-	std::vector<uint32_t> DataKey::SortDataKeys(RE::StaticFunctionTag*, std::vector<uint32_t> a_keys)
+	std::vector<int32_t> DataKey::SortDataKeys(RE::StaticFunctionTag*, std::vector<int32_t> a_keys)
 	{
-		return SexLab::DataKey::SortKeys(a_keys);
+		std::vector<uint32_t> tmp{ a_keys.begin(), a_keys.end() };
+		SexLab::DataKey::SortKeys(tmp);
+		return std::vector<int32_t>{ tmp.begin(), tmp.end() };
 	}
 
 	bool DataKey::IsLess(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_cmp)
@@ -35,13 +37,14 @@ namespace SLPP
 		return SexLab::DataKey::MatchKey(a_key, a_cmp);
 	}
 
-	bool DataKey::MatchArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<uint32_t> a_key, std::vector<uint32_t> a_cmp)
+	bool DataKey::MatchArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<int32_t> a_key, std::vector<int32_t> a_cmp)
 	{
 		if (a_key.size() != a_cmp.size()) {
 			a_vm->TraceStack("Cannot match two arrays of unequal size", a_stackID);
 			return false;
 		}
-		return SexLab::DataKey::MatchArray(a_key, a_cmp);
+		std::vector<uint32_t> key{ a_key.begin(), a_key.end() }, cmp{ a_cmp.begin(), a_cmp.end() };
+		return SexLab::DataKey::MatchArray(key, cmp);
 	}
 	
 	uint32_t DataKey::GetLegacyGenderByKey(RE::StaticFunctionTag*, uint32_t a_key)
@@ -126,7 +129,7 @@ namespace SLPP
 		}
 	}
 
-	void DataKey::NeutralizeCreatureGender(RE::StaticFunctionTag*, std::vector<uint32_t> a_keys)
+	void DataKey::NeutralizeCreatureGender(RE::StaticFunctionTag*, std::vector<int32_t> a_keys)
 	{
 		for (auto&& k : a_keys) {
 			k |= Key::Crt_Male | Key::Crt_Female;
