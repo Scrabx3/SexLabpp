@@ -1,5 +1,6 @@
 #include "Papyrus/Functions.h"
 #include "Papyrus/sslDataKey.h"
+#include "Settings.h"
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
@@ -7,6 +8,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	case SKSE::MessagingInterface::kSaveGame:
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
+		Settings::LoadData();
 		if (!GameForms::LoadData()) {
 			logger::critical("Unable to load esp objects");
 			if (MessageBox(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)

@@ -7,6 +7,7 @@ set(CXX_FILES
 	src/Script.h
 	src/Misc.h
 	src/GameForms.h
+	src/Settings.h
 
 	src/SexLab/DataKey.h
 	src/SexLab/DataKey.cpp

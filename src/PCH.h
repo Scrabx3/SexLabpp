@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 #include <atomic>
+#include <yaml-cpp/yaml.h>
 
 #pragma warning(push)
 #ifdef NDEBUG

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Settings.h"
+
 namespace SexLab
 {
 	enum Gender : uint8_t
@@ -17,11 +19,24 @@ namespace SexLab
 		UNDEFINED = 1 << 7
 	};
 
-	inline bool HasSchlong(const RE::Actor* a_actor)
+	// Assume to only be called for human actors with female base sex
+	inline bool IsFuta(const RE::Actor* a_actor)
 	{
 		static const auto sosfaction = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESFaction>(0x00AFF8, "Schlongs of Skyrim.esp");
 		if (!sosfaction)
 			return false;
+
+		const auto base = a_actor->GetActorBase();
+		if (!base)
+			return false;
+
+		auto ret = false;
+		for (auto&& f : base->factions) {
+			if (f.faction == sosfaction)
+				ret = true;
+			if (std::find(Settings::SOS_ExcludeFactions.begin(), Settings::SOS_ExcludeFactions.end(), f.faction) != Settings::SOS_ExcludeFactions.end())
+				return false;
+		}
 		return a_actor->IsInFaction(sosfaction);
 	}
 
@@ -50,7 +65,7 @@ namespace SexLab
 			break;
 		case RE::SEXES::kFemale:
 			if (IsNPC(a_actor)) {
-				if (HasSchlong(a_actor)) {
+				if (IsFuta(a_actor)) {
 					ret.set(Gender::Futa);
 				} else {
 					ret.set(Gender::Female);

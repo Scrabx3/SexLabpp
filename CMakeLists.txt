@@ -50,6 +50,7 @@ set_from_environment(Skyrim64Path)
 # ---- Dependencies ----
 # add_subdirectory("./lib" CommonLibSSE)
 
+find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
 find_package(CommonLibSSE CONFIG REQUIRED)
 
@@ -120,6 +121,7 @@ target_link_libraries(
     PUBLIC
     CommonLibSSE::CommonLibSSE
     spdlog::spdlog
+    yaml-cpp
 )
 
 target_precompile_headers("${PROJECT_NAME}"
