@@ -22,6 +22,7 @@
 #include "GameForms.h"
 #include "Misc.h"
 #include "Script.h"
+#include "Settings.h"
 #include "Singleton.h"
 
 namespace logger = SKSE::log;
