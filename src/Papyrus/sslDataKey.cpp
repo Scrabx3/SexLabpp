@@ -2,22 +2,22 @@
 
 namespace SLPP
 {
-	uint32_t DataKey::BuildDataKeyNative(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_ref, bool a_isvictim, uint32_t a_raceid)
+	int32_t DataKey::BuildDataKeyNative(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_ref, bool a_isvictim, uint32_t a_raceid)
 	{
 		if (!a_ref) {
 			a_vm->TraceStack("Cannot build data key from a none reference", a_stackID);
 			return 0;
 		}
-		return SexLab::DataKey::BuildKey(a_ref, a_isvictim, a_raceid);
+		return static_cast<int32_t>(SexLab::DataKey::BuildKey(a_ref, a_isvictim, a_raceid));
 	}
 
-	uint32_t DataKey::BuildCustomKey(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata)
+	int32_t DataKey::BuildCustomKey(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata)
 	{
 		if (a_gender < 0 || a_gender > 4) {
 			a_vm->TraceStack("Custom keys require a gender", a_stackID);
 			return 0;
 		}
-		return SexLab::DataKey::BuildCustomKey(a_gender, a_raceid, a_extradata);
+		return static_cast<int32_t>(SexLab::DataKey::BuildCustomKey(a_gender, a_raceid, a_extradata));
 	}
 
 	std::vector<int32_t> DataKey::SortDataKeys(RE::StaticFunctionTag*, std::vector<int32_t> a_keys)
@@ -47,7 +47,7 @@ namespace SLPP
 		return SexLab::DataKey::MatchArray(key, cmp);
 	}
 	
-	uint32_t DataKey::GetLegacyGenderByKey(RE::StaticFunctionTag*, uint32_t a_key)
+	int32_t DataKey::GetLegacyGenderByKey(RE::StaticFunctionTag*, uint32_t a_key)
 	{
 		if (a_key & Key::Male)
 			return 0;
@@ -60,7 +60,7 @@ namespace SLPP
 		return 0;
 	}
 
-	uint32_t DataKey::BuildByLegacyGenderNative(RE::StaticFunctionTag*, uint32_t a_legacygender, int a_raceid)
+	int32_t DataKey::BuildByLegacyGenderNative(RE::StaticFunctionTag*, int32_t a_legacygender, int a_raceid)
 	{
 		uint32_t g;
 		switch (a_legacygender) {
@@ -85,7 +85,7 @@ namespace SLPP
 		return g | (a_raceid << 8);
 	}
 
-	uint32_t DataKey::AddGenderToKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender)
+	int32_t DataKey::AddGenderToKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender)
 	{
 		switch (a_gender) {
 		case 0:
@@ -107,7 +107,7 @@ namespace SLPP
 		}
 	}
 
-	uint32_t DataKey::RemoveGenderFromKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender)
+	int32_t DataKey::RemoveGenderFromKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender)
 	{
 		switch (a_gender) {
 		case 0:

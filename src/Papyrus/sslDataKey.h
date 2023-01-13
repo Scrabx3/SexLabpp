@@ -9,8 +9,8 @@ namespace SLPP::DataKey
 	using Key = SexLab::DataKey::Key;
 
 	// Building
-	uint32_t BuildDataKeyNative(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_ref, bool abIsVictim, uint32_t a_raceid);
-	uint32_t BuildCustomKey(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata);
+	int32_t BuildDataKeyNative(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_ref, bool abIsVictim, uint32_t a_raceid);
+	int32_t BuildCustomKey(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata);
 
 	// std::vector<int32_t> BuildDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t aiVictimIdx);
 	// std::vector<int32_t> BuildDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_isvictim);
@@ -18,7 +18,7 @@ namespace SLPP::DataKey
 	// std::vector<int32_t> BuildSortedDataKeyArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, int32_t a_victimidx);
 	// std::vector<int32_t> BuildSortedDataKeyArrayEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_ref, std::vector<bool> a_victimidx);
 
-	inline uint32_t BuildBlankKey(RE::StaticFunctionTag*) { return 1U << 31; }
+	inline int32_t BuildBlankKey(RE::StaticFunctionTag*) { return 1U << 31; }
 
 	// Sort & Compare
 	std::vector<int32_t> SortDataKeys(RE::StaticFunctionTag*, std::vector<int32_t> a_keys);
@@ -41,24 +41,16 @@ namespace SLPP::DataKey
 	inline bool IsMaleOverwrite(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Overwrite_Male; }
 	inline bool IsFemaleOverwrite(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Overwrite_Female; }
 
-	inline uint32_t GetRaceID(RE::StaticFunctionTag*, uint32_t a_key) { return (a_key & Key::CrtTotal) >> 8; }
-	// {
-	// 	constexpr auto crt = Key::Crt_Male | Key::Crt0 | Key::Crt1;
-	// 	constexpr auto check = 0b11;
-	// 	constexpr auto crt_id = crt & Key::CrtTotal;
-	// 	constexpr auto check_id = crt_id >> 8;
-	// 	static_assert(check == check_id);
-	// }
-
+	inline int32_t GetRaceID(RE::StaticFunctionTag*, uint32_t a_key) { return (a_key & Key::CrtTotal) >> 8; }
 
 	// std::string GetRaceKey(RE::StaticFunctionTag*, uint32_t a_key);
 	// uint32_t GetRaceIDByRaceKey(RE::StaticFunctionTag*, std::string a_racekey);
 
-	uint32_t GetLegacyGenderByKey(RE::StaticFunctionTag*, uint32_t a_key);
-	uint32_t BuildByLegacyGenderNative(RE::StaticFunctionTag*, uint32_t a_legacygender, int a_raceid);
+	int32_t GetLegacyGenderByKey(RE::StaticFunctionTag*, uint32_t a_key);
+	int32_t BuildByLegacyGenderNative(RE::StaticFunctionTag*, int32_t a_legacygender, int a_raceid);
 
-	uint32_t AddGenderToKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender);
-	uint32_t RemoveGenderFromKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender);
+	int32_t AddGenderToKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender);
+	int32_t RemoveGenderFromKey(RE::StaticFunctionTag*, uint32_t a_key, uint32_t a_gender);
 	void NeutralizeCreatureGender(RE::StaticFunctionTag*, std::vector<int32_t> a_keys);
 
 	inline bool Register(VM* a_vm)
