@@ -96,7 +96,7 @@ void SLPP::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, s
 		a_refs[i]->SetPosition(positions[i], true);
 		a_refs[i]->Update3DPosition(true);
 	}
-	// the game will sometimes do minor adjustments to the actor position up to 1 sec after placing
+
 	// for (size_t i = 0; i < a_refs.size(); i++) {
 	// 	std::thread(
 	// 			[](RE::Actor* a_ref, const RE::NiPoint3 a_position, const RE::NiPoint3 a_angle) {
@@ -114,27 +114,46 @@ void SLPP::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, s
 
 bool SLPP::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tags, std::vector<std::string_view> a_match)
 {
-	auto optional_match = 2;	// 0 - No match | 1 - Matched | 2 - Undefined
+	enum
+	{
+		Unmatched,	// has optional tags, but all are invalid
+		Matched,		// has optional tags with at least of them matching
+		Undefined		// No optional tags
+	};
+	auto match = Undefined;
 	for (auto&& tag : a_match) {
-		if (tag.empty()) {
+		if (tag.empty())
 			continue;
-		}
+
 		switch (tag[0]) {
 		case '~':
-			if (optional_match != 1)
-				optional_match = std::find_if(a_tags.begin(), a_tags.end(), [&tag](auto& str) { return SexLab::IsEqualString(tag, str.substr(1)); }) != a_tags.end();
+			if (match != Matched) {
+				const auto& find = tag.substr(1);
+				const auto where = std::find_if(a_tags.begin(), a_tags.end(),
+						[&find](auto& str) { return SexLab::IsEqualString(find, str); });
+				match = where != a_tags.end() ? Matched : Unmatched;
+			}
 			break;
 		case '-':
-			if (std::find_if(a_tags.begin(), a_tags.end(), [&tag](auto& str) { return SexLab::IsEqualString(tag, str.substr(1)); }) != a_tags.end())
-				return false;
+			{
+				const auto& find = tag.substr(1);
+				const auto where = std::find_if(a_tags.begin(), a_tags.end(),
+						[&find](auto& str) { return SexLab::IsEqualString(find, str); });
+				if (where != a_tags.end())
+					return false;
+			}
 			break;
 		default:
-			if (std::find_if(a_tags.begin(), a_tags.end(), [&tag](auto& str) { return SexLab::IsEqualString(tag, str); }) == a_tags.end())
-				return false;
+			{
+				const auto where = std::find_if(a_tags.begin(), a_tags.end(),
+						[&tag](auto& str) { return SexLab::IsEqualString(tag, str); });
+				if (where == a_tags.end())
+					return false;
+			}
 			break;
 		}
 	}
-	return optional_match != 0;
+	return match != Unmatched;
 }
 
 std::vector<RE::TESObjectREFR*> SLPP::FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusz)

@@ -3,55 +3,63 @@
 
 namespace SexLab::DataKey
 {
+	/// Semi Mandatory: 'at least' cover the compared key. E.g. vampire animation only on vampire but vampire can animate everything
+	/// Mandatory: Exact match. E.g. necro animation only for dead actors AND dead actors CANNOT animate "for-living" animations
 	enum Key : uint32_t
 	{
-		// Gender
-		Male = SexLab::Gender::Male,
-		Female = SexLab::Gender::Female,
-		Futa = SexLab::Gender::Futa,
-		Human = (Male | Female | Futa),
+		// Gender (Semi Mandatory)
+		Male = 1 << 0,
+		Female = 1 << 1,
+		Futa = 1 << 2,
+		Creature = 1 << 3,
 
-		Crt_Male = SexLab::Gender::Crt_Male,
-		Crt_Female = SexLab::Gender::Crt_Female,
-		Creature = (Crt_Male | Crt_Female),
+		Overwrite_Male = 1 << 4,
+		Overwrite_Female = 1 << 5,
 
-		Overwrite_Male = SexLab::Gender::Overwrite_Male,
-		Overwrite_Female = SexLab::Gender::Overwrite_Female,
+		GendersBaseTotal = (Male | Female | Futa),
+		GendersTotal = (Male | Female | Futa | Creature),
+		GenderBits = 6,
 
-		UNDEFINED = SexLab::Gender::UNDEFINED,
+		// Race (Mandatory)
+		Crt0 = 1U << 6,
+		Crt1 = 1U << 7,
+		Crt2 = 1U << 8,
+		Crt3 = 1U << 9,
+		Crt4 = 1U << 10,
+		Crt5 = 1U << 11,
 
-		// Race
-		Crt0 = 1U << 8,
-		Crt1 = 1U << 9,
-		Crt2 = 1U << 10,
-		Crt3 = 1U << 11,
-		Crt4 = 1U << 12,
-		Crt5 = 1U << 13,
-		Crt6 = 1U << 14,
-		Crt7 = 1U << 15,
+		CrtTotal = (Crt0 | Crt1 | Crt2 | Crt3 | Crt4 | Crt5),
+		CrtBits = 6,
 
-		CrtTotal = (Crt0 | Crt1 | Crt2 | Crt3 | Crt4 | Crt5 | Crt6 | Crt7),
+		// Extra (Semi Mandatory)
+		Victim = 1U << 12,
+		Vampire = 1U << 13,
 
-		// Extra
-		Victim = 1U << 16,
-		Vampire = 1U << 17,
+		AmputeeAR = 1U << 14,	 // Arm Right
+		AmputeeAL = 1U << 15,	 // Arm Left
+		AmputeeLR = 1U << 16,	 // leg Right
+		AmputeeLL = 1U << 17,	 // Leg Left
 
-		ExtraDataCount = 2,
+		// Extra (Mandatory)
+		Dead = 1U << 18,
+
+		ExtraMandatory = (Dead),
+		ExtraBits = 7,
+
+		MandatoryKeys = (CrtTotal | ExtraMandatory),
 
 		// Blank
 		Empty = 0,
-		Blank = 1U << 31
+		Blank = 1 << 31
 	};
 
-	// TODO: uint32_t GetRaceID(RE::Actor*);
+	void AddGender(const RE::Actor* a_actor, SKSE::stl::enumeration<Key, std::uint32_t>& a_key);
+	// void AddRaceID(const RE::Actor* a_actor, stl::enumeration<Gender, std::uint32_t>& a_key)
 
-	uint32_t BuildKey(RE::Actor* a_ref, bool a_victim, uint32_t a_raceid);
-	uint32_t BuildCustomKey(uint32_t a_gender, uint32_t a_raceid, std::vector<bool> a_extradata);
-
-	void SortKeys(std::vector<uint32_t>& a_keys);
+	uint32_t BuildKey(RE::Actor* a_ref, bool a_victim, std::string& a_racekey);
+	uint32_t BuildCustomKey(uint32_t a_gender, std::string a_racekey, std::vector<bool> a_extradata);
 
 	bool IsLess(uint32_t a_key, uint32_t a_cmp);
 	bool MatchKey(uint32_t a_key, uint32_t a_match);
-	bool MatchArray(const std::vector<uint32_t>& a_key, const std::vector<uint32_t>& a_match);
 
 }	 // namespace SexLab::DataKey

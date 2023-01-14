@@ -15,13 +15,8 @@ namespace GameForms
 	// SexLab Forms
 	inline const RE::TESFaction* GenderFaction;
 
-	// const RE::TESQuest* Config;
-	// Script::ObjectPtr GetConfig() { return Script::CreateObjectPtr(Config, "sslSystemConfig"); }
-
-
 	inline bool LoadData()
 	{
-		// LOOKUPMOD(Config, 0xD62, "SexLab.esp");
 		LOOKUPMOD(GenderFaction, 0x043A43, "SexLab.esm");
 
 		return true;

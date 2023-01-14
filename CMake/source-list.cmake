@@ -12,6 +12,8 @@ set(CXX_FILES
 
 	src/SexLab/DataKey.h
 	src/SexLab/DataKey.cpp
+	src/SexLab/RaceKey.h
+	src/SexLab/RaceKey.cpp
 
 	src/Papyrus/Functions.h
 	src/Papyrus/Functions.cpp
