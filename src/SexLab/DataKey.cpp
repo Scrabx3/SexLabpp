@@ -143,7 +143,7 @@ namespace SexLab::DataKey
 	// Does a_key fill a_match?
 	bool MatchKey(uint32_t a_key, uint32_t a_match)
 	{
-		if (!a_key)
+		if (!a_key || (a_key & Key::Blank))
 			return true;
 
 		if ((a_key & Key::MandatoryKeys) != (a_match & Key::MandatoryKeys))
