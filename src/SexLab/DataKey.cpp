@@ -30,7 +30,7 @@ namespace SexLab::DataKey
 			break;
 		}
 		for (auto&& f : base->factions) {
-			if (f.faction != GameForms::GenderFaction) {
+			if (f.faction == GameForms::GenderFaction) {
 				switch (f.rank) {
 				case 0:
 					a_key.set(Gender::Overwrite_Male);
