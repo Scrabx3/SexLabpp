@@ -28,12 +28,12 @@ namespace SLPP::DataKey
 	bool MatchArray(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<int32_t> a_keys, std::vector<int32_t> a_cmp);
 
 	int32_t GetGender(RE::StaticFunctionTag*, uint32_t a_key);
-	inline bool IsMale(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 1; }
-	inline bool IsFemale(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 2; }
-	inline bool IsFuta(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 3; }
-	inline bool IsCreature(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) >= 4; }
-	inline bool IsMaleCreature(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 4; }
-	inline bool IsFemaleCreature(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 5; }
+	inline bool IsMale(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 0; }
+	inline bool IsFemale(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 1; }
+	inline bool IsFuta(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 2; }
+	inline bool IsCreature(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) >= 3; }
+	inline bool IsMaleCreature(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 3; }
+	inline bool IsFemaleCreature(RE::StaticFunctionTag*, uint32_t a_key) { return GetGender(nullptr, a_key) == 4; }
 
 	inline bool IsVictim(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Victim; }
 	inline bool IsVampire(RE::StaticFunctionTag*, uint32_t a_key) { return a_key & Key::Vampire; }
