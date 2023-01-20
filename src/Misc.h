@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Settings.h"
+#include "Papyrus/Settings.h"
 #include "SexLab/DataKey.h"
 
 namespace SexLab
@@ -20,9 +20,11 @@ namespace SexLab
 
 		auto ret = false;
 		for (auto&& f : base->factions) {
+			if (!f.faction)
+				continue;
 			if (f.faction == sosfaction)
 				ret = true;
-			if (std::find(Settings::SOS_ExcludeFactions.begin(), Settings::SOS_ExcludeFactions.end(), f.faction) != Settings::SOS_ExcludeFactions.end())
+			if (std::find(Settings::SOS_ExcludeFactions.begin(), Settings::SOS_ExcludeFactions.end(), f.faction->formID) != Settings::SOS_ExcludeFactions.end())
 				return false;
 		}
 		return a_actor->IsInFaction(sosfaction);

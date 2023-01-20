@@ -18,16 +18,18 @@
 #endif
 #pragma warning(pop)
 
+namespace logger = SKSE::log;
+namespace fs = std::filesystem;
+using namespace std::literals;
+
 // #include "Random.h"
 #include "GameForms.h"
 #include "Misc.h"
 #include "Script.h"
-#include "Settings.h"
 #include "Singleton.h"
 
-namespace logger = SKSE::log;
-namespace fs = std::filesystem;
-using namespace std::literals;
+#define ESPNAME "SexLab.esm"
+static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return "Data\\SKSE\\SexLabpp\\"s + file; };
 
 namespace stl
 {

@@ -1,5 +1,7 @@
 #include "Papyrus/Functions.h"
 
+#include "Papyrus/Settings.h"
+
 std::vector<std::string> SLPP::MergeStringArrayEx(RE::StaticFunctionTag*, std::vector<std::string> a_array1, std::vector<std::string> a_array2, bool a_removedupes)
 {
 	if (a_array1.empty()) {
@@ -258,16 +260,34 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 		if (form->Is(RE::FormType::LeveledItem) || !data.second->IsWorn() || !form->GetPlayable() || form->GetName()[0] == '\0') {
 			continue;
 		}
-		const auto& kwd = form->As<RE::BGSKeywordForm>();
-		if (kwd && kwd->ContainsKeywordString("NoStrip"))
+		const auto cstrip = Settings::StripConfig::GetSingleton();
+		switch (cstrip->CheckStrip(form)) {
+		case Settings::StripConfig::Strip::Never:
 			continue;
-		const auto& biped = form->As<RE::BGSBipedObjectForm>();
-		if (!biped)
-			continue;
-		const auto& slots = static_cast<uint32_t>(biped->GetSlotMask());
-		if (slots & a_slotmask) {
-			ret.push_back(form);
+		case Settings::StripConfig::Strip::Always:
 			manager->UnequipObject(a_reference, form);
+			ret.push_back(form);
+			continue;
+		}						
+		const auto& kwd = form->As<RE::BGSKeywordForm>();
+		if (kwd) {
+			if (kwd->ContainsKeywordString("NoStrip"))
+				continue;
+
+			if (kwd->ContainsKeywordString("AlwaysStrip")) {
+				manager->UnequipObject(a_reference, form);
+				ret.push_back(form);
+				continue;
+			}
+		}
+		const auto& biped = form->As<RE::BGSBipedObjectForm>();
+		if (biped) {
+			const auto& slots = static_cast<uint32_t>(biped->GetSlotMask());
+			if (slots & a_slotmask) {
+				manager->UnequipObject(a_reference, form);
+				ret.push_back(form);
+				continue;
+			}
 		}
 	}
 	return ret;

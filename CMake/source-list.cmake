@@ -7,8 +7,6 @@ set(CXX_FILES
 	src/Script.h
 	src/Misc.h
 	src/GameForms.h
-	src/Settings.h
-	src/Settings.cpp
 
 	src/SexLab/DataKey.h
 	src/SexLab/DataKey.cpp
@@ -19,4 +17,6 @@ set(CXX_FILES
 	src/Papyrus/Functions.cpp
 	src/Papyrus/sslDataKey.h
 	src/Papyrus/sslDataKey.cpp
+	src/Papyrus/Settings.h
+	src/Papyrus/Settings.cpp
 )

@@ -50,7 +50,7 @@ namespace SexLab::DataKey
 
 		// Blank
 		Empty = 0,
-		Blank = 1 << 31
+		Blank = 1U << 31
 	};
 
 	void AddGender(const RE::Actor* a_actor, SKSE::stl::enumeration<Key, std::uint32_t>& a_key);
