@@ -132,7 +132,7 @@ bool SLPP::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tag
 			if (match != Matched) {
 				const auto& find = tag.substr(1);
 				const auto where = std::find_if(a_tags.begin(), a_tags.end(),
-						[&find](auto& str) { return SexLab::IsEqualString(find, str); });
+					[&find](auto& str) { return SexLab::IsEqualString(find, str); });
 				match = where != a_tags.end() ? Matched : Unmatched;
 			}
 			break;
@@ -140,7 +140,7 @@ bool SLPP::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tag
 			{
 				const auto& find = tag.substr(1);
 				const auto where = std::find_if(a_tags.begin(), a_tags.end(),
-						[&find](auto& str) { return SexLab::IsEqualString(find, str); });
+					[&find](auto& str) { return SexLab::IsEqualString(find, str); });
 				if (where != a_tags.end())
 					return false;
 			}
@@ -148,7 +148,7 @@ bool SLPP::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tag
 		default:
 			{
 				const auto where = std::find_if(a_tags.begin(), a_tags.end(),
-						[&tag](auto& str) { return SexLab::IsEqualString(tag, str); });
+					[&tag](auto& str) { return SexLab::IsEqualString(tag, str); });
 				if (where == a_tags.end())
 					return false;
 			}
@@ -255,28 +255,31 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 	}
 	std::vector<RE::TESForm*> ret{};
 	const auto& manager = RE::ActorEquipManager::GetSingleton();
+	const auto cstrip = Settings::StripConfig::GetSingleton();
 	const auto& inventory = a_reference->GetInventory();
 	for (const auto& [form, data] : inventory) {
 		if (form->Is(RE::FormType::LeveledItem) || !data.second->IsWorn() || !form->GetPlayable() || form->GetName()[0] == '\0') {
 			continue;
 		}
-		const auto cstrip = Settings::StripConfig::GetSingleton();
+		const auto strip = [&]() {
+			manager->UnequipObject(a_reference, form, nullptr, 1U, nullptr, true, true, false, true);
+			ret.push_back(form);
+		};
+
 		switch (cstrip->CheckStrip(form)) {
 		case Settings::StripConfig::Strip::Never:
 			continue;
 		case Settings::StripConfig::Strip::Always:
-			manager->UnequipObject(a_reference, form);
-			ret.push_back(form);
+			strip();
 			continue;
-		}						
+		}
 		const auto& kwd = form->As<RE::BGSKeywordForm>();
 		if (kwd) {
 			if (kwd->ContainsKeywordString("NoStrip"))
 				continue;
 
 			if (kwd->ContainsKeywordString("AlwaysStrip")) {
-				manager->UnequipObject(a_reference, form);
-				ret.push_back(form);
+				strip();
 				continue;
 			}
 		}
@@ -284,8 +287,7 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 		if (biped) {
 			const auto& slots = static_cast<uint32_t>(biped->GetSlotMask());
 			if (slots & a_slotmask) {
-				manager->UnequipObject(a_reference, form);
-				ret.push_back(form);
+				strip();
 				continue;
 			}
 		}

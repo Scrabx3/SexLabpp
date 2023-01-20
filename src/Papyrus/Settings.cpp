@@ -110,7 +110,7 @@ namespace Settings
 		if (std::binary_search(AlwaysStrip.begin(), AlwaysStrip.end(), id))
 			return Strip::Always;
 
-		return Strip::Never;		
+		return Strip::None;		
 	}
 
 
