@@ -262,26 +262,15 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 			continue;
 		}
 		const auto strip = [&]() {
-			manager->UnequipObject(a_reference, form, nullptr, 1U, nullptr, true, true, false, true);
+			manager->UnequipObject(a_reference, form);
 			ret.push_back(form);
 		};
-
 		switch (cstrip->CheckStrip(form)) {
-		case Settings::StripConfig::Strip::Never:
+		case Settings::StripConfig::Strip::NoStrip:
 			continue;
 		case Settings::StripConfig::Strip::Always:
 			strip();
 			continue;
-		}
-		const auto& kwd = form->As<RE::BGSKeywordForm>();
-		if (kwd) {
-			if (kwd->ContainsKeywordString("NoStrip"))
-				continue;
-
-			if (kwd->ContainsKeywordString("AlwaysStrip")) {
-				strip();
-				continue;
-			}
 		}
 		const auto& biped = form->As<RE::BGSBipedObjectForm>();
 		if (biped) {
@@ -295,6 +284,66 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 	return ret;
 }
 
+void SLPP::WriteStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form, bool a_neverstrip)
+{
+	if (!a_form) {
+		a_vm->TraceStack("Cannot write a none reference", a_stackID);
+		return;
+	}
+	const auto strip = a_neverstrip ? Settings::StripConfig::Strip::NoStrip : Settings::StripConfig::Strip::Always;
+	Settings::StripConfig::GetSingleton()->AddArmor(a_form, strip);
+}
+
+void SLPP::EraseStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
+{
+	if (!a_form) {
+		a_vm->TraceStack("Cannot erase a none reference", a_stackID);
+		return;
+	}
+	Settings::StripConfig::GetSingleton()->RemoveArmor(a_form);
+}
+
+void SLPP::EraseStripAll(RE::StaticFunctionTag*)
+{
+	Settings::StripConfig::GetSingleton()->RemoveArmorAll();
+}
+
+int32_t SLPP::CheckStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
+{
+	if (!a_form) {
+		a_vm->TraceStack("Cannot check a none reference", a_stackID);
+		return 0;
+	}
+	const auto s = Settings::StripConfig::GetSingleton()->CheckStrip(a_form);
+	switch (s) {
+	case Settings::StripConfig::Strip::NoStrip:
+		return -1;
+	case Settings::StripConfig::Strip::Always:
+		return 1;
+	default:
+		return 0;
+	}
+}
+
+std::vector<RE::TESForm*> SLPP::GetStrippables(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, bool a_wornonly)
+{
+	if (!a_reference) {
+		a_vm->TraceStack("Cannot retrieve hdt spell from a none reference", a_stackID);
+		return {};
+	}
+	std::vector<RE::TESForm*> ret{};
+	const auto cstrip = Settings::StripConfig::GetSingleton();
+	const auto& inventory = a_reference->GetInventory();
+	for (const auto& [form, data] : inventory) {
+		if (!form->IsArmor() && !form->IsWeapon() || a_wornonly && !data.second->IsWorn())
+			continue;
+		if (cstrip->CheckKeywords(form) != Settings::StripConfig::Strip::None)
+			continue;
+
+		ret.push_back(form);
+	}
+	return ret;
+}
 
 std::string SLPP::GetEditorID(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
 {

@@ -11,6 +11,11 @@ namespace SLPP
 	void SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center, std::vector<float> a_offsets);
 	RE::TESAmmo* GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference);
 	std::vector<RE::TESForm*> StripActor(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, uint32_t a_slotmask);
+	
+	void WriteStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form, bool a_neverstrip);
+	void EraseStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form);
+	void EraseStripAll(RE::StaticFunctionTag*);
+	int32_t CheckStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form);
 
 	bool MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tags, std::vector<std::string_view> a_match);
 
@@ -21,6 +26,8 @@ namespace SLPP
 
 	std::string GetEditorID(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form);
 
+	std::vector<RE::TESForm*> GetStrippables(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, bool a_wornonly);
+
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(MergeStringArrayEx, "sslpp");
@@ -29,11 +36,17 @@ namespace SLPP
 		REGISTERFUNC(SetPositionsEx, "sslpp");
 		REGISTERFUNC(GetEquippedAmmo, "sslpp");
 		REGISTERFUNC(StripActor, "sslpp");
+		REGISTERFUNC(WriteStrip, "sslpp");
+		REGISTERFUNC(EraseStrip, "sslpp");
+		REGISTERFUNC(EraseStripAll, "sslpp");
+		REGISTERFUNC(CheckStrip, "sslpp");
 		REGISTERFUNC(MatchTags, "sslpp");
 		REGISTERFUNC(FindBeds, "sslpp");
 		REGISTERFUNC(IsBed, "sslpp");
 		REGISTERFUNC(GetHDTHeelSpell, "sslpp");
 		REGISTERFUNC(GetEditorID, "sslpp");
+
+		REGISTERFUNC(GetStrippables, "sslConfigMenu");
 		return true;
 	}
 }  // namespace SLPP
