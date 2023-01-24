@@ -258,7 +258,7 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 	const auto cstrip = Settings::StripConfig::GetSingleton();
 	const auto& inventory = a_reference->GetInventory();
 	for (const auto& [form, data] : inventory) {
-		if (form->Is(RE::FormType::LeveledItem) || !data.second->IsWorn() || !form->GetPlayable() || form->GetName()[0] == '\0') {
+		if (form->Is(RE::FormType::LeveledItem) || !data.second->IsWorn()) {
 			continue;
 		}
 		const auto strip = [&]() {
