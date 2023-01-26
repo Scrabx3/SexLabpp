@@ -1,64 +1,20 @@
 #pragma once
 
-#include "Papyrus/Settings.h"
-#include "SexLab/DataKey.h"
-
 namespace SexLab
 {
-	using Gender = SexLab::DataKey::Key;
 
-	// Assume to only be called for human actors with female base sex
-	inline bool IsFuta(const RE::Actor* a_actor)
-	{
-		static const auto sosfaction = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESFaction>(0x00AFF8, "Schlongs of Skyrim.esp");
-		if (!sosfaction)
-			return false;
+	bool IsFuta(const RE::Actor* a_actor);	 // Assumes female base sex
+	bool IsNPC(const RE::Actor* a_actor);
+	bool IsVampire(const RE::Actor* a_actor);
 
-		const auto base = a_actor->GetActorBase();
-		if (!base)
-			return false;
-
-		auto ret = false;
-		for (auto&& f : base->factions) {
-			if (!f.faction)
-				continue;
-			if (f.faction == sosfaction)
-				ret = true;
-			if (std::find(Settings::SOS_ExcludeFactions.begin(), Settings::SOS_ExcludeFactions.end(), f.faction->formID) != Settings::SOS_ExcludeFactions.end())
-				return false;
-		}
-		return a_actor->IsInFaction(sosfaction);
-	}
-
-	inline bool IsNPC(const RE::Actor* a_actor)
-	{
-		static const auto ActorTypeNPC = RE::TESForm::LookupByID<RE::BGSKeyword>(0x13794);
-		return a_actor->HasKeyword(ActorTypeNPC);
-	}
-
-	inline bool IsVampire(const RE::Actor* a_actor)
-	{
-		static const auto vampire = RE::TESForm::LookupByID<RE::BGSKeyword>(0xA82BB);
-		return a_actor->HasKeyword(vampire);
-	}
-
-	inline bool GetIsBed(const RE::TESObjectREFR* a_reference)
-	{
-		if (a_reference->GetName()[0] == '\0')
-			return false;
-		const auto root = a_reference->Get3D();
-		const auto extra = root ? root->GetExtraData("FRN") : nullptr;
-		const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
-		return node && !node->markers.empty() && node->markers[0].animationType.all(RE::BSFurnitureMarker::AnimationType::kSleep);
-	}
+	bool GetIsBed(const RE::TESObjectREFR* a_reference);
 
 	template <class T>
 	std::string ToStringVec(T v)
 	{
 		std::stringstream ss;
-		for(size_t i = 0; i < v.size(); ++i)
-		{
-			if(i != 0)
+		for (size_t i = 0; i < v.size(); ++i) {
+			if (i != 0)
 				ss << ",";
 			ss << v[i];
 		}
@@ -76,7 +32,6 @@ namespace SexLab
 	bool IsEqualString(T lhs, T rhs)
 	{
 		return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-				[](char lhs, char rhs) { return tolower(lhs) == tolower(rhs); });
+			[](char lhs, char rhs) { return tolower(lhs) == tolower(rhs); });
 	}
-
-}	 // namespace SexLab
+}

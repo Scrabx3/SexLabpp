@@ -4,7 +4,7 @@
 
 namespace SexLab::DataKey
 {
-	void AddGender(const RE::Actor* a_actor, stl::enumeration<Gender, std::uint32_t>& a_key)
+	void AddGender(const RE::Actor* a_actor, stl::enumeration<Key, std::uint32_t>& a_key)
 	{
 		const auto base = a_actor->GetActorBase();
 		if (!base) {
@@ -12,7 +12,7 @@ namespace SexLab::DataKey
 			return;
 		}
 		if (!IsNPC(a_actor)) {
-			a_key.set(Gender::Creature);
+			a_key.set(Key::Creature);
 		}
 		switch (base->GetSex()) {
 		case RE::SEXES::kMale:
@@ -33,10 +33,10 @@ namespace SexLab::DataKey
 			if (f.faction == GameForms::GenderFaction) {
 				switch (f.rank) {
 				case 0:
-					a_key.set(Gender::Overwrite_Male);
+					a_key.set(Key::Overwrite_Male);
 					break;
 				case 1:
-					a_key.set(Gender::Overwrite_Female);
+					a_key.set(Key::Overwrite_Female);
 					break;
 				default:
 					logger::info("Actor {} has invalid gender faction rank ({})", a_actor->GetFormID(), f.rank);

@@ -6,6 +6,7 @@ set(CXX_FILES
 	src/Singleton.h
 	src/Script.h
 	src/Misc.h
+	src/Misc.cpp
 	src/GameForms.h
 
 	src/SexLab/DataKey.h
