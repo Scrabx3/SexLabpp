@@ -16,14 +16,14 @@ namespace Script
 	}
 
 	template <class T>
-	inline T GetProperty(const ObjectPtr obj, const RE::BSFixedString property)
+	inline T GetProperty(const ObjectPtr& obj, const RE::BSFixedString& property)
 	{
 		auto var = obj->GetProperty(property);
 		return RE::BSScript::UnpackValue<T>(var);
 	}
 
 	template <class T>
-	inline void SetProperty(const ObjectPtr obj, const RE::BSFixedString property, T val)
+	inline void SetProperty(const ObjectPtr& obj, const RE::BSFixedString& property, const T& val)
 	{
 		auto var = obj->GetProperty(property);
 		RE::BSScript::PackValue(var, val);

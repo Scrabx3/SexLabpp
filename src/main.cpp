@@ -7,6 +7,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	switch (message->type) {
 	case SKSE::MessagingInterface::kSaveGame:
 		Settings::StripConfig::GetSingleton()->Save();
+		Settings::MCMConfig::GetSingleton()->Save();
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
 		if (!GameForms::LoadData()) {
@@ -20,6 +21,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		break;
 	case SKSE::MessagingInterface::kNewGame:
 	case SKSE::MessagingInterface::kPostLoadGame:
+		Settings::MCMConfig::GetSingleton()->Load();
 		break;
 	}
 }

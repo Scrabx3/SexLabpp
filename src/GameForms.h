@@ -14,10 +14,12 @@ namespace GameForms
 
 	// SexLab Forms
 	inline const RE::TESFaction* GenderFaction;
+	inline const RE::TESQuest* ConfigQuest;
 
 	inline bool LoadData()
 	{
 		LOOKUPMOD(GenderFaction, 0x043A43, "SexLab.esm");
+		LOOKUPMOD(ConfigQuest, 0xD62, "SexLab.esm");
 
 		return true;
 	}

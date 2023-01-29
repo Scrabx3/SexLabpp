@@ -107,4 +107,31 @@ namespace Settings
 		logger::info("Loaded {} Schlongs of Skyrim excluded factions", SOS_ExcludeFactions.size());
 	}
 
+	void MCMConfig::Load()
+	{
+		try {
+			const auto config = YAML::Load(CONFIGPATH("Settings.yaml"));
+			auto mcm = Script::CreateObjectPtr(GameForms::ConfigQuest, "sslSystemConfig");
+			for (auto&& setting : settings) {
+				setting->Load(config, mcm);
+			}
+		} catch (const std::exception& e) {
+			logger::error(e.what());
+		}
+	}
+
+	void MCMConfig::Save()
+	{
+		try {
+			auto config = YAML::Load(CONFIGPATH("Settings.yaml"));
+			const auto mcm = Script::CreateObjectPtr(GameForms::ConfigQuest, "sslSystemConfig");
+			for (auto&& setting : settings) {
+				setting->Save(config, mcm);
+			}
+			std::ofstream{ CONFIGPATH("Settings.yaml") } << config;
+		} catch (const std::exception& e) {
+			logger::error(e.what());
+		}
+	}
+
 }	 // namespace Settings
