@@ -67,7 +67,7 @@ namespace SexLab::RaceKey
 		"wolves"s
 	};
 
-	std::pair<int, ExtraRace> GetRaceID(std::string& a_racekey);
+	std::pair<int, ExtraRace> GetRaceID(std::string a_racekey);
 
 	std::string GetRaceKey(const std::pair<int, ExtraRace> a_raceid);
 	std::string GetRaceKey(const uint32_t a_raceid);
