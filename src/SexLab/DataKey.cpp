@@ -47,12 +47,25 @@ namespace SexLab::DataKey
 		}
 	}
 
+	void AddRaceID(std::string& a_racekey, stl::enumeration<Key, std::uint32_t>& a_key)
+	{
+		const auto raceid = RaceKey::GetRaceID(a_racekey);
+		a_key.set(Key(raceid.first << CrtBits));
+		switch (raceid.second) {
+		case RaceKey::ExtraRace::Dog:
+			a_key.set(Key::Dog);
+			break;
+		case RaceKey::ExtraRace::Wolf:
+			a_key.set(Key::Wolf);
+			break;
+		}
+	}
+
 	uint32_t BuildKey(RE::Actor* a_ref, bool a_victim, std::string& a_racekey)
 	{
 		stl::enumeration<Key, std::uint32_t> key{};
 		AddGender(a_ref, key);
-		// AddRaceID(a_ref); TODO: implement
-		key.set(Key(RaceKey::GetRaceID(a_racekey) << CrtBits));
+		AddRaceID(a_racekey, key);
 
 		if (a_victim)
 			key.set(Key::Victim);
@@ -64,37 +77,32 @@ namespace SexLab::DataKey
 			key.set(Key::Dead);
 
 		// TODO: Check amputation n all that I guess
-		return static_cast<uint32_t>(key.underlying());
+		return key.underlying();
 	}
 
-	uint32_t BuildCustomKey(uint32_t a_gender, std::string a_racekey, std::vector<bool> a_extradata)
+	uint32_t BuildCustomKey(uint32_t a_gender, std::string a_racekey)
 	{
-		uint32_t ret;
+		stl::enumeration<Key, std::uint32_t> ret{};
 		switch (a_gender) {
 		default:
 		case 0:
-			ret = Key::Male;
+			ret.set(Key::Male);
 			break;
 		case 1:
-			ret = Key::Female;
+			ret.set(Key::Female);
 			break;
 		case 2:
-			ret = Key::Futa;
+			ret.set(Key::Futa);
 			break;
 		case 3:
-			ret = Key::Male | Key::Creature;
+			ret.set(Key::Male, Key::Creature);
 			break;
 		case 4:
-			ret = Key::Female | Key::Creature;
+			ret.set(Key::Female, Key::Creature);
 			break;
 		}
-		const size_t limit = min(ExtraBits, a_extradata.size());
-		for (size_t i = 0; i < limit; i++) {
-			if (a_extradata[i])
-				ret |= 1 << ((CrtBits + GenderBits) + i);
-		}
-		const int raceid = RaceKey::GetRaceID(a_racekey);
-		return ret | (raceid << GenderBits);
+		AddRaceID(a_racekey, ret);
+		return ret.underlying();
 	}
 
 	// a_key < a_cmp

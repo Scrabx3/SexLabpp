@@ -21,12 +21,12 @@ namespace SexLab::DataKey
 		GenderBits = 6,
 
 		// Race (Mandatory)
-		Crt0 = 1U << 6,
-		Crt1 = 1U << 7,
-		Crt2 = 1U << 8,
-		Crt3 = 1U << 9,
-		Crt4 = 1U << 10,
-		Crt5 = 1U << 11,
+		Crt0 = 1U << 6,		//	0 ~ 1
+		Crt1 = 1U << 7,		//	2 ~ 3
+		Crt2 = 1U << 8,		//	4 ~ 7
+		Crt3 = 1U << 9,		//	8 ~ 15
+		Crt4 = 1U << 10,	//	15 ~ 31
+		Crt5 = 1U << 11,	//	32 ~ 63
 
 		CrtTotal = (Crt0 | Crt1 | Crt2 | Crt3 | Crt4 | Crt5),
 		CrtBits = 6,
@@ -40,6 +40,8 @@ namespace SexLab::DataKey
 		AmputeeLR = 1U << 16,	 // leg Right
 		AmputeeLL = 1U << 17,	 // Leg Left
 
+		Dog = 1U << 14,		// Canines only
+		Wolf = 1U << 15,	// Canines only
 		// Extra (Mandatory)
 		Dead = 1U << 18,
 
@@ -54,10 +56,11 @@ namespace SexLab::DataKey
 	};
 
 	void AddGender(const RE::Actor* a_actor, SKSE::stl::enumeration<Key, std::uint32_t>& a_key);
-	// void AddRaceID(const RE::Actor* a_actor, stl::enumeration<Gender, std::uint32_t>& a_key)
+	// void AddRaceID(const RE::Actor* a_actor, stl::enumeration<Gender, std::uint32_t>& a_key);
+	void AddRaceID(std::string& a_racekey, stl::enumeration<Key, std::uint32_t>& a_key);
 
 	uint32_t BuildKey(RE::Actor* a_ref, bool a_victim, std::string& a_racekey);
-	uint32_t BuildCustomKey(uint32_t a_gender, std::string a_racekey, std::vector<bool> a_extradata);
+	uint32_t BuildCustomKey(uint32_t a_gender, std::string a_racekey);
 
 	bool IsLess(uint32_t a_key, uint32_t a_cmp);
 	bool MatchKey(uint32_t a_key, uint32_t a_match);

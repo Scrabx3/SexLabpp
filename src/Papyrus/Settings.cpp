@@ -109,8 +109,13 @@ namespace Settings
 
 	void MCMConfig::Load()
 	{
+		logger::info("Loading configuration");
+		if (!fs::exists(CONFIGPATH("Settings.yaml"))) {
+			logger::info("No config file loaded, skipping configuration load");
+			return;
+		}
 		try {
-			const auto config = YAML::Load(CONFIGPATH("Settings.yaml"));
+			const auto config = YAML::LoadFile(CONFIGPATH("Settings.yaml"));
 			auto mcm = Script::CreateObjectPtr(GameForms::ConfigQuest, "sslSystemConfig");
 			for (auto&& setting : settings) {
 				setting->Load(config, mcm);
@@ -122,8 +127,9 @@ namespace Settings
 
 	void MCMConfig::Save()
 	{
+		logger::info("Saving configuration");
 		try {
-			auto config = YAML::Load(CONFIGPATH("Settings.yaml"));
+			YAML::Node config{};
 			const auto mcm = Script::CreateObjectPtr(GameForms::ConfigQuest, "sslSystemConfig");
 			for (auto&& setting : settings) {
 				setting->Save(config, mcm);

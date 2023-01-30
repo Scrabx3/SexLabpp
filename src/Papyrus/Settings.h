@@ -64,7 +64,7 @@ namespace Settings
 				a_node[_setting] = Script::GetProperty<T>(a_mcm, _setting);
 			}
 
-			const char* _setting;
+			std::string _setting;
 		};
 
 	public:

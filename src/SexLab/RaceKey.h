@@ -2,8 +2,15 @@
 
 namespace SexLab::RaceKey
 {
-  // TODO: Move this into its own file with its own logic and serialize and idk
-	// Need Ashals dll sources for this first, so for the time being its gonna be hardcoded here
+	enum class ExtraRace
+	{
+		Wolf,	// base = Canine
+		Dog,	// base = Canine
+
+		None
+	};
+
+	// COMEBACK: This here can prbly be done more elgantly (and dynamically) if I had Ashals dll sources
 	static inline std::vector<std::string> RaceKeys{
 		"human"s,
 		"ashhoppers"s,
@@ -60,10 +67,9 @@ namespace SexLab::RaceKey
 		"wolves"s
 	};
 
-	// Make sure the key is lowercase & translate legacy racekeys
-	void ValidateRaceKey(std::string& a_racekey);
+	std::pair<int, ExtraRace> GetRaceID(std::string& a_racekey);
 
-	int32_t GetRaceID(const std::string& a_racekey);
+	std::string GetRaceKey(const std::pair<int, ExtraRace> a_raceid);
 	std::string GetRaceKey(const uint32_t a_raceid);
 
 } // namespace SexLab::RaceKey

@@ -10,8 +10,7 @@ namespace SLPP
 			a_vm->TraceStack("Cannot build data key from a none reference", a_stackID);
 			return 0;
 		}
-		SexLab::RaceKey::ValidateRaceKey(a_racekey);
-		return static_cast<int32_t>(SexLab::DataKey::BuildKey(a_ref, a_isvictim, a_racekey));
+		return SexLab::DataKey::BuildKey(a_ref, a_isvictim, a_racekey);
 	}
 
 	int32_t DataKey::BuildCustomKey(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, uint32_t a_gender, std::string a_racekey)
@@ -20,18 +19,7 @@ namespace SLPP
 			a_vm->TraceStack("Custom keys require a gender", a_stackID);
 			return 0;
 		}
-		SexLab::RaceKey::ValidateRaceKey(a_racekey);
-		return SexLab::DataKey::BuildCustomKey(a_gender, a_racekey, {});
-	}
-
-	int32_t DataKey::BuildCustomKeyA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, uint32_t a_gender, std::string a_racekey, std::vector<bool> a_extradata)
-	{
-		if (a_gender < 0 || a_gender > 4) {
-			a_vm->TraceStack("Custom keys require a gender", a_stackID);
-			return 0;
-		}
-		SexLab::RaceKey::ValidateRaceKey(a_racekey);
-		return SexLab::DataKey::BuildCustomKey(a_gender, a_racekey, a_extradata);
+		return SexLab::DataKey::BuildCustomKey(a_gender, a_racekey);
 	}
 
 	std::vector<int32_t> DataKey::SortDataKeys(RE::StaticFunctionTag*, const std::vector<int32_t> a_keys)
@@ -83,8 +71,7 @@ namespace SLPP
 	int32_t DataKey::BuildByLegacyGender(RE::StaticFunctionTag*, int32_t a_legacygender, std::string a_racekey)
 	{
 		a_legacygender += a_legacygender >= 2 ? 1 : 0;
-		SexLab::RaceKey::ValidateRaceKey(a_racekey);
-		return SexLab::DataKey::BuildCustomKey(a_legacygender, a_racekey, {});
+		return SexLab::DataKey::BuildCustomKey(a_legacygender, a_racekey);
 	}
 
 	std::string DataKey::GetRaceKey(RE::StaticFunctionTag*, uint32_t a_key)
