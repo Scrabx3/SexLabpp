@@ -48,7 +48,7 @@ namespace SexLab
 		return a_actor->HasKeyword(vampire);
 	}
 
-	bool GetIsBed(const RE::TESObjectREFR* a_reference)
+	bool IsBed(const RE::TESObjectREFR* a_reference)
 	{
 		if (a_reference->GetName()[0] == '\0')
 			return false;

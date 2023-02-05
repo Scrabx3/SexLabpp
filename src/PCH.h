@@ -52,7 +52,7 @@ namespace stl
 	}
 }
 
-namespace SLPP
+namespace Papyrus
 {
 	using VM = RE::BSScript::IVirtualMachine;
 	using StackID = RE::VMStackID;

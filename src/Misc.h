@@ -7,7 +7,7 @@ namespace SexLab
 	bool IsNPC(const RE::Actor* a_actor);
 	bool IsVampire(const RE::Actor* a_actor);
 
-	bool GetIsBed(const RE::TESObjectREFR* a_reference);
+	bool IsBed(const RE::TESObjectREFR* a_reference);
 
 	template <class T>
 	std::string ToStringVec(T v)

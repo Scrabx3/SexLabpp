@@ -1,6 +1,6 @@
 #pragma once
 
-namespace SLPP
+namespace Papyrus
 {
 #define REGISTERFUNC(func, c) a_vm->RegisterFunction(#func##sv, c, func)
 

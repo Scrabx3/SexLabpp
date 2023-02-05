@@ -2,7 +2,7 @@
 
 #include "Papyrus/Settings.h"
 
-std::vector<std::string> SLPP::MergeStringArrayEx(RE::StaticFunctionTag*, std::vector<std::string> a_array1, std::vector<std::string> a_array2, bool a_removedupes)
+std::vector<std::string> Papyrus::MergeStringArrayEx(RE::StaticFunctionTag*, std::vector<std::string> a_array1, std::vector<std::string> a_array2, bool a_removedupes)
 {
 	if (a_array1.empty()) {
 		return a_array2;
@@ -24,7 +24,7 @@ std::vector<std::string> SLPP::MergeStringArrayEx(RE::StaticFunctionTag*, std::v
 	return ret;
 }
 
-std::vector<std::string> SLPP::RemoveStringEx(RE::StaticFunctionTag*, std::vector<std::string> a_array, std::string a_remove)
+std::vector<std::string> Papyrus::RemoveStringEx(RE::StaticFunctionTag*, std::vector<std::string> a_array, std::string a_remove)
 {
 	decltype(a_array) ret{ a_array };
 	const auto where = std::remove_if(ret.begin(), ret.end(), [&a_remove](auto& str) { return SexLab::IsEqualString(str, a_remove); });
@@ -32,7 +32,7 @@ std::vector<std::string> SLPP::RemoveStringEx(RE::StaticFunctionTag*, std::vecto
 	return ret;
 }
 
-void SLPP::SetPositions(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, RE::TESObjectREFR* a_center)
+void Papyrus::SetPositions(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, RE::TESObjectREFR* a_center)
 {
 	if (!a_center) {
 		a_vm->TraceStack("Cannot center Actors around a none Reference", a_stackID);
@@ -60,7 +60,7 @@ void SLPP::SetPositions(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag
 	// std::for_each(a_positions.begin(), a_positions.end(), [&setposition](RE::Actor* subject) { std::thread(setposition, subject).detach(); });
 }
 
-void SLPP::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center, std::vector<float> a_offsets)
+void Papyrus::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center, std::vector<float> a_offsets)
 {
 	if (!a_center) {
 		a_vm->TraceStack("Cannot center Actors around a none Reference", a_stackID);
@@ -114,7 +114,7 @@ void SLPP::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, s
 }
 
 
-bool SLPP::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tags, std::vector<std::string_view> a_match)
+bool Papyrus::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tags, std::vector<std::string_view> a_match)
 {
 	enum
 	{
@@ -158,7 +158,7 @@ bool SLPP::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tag
 	return match != Unmatched;
 }
 
-std::vector<RE::TESObjectREFR*> SLPP::FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusz)
+std::vector<RE::TESObjectREFR*> Papyrus::FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusz)
 {
 	if (!a_center) {
 		a_vm->TraceStack("CenterRef is none", a_stackID);
@@ -168,7 +168,7 @@ std::vector<RE::TESObjectREFR*> SLPP::FindBeds(VM* a_vm, RE::VMStackID a_stackID
 	std::vector<RE::TESObjectREFR*> ret{};
 	const auto add = [&](RE::TESObjectREFR& ref) {
 		if (!ref.GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusz > 0.0f ? (std::fabs(center.z - ref.GetPosition().z) <= a_radiusz) : true)
-			if (SexLab::GetIsBed(&ref))
+			if (SexLab::IsBed(&ref))
 				ret.push_back(&ref);
 		return RE::BSContainer::ForEachResult::kContinue;
 	};
@@ -206,16 +206,16 @@ std::vector<RE::TESObjectREFR*> SLPP::FindBeds(VM* a_vm, RE::VMStackID a_stackID
 	return ret;
 }
 
-bool SLPP::IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference)
+bool Papyrus::IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference)
 {
 	if (!a_reference) {
 		a_vm->TraceStack("Reference is none", a_stackID);
 		return false;
 	}
-	return SexLab::GetIsBed(a_reference);
+	return SexLab::IsBed(a_reference);
 }
 
-RE::TESAmmo* SLPP::GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
+RE::TESAmmo* Papyrus::GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
 {
 	if (!a_actor) {
 		a_vm->TraceStack("Cannot get equipped ammo of a none reference", a_stackID);
@@ -224,7 +224,7 @@ RE::TESAmmo* SLPP::GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFuncti
 	return a_actor->GetCurrentAmmo();
 }
 
-RE::SpellItem* SLPP::GetHDTHeelSpell(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference)
+RE::SpellItem* Papyrus::GetHDTHeelSpell(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference)
 {
 	if (!a_reference) {
 		a_vm->TraceStack("Cannot retrieve hdt spell from a none reference", a_stackID);
@@ -247,7 +247,7 @@ RE::SpellItem* SLPP::GetHDTHeelSpell(VM* a_vm, RE::VMStackID a_stackID, RE::Stat
 }
 
 
-std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, uint32_t a_slotmask)
+std::vector<RE::TESForm*> Papyrus::StripActor(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, uint32_t a_slotmask)
 {
 	if (!a_reference) {
 		a_vm->TraceStack("Cannot retrieve hdt spell from a none reference", a_stackID);
@@ -284,7 +284,7 @@ std::vector<RE::TESForm*> SLPP::StripActor(VM* a_vm, StackID a_stackID, RE::Stat
 	return ret;
 }
 
-void SLPP::WriteStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form, bool a_neverstrip)
+void Papyrus::WriteStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form, bool a_neverstrip)
 {
 	if (!a_form) {
 		a_vm->TraceStack("Cannot write a none reference", a_stackID);
@@ -294,7 +294,7 @@ void SLPP::WriteStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::T
 	Settings::StripConfig::GetSingleton()->AddArmor(a_form, strip);
 }
 
-void SLPP::EraseStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
+void Papyrus::EraseStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
 {
 	if (!a_form) {
 		a_vm->TraceStack("Cannot erase a none reference", a_stackID);
@@ -303,12 +303,12 @@ void SLPP::EraseStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::T
 	Settings::StripConfig::GetSingleton()->RemoveArmor(a_form);
 }
 
-void SLPP::EraseStripAll(RE::StaticFunctionTag*)
+void Papyrus::EraseStripAll(RE::StaticFunctionTag*)
 {
 	Settings::StripConfig::GetSingleton()->RemoveArmorAll();
 }
 
-int32_t SLPP::CheckStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
+int32_t Papyrus::CheckStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
 {
 	if (!a_form) {
 		a_vm->TraceStack("Cannot check a none reference", a_stackID);
@@ -325,7 +325,7 @@ int32_t SLPP::CheckStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE
 	}
 }
 
-std::vector<RE::TESForm*> SLPP::GetStrippables(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, bool a_wornonly)
+std::vector<RE::TESForm*> Papyrus::GetStrippables(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, bool a_wornonly)
 {
 	if (!a_reference) {
 		a_vm->TraceStack("Cannot retrieve hdt spell from a none reference", a_stackID);
@@ -345,7 +345,7 @@ std::vector<RE::TESForm*> SLPP::GetStrippables(VM* a_vm, StackID a_stackID, RE::
 	return ret;
 }
 
-std::string SLPP::GetEditorID(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
+std::string Papyrus::GetEditorID(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form)
 {
 	if (!a_form) {
 		a_vm->TraceStack("Cannot retrieve editor ID. Form is none", a_stackID);

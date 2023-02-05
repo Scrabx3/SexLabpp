@@ -2,9 +2,9 @@
 
 #include "SexLab/DataKey.h"
 
-namespace SLPP::DataKey
+namespace Papyrus::DataKey
 {
-#define REGISTERFUNC(func, c) a_vm->RegisterFunction(#func##sv, c, func, true)
+#define REGISTERFUNC(func) a_vm->RegisterFunction(#func##sv, "sslActorData", func, true)
 
 	using Key = SexLab::DataKey::Key;
 
@@ -57,39 +57,39 @@ namespace SLPP::DataKey
 
 	inline bool Register(VM* a_vm)
 	{
-		REGISTERFUNC(BuildDataKeyNative, "sslActorData");
-		REGISTERFUNC(BuildBlankKey, "sslActorData");
-		REGISTERFUNC(BuildCustomKey, "sslActorData");
+		REGISTERFUNC(BuildDataKeyNative);
+		REGISTERFUNC(BuildBlankKey);
+		REGISTERFUNC(BuildCustomKey);
 
-		REGISTERFUNC(SortDataKeys, "sslActorData");
-		REGISTERFUNC(IsLess, "sslActorData");
-		REGISTERFUNC(Match, "sslActorData");
-		REGISTERFUNC(MatchArray, "sslActorData");
+		REGISTERFUNC(SortDataKeys);
+		REGISTERFUNC(IsLess);
+		REGISTERFUNC(Match);
+		REGISTERFUNC(MatchArray);
 
-		REGISTERFUNC(GetGender, "sslActorData");
-		REGISTERFUNC(IsMale, "sslActorData");
-		REGISTERFUNC(IsFemale, "sslActorData");
-		REGISTERFUNC(IsFuta, "sslActorData");
-		REGISTERFUNC(IsCreature, "sslActorData");
-		REGISTERFUNC(IsMaleCreature, "sslActorData");
-		REGISTERFUNC(IsFemaleCreature, "sslActorData");
+		REGISTERFUNC(GetGender);
+		REGISTERFUNC(IsMale);
+		REGISTERFUNC(IsFemale);
+		REGISTERFUNC(IsFuta);
+		REGISTERFUNC(IsCreature);
+		REGISTERFUNC(IsMaleCreature);
+		REGISTERFUNC(IsFemaleCreature);
 
-		REGISTERFUNC(IsVictim, "sslActorData");
-		REGISTERFUNC(IsVampire, "sslActorData");
-		REGISTERFUNC(IsDead, "sslActorData");
+		REGISTERFUNC(IsVictim);
+		REGISTERFUNC(IsVampire);
+		REGISTERFUNC(IsDead);
 
-		REGISTERFUNC(HasOverwrite, "sslActorData");
-		REGISTERFUNC(IsMaleOverwrite, "sslActorData");
-		REGISTERFUNC(IsFemaleOverwrite, "sslActorData");
+		REGISTERFUNC(HasOverwrite);
+		REGISTERFUNC(IsMaleOverwrite);
+		REGISTERFUNC(IsFemaleOverwrite);
 
-		REGISTERFUNC(GetRaceKey, "sslActorData");
+		REGISTERFUNC(GetRaceKey);
 
-		REGISTERFUNC(GetLegacyGenderByKey, "sslActorData");
-		REGISTERFUNC(BuildByLegacyGender, "sslActorData");
+		REGISTERFUNC(GetLegacyGenderByKey);
+		REGISTERFUNC(BuildByLegacyGender);
 
-		REGISTERFUNC(AddOverwrite, "sslActorData");
-		REGISTERFUNC(RemoveOverWrite, "sslActorData");
-		REGISTERFUNC(NeutralizeCreatureGender, "sslActorData");
+		REGISTERFUNC(AddOverwrite);
+		REGISTERFUNC(RemoveOverWrite);
+		REGISTERFUNC(NeutralizeCreatureGender);
 
 		return true;
 	}

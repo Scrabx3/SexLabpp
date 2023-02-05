@@ -2,7 +2,7 @@
 
 #include "SexLab/RaceKey.h"
 
-namespace SLPP
+namespace Papyrus
 {
 	int32_t DataKey::BuildDataKeyNative(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_ref, bool a_isvictim, std::string a_racekey)
 	{

@@ -16,8 +16,12 @@ set(CXX_FILES
 
 	src/Papyrus/Functions.h
 	src/Papyrus/Functions.cpp
-	src/Papyrus/sslDataKey.h
-	src/Papyrus/sslDataKey.cpp
 	src/Papyrus/Settings.h
 	src/Papyrus/Settings.cpp
+	src/Papyrus/sslActorLibrary.h
+	src/Papyrus/sslActorLibrary.cpp
+	src/Papyrus/sslDataKey.h
+	src/Papyrus/sslDataKey.cpp
+	src/Papyrus/sslThreadLibrary.h
+	src/Papyrus/sslThreadLibrary.cpp
 )
