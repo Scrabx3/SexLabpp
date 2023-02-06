@@ -2,12 +2,13 @@
 
 namespace SexLab
 {
-
-	bool IsFuta(const RE::Actor* a_actor);	 // Assumes female base sex
+	bool IsFuta(RE::Actor* a_actor);	 // Assumes female base sex
 	bool IsNPC(const RE::Actor* a_actor);
 	bool IsVampire(const RE::Actor* a_actor);
 
 	bool IsBed(const RE::TESObjectREFR* a_reference);
+
+	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor);
 
 	template <class T>
 	std::string ToStringVec(T v)

@@ -116,7 +116,7 @@ namespace Settings
 		}
 		try {
 			const auto config = YAML::LoadFile(CONFIGPATH("Settings.yaml"));
-			auto mcm = Script::CreateObjectPtr(GameForms::ConfigQuest, "sslSystemConfig");
+			auto mcm = Script::GetScriptObject(GameForms::ConfigQuest, "sslSystemConfig");
 			for (auto&& setting : settings) {
 				setting->Load(config, mcm);
 			}
@@ -130,7 +130,7 @@ namespace Settings
 		logger::info("Saving configuration");
 		try {
 			YAML::Node config{};
-			const auto mcm = Script::CreateObjectPtr(GameForms::ConfigQuest, "sslSystemConfig");
+			const auto mcm = Script::GetScriptObject(GameForms::ConfigQuest, "sslSystemConfig");
 			for (auto&& setting : settings) {
 				setting->Save(config, mcm);
 			}

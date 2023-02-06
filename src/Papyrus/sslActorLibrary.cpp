@@ -1,6 +1,6 @@
 #include "Papyrus/sslActorLibrary.h"
 
-namespace Papyrus
+namespace Papyrus::ActorLibrary
 {
   inline bool CanAnimateImpl(RE::Actor* a_actor)
 	{
@@ -52,4 +52,4 @@ namespace Papyrus
 		return true;
   }
 
-} // namespace Papyrus
+}	 // namespace Papyrus::ActorLibrary

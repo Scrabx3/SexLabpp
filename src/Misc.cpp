@@ -6,34 +6,37 @@
 namespace SexLab
 {
 
-	bool IsFuta(const RE::Actor* a_actor)
+	bool IsFuta(RE::Actor* a_actor)
 	{
 		static const auto sosfaction = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESFaction>(0x00AFF8, "Schlongs of Skyrim.esp");
 		if (!sosfaction)
 			return false;
 
-		const auto base = a_actor->GetActorBase();
-		if (!base)
-			return false;
-
-		auto ret = false;
-		for (auto&& f : base->factions) {
-			if (!f.faction)
-				continue;
-			if (f.faction == sosfaction)
-				ret = true;
-			if (std::find(Settings::SOS_ExcludeFactions.begin(), Settings::SOS_ExcludeFactions.end(), f.faction->formID) != Settings::SOS_ExcludeFactions.end())
+		bool ret = false;
+		a_actor->VisitFactions([&ret](RE::TESFaction* a_faction, int8_t a_rank) -> bool {
+			if (!a_faction || a_rank < 0)	
 				return false;
-
-			std::string name{ f.faction->GetFullName() };
+			
+			if (a_faction == sosfaction) {
+				ret = true;
+				return false;
+			}
+			const auto& excl = Settings::SOS_ExcludeFactions;
+			if (std::find(excl.begin(), excl.end(), a_faction->formID) != excl.end()) {
+				ret = false;
+				return true;
+			}
+			std::string name{ a_faction->GetFullName() };
 			if (!name.empty()) {
 				ToLower(name);
 				if (name.find("pubic") != std::string::npos) {
-					return false;
+					ret = false;
+					return true;
 				}
 			}
-		}
-		return a_actor->IsInFaction(sosfaction);
+			return false;
+		});
+		return ret;
 	}
 
 	bool IsNPC(const RE::Actor* a_actor)
@@ -57,4 +60,11 @@ namespace SexLab
 		const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
 		return node && !node->markers.empty() && node->markers[0].animationType.all(RE::BSFurnitureMarker::AnimationType::kSleep);
 	}
+
+	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor)
+	{
+		const auto base = a_actor->GetTemplateActorBase();
+		return base ? base : a_actor->GetActorBase();
+	}
+
 }

@@ -1,6 +1,7 @@
 #include "Papyrus/Functions.h"
-#include "Papyrus/sslDataKey.h"
 #include "Papyrus/Settings.h"
+#include "Papyrus/sslActorLibrary.h"
+#include "Papyrus/sslDataKey.h"
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
@@ -87,8 +88,9 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	}
 
 	const auto papyrus = SKSE::GetPapyrusInterface();
-	papyrus->Register(SLPP::Register);
-	papyrus->Register(SLPP::DataKey::Register);
+	papyrus->Register(Papyrus::Register);
+	papyrus->Register(Papyrus::DataKey::Register);
+	papyrus->Register(Papyrus::ActorLibrary::Register);
 
 	logger::info("Initialization complete");
 

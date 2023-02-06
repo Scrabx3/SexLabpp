@@ -55,7 +55,7 @@ namespace SexLab::DataKey
 		Blank = 1U << 31
 	};
 
-	void AddGender(const RE::Actor* a_actor, SKSE::stl::enumeration<Key, std::uint32_t>& a_key);
+	void AddGender(RE::Actor* a_actor, SKSE::stl::enumeration<Key, std::uint32_t>& a_key);
 	// void AddRaceID(const RE::Actor* a_actor, stl::enumeration<Gender, std::uint32_t>& a_key);
 	void AddRaceID(std::string& a_racekey, stl::enumeration<Key, std::uint32_t>& a_key);
 

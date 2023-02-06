@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Papyrus
+namespace Papyrus::ActorLibrary
 {
 #define REGISTERFUNC(func, d) a_vm->RegisterFunction(#func##sv, "sslActorLibrary", func, d)
 
@@ -14,4 +14,4 @@ namespace Papyrus
 
 		return true;
   }
-} // namespace Papyrus
+} // namespace Papyrus::ActorLibrary

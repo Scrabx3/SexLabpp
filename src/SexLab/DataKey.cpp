@@ -4,7 +4,7 @@
 
 namespace SexLab::DataKey
 {
-	void AddGender(const RE::Actor* a_actor, stl::enumeration<Key, std::uint32_t>& a_key)
+	void AddGender(RE::Actor* a_actor, stl::enumeration<Key, std::uint32_t>& a_key)
 	{
 		const auto base = a_actor->GetActorBase();
 		if (!base) {
