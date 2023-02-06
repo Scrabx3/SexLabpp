@@ -325,7 +325,7 @@ int32_t Papyrus::CheckStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 	}
 }
 
-std::vector<RE::TESForm*> Papyrus::GetStrippables(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, bool a_wornonly)
+std::vector<RE::TESForm*> Papyrus::GetStrippables(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_reference, bool a_wornonly)
 {
 	if (!a_reference) {
 		a_vm->TraceStack("Cannot retrieve hdt spell from a none reference", a_stackID);

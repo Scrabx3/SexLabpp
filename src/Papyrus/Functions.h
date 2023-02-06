@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Papyrus/Settings.h"
+
 namespace Papyrus
 {
 #define REGISTERFUNC(func, c) a_vm->RegisterFunction(#func##sv, c, func)
@@ -26,7 +28,11 @@ namespace Papyrus
 
 	std::string GetEditorID(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form);
 
-	std::vector<RE::TESForm*> GetStrippables(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, bool a_wornonly);
+	inline void LoadDefaultSettings(RE::TESQuest*) { Settings::MCMConfig::GetSingleton()->LoadDefaults(); }
+	inline void LoadSettings(RE::TESQuest*) { Settings::MCMConfig::GetSingleton()->Load(); }
+	inline void SaveSettings(RE::TESQuest*) { Settings::MCMConfig::GetSingleton()->Save(); }
+
+	std::vector<RE::TESForm*> GetStrippables(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_reference, bool a_wornonly);
 
 	inline bool Register(VM* a_vm)
 	{
@@ -46,6 +52,9 @@ namespace Papyrus
 		REGISTERFUNC(GetHDTHeelSpell, "sslpp");
 		REGISTERFUNC(GetEditorID, "sslpp");
 
+		REGISTERFUNC(LoadDefaultSettings, "sslConfigMenu");
+		REGISTERFUNC(LoadSettings, "sslConfigMenu");
+		REGISTERFUNC(SaveSettings, "sslConfigMenu");
 		REGISTERFUNC(GetStrippables, "sslConfigMenu");
 		return true;
 	}

@@ -68,6 +68,7 @@ namespace Settings
 		};
 
 	public:
+		void LoadDefaults();
 		void Load();
 		void Save();
 
@@ -75,6 +76,10 @@ namespace Settings
 		const std::vector<std::unique_ptr<MCMAbstract>> settings = []() {
 			std::remove_const<decltype(settings)>::type ret;
 			ret.reserve(128);
+			// Install
+			ret.emplace_back(new MCMSetting<bool>("bInstallDefaults"));
+			ret.emplace_back(new MCMSetting<bool>("bInstallDefaultsCrt"));
+			// Misc
 			ret.emplace_back(new MCMSetting<bool>("RestrictAggressive"));
 			ret.emplace_back(new MCMSetting<bool>("AllowCreatures"));
 			ret.emplace_back(new MCMSetting<bool>("NPCSaveVoice"));
