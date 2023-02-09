@@ -79,6 +79,8 @@ namespace Settings
 			// Install
 			ret.emplace_back(new MCMSetting<bool>("bInstallDefaults"));
 			ret.emplace_back(new MCMSetting<bool>("bInstallDefaultsCrt"));
+			// Animation
+			ret.emplace_back(new MCMSetting<int>("iFutaBehavior"));
 			// Misc
 			ret.emplace_back(new MCMSetting<bool>("RestrictAggressive"));
 			ret.emplace_back(new MCMSetting<bool>("AllowCreatures"));
