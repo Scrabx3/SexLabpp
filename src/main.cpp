@@ -2,6 +2,7 @@
 #include "Papyrus/Settings.h"
 #include "Papyrus/sslActorLibrary.h"
 #include "Papyrus/sslDataKey.h"
+#include "SexLab/Hooks/Hooks.h"
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
@@ -89,6 +90,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	papyrus->Register(Papyrus::Register);
 	papyrus->Register(Papyrus::DataKey::Register);
 	papyrus->Register(Papyrus::ActorLibrary::Register);
+
+	SexLab::Hooks::Install();
 
 	logger::info("Initialization complete");
 

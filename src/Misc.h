@@ -9,19 +9,7 @@ namespace SexLab
 	bool IsBed(const RE::TESObjectREFR* a_reference);
 
 	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor);
-
-	template <class T>
-	std::string ToStringVec(T v)
-	{
-		std::stringstream ss;
-		for (size_t i = 0; i < v.size(); ++i) {
-			if (i != 0)
-				ss << ",";
-			ss << v[i];
-		}
-		std::string s = ss.str();
-		return s;
-	}
+	void SetVehicle(RE::Actor* a_this, RE::TESObjectREFR* a_vehicle);
 
 	template <class T>
 	constexpr void ToLower(T& str)
