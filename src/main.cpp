@@ -1,24 +1,26 @@
-#include "Papyrus/Functions.h"
-#include "Papyrus/Settings.h"
-#include "Papyrus/sslActorLibrary.h"
-#include "Papyrus/sslDataKey.h"
-#include "SexLab/Hooks/Hooks.h"
+// #include "Papyrus/Functions.h"
+// #include "Papyrus/Settings.h"
+// #include "Papyrus/sslActorLibrary.h"
+// #include "Papyrus/sslDataKey.h"
+// #include "Hooks/Hooks.h"
+#include "Registry/Library.h"
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
 	switch (message->type) {
 	case SKSE::MessagingInterface::kSaveGame:
-		Settings::StripConfig::GetSingleton()->Save();
+		// Settings::StripConfig::GetSingleton()->Save();
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
-		if (!GameForms::LoadData()) {
-			logger::critical("Unable to load esp objects");
-			if (MessageBox(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
-				std::_Exit(EXIT_FAILURE);
-			return;
-		}
-		Settings::LoadData();
-		Settings::StripConfig::GetSingleton()->Load();
+		Registry::Library::GetSingleton()->Initialize();
+		// if (!GameForms::LoadData()) {
+		// 	logger::critical("Unable to load esp objects");
+		// 	if (MessageBox(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
+		// 		std::_Exit(EXIT_FAILURE);
+		// 	return;
+		// }
+		// Settings::LoadData();
+		// Settings::StripConfig::GetSingleton()->Load();
 		break;
 	case SKSE::MessagingInterface::kNewGame:
 	case SKSE::MessagingInterface::kPostLoadGame:
@@ -34,7 +36,7 @@ extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
 	v.UsesAddressLibrary(true);
 	v.UsesStructsPost629(true);
 	v.CompatibleVersions({ SKSE::RUNTIME_LATEST_VR, SKSE::RUNTIME_SSE_LATEST_SE, SKSE::RUNTIME_SSE_LATEST });
-	// TODO: compile macro 
+	//
 	// v.UsesStructsPost629(false);
 	// v.CompatibleVersions({ SKSE::RUNTIME_SSE_1_6_353 });
 	return v;
@@ -86,12 +88,13 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		return false;
 	}
 
-	const auto papyrus = SKSE::GetPapyrusInterface();
-	papyrus->Register(Papyrus::Register);
-	papyrus->Register(Papyrus::DataKey::Register);
-	papyrus->Register(Papyrus::ActorLibrary::Register);
+	// const auto papyrus = SKSE::GetPapyrusInterface();
+	// papyrus->Register(Papyrus::Register);
+	// papyrus->Register(Papyrus::DataKey::Register);
+	// papyrus->Register(Papyrus::ActorLibrary::Register);
 
-	SexLab::Hooks::Install();
+	// SexLab::Hooks::Install();
+
 
 	logger::info("Initialization complete");
 

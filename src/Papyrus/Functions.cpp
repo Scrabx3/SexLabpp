@@ -51,6 +51,49 @@ void Papyrus::SetPositions(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunction
 	}
 }
 
+void Papyrus::LocateReferences(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center, std::vector<float> a_offsets)
+{
+	if (!a_center) {
+		a_vm->TraceStack("Cannot center Actors around a none Reference", a_stackID);
+		return;
+	} else if (a_refs.empty() || std::find(a_refs.begin(), a_refs.end(), nullptr) != a_refs.end()) {
+		a_vm->TraceStack("Empty reference array. Nothing to do", a_stackID);
+		return;
+	} else if (a_refs.size() * 4 != a_offsets.size()) {
+		a_vm->TraceStack("Offsets needs to be a mx4 matrix", a_stackID);
+		return;
+	}
+	// RE::ObjectRefHandle(a_center);
+	const auto centerPos = a_center->GetPosition();
+	const auto centerAng = [&a_center]() { auto ret = a_center->GetAngle(); ret.z += static_cast<float>(std::_Pi); return ret; }();
+
+	std::vector<RE::NiPoint3> positions{}, angles{};
+	positions.reserve(a_refs.size());
+	angles.reserve(a_refs.size());
+	for (size_t i = 0; i < a_refs.size(); i++) {
+		// SexLab::SetVehicle(a_refs[i], a_center);
+
+		RE::NiPoint3 pos{ centerPos }, ang{ centerAng };
+		const auto& forward = a_offsets[i * 4 + 0];
+		pos.x += forward * sin(ang.z);
+		pos.y += forward * cos(ang.z);
+
+		const auto& side = a_offsets[i * 4 + 1];
+		pos.x += side * cos(ang.z);
+		pos.y += side * sin(ang.z);
+
+		pos.z += a_offsets[i * 4 + 2];
+		ang.z += a_offsets[i * 4 + 3] * static_cast<float>(std::_Pi / 180.0);
+		positions.push_back(pos);
+		angles.push_back(ang);
+	}
+	for (size_t i = 0; i < a_refs.size(); i++) {
+		a_refs[i]->data.angle = angles[i];
+		a_refs[i]->data.location = positions[i];
+		a_refs[i]->Update3DPosition(false);
+	}
+}
+
 void Papyrus::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center, std::vector<float> a_offsets)
 {
 	if (!a_center) {
@@ -71,7 +114,6 @@ void Papyrus::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*
 	positions.reserve(a_refs.size());
 	angles.reserve(a_refs.size());
 	for (size_t i = 0; i < a_refs.size(); i++) {
-
 		RE::NiPoint3 pos{ centerPos }, ang{ centerAng };
 		const auto& forward = a_offsets[i * 4 + 0];
 		pos.x += forward * sin(ang.z);
@@ -87,9 +129,8 @@ void Papyrus::SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*
 		angles.push_back(ang);
 	}
 	for (size_t i = 0; i < a_refs.size(); i++) {
-		SexLab::SetVehicle(a_refs[i], a_center);
 		a_refs[i]->data.angle = angles[i];
-		a_refs[i]->SetPosition(positions[i], false);
+		a_refs[i]->data.location = positions[i];
 		a_refs[i]->Update3DPosition(true);
 	}
 

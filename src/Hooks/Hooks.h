@@ -24,10 +24,11 @@ namespace SexLab::Hooks
 				return false;
 
 			const auto bumpedColRef = RE::TESHavokUtilities::FindCollidableRef(bumpedColObj->collidable);
-			if(!bumpedColRef) return false;
+			if (!bumpedColRef)
+				return false;
 
 			const auto actorref = bumpedColRef->As<RE::Actor>();
-			if (!actorref || !actorref->IsInFaction(GameForms::AnimatingFaction))
+			if (actorref && !actorref->IsInFaction(GameForms::AnimatingFaction))
 				return false;
 
 			filter |= no_collision_flag;
@@ -51,8 +52,8 @@ namespace SexLab::Hooks
 	inline void Install()
 	{
 		// TODO: find VR offset
-		// REL::Relocation<std::uintptr_t> target{ REL::RelocationID(36359, 37350), REL::VariantOffset(0xF0, 0xFB, 0xF0) };
-		// stl::write_thunk_call<CollisionHandler>(target.address());
+		REL::Relocation<std::uintptr_t> target{ REL::RelocationID(36359, 37350), REL::VariantOffset(0xF0, 0xFB, 0xF0) };
+		stl::write_thunk_call<CollisionHandler>(target.address());
 	}
 
 }	 // namespace SexLab::Hooks

@@ -1,4 +1,4 @@
-#include "SexLab/Hooks/Hooks.h"
+#include "Hooks/Hooks.h"
 
 namespace SexLab
 {

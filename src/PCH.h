@@ -29,7 +29,7 @@ using namespace std::literals;
 #include "Singleton.h"
 
 #define ESPNAME "SexLab.esm"
-static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return "Data\\SKSE\\SexLabpp\\"s + file; };
+static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return "Data\\SKSE\\SexLab\\"s + file; };
 
 namespace stl
 {

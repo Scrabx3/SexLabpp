@@ -10,6 +10,7 @@ namespace Papyrus
 	std::vector<std::string> RemoveStringEx(RE::StaticFunctionTag*, std::vector<std::string> a_array, std::string a_remove);
 
 	void SetPositions(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center);
+	void LocateReferences(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center, std::vector<float> a_offsets);
 	void SetPositionsEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_refs, RE::TESObjectREFR* a_center, std::vector<float> a_offsets);
 	RE::TESAmmo* GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference);
 	std::vector<RE::TESForm*> StripActor(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, uint32_t a_slotmask);
@@ -40,6 +41,7 @@ namespace Papyrus
 		REGISTERFUNC(RemoveStringEx, "sslpp");
 		REGISTERFUNC(SetPositions, "sslpp");
 		REGISTERFUNC(SetPositionsEx, "sslpp");
+		REGISTERFUNC(LocateReferences, "sslpp");
 		REGISTERFUNC(GetEquippedAmmo, "sslpp");
 		REGISTERFUNC(StripActor, "sslpp");
 		REGISTERFUNC(WriteStrip, "sslpp");

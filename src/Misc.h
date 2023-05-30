@@ -18,7 +18,14 @@ namespace SexLab
 	}
 
 	template <class T>
-	bool IsEqualString(T lhs, T rhs)
+	constexpr T AsLower(T str)
+	{
+		std::transform(str.cbegin(), str.cend(), str.begin(), [](unsigned char c) { return static_cast<unsigned char>(std::tolower(c)); });
+		return str;
+	}
+
+	template <class T, class U>
+	bool IsEqualString(T lhs, U rhs)
 	{
 		return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
 			[](char lhs, char rhs) { return tolower(lhs) == tolower(rhs); });

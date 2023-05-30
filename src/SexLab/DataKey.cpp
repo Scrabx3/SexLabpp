@@ -1,6 +1,6 @@
 #include "SexLab/DataKey.h"
 
-#include "SexLab/RaceKey.h"
+#include "Registry/Define/RaceKey.h"
 
 namespace SexLab::DataKey
 {
@@ -49,16 +49,17 @@ namespace SexLab::DataKey
 
 	void AddRaceID(std::string& a_racekey, stl::enumeration<Key, std::uint32_t>& a_key)
 	{
-		const auto raceid = RaceKey::GetRaceID(a_racekey);
-		a_key.set(Key(raceid.first << CrtBits));
-		switch (raceid.second) {
-		case RaceKey::ExtraRace::Dog:
-			a_key.set(Key::Dog);
-			break;
-		case RaceKey::ExtraRace::Wolf:
-			a_key.set(Key::Wolf);
-			break;
-		}
+		// const auto raceid = RaceKey::GetRaceID(a_racekey);
+		// a_key.set(Key(raceid.first << CrtBits));
+		// switch (raceid.second) {
+		// case RaceKey::ExtraRace::Dog:
+		// 	a_key.set(Key::Dog);
+		// 	break;
+		// case RaceKey::ExtraRace::Wolf:
+		// 	a_key.set(Key::Wolf);
+		// 	break;
+		// }
+		a_key.set(Key::Wolf);
 	}
 
 	uint32_t BuildKey(RE::Actor* a_ref, bool a_victim, std::string& a_racekey)
