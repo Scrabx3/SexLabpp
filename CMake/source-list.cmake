@@ -9,12 +9,15 @@ set(CXX_FILES
 	src/Misc.cpp
 	src/GameForms.h
 
+	src/IPluginInterface.h
+	src/Registry/Util/Scale.h
+	src/Registry/Util/Scale.cpp
+
 	# src/SexLab/DataKey.h
 	# src/SexLab/DataKey.cpp
 
 	# src/Hooks/Hooks.h
 	# src/Hooks/Hooks.cpp
-
 	src/Registry/Define/Tags.h
 	src/Registry/Define/Tags.cpp
 	src/Registry/Define/RaceKey.h
