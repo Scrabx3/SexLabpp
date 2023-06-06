@@ -10,6 +10,7 @@ set(CXX_FILES
 	src/GameForms.h
 
 	src/IPluginInterface.h
+	src/Registry/Util/Combinator.h
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp
 
