@@ -52,10 +52,10 @@ namespace SexLab::DataKey
 		// const auto raceid = RaceKey::GetRaceID(a_racekey);
 		// a_key.set(Key(raceid.first << CrtBits));
 		// switch (raceid.second) {
-		// case RaceKey::ExtraRace::Dog:
+		// case RaceKey::RaceExtra::Dog:
 		// 	a_key.set(Key::Dog);
 		// 	break;
-		// case RaceKey::ExtraRace::Wolf:
+		// case RaceKey::RaceExtra::Wolf:
 		// 	a_key.set(Key::Wolf);
 		// 	break;
 		// }

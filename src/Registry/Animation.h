@@ -78,13 +78,14 @@ namespace Registry
 
 	class Scene
 	{
+		friend class Decoder;
+
 	public:
 		Scene(const std::string_view a_author, const std::string_view a_hash) :
 			author(a_author), hash(a_hash) {}
 		~Scene() = default;
 
-		StagePtr GetStageByKey(std::string_view a_key) const;
-		
+		Stage* GetStageByKey(std::string_view a_key) const;
 
 	public:
 		std::string id;
@@ -93,12 +94,15 @@ namespace Registry
 		std::string_view hash;
 
 		std::vector<PositionInfo> positions;
-		std::vector<std::pair<StagePtr, std::forward_list<StagePtr>>> graph;
-		StagePtr start_animation;
+		std::vector<std::pair<Stage*, std::forward_list<Stage*>>> graph;
+		Stage* start_animation;
 
 		FurnitureInfo furnituredata;
 		stl::enumeration<Tag, uint64_t> tags;
 		std::vector<std::string_view> extratags;
+
+	private:
+		std::vector<std::unique_ptr<Stage>> stages;
 	};
 
 	class AnimPackage
