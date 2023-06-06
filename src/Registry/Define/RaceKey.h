@@ -2,16 +2,20 @@
 
 namespace Registry
 {
-	enum class RaceType : uint8_t;
-	enum class ExtraRace : uint8_t;
-	using RaceKey = std::pair<RaceType, ExtraRace>;
+	/* 
+		Canine can animate both dog and wolf but dog can only animte dog/wolf only wolf
+		BoarAny can animate both BoarSingle and BoarMounted but BoarMounted can only animateBoarMounted/BoarSingle only BoarSingle
+	*/
 
-	enum class RaceType : uint8_t
+	enum class RaceKey : uint8_t
 	{
 		Human = 0,
+
 		AshHopper,
 		Bear,
 		Boar,
+		BoarMounted,
+		BoarSingle,
 		Canine,
 		Chaurus,
 		ChaurusHunter,
@@ -19,8 +23,9 @@ namespace Registry
 		Chicken,
 		Cow,
 		Deer,
-		DragonPriest,
+		Dog,
 		Dragon,
+		DragonPriest,
 		Draugr,
 		DwarvenBallista,
 		DwarvenCenturion,
@@ -32,44 +37,35 @@ namespace Registry
 		FrostAtronach,
 		Gargoyle,
 		Giant,
+		GiantSpider,
 		Goat,
 		Hagraven,
+		Hare,
 		Horker,
 		Horse,
 		IceWraith,
+		LargeSpider,
 		Lurker,
 		Mammoth,
 		Mudcrab,
 		Netch,
-		Rabbit,
 		Riekling,
 		Sabrecat,
 		Seeker,
 		Skeever,
 		Slaughterfish,
-		StormAtronach,
 		Spider,
-		LargeSpider,
-		GiantSpider,
 		Spriggan,
+		StormAtronach,
 		Troll,
 		VampireLord,
 		Werewolf,
-		Wispmother,
 		Wisp,
-	};
-
-	enum class ExtraRace : uint8_t
-	{
-		None,
-		// base = canine
+		Wispmother,
 		Wolf,
-		Dog,
-		// base = boar
-		BoarSingle,
-		BoarMounted,
-	};
 
+		None = static_cast<std::underlying_type_t<RaceKey>>(-1),
+	};
 
 	static inline std::vector<std::string> LegacyRaceKeys{
 		"human"s,
@@ -127,11 +123,16 @@ namespace Registry
 		"wolves"s
 	};
 
+	struct RaceHandler
+	{
+		RaceKey GetRaceKey(RE::Actor* a_actor);
+	};
+
 	// std::optional<RaceKey> MapStringToRaceKey(const std::string_view a_string);
 	// std::optional<std::string_view> MapRaceKeyToString(const RaceKey a_key);
 
-	// std::pair<int, ExtraRace> GetRaceID(std::string a_racekey);
-	// std::string GetRaceKey(const std::pair<int, ExtraRace> a_raceid);
+	// std::pair<int, RaceExtra> GetRaceID(std::string a_racekey);
+	// std::string GetRaceKey(const std::pair<int, RaceExtra> a_raceid);
 	// std::string GetRaceKey(const uint32_t a_raceid);
 
 }	 // namespace Registry
