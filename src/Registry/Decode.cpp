@@ -51,6 +51,7 @@ namespace Registry
 			uint64_t count;
 			readNumeric(count);
 			a_vec.reserve(count);
+			return count;
 		};
 
 		auto package = std::make_unique<AnimPackage>();
@@ -62,7 +63,8 @@ namespace Registry
 		uint64_t scene_count = getLoopCountAndReserve(package->scenes);
 		for (size_t i = 0; i < scene_count; i++) {
 			// ------------------------- SCENE
-			auto& scene = package->scenes.emplace_back(package->author, package->hash);
+			package->scenes.push_back(std::make_unique<Scene>(package->author, package->hash));
+			auto& scene = package->scenes.back();
 			scene->id.resize(idcount);
 			a_stream.read(scene->id.data(), idcount);
 			readString(scene->name);
@@ -143,8 +145,6 @@ namespace Registry
 				}
 			}
 			a_stream.read(reinterpret_cast<char*>(&scene->furnituredata.allowbed), 1);
-			// --- SCENE END
-			package->scenes.push_back(scene);
 		}
 		return package;
 	}
