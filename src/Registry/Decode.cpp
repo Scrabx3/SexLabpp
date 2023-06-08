@@ -2,7 +2,7 @@
 
 namespace Registry
 {
-	AnimPackage Decoder::Decode(const fs::path a_file)
+	std::unique_ptr<AnimPackage> Decoder::Decode(const fs::path a_file)
 	{
 		std::ifstream stream(a_file, std::ios::binary);
 		stream.unsetf(std::ios::skipws);
@@ -20,7 +20,7 @@ namespace Registry
 		}
 	}
 
-	AnimPackage Decoder::Version1(std::ifstream& a_stream)
+	std::unique_ptr<AnimPackage> Decoder::Version1(std::ifstream& a_stream)
 	{
 		constexpr auto hashcount = 4;
 		constexpr auto idcount = 8;
@@ -53,23 +53,23 @@ namespace Registry
 			a_vec.reserve(count);
 		};
 
-		AnimPackage package{};
-		readString(package.name);
-		readString(package.author);
-		package.hash.resize(hashcount);
-		a_stream.read(package.hash.data(), hashcount);
+		auto package = std::make_unique<AnimPackage>();
+		readString(package->name);
+		readString(package->author);
+		package->hash.resize(hashcount);
+		a_stream.read(package->hash.data(), hashcount);
 
-		uint64_t scene_count = getLoopCountAndReserve(package.scenes);
+		uint64_t scene_count = getLoopCountAndReserve(package->scenes);
 		for (size_t i = 0; i < scene_count; i++) {
 			// ------------------------- SCENE
-			auto& scene = package.scenes.emplace_back(package.author, package.hash);
-			scene.id.resize(idcount);
-			a_stream.read(scene.id.data(), idcount);
-			readString(scene.name);
-			uint64_t position_info_count = getLoopCountAndReserve(scene.positions);
+			auto& scene = package->scenes.emplace_back(package->author, package->hash);
+			scene->id.resize(idcount);
+			a_stream.read(scene->id.data(), idcount);
+			readString(scene->name);
+			uint64_t position_info_count = getLoopCountAndReserve(scene->positions);
 			for (size_t n = 0; n < position_info_count; n++) {
 				// ------------------------- POSITION INFO
-				auto& info = scene.positions.emplace_back();
+				auto& info = scene->positions.emplace_back();
 				a_stream.read(reinterpret_cast<char*>(&info.race), 1);
 				a_stream.read(reinterpret_cast<char*>(&info.sex), 1);
 				readFloat(info.scale);
@@ -78,14 +78,14 @@ namespace Registry
 			std::string startstage(idcount, 'X');
 			a_stream.read(startstage.data(), idcount);
 
-			uint64_t stage_count = getLoopCountAndReserve(scene.stages);
+			uint64_t stage_count = getLoopCountAndReserve(scene->stages);
 			for (size_t n = 0; n < stage_count; n++) {
 				// ------------------------- STAGE
-				auto& stage = scene.stages.emplace_back();
+				auto& stage = scene->stages.emplace_back();
 				stage->id.resize(idcount);
 				a_stream.read(stage->id.data(), idcount);
 				if (startstage == stage->id)
-					scene.start_animation = stage.get();
+					scene->start_animation = stage.get();
 
 				uint64_t position_count = getLoopCountAndReserve(stage->positions);
 				if (position_count != position_info_count)
@@ -113,24 +113,24 @@ namespace Registry
 					stage->extratags.push_back(tag);
 				}
 			}
-			if (!scene.start_animation)
-				throw std::runtime_error(fmt::format("Start animation is not defined for scene {}", scene.id).c_str());
+			if (!scene->start_animation)
+				throw std::runtime_error(fmt::format("Start animation is not defined for scene {}", scene->id).c_str());
 
 			const auto getStage = [&](const std::string_view id) -> Stage* {
-				for (auto&& stage : scene.stages)
+				for (auto&& stage : scene->stages)
 					if (stage->id == id)
 						return stage.get();
 				throw std::runtime_error(fmt::format("Unrecognized stage referenced in graph: {}", id).c_str());
 			};
 
-			uint64_t graph_count = getLoopCountAndReserve(scene.graph);
+			uint64_t graph_count = getLoopCountAndReserve(scene->graph);
 			if (graph_count != stage_count)
 				throw std::runtime_error(fmt::format("Invalid stage count; expected {} but got {}", stage_count, graph_count).c_str());
 			for (size_t n = 0; n < graph_count; n++) {
 				// ------------------------- GRAPH
 				std::string keystage(idcount, 'X');
 				a_stream.read(keystage.data(), idcount);
-				auto& list = scene.graph.emplace_back(std::make_pair(
+				auto& list = scene->graph.emplace_back(std::make_pair(
 					getStage(keystage),
 					std::forward_list<Stage*>{}));
 
@@ -142,9 +142,9 @@ namespace Registry
 					list.second.push_front(getStage(edgestage));
 				}
 			}
-			a_stream.read(reinterpret_cast<char*>(&scene.furnituredata.allowbed), 1);
+			a_stream.read(reinterpret_cast<char*>(&scene->furnituredata.allowbed), 1);
 			// --- SCENE END
-			package.scenes.push_back(scene);
+			package->scenes.push_back(scene);
 		}
 		return package;
 	}

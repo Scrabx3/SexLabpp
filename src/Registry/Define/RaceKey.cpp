@@ -70,12 +70,12 @@ namespace Registry
 			return RaceKey::None;
 		}
 		const std::string_view rootTMP{ race->rootBehaviorGraphNames[sex].data() };
-		const RE::BSFixedString root{ rootTMP.substr(rootTMP.rfind('\\') + 1) };
+		const auto root{ rootTMP.substr(rootTMP.rfind('\\') + 1) };
 		if (root == "0_Master.hkx") {
 			return RaceKey::Human;
 		}
 
-		static const std::unordered_map<RE::BSFixedString, RaceKey> behaviorfiles{
+		static const std::unordered_map<std::string_view, RaceKey> behaviorfiles{
 			{ "WolfBehavior.hkx", RaceKey::Wolf },
 			{ "DogBehavior.hkx", RaceKey::Dog },
 			{ "ChickenBehavior.hkx", RaceKey::Chicken },

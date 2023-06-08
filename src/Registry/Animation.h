@@ -6,13 +6,6 @@
 
 namespace Registry
 {
-	class Scene;
-	struct Stage;
-	struct Posiion;
-
-	using StagePtr = std::shared_ptr<Stage>;
-	using ScenePtr = std::shared_ptr<Scene>;
-
 	enum Offset : uint8_t
 	{
 		X = 0,
@@ -112,7 +105,7 @@ namespace Registry
 		std::string author;
 		std::string hash;
 
-		std::vector<Scene> scenes;
+		std::vector<std::unique_ptr<Scene>> scenes;
 	};
 
 }	 // namespace Registry

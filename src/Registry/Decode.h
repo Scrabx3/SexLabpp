@@ -11,10 +11,10 @@ namespace Registry
 		/// @param a_file The file to decode
 		/// @return A new package representing the files contents
 		/// @throw if the file is empty or has errors
-		_NODISCARD static AnimPackage Decode(const fs::path a_file);
+		_NODISCARD static std::unique_ptr<AnimPackage> Decode(const fs::path a_file);
 
 	private:
-		_NODISCARD static AnimPackage Version1(std::ifstream& a_stream);
+		_NODISCARD static std::unique_ptr<AnimPackage> Version1(std::ifstream& a_stream);
 	};
 
 }	 // namespace Registry

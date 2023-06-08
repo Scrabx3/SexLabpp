@@ -3,6 +3,8 @@
 template <typename T>
 class Combinator
 {
+	typedef typename std::vector<T>::iterator Iterator;
+
 public:
 	Combinator(std::vector<std::vector<T>>& a_data) :
 		data(a_data)
@@ -14,7 +16,7 @@ public:
 
 	bool next()
 	{
-		for (long long i = data.size() - 1; i >= 0; --i) {
+		for (size_t i = data.size() - 1; i >= 0; i--) {
 			auto& v = data[i];
 			auto& it = current[i];
 
@@ -25,12 +27,12 @@ public:
 		return false;
 	}
 
-	std::vector<std::vector<T>::iterator> combination() const
+	std::vector<Iterator> combination() const
 	{
 		return current;
 	}
 
 private:
 	std::vector<std::vector<T>>& data;
-	std::vector<std::vector<T>::iterator> current;
+	std::vector<Iterator> current;
 };
