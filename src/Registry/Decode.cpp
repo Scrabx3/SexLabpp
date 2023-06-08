@@ -146,6 +146,18 @@ namespace Registry
 				}
 			}
 			a_stream.read(reinterpret_cast<char*>(&scene->furnituredata.allowbed), 1);
+			// ------------------------- Upstream Stage Data
+			for (auto&& stage : scene->stages) {
+				for (auto&& tag : stage->extratags) {
+					const auto where = std::find(scene->extratags.begin(), scene->extratags.end(), [&tag](auto& it) {
+						return SexLab::IsEqualString(tag, it);
+					});
+					if (where != scene->extratags.end()) {
+						scene->extratags.push_back(tag);
+					}
+				}
+				scene->tags |= stage->tags;
+			}
 		}
 		return package;
 	}
