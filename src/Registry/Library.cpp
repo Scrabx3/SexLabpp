@@ -49,27 +49,30 @@ namespace Registry
 							}
 							fragments.push_back(std::move(fragPiece));
 						}
-						std::vector<std::vector<FragPair>::iterator> it;
-						for (auto i = fragments.begin(); i < fragments.end(); i++)
-							it.push_back(i->begin());
+						std::vector<std::vector<std::pair<LibraryFragment, size_t>>::iterator> it;
+						for (auto& subvec : fragments)
+							it.push_back(subvec.begin());
 						// Cycle through every combination of every vector
+						assert(it.size() > 0 && it.size() == fragments.size());
 						const auto K = it.size() - 1;
 						while (it[0] != fragments[0].end()) {
-							std::sort(it.begin(), it.end(), [](auto& a, auto& b) {
+							auto copy = it;	 // work on copy to not mix up iterator order
+							std::sort(copy.begin(), copy.end(), [](auto& a, auto& b) {
 								return static_cast<FragmentUnderlying>(a->first) < static_cast<FragmentUnderlying>(b->first);
 							});
 							SceneEntry entry{};
+							entry.scene = scene.get();
 							std::vector<LibraryFragment> argFragment;
-							argFragment.reserve(it.size());
-							entry.order.reserve(it.size());
-							for (auto& current : it) {
+							argFragment.reserve(copy.size());
+							entry.order.reserve(copy.size());
+							for (const auto& current : it) {
 								argFragment.push_back(current->first);
 								entry.order.push_back(current->second);
 							}
-							for (auto& argHeader : headerFragments) {
+							for (const auto& argHeader : headerFragments) {
 								auto key = ConstructHashKey(argFragment, argHeader);
-								const auto pair = std::make_pair(key, std::move(entry));
-								hashes.push_back(std::move(pair));
+								const auto pair = std::make_pair(key, entry);
+								hashes.push_back(pair);
 							}
 							// Next
 							++it[K];
@@ -144,7 +147,7 @@ namespace Registry
 		auto base = a_actor->GetActorBase();
 		if (!base) {
 			logger::error("Invalid Actor {:X} (0): Missing base object", a_actor->formID);
-			return { LibraryFragment::Empty };
+			return { LibraryFragment::None };
 		}
 
 		auto sex = base ? base->GetSex() : RE::SEXES::kNone;
@@ -158,7 +161,7 @@ namespace Registry
 			break;
 		default:
 			logger::error("Invalid Actor {:X} ({:X}): Missing sex", a_actor->formID, (base ? base->formID : 0));
-			return { LibraryFragment::Empty };
+			return { LibraryFragment::None };
 		}
 
 		const auto racekey = RaceHandler::GetRaceKey(a_actor);
@@ -279,9 +282,14 @@ namespace Registry
 	{
 		assert(fragments.size() <= 5);
 		LibraryKey ret{};
-		for (size_t i = fragments.size() - 1; i < fragments.size(); i--) {
-			ret <<= i * LibraryFragmentSize;
+		ret |= static_cast<std::underlying_type<LibraryFragment>::type>(fragments[0]);
+		size_t i = 1;
+		for (; i < fragments.size(); i++) {
+			ret <<= LibraryFragmentSize;
 			ret |= static_cast<std::underlying_type<LibraryFragment>::type>(fragments[i]);
+		}
+		for (size_t n = i; n < 5; n++) {
+			ret <<= LibraryFragmentSize;
 		}
 		ret <<= LibraryHeaderFragmentSize;
 		ret |= static_cast<std::underlying_type<LibraryHeaderFragment>::type>(a_extra);

@@ -75,7 +75,7 @@ namespace Registry
 
 	public:
 		Scene(const std::string_view a_author, const std::string_view a_hash) :
-			author(a_author), hash(a_hash) {}
+			author(a_author), hash(a_hash), start_animation(nullptr), furnituredata({}) {}
 		~Scene() = default;
 
 		Stage* GetStageByKey(std::string_view a_key) const;

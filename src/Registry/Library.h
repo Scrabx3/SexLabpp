@@ -5,11 +5,11 @@
 
 namespace Registry
 {
-	using LibraryKey = std::bitset<56>;
+	static inline constexpr size_t MAX_ACTOR_COUNT = 5;
 
 	enum class LibraryFragment
 	{
-		Empty = 0,
+		None = 0,
 
 		Male = 1 << 0,
 		Female = 1 << 1,
@@ -41,13 +41,15 @@ namespace Registry
 	{
 		None = 0,
 
-		AllowBed = 1ULL << 1,
+		AllowBed = 1ULL << 0,
 		// Unused = 1ULL << 61,
 		// Unused = 1ULL << 62,
 		// Unused = 1ULL << 63,
 	};
 	using FragmentHeaderUnderlying = std::underlying_type<LibraryHeaderFragment>::type;
 	static inline constexpr size_t LibraryHeaderFragmentSize = 1;
+
+	using LibraryKey = std::bitset<MAX_ACTOR_COUNT * LibraryFragmentSize + LibraryHeaderFragmentSize>;
 
 	class Library : public Singleton<Library>
 	{

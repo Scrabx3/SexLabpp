@@ -69,7 +69,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		spdlog::set_default_logger(std::move(log));
 		spdlog::set_pattern("%s(%#): [%^%l%$] %v"s);
 
-		logger::info("{} v{}"sv, Plugin::NAME, Plugin::VERSION.string());
+		logger::info("{} v{}sv", Plugin::NAME, Plugin::VERSION.string());
 		return true;
 	};
 	if (a_skse->IsEditor()) {

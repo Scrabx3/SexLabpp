@@ -83,7 +83,8 @@ namespace Registry
 			uint64_t stage_count = getLoopCountAndReserve(scene->stages);
 			for (size_t n = 0; n < stage_count; n++) {
 				// ------------------------- STAGE
-				auto& stage = scene->stages.emplace_back();
+				scene->stages.push_back(std::make_unique<Stage>());
+				auto& stage = scene->stages.back();
 				stage->id.resize(idcount);
 				a_stream.read(stage->id.data(), idcount);
 				if (startstage == stage->id)
