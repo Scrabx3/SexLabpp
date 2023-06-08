@@ -12,6 +12,10 @@ namespace GameForms
 	if (!form)                                                                         \
 		return false;
 
+	// Vanilla Forms
+	inline RE::BGSKeyword* Vampire;
+	inline RE::BGSKeyword* DLC2RieklingMountedKeyword;
+
 	// SexLab Forms
 	inline const RE::TESFaction* GenderFaction;
 	inline const RE::TESFaction* AnimatingFaction;
@@ -20,6 +24,9 @@ namespace GameForms
 
 	inline bool LoadData()
 	{
+		LOOKUPGAME(Vampire, 0xA82BB);
+		LOOKUPGAME(DLC2RieklingMountedKeyword, 0x0203A159);
+
 		LOOKUPMOD(GenderFaction, 0x043A43, "SexLab.esm");
 		LOOKUPMOD(AnimatingFaction, 0xE50F, "SexLab.esm");
 

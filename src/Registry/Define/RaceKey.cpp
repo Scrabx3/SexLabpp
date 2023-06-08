@@ -130,7 +130,7 @@ namespace Registry
 		}
 		switch (where->second) {
 		case RaceKey::Boar:
-			if (race->HasKeywordString("DLC2RieklingMountedKeyword")) {
+			if (race->HasKeyword(GameForms::DLC2RieklingMountedKeyword)) {
 				return RaceKey::BoarMounted;
 			} else {
 				return RaceKey::BoarSingle;

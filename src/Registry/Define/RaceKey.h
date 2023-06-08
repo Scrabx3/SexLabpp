@@ -125,7 +125,7 @@ namespace Registry
 
 	struct RaceHandler
 	{
-		RaceKey GetRaceKey(RE::Actor* a_actor);
+		static RaceKey GetRaceKey(RE::Actor* a_actor);
 	};
 
 	// std::optional<RaceKey> MapStringToRaceKey(const std::string_view a_string);
