@@ -25,7 +25,7 @@ namespace GameForms
 	inline bool LoadData()
 	{
 		LOOKUPGAME(Vampire, 0xA82BB);
-		LOOKUPGAME(DLC2RieklingMountedKeyword, 0x0203A159);
+		LOOKUPGAME(DLC2RieklingMountedKeyword, 0x0403A159);
 
 		LOOKUPMOD(GenderFaction, 0x043A43, "SexLab.esm");
 		LOOKUPMOD(AnimatingFaction, 0xE50F, "SexLab.esm");
