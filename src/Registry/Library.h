@@ -46,8 +46,8 @@ namespace Registry
 		// Unused = 1ULL << 62,
 		// Unused = 1ULL << 63,
 	};
-	using FragmentHeaderUnderlying = std::underlying_type<LibraryHeaderFragment>::type;
 	static inline constexpr size_t LibraryHeaderFragmentSize = 1;
+	using FragmentHeaderUnderlying = std::underlying_type<LibraryHeaderFragment>::type;
 
 	using LibraryKey = std::bitset<MAX_ACTOR_COUNT * LibraryFragmentSize + LibraryHeaderFragmentSize>;
 
@@ -67,6 +67,7 @@ namespace Registry
 			std::vector<RE::Actor*>& a_actors,
 			const std::vector<std::string_view>& tags,
 			std::vector<RE::Actor*>& a_submissives) const;
+		_NODISCARD Scene* GetSceneByID(const std::string& a_id);
 
 		_NODISCARD size_t GetSceneCount() const;
 
@@ -81,6 +82,7 @@ namespace Registry
 	private:
 		mutable std::shared_mutex read_write_lock{};
 
+		std::map<std::string_view, Scene*> scene_map;
 		std::vector<std::unique_ptr<AnimPackage>> packages;
 		std::unordered_map<LibraryKey, std::vector<SceneEntry>> scenes;
 	};
