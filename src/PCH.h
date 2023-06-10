@@ -24,9 +24,10 @@ using namespace std::literals;
 
 // #include "Random.h"
 #include "GameForms.h"
-#include "Misc.h"
+#include "Registry/Misc.h"
 #include "Script.h"
 #include "Singleton.h"
+#include "UserData/Settings.h"
 
 #define ESPNAME "SexLab.esm"
 static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return "Data\\SKSE\\SexLab\\"s + file; };

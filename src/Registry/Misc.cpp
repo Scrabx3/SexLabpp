@@ -1,9 +1,6 @@
 #include "Misc.h"
 
-#include "Papyrus/Settings.h"
-#include "SexLab/DataKey.h"
-
-namespace SexLab
+namespace Registry
 {
 
 	bool IsFuta(RE::Actor* a_actor)
@@ -41,14 +38,12 @@ namespace SexLab
 
 	bool IsNPC(const RE::Actor* a_actor)
 	{
-		static const auto ActorTypeNPC = RE::TESForm::LookupByID<RE::BGSKeyword>(0x13794);
-		return a_actor->HasKeyword(ActorTypeNPC);
+		return a_actor->HasKeyword(GameForms::ActorTypeNPC);
 	}
 
 	bool IsVampire(const RE::Actor* a_actor)
 	{
-		static const auto vampire = RE::TESForm::LookupByID<RE::BGSKeyword>(0xA82BB);
-		return a_actor->HasKeyword(vampire);
+		return a_actor->HasKeyword(GameForms::Vampire);
 	}
 
 	bool IsBed(const RE::TESObjectREFR* a_reference)

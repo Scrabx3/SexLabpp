@@ -149,9 +149,7 @@ namespace Registry
 			// ------------------------- Upstream Stage Data
 			for (auto&& stage : scene->stages) {
 				for (auto&& tag : stage->extratags) {
-					const auto where = std::find(scene->extratags.begin(), scene->extratags.end(), [&tag](auto& it) {
-						return SexLab::IsEqualString(tag, it);
-					});
+					const auto where = std::find(scene->extratags.begin(), scene->extratags.end(), tag);
 					if (where != scene->extratags.end()) {
 						scene->extratags.push_back(tag);
 					}

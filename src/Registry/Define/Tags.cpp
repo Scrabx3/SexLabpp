@@ -4,7 +4,7 @@ namespace Registry
 {
 #define MAPENTRY(value)                                   \
 	{                                                       \
-		SexLab::AsLower(#value##s), value \
+		AsLower(#value##s), value \
 	}
 
 	using enum Tag;
