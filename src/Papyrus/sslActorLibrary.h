@@ -2,15 +2,13 @@
 
 namespace Papyrus::ActorLibrary
 {
-#define REGISTERFUNC(func, d) a_vm->RegisterFunction(#func##sv, "sslActorLibrary", func, d)
+#define REGISTERFUNC(func, dont_delay) a_vm->RegisterFunction(#func##sv, "sslActorLibrary", func, dont_delay)
 
-	bool CanAnimate(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_actor);
-  bool CanAnimateActor(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
+	int32_t ValidateActor(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_actor);
 
 	inline bool Register(VM* a_vm)
 	{
-    REGISTERFUNC(CanAnimate, true);
-    REGISTERFUNC(CanAnimateActor, true);
+    REGISTERFUNC(ValidateActor, true);
 
 		return true;
   }
