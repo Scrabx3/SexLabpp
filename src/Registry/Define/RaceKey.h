@@ -67,72 +67,10 @@ namespace Registry
 		None = static_cast<std::underlying_type_t<RaceKey>>(-1),
 	};
 
-	static inline std::vector<std::string> LegacyRaceKeys{
-		"human"s,
-		"ashhoppers"s,
-		"bears"s,
-		"boars"s,
-		"boarsany"s,
-		"boarsmounted"s,
-		"canines"s,
-		"chaurus"s,
-		"chaurushunters"s,
-		"chaurusreapers"s,
-		"chickens"s,
-		"cows"s,
-		"deers"s,
-		"dogs"s,
-		"dragonpriests"s,
-		"dragons"s,
-		"draugrs"s,
-		"dwarvenballistas"s,
-		"dwarvencenturions"s,
-		"dwarvenspheres"s,
-		"dwarvenspiders"s,
-		"falmers"s,
-		"flameatronach"s,
-		"foxes"s,
-		"frostatronach"s,
-		"gargoyles"s,
-		"giants"s,
-		"goats"s,
-		"hagravens"s,
-		"horkers"s,
-		"horses"s,
-		"icewraiths"s,
-		"lurkers"s,
-		"mammoths"s,
-		"mudcrabs"s,
-		"netches"s,
-		"rabbits"s,
-		"rieklings"s,
-		"sabrecats"s,
-		"seekers"s,
-		"skeevers"s,
-		"slaughterfishes"s,
-		"stormatronach"s,
-		"spiders"s,
-		"largespiders"s,
-		"giantspiders"s,
-		"spriggans"s,
-		"trolls"s,
-		"vampirelords"s,
-		"werewolves"s,
-		"wispmothers"s,
-		"wisps"s,
-		"wolves"s
-	};
-
 	struct RaceHandler
 	{
 		static RaceKey GetRaceKey(RE::Actor* a_actor);
+		static bool HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey);
 	};
-
-	// std::optional<RaceKey> MapStringToRaceKey(const std::string_view a_string);
-	// std::optional<std::string_view> MapRaceKeyToString(const RaceKey a_key);
-
-	// std::pair<int, RaceExtra> GetRaceID(std::string a_racekey);
-	// std::string GetRaceKey(const std::pair<int, RaceExtra> a_raceid);
-	// std::string GetRaceKey(const uint32_t a_raceid);
 
 }	 // namespace Registry

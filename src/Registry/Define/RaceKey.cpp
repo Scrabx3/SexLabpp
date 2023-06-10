@@ -60,6 +60,62 @@ namespace Registry
 	// 	{ "Wolf", { RaceKey::Canine, RaceExtra::Wolf } }
 	// };
 
+	static inline const std::map<RaceKey, RE::BSFixedString> LegacyRaceKeys = {
+		{ RaceKey::Human, "humans" },
+		{ RaceKey::AshHopper, "ashhoppers" },
+		{ RaceKey::Bear, "bears" },
+		{ RaceKey::Boar, "boarsany" },
+		{ RaceKey::BoarMounted, "boarsmounted" },
+		{ RaceKey::BoarSingle, "boars" },
+		{ RaceKey::Canine, "canines" },
+		{ RaceKey::Chaurus, "chaurus" },
+		{ RaceKey::ChaurusHunter, "chaurushunters" },
+		{ RaceKey::ChaurusReaper, "chaurusreapers" },
+		{ RaceKey::Chicken, "chickens" },
+		{ RaceKey::Cow, "cows" },
+		{ RaceKey::Deer, "deers" },
+		{ RaceKey::Dog, "dogs" },
+		{ RaceKey::Dragon, "dragons" },
+		{ RaceKey::DragonPriest, "dragonpriests" },
+		{ RaceKey::Draugr, "draugrs" },
+		{ RaceKey::DwarvenBallista, "dwarvenballistas" },
+		{ RaceKey::DwarvenCenturion, "dwarvencenturions" },
+		{ RaceKey::DwarvenSphere, "dwarvenspheres" },
+		{ RaceKey::DwarvenSpider, "dwarvenspiders" },
+		{ RaceKey::Falmer, "falmers" },
+		{ RaceKey::FlameAtronach, "flameatronach" },
+		{ RaceKey::Fox, "foxes" },
+		{ RaceKey::FrostAtronach, "frostatronach" },
+		{ RaceKey::Gargoyle, "gargoyles" },
+		{ RaceKey::Giant, "giants" },
+		{ RaceKey::GiantSpider, "giantspiders" },
+		{ RaceKey::Goat, "goats" },
+		{ RaceKey::Hagraven, "hagravens" },
+		{ RaceKey::Hare, "rabbits" },
+		{ RaceKey::Horker, "horkers" },
+		{ RaceKey::Horse, "horses" },
+		{ RaceKey::IceWraith, "icewraiths" },
+		{ RaceKey::LargeSpider, "largespiders" },
+		{ RaceKey::Lurker, "lurkers" },
+		{ RaceKey::Mammoth, "mammoths" },
+		{ RaceKey::Mudcrab, "mudcrabs" },
+		{ RaceKey::Netch, "netches" },
+		{ RaceKey::Riekling, "rieklings" },
+		{ RaceKey::Sabrecat, "sabrecats" },
+		{ RaceKey::Seeker, "seekers" },
+		{ RaceKey::Skeever, "skeevers" },
+		{ RaceKey::Slaughterfish, "slaughterfishes" },
+		{ RaceKey::Spider, "spiders" },
+		{ RaceKey::Spriggan, "spriggans" },
+		{ RaceKey::StormAtronach, "stormatronach" },
+		{ RaceKey::Troll, "trolls" },
+		{ RaceKey::VampireLord, "vampirelords" },
+		{ RaceKey::Werewolf, "werewolves" },
+		{ RaceKey::Wisp, "wisps" },
+		{ RaceKey::Wispmother, "wispmothers" },
+		{ RaceKey::Wolf, "wolves" },
+	};
+
 	RaceKey RaceHandler::GetRaceKey(RE::Actor* a_actor)
 	{
 		const auto base = a_actor->GetActorBase();
@@ -151,7 +207,7 @@ namespace Registry
 				return RaceKey::GiantSpider;
 			}
 		case RaceKey::Wolf:
-			if (SexLab::AsLower(std::string{ race->formEditorID }).find("fox") != std::string::npos) {
+			if (AsLower(std::string{ race->formEditorID }).find("fox") != std::string::npos) {
 				return RaceKey::Fox;
 			} else {
 				return RaceKey::Wolf;
@@ -161,65 +217,21 @@ namespace Registry
 		}
 	}
 
-	// std::optional<RaceKey> MapStringToRaceKey(const std::string_view a_string)
-	// {
-	// 	for (auto&& [str, key] : race_map) {
-	// 		if (SexLab::IsEqualString(str, a_string)) {
-	// 			return key;
-	// 		}
-	// 	}
-	// 	std::nullopt;
-	// }
-
-	// std::optional<std::string_view> MapRaceKeyToString(const RaceKey a_key)
-	// {
-	// 	for (auto&& [str, key] : race_map) {
-	// 		if (key == a_key) {
-	// 			return str;
-	// 		}
-	// 	}
-	// 	std::nullopt;
-	// }
-
-
-	// std::pair<int, RaceExtra> GetRaceID(std::string a_racekey)
-	// {
-	// 	SexLab::ToLower(a_racekey);
-	// 	RaceExtra extra;
-	// 	if (a_racekey == "wolves") {
-	// 		a_racekey = "canines";
-	// 		extra = RaceExtra::Wolf;
-	// 	} else if (a_racekey == "dogs") {
-	// 		a_racekey = "canines";
-	// 		extra = RaceExtra::Dog;
-	// 	} else {
-	// 		extra = RaceExtra::None;
-	// 	}
-	// 	const auto w = std::find(RaceKeys.begin(), RaceKeys.end(), a_racekey);
-	// 	if (w == RaceKeys.end())
-	// 		return { 0, RaceExtra::None };
-
-	// 	return { static_cast<int32_t>(w - RaceKeys.begin()), extra };
-	// }
-
-	// std::string GetRaceKey(std::pair<int, RaceExtra> a_raceid)
-	// {
-	// 	switch (a_raceid.second) {
-	// 	case RaceExtra::Dog:
-	// 		return "dogs"s;
-	// 	case RaceExtra::Wolf:
-	// 		return "wolves"s;
-	// 	default:
-	// 		return GetRaceKey(a_raceid.first);
-	// 	}
-	// }
-
-	// std::string GetRaceKey(const uint32_t a_rawraceid)
-	// {
-	// 	if (a_rawraceid < RaceKeys.size())
-	// 		return RaceKeys[a_rawraceid];
-
-	// 	return ""s;
-	// }
+	bool RaceHandler::HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey)
+	{
+		const auto key = GetRaceKey(a_actor);
+		if (key == RaceKey::None) {
+			return false;
+		}
+		// key returns the lowest instance of a representing race,
+		// i.e. no canine or boars as these group 2 racekeys together
+		if (a_racekey == "canines") {
+			return key == RaceKey::Dog || key == RaceKey::Wolf;
+		} else if (a_racekey == "boarsany") {
+			return key == RaceKey::BoarMounted || key == RaceKey::BoarSingle;
+		}
+		const auto where = LegacyRaceKeys.find(key);
+		return where != LegacyRaceKeys.end() && where->second == a_racekey;
+	}
 
 }	 // namespace SexLab::RaceKey
