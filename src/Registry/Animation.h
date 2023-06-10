@@ -21,9 +21,11 @@ namespace Registry
 		Male = 1 << 0,
 		Female = 1 << 1,
 		Futa = 1 << 2,
-	};
 
-	/// @brief A position within a single stage
+		None = static_cast<std::underlying_type_t<Sex>>(-1),
+	};
+	Sex GetSex(RE::Actor* a_actor);
+
 	struct Position
 	{
 		std::string event;
@@ -32,7 +34,6 @@ namespace Registry
 		float offset[Offset::Total];
 	};
 
-	/// @brief A node within a scene graph
 	struct Stage
 	{
 		std::string id;
@@ -44,7 +45,6 @@ namespace Registry
 		std::vector<std::string> extratags;
 	};
 
-	/// @brief Shared position info among all stages over a scene
 	struct PositionInfo
 	{
 		enum class Extra : uint8_t
@@ -62,7 +62,6 @@ namespace Registry
 		float scale;
 	};
 
-	/// @brief Furniture related data for invis furniture & bed
 	struct FurnitureInfo
 	{
 		bool allowbed;
