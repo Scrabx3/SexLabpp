@@ -64,6 +64,8 @@ namespace stl
 
 namespace Papyrus
 {
+#define REGISTERFUNC(func, class, dont_delay) a_vm->RegisterFunction(#func##sv, class, func, dont_delay)
+
 	using VM = RE::BSScript::IVirtualMachine;
 	using StackID = RE::VMStackID;
 }
