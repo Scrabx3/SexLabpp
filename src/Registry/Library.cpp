@@ -36,12 +36,11 @@ namespace Registry
 							headerFragments.push_back(PositionHeader::AllowBed);
 						}
 						// Build 2D Vector containing all possible Fragments for all Infos
-						using FragPair = std::pair<PositionFragment, size_t>;
-						std::vector<std::vector<FragPair>> fragments;
+						std::vector<std::vector<std::pair<PositionFragment, size_t>>> fragments;
 						fragments.reserve(scene->positions.size());
 						for (size_t i = 0; i < scene->positions.size(); i++) {
 							auto frags_ = scene->positions[i].MakeFragments();
-							std::vector<FragPair> fragPiece{};
+							std::vector<std::pair<PositionFragment, size_t>> fragPiece{};
 							fragPiece.reserve(frags_.size());
 							for (auto&& frag_it : frags_) {
 								fragPiece.emplace_back(frag_it, i);
@@ -64,7 +63,7 @@ namespace Registry
 							std::vector<PositionFragment> argFragment;
 							argFragment.reserve(copy.size());
 							entry.order.reserve(copy.size());
-							for (const auto& current : it) {
+							for (const auto& current : copy) {
 								argFragment.push_back(current->first);
 								entry.order.push_back(current->second);
 							}
@@ -175,6 +174,11 @@ namespace Registry
 		ret <<= PositionHeaderSize;
 		ret |= static_cast<std::underlying_type<PositionHeader>::type>(a_extra);
 		return ret;
+	}
+
+	LibraryKey Library::ConstructHashKeyUnsorted(std::vector<PositionFragment>& a_fragments, PositionHeader a_extra) const {
+		std::sort(a_fragments.begin(), a_fragments.end(), [](auto a, auto b) { return static_cast<uint64_t>(a) < static_cast<uint64_t>(b); });
+		return ConstructHashKey(a_fragments, a_extra);
 	}
 
 	size_t Library::GetSceneCount() const

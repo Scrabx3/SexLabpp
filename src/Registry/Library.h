@@ -30,10 +30,9 @@ namespace Registry
 		_NODISCARD size_t GetSceneCount() const;
 
 	private:
-		// The library operates by creating a hashmap through combination of HashFragments
-		// these hash keys are explicetely unique for a specific type of actor, PositionInfos are moreso
-		// "masks" that can represent multiple fragments at once
+		// Construct a library key from a **sorted** list of fragments
 		LibraryKey ConstructHashKey(const std::vector<PositionFragment>& a_fragments, PositionHeader a_extra) const;
+		LibraryKey ConstructHashKeyUnsorted(std::vector<PositionFragment>& a_fragments, PositionHeader a_extra) const;
 
 	private:
 		mutable std::shared_mutex read_write_lock{};
