@@ -116,41 +116,50 @@ namespace Registry
 		return where != scene_map.end() ? where->second : nullptr;
 	}
 
-		// std::vector<Scene*> Library::LookupAnimations(
-		// 	std::vector<RE::Actor*>& a_actors,
-		// 	[[maybe_unused]] const std::vector<std::string_view>& tags,
-		// 	[[maybe_unused]] std::vector<RE::Actor*>& a_submissives) const
-		// {
-		// 	const auto t1 = std::chrono::high_resolution_clock::now();
-		// 	// COMEBACK: Open thread to parse tags while constructing key here
-
-		// 	std::vector<std::pair<PositionFragment, size_t>> fragments;
-		// 	for (size_t i = 0; i < a_actors.size(); i++) {
-		// 		auto fragment = BuildFragment(a_actors[i], std::find(a_submissives.begin(), a_submissives.end(), a_actors[i]) != a_submissives.end());
-		// 		fragments.emplace_back(fragment, i);
-		// 	}
-		// 	std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) {
-		// 		return static_cast<FragmentUnderlying>(a.first) < static_cast<FragmentUnderlying>(b.first);
-		// 	});
-		// 	std::vector<PositionFragment> strippedFragments;
-		// 	strippedFragments.reserve(fragments.size());
-		// 	for (auto&& fragment : fragments) {
-		// 		strippedFragments.push_back(fragment.first);
-		// 	}
-		// 	const auto hash = ConstructHashKey(strippedFragments, PositionHeader::None);
-
-		// 	const std::shared_lock lock{ read_write_lock };
-		// 	const auto rawScenes = this->scenes.at(hash);
-		// 	// TODO: validate scale of the given actors with the specific position if enabled
+	Scene* Library::GetSceneByID(const RE::BSFixedString& a_id)
+	{
+		std::string id{ a_id.data() };
+		Registry::ToLower(id);
+		return GetSceneByID(id);
+	}
 
 
-		// 	const auto t2 = std::chrono::high_resolution_clock::now();
-		// 	// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-		// 	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-		// 	// logger::info("Found {} animations for {} actors in {}ms", a_actors.size(), GetSceneCount(), scenes.size(), ms_double.count());
-		// }
 
-		stl::enumeration<PositionFragment, FragmentUnderlying> Library::BuildFragment(RE::Actor* a_actor, bool a_submissive) const
+	// std::vector<Scene*> Library::LookupAnimations(
+	// 	std::vector<RE::Actor*>& a_actors,
+	// 	[[maybe_unused]] const std::vector<std::string_view>& tags,
+	// 	[[maybe_unused]] std::vector<RE::Actor*>& a_submissives) const
+	// {
+	// 	const auto t1 = std::chrono::high_resolution_clock::now();
+	// 	// COMEBACK: Open thread to parse tags while constructing key here
+
+	// 	std::vector<std::pair<PositionFragment, size_t>> fragments;
+	// 	for (size_t i = 0; i < a_actors.size(); i++) {
+	// 		auto fragment = BuildFragment(a_actors[i], std::find(a_submissives.begin(), a_submissives.end(), a_actors[i]) != a_submissives.end());
+	// 		fragments.emplace_back(fragment, i);
+	// 	}
+	// 	std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) {
+	// 		return static_cast<FragmentUnderlying>(a.first) < static_cast<FragmentUnderlying>(b.first);
+	// 	});
+	// 	std::vector<PositionFragment> strippedFragments;
+	// 	strippedFragments.reserve(fragments.size());
+	// 	for (auto&& fragment : fragments) {
+	// 		strippedFragments.push_back(fragment.first);
+	// 	}
+	// 	const auto hash = ConstructHashKey(strippedFragments, PositionHeader::None);
+
+	// 	const std::shared_lock lock{ read_write_lock };
+	// 	const auto rawScenes = this->scenes.at(hash);
+	// 	// TODO: validate scale of the given actors with the specific position if enabled
+
+
+	// 	const auto t2 = std::chrono::high_resolution_clock::now();
+	// 	// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+	// 	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
+	// 	// logger::info("Found {} animations for {} actors in {}ms", a_actors.size(), GetSceneCount(), scenes.size(), ms_double.count());
+	// }
+
+	stl::enumeration<PositionFragment, FragmentUnderlying> Library::BuildFragment(RE::Actor* a_actor, bool a_submissive) const
 	{
 		auto base = a_actor->GetActorBase();
 		if (!base) {

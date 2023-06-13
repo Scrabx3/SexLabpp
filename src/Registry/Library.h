@@ -24,8 +24,9 @@ namespace Registry
 			std::vector<RE::Actor*>& a_actors,
 			const std::vector<std::string_view>& tags,
 			std::vector<RE::Actor*>& a_submissives) const;
-		_NODISCARD Scene* GetSceneByID(const std::string& a_id);
 
+		_NODISCARD Scene* GetSceneByID(const std::string& a_id);
+		_NODISCARD Scene* GetSceneByID(const RE::BSFixedString& a_id);
 		_NODISCARD size_t GetSceneCount() const;
 
 	private:
