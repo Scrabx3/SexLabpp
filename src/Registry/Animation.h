@@ -55,6 +55,7 @@ namespace Registry
 	};
 	using FragmentUnderlying = std::underlying_type<PositionFragment>::type;
 	static inline constexpr size_t PositionFragmentSize = 11;
+	stl::enumeration<PositionFragment, FragmentUnderlying> BuildFragment(RE::Actor* a_actor, bool a_submissive);
 
 	enum class PositionHeader
 	{

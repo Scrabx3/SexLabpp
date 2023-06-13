@@ -33,7 +33,6 @@ namespace Registry
 		// The library operates by creating a hashmap through combination of HashFragments
 		// these hash keys are explicetely unique for a specific type of actor, PositionInfos are moreso
 		// "masks" that can represent multiple fragments at once
-		stl::enumeration<PositionFragment, FragmentUnderlying> BuildFragment(RE::Actor* a_actor, bool a_submissive) const;
 		LibraryKey ConstructHashKey(const std::vector<PositionFragment>& a_fragments, PositionHeader a_extra) const;
 
 	private:

@@ -48,7 +48,59 @@ namespace Registry
 		}
 	}
 
-	
+	stl::enumeration<PositionFragment, FragmentUnderlying> BuildFragment(RE::Actor* a_actor, bool a_submissive)
+	{
+		auto base = a_actor->GetActorBase();
+		if (!base) {
+			logger::error("Invalid Actor {:X} (0): Missing base object", a_actor->formID);
+			return { PositionFragment::None };
+		}
+
+		auto sex = base ? base->GetSex() : RE::SEXES::kNone;
+		stl::enumeration<PositionFragment, FragmentUnderlying> ret{};
+		switch (sex) {
+		case RE::SEXES::kFemale:
+			ret.set(Registry::IsFuta(a_actor) ? PositionFragment::Futa : PositionFragment::Female);
+			break;
+		case RE::SEXES::kMale:
+			ret.set(PositionFragment::Male);
+			break;
+		default:
+			logger::error("Invalid Actor {:X} ({:X}): Missing sex", a_actor->formID, (base ? base->formID : 0));
+			return { PositionFragment::None };
+		}
+
+		const auto racekey = RaceHandler::GetRaceKey(a_actor);
+		switch (racekey) {
+		case RaceKey::None:
+			logger::error("Invalid Actor {:X} ({:X}): Missing Racekey", a_actor->formID, base->formID);
+			break;
+		case RaceKey::Human:
+			{
+				ret.set(PositionFragment::Human);
+				if (a_actor->HasKeyword(GameForms::Vampire)) {
+					ret.set(PositionFragment::Vampire);
+				}
+				// COMEBACK: bound extra
+			}
+			break;
+		default:
+			{
+				const auto val = PositionFragment(static_cast<FragmentUnderlying>(racekey) << 3);
+				ret.set(val);
+			}
+			break;
+		}
+
+		if (a_actor->IsDead() || a_actor->AsActorState()->IsUnconscious()) {
+			ret.set(PositionFragment::Unconscious);
+		} else if (a_submissive) {
+			ret.set(PositionFragment::Submissive);
+		}
+
+		return ret;
+	}
+
 	bool PositionInfo::CanFillPosition(RE::Actor* a_actor)
 	{
 		if (extra.all(Extra::Vamprie) && !IsVampire(a_actor))
