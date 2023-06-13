@@ -71,6 +71,7 @@ namespace Registry
 	{
 		static RaceKey GetRaceKey(RE::Actor* a_actor);
 		static bool HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey);
+		static bool HasRaceKey(RE::Actor* a_actor, RaceKey a_racekey);
 	};
 
 }	 // namespace Registry

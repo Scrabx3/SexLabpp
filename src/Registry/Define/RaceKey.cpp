@@ -234,4 +234,19 @@ namespace Registry
 		return where != LegacyRaceKeys.end() && where->second == a_racekey;
 	}
 
+	bool RaceHandler::HasRaceKey(RE::Actor* a_actor, RaceKey a_racekey)
+	{
+		const auto key = GetRaceKey(a_actor);
+		switch (a_racekey) {
+		case RaceKey::None:
+			return false;
+		case RaceKey::Canine:
+			return key == RaceKey::Dog || key == RaceKey::Wolf;
+		case RaceKey::Boar:
+			return key == RaceKey::BoarSingle || key == RaceKey::BoarMounted;
+		default:
+			return key == a_racekey;
+		}
+	}
+
 }	 // namespace SexLab::RaceKey
