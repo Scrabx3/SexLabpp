@@ -31,25 +31,24 @@ namespace Registry
 					for (auto&& scene : package->scenes) {
 						// for each scene, construct a list of every possible combination of fragments and add them to the list of hashes
 						// the list then allows fast access to a slice of the library based on the hash fragments a given collection of actors represents
-						std::vector<LibraryHeaderFragment> headerFragments{ LibraryHeaderFragment(0) };
+						std::vector<PositionHeader> headerFragments{ PositionHeader(0) };
 						if (scene->furnituredata.allowbed) {
-							headerFragments.push_back(LibraryHeaderFragment::AllowBed);
+							headerFragments.push_back(PositionHeader::AllowBed);
 						}
 						// Build 2D Vector containing all possible Fragments for all Infos
-						using FragPair = std::pair<LibraryFragment, size_t>;
+						using FragPair = std::pair<PositionFragment, size_t>;
 						std::vector<std::vector<FragPair>> fragments;
 						fragments.reserve(scene->positions.size());
 						for (size_t i = 0; i < scene->positions.size(); i++) {
-							auto& pos_it = scene->positions[i];
-							auto tmpFrags = BuildFragmentsFromInfo(pos_it);
+							auto frags_ = scene->positions[i].MakeFragments();
 							std::vector<FragPair> fragPiece{};
-							fragPiece.reserve(tmpFrags.size());
-							for (auto&& vec_it : tmpFrags) {
-								fragPiece.emplace_back(vec_it, i);
+							fragPiece.reserve(frags_.size());
+							for (auto&& frag_it : frags_) {
+								fragPiece.emplace_back(frag_it, i);
 							}
 							fragments.push_back(std::move(fragPiece));
 						}
-						std::vector<std::vector<std::pair<LibraryFragment, size_t>>::iterator> it;
+						std::vector<std::vector<std::pair<PositionFragment, size_t>>::iterator> it;
 						for (auto& subvec : fragments)
 							it.push_back(subvec.begin());
 						// Cycle through every combination of every vector
@@ -62,7 +61,7 @@ namespace Registry
 							});
 							SceneEntry entry{};
 							entry.scene = scene.get();
-							std::vector<LibraryFragment> argFragment;
+							std::vector<PositionFragment> argFragment;
 							argFragment.reserve(copy.size());
 							entry.order.reserve(copy.size());
 							for (const auto& current : it) {
@@ -125,7 +124,7 @@ namespace Registry
 		// 	const auto t1 = std::chrono::high_resolution_clock::now();
 		// 	// COMEBACK: Open thread to parse tags while constructing key here
 
-		// 	std::vector<std::pair<LibraryFragment, size_t>> fragments;
+		// 	std::vector<std::pair<PositionFragment, size_t>> fragments;
 		// 	for (size_t i = 0; i < a_actors.size(); i++) {
 		// 		auto fragment = BuildFragment(a_actors[i], std::find(a_submissives.begin(), a_submissives.end(), a_actors[i]) != a_submissives.end());
 		// 		fragments.emplace_back(fragment, i);
@@ -133,12 +132,12 @@ namespace Registry
 		// 	std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) {
 		// 		return static_cast<FragmentUnderlying>(a.first) < static_cast<FragmentUnderlying>(b.first);
 		// 	});
-		// 	std::vector<LibraryFragment> strippedFragments;
+		// 	std::vector<PositionFragment> strippedFragments;
 		// 	strippedFragments.reserve(fragments.size());
 		// 	for (auto&& fragment : fragments) {
 		// 		strippedFragments.push_back(fragment.first);
 		// 	}
-		// 	const auto hash = ConstructHashKey(strippedFragments, LibraryHeaderFragment::None);
+		// 	const auto hash = ConstructHashKey(strippedFragments, PositionHeader::None);
 
 		// 	const std::shared_lock lock{ read_write_lock };
 		// 	const auto rawScenes = this->scenes.at(hash);
@@ -151,26 +150,26 @@ namespace Registry
 		// 	// logger::info("Found {} animations for {} actors in {}ms", a_actors.size(), GetSceneCount(), scenes.size(), ms_double.count());
 		// }
 
-		stl::enumeration<LibraryFragment, FragmentUnderlying> Library::BuildFragment(RE::Actor* a_actor, bool a_submissive) const
+		stl::enumeration<PositionFragment, FragmentUnderlying> Library::BuildFragment(RE::Actor* a_actor, bool a_submissive) const
 	{
 		auto base = a_actor->GetActorBase();
 		if (!base) {
 			logger::error("Invalid Actor {:X} (0): Missing base object", a_actor->formID);
-			return { LibraryFragment::None };
+			return { PositionFragment::None };
 		}
 
 		auto sex = base ? base->GetSex() : RE::SEXES::kNone;
-		stl::enumeration<LibraryFragment, FragmentUnderlying> ret{};
+		stl::enumeration<PositionFragment, FragmentUnderlying> ret{};
 		switch (sex) {
 		case RE::SEXES::kFemale:
-			ret.set(Registry::IsFuta(a_actor) ? LibraryFragment::Futa : LibraryFragment::Female);
+			ret.set(Registry::IsFuta(a_actor) ? PositionFragment::Futa : PositionFragment::Female);
 			break;
 		case RE::SEXES::kMale:
-			ret.set(LibraryFragment::Male);
+			ret.set(PositionFragment::Male);
 			break;
 		default:
 			logger::error("Invalid Actor {:X} ({:X}): Missing sex", a_actor->formID, (base ? base->formID : 0));
-			return { LibraryFragment::None };
+			return { PositionFragment::None };
 		}
 
 		const auto racekey = RaceHandler::GetRaceKey(a_actor);
@@ -180,128 +179,45 @@ namespace Registry
 			break;
 		case RaceKey::Human:
 			{
-				ret.set(LibraryFragment::Human);
+				ret.set(PositionFragment::Human);
 				if (a_actor->HasKeyword(GameForms::Vampire)) {
-					ret.set(LibraryFragment::Vampire);
+					ret.set(PositionFragment::Vampire);
 				}
 				// COMEBACK: bound extra
 			}
 			break;
 		default:
 			{
-				const auto val = LibraryFragment(static_cast<FragmentUnderlying>(racekey) << 3);
+				const auto val = PositionFragment(static_cast<FragmentUnderlying>(racekey) << 3);
 				ret.set(val);
 			}
 			break;
 		}
 
 		if (a_actor->IsDead() || a_actor->AsActorState()->IsUnconscious()) {
-			ret.set(LibraryFragment::Unconscious);
+			ret.set(PositionFragment::Unconscious);
 		} else if (a_submissive) {
-			ret.set(LibraryFragment::Submissive);
+			ret.set(PositionFragment::Submissive);
 		}
 
 		return ret;
 	}
 
-	std::vector<LibraryFragment> Library::BuildFragmentsFromInfo(const PositionInfo& a_position) const
-	{
-		using Fragment = stl::enumeration<LibraryFragment, FragmentUnderlying>;
-		std::vector<Fragment> fragments;
-		const auto addVariance = [&](LibraryFragment a_variancebit) {
-			const auto count = fragments.size();
-			for (size_t i = 0; i < count; i++) {
-				auto copy = fragments[i];
-				copy.set(a_variancebit);
-				fragments.push_back(copy);
-			}
-		};
-		const auto setFragmentBit = [&](LibraryFragment a_bit) {
-			for (auto&& fragment : fragments) {
-				fragment.set(a_bit);
-			}
-		};
-		const auto addRaceVariance = [&](RaceKey a_type) {
-			const auto val = LibraryFragment(static_cast<FragmentUnderlying>(a_type) << 3);
-			const auto count = fragments.size();
-			for (size_t i = 0; i < count; i++) {
-				auto copy = fragments[i];
-				copy.reset(LibraryFragment::CrtBit0,
-					LibraryFragment::CrtBit1,
-					LibraryFragment::CrtBit2,
-					LibraryFragment::CrtBit3,
-					LibraryFragment::CrtBit4,
-					LibraryFragment::CrtBit5);
-				copy.set(val);
-				fragments.push_back(copy);
-			}
-		};
-		const auto setRaceBit = [&](RaceKey a_type) {
-			const auto val = LibraryFragment(static_cast<FragmentUnderlying>(a_type) << 3);
-			setFragmentBit(val);
-		};
-
-		if (a_position.sex.all(Sex::Male)) {
-			fragments.emplace_back(LibraryFragment::Male);
-		}
-		if (a_position.sex.all(Sex::Female)) {
-			fragments.emplace_back(LibraryFragment::Female);
-		}
-		if (a_position.sex.all(Sex::Futa)) {
-			fragments.emplace_back(LibraryFragment::Futa);
-		}
-
-		if (a_position.extra.all(PositionInfo::Extra::Unconscious)) {
-			setFragmentBit(LibraryFragment::Unconscious);
-		} else if (a_position.extra.all(PositionInfo::Extra::Submissive)) {
-			setFragmentBit(LibraryFragment::Submissive);
-		}
-
-		switch (a_position.race) {
-		case RaceKey::Human:
-			{
-				setFragmentBit(LibraryFragment::Human);
-				if (a_position.extra.all(PositionInfo::Extra::Vamprie)) {
-					setFragmentBit(LibraryFragment::Vampire);
-				} else {
-					addVariance(LibraryFragment::Vampire);
-				}
-				// COMEBACK: bound extra
-			}
-			break;
-		case RaceKey::Boar:
-			setRaceBit(RaceKey::BoarMounted);
-			addRaceVariance(RaceKey::BoarSingle);
-			break;
-		case RaceKey::Canine:
-			setRaceBit(RaceKey::Dog);
-			addRaceVariance(RaceKey::Wolf);
-		default:
-			setRaceBit(a_position.race);
-			break;
-		}
-		std::vector<LibraryFragment> ret;
-		for (auto&& fragment : fragments) {
-			ret.push_back(fragment.get());
-		}
-		return ret;
-	}
-
-	LibraryKey Library::ConstructHashKey(const std::vector<LibraryFragment>& fragments, LibraryHeaderFragment a_extra) const
+	LibraryKey Library::ConstructHashKey(const std::vector<PositionFragment>& fragments, PositionHeader a_extra) const
 	{
 		assert(fragments.size() <= 5);
 		LibraryKey ret{};
-		ret |= static_cast<std::underlying_type<LibraryFragment>::type>(fragments[0]);
+		ret |= static_cast<std::underlying_type<PositionFragment>::type>(fragments[0]);
 		size_t i = 1;
 		for (; i < fragments.size(); i++) {
-			ret <<= LibraryFragmentSize;
-			ret |= static_cast<std::underlying_type<LibraryFragment>::type>(fragments[i]);
+			ret <<= PositionFragmentSize;
+			ret |= static_cast<std::underlying_type<PositionFragment>::type>(fragments[i]);
 		}
 		for (size_t n = i; n < 5; n++) {
-			ret <<= LibraryFragmentSize;
+			ret <<= PositionFragmentSize;
 		}
-		ret <<= LibraryHeaderFragmentSize;
-		ret |= static_cast<std::underlying_type<LibraryHeaderFragment>::type>(a_extra);
+		ret <<= PositionHeaderSize;
+		ret |= static_cast<std::underlying_type<PositionHeader>::type>(a_extra);
 		return ret;
 	}
 

@@ -1,5 +1,7 @@
 #include "Animation.h"
 
+#include "Registry/Define/RaceKey.h"
+
 namespace Registry
 {
 	Sex GetSex(RE::Actor* a_actor)
@@ -44,8 +46,106 @@ namespace Registry
 				return Sex::Futa;
 			break;
 		}
-		return Sex::None;
 	}
+
+	
+	bool PositionInfo::CanFillPosition(RE::Actor* a_actor)
+	{
+		if (extra.all(Extra::Vamprie) && !IsVampire(a_actor))
+			return false;
+		if (extra.all(Extra::Unconscious) && !a_actor->IsDead() && !a_actor->AsActorState()->IsUnconscious())
+			return false;
+		if (sex.none(GetSex(a_actor)))
+			return false;
+		if (!RaceHandler::HasRaceKey(a_actor, race))
+			return false;
+
+		return true;	
+	}
+
+	std::vector<PositionFragment> PositionInfo::MakeFragments()
+	{
+		using Fragment = stl::enumeration<PositionFragment, FragmentUnderlying>;
+		std::vector<Fragment> fragments;
+		const auto addVariance = [&](PositionFragment a_variancebit) {
+			const auto count = fragments.size();
+			for (size_t i = 0; i < count; i++) {
+				auto copy = fragments[i];
+				copy.set(a_variancebit);
+				fragments.push_back(copy);
+			}
+		};
+		const auto setFragmentBit = [&](PositionFragment a_bit) {
+			for (auto&& fragment : fragments) {
+				fragment.set(a_bit);
+			}
+		};
+		const auto addRaceVariance = [&](RaceKey a_type) {
+			const auto val = PositionFragment(static_cast<FragmentUnderlying>(a_type) << 3);
+			const auto count = fragments.size();
+			for (size_t i = 0; i < count; i++) {
+				auto copy = fragments[i];
+				copy.reset(PositionFragment::CrtBit0,
+					PositionFragment::CrtBit1,
+					PositionFragment::CrtBit2,
+					PositionFragment::CrtBit3,
+					PositionFragment::CrtBit4,
+					PositionFragment::CrtBit5);
+				copy.set(val);
+				fragments.push_back(copy);
+			}
+		};
+		const auto setRaceBit = [&](RaceKey a_type) {
+			const auto val = PositionFragment(static_cast<FragmentUnderlying>(a_type) << 3);
+			setFragmentBit(val);
+		};
+
+		if (this->sex.all(Sex::Male)) {
+			fragments.emplace_back(PositionFragment::Male);
+		}
+		if (this->sex.all(Sex::Female)) {
+			fragments.emplace_back(PositionFragment::Female);
+		}
+		if (this->sex.all(Sex::Futa)) {
+			fragments.emplace_back(PositionFragment::Futa);
+		}
+
+		if (this->extra.all(PositionInfo::Extra::Unconscious)) {
+			setFragmentBit(PositionFragment::Unconscious);
+		} else if (this->extra.all(PositionInfo::Extra::Submissive)) {
+			setFragmentBit(PositionFragment::Submissive);
+		}
+
+		switch (this->race) {
+		case RaceKey::Human:
+			{
+				setFragmentBit(PositionFragment::Human);
+				if (this->extra.all(PositionInfo::Extra::Vamprie)) {
+					setFragmentBit(PositionFragment::Vampire);
+				} else {
+					addVariance(PositionFragment::Vampire);
+				}
+				// COMEBACK: bound extra
+			}
+			break;
+		case RaceKey::Boar:
+			setRaceBit(RaceKey::BoarMounted);
+			addRaceVariance(RaceKey::BoarSingle);
+			break;
+		case RaceKey::Canine:
+			setRaceBit(RaceKey::Dog);
+			addRaceVariance(RaceKey::Wolf);
+		default:
+			setRaceBit(this->race);
+			break;
+		}
+		std::vector<PositionFragment> ret;
+		for (auto&& fragment : fragments) {
+			ret.push_back(fragment.get());
+		}
+		return ret;
+	}
+
 
 	Stage* Scene::GetStageByKey(std::string_view a_key) const
 	{
