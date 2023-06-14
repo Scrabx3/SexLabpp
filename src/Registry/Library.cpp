@@ -2,7 +2,6 @@
 
 #include "Decode.h"
 #include "Define/RaceKey.h"
-#include "Util/Combinator.h"
 
 namespace Registry
 {
@@ -43,7 +42,7 @@ namespace Registry
 							std::vector<std::pair<PositionFragment, size_t>> fragPiece{};
 							fragPiece.reserve(frags_.size());
 							for (auto&& frag_it : frags_) {
-								fragPiece.emplace_back(frag_it, i);
+								fragPiece.emplace_back(frag_it.get(), i);
 							}
 							fragments.push_back(std::move(fragPiece));
 						}

@@ -63,9 +63,6 @@ namespace Registry
 		None = 0,
 
 		AllowBed = 1ULL << 0,
-		// Unused = 1ULL << 61,
-		// Unused = 1ULL << 62,
-		// Unused = 1ULL << 63,
 	};
 	static inline constexpr size_t PositionHeaderSize = 1;
 	using FragmentHeaderUnderlying = std::underlying_type<PositionHeader>::type;
@@ -127,8 +124,10 @@ namespace Registry
 			author(a_author), hash(a_hash), start_animation(nullptr), furnituredata({}) {}
 		~Scene() = default;
 
-		_NODISCARD Stage* GetStageByKey(std::string_view a_key) const;
+		_NODISCARD const Stage* GetStageByKey(std::string_view a_key) const;
 		_NODISCARD std::vector<std::vector<PositionFragmentation>> GetFragmentations() const;
+
+		_NODISCARD uint32_t GetSubmissiveCount() const;
 
 	public:
 		std::string id;

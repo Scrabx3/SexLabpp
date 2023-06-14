@@ -117,7 +117,32 @@ namespace Registry
 
 	bool PositionInfo::CanFillPosition(PositionFragmentation a_fragment) const
 	{
-		
+		if (a_fragment.all(PositionFragment::Futa) && !this->sex.all(Sex::Futa)) {
+			return false;
+		} else if (a_fragment.all(PositionFragment::Male) && !this->sex.all(Sex::Male)) {
+			return false;
+		} else if (a_fragment.all(PositionFragment::Female) && !this->sex.all(Sex::Female)) {
+			return false;
+		}
+
+		if (a_fragment.all(PositionFragment::Unconscious) != this->extra.all(Extra::Unconscious)) {
+			return false;
+		}
+		if (a_fragment.all(PositionFragment::Submissive) != this->extra.all(Extra::Submissive)) {
+			return false;
+		}
+
+		if (a_fragment.all(PositionFragment::Human)) {
+			if (this->extra.all(Extra::Vamprie) && !a_fragment.all(PositionFragment::Vampire)) {
+				return false;
+			}
+			// COMEBACK: Bindings check
+		} else {
+			const auto thisrace = static_cast<uint64_t>(race);
+			if ((a_fragment.underlying() & thisrace) != thisrace)
+				return false;
+		}
+		return true;
 	}
 
 	std::vector<PositionFragmentation> PositionInfo::MakeFragments() const
@@ -198,8 +223,7 @@ namespace Registry
 		return fragments;
 	}
 
-
-	Stage* Scene::GetStageByKey(std::string_view a_key) const
+	const Stage* Scene::GetStageByKey(std::string_view a_key) const
 	{
 		for (auto&& [key, dest] : graph) {
 			if (key->id == a_key)
@@ -214,6 +238,17 @@ namespace Registry
 		ret.reserve(positions.size());
 		for (auto&& info : positions) {
 			ret.push_back(info.MakeFragments());
+		}
+		return ret;
+	}
+
+	uint32_t Scene::GetSubmissiveCount() const
+	{
+		uint32_t ret = 0;
+		for (auto&& info : positions) {
+			if (info.extra.all(PositionInfo::Extra::Submissive)) {
+				ret++;
+			}
 		}
 		return ret;
 	}
