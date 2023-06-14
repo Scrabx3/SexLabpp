@@ -48,7 +48,7 @@ namespace Registry
 		}
 	}
 
-	stl::enumeration<PositionFragment, FragmentUnderlying> BuildFragment(RE::Actor* a_actor, bool a_submissive)
+	stl::enumeration<PositionFragment, FragmentUnderlying> MakePositionFragment(RE::Actor* a_actor, bool a_submissive)
 	{
 		auto base = a_actor->GetActorBase();
 		if (!base) {
@@ -101,7 +101,7 @@ namespace Registry
 		return ret;
 	}
 
-	bool PositionInfo::CanFillPosition(RE::Actor* a_actor)
+	bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
 	{
 		if (extra.all(Extra::Vamprie) && !IsVampire(a_actor))
 			return false;
@@ -115,10 +115,14 @@ namespace Registry
 		return true;	
 	}
 
-	std::vector<PositionFragment> PositionInfo::MakeFragments()
+	bool PositionInfo::CanFillPosition(PositionFragmentation a_fragment) const
 	{
-		using Fragment = stl::enumeration<PositionFragment, FragmentUnderlying>;
-		std::vector<Fragment> fragments;
+		
+	}
+
+	std::vector<PositionFragmentation> PositionInfo::MakeFragments() const
+	{
+		std::vector<PositionFragmentation> fragments;
 		const auto addVariance = [&](PositionFragment a_variancebit) {
 			const auto count = fragments.size();
 			for (size_t i = 0; i < count; i++) {
@@ -191,11 +195,7 @@ namespace Registry
 			setRaceBit(this->race);
 			break;
 		}
-		std::vector<PositionFragment> ret;
-		for (auto&& fragment : fragments) {
-			ret.push_back(fragment.get());
-		}
-		return ret;
+		return fragments;
 	}
 
 
@@ -206,6 +206,16 @@ namespace Registry
 				return key;
 		}
 		return nullptr;
+	}
+
+	std::vector<std::vector<PositionFragmentation>> Scene::GetFragmentations() const
+	{
+		std::vector<std::vector<PositionFragmentation>> ret{};
+		ret.reserve(positions.size());
+		for (auto&& info : positions) {
+			ret.push_back(info.MakeFragments());
+		}
+		return ret;
 	}
 
 }	 // namespace Registry

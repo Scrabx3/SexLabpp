@@ -25,9 +25,11 @@ namespace Registry
 			const std::vector<std::string_view>& tags,
 			std::vector<RE::Actor*>& a_submissives) const;
 
-		_NODISCARD Scene* GetSceneByID(const std::string& a_id);
-		_NODISCARD Scene* GetSceneByID(const RE::BSFixedString& a_id);
+		_NODISCARD const Scene* GetSceneByID(const std::string& a_id) const;
+		_NODISCARD const Scene* GetSceneByID(const RE::BSFixedString& a_id) const;
 		_NODISCARD size_t GetSceneCount() const;
+
+		std::vector<RE::Actor*> SortByScene(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, const Scene* a_scene) const;
 
 	private:
 		// Construct a library key from a **sorted** list of fragments

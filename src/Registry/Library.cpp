@@ -80,7 +80,7 @@ namespace Registry
 							}
 						}
 					}
-
+					// TODO: optional postions arent added here yet
 					const std::unique_lock lock{ read_write_lock };
 					for (auto&& entry : hashes) {
 						const auto where = scenes.find(entry.first);
@@ -109,20 +109,18 @@ namespace Registry
 		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms_double.count());
 	}
 
-	Scene* Library::GetSceneByID(const std::string& a_id)
+	const Scene* Library::GetSceneByID(const std::string& a_id) const
 	{
 		const auto where = scene_map.find(a_id);
 		return where != scene_map.end() ? where->second : nullptr;
 	}
 
-	Scene* Library::GetSceneByID(const RE::BSFixedString& a_id)
+	const Scene* Library::GetSceneByID(const RE::BSFixedString& a_id) const
 	{
 		std::string id{ a_id.data() };
 		Registry::ToLower(id);
 		return GetSceneByID(id);
 	}
-
-
 
 	// std::vector<Scene*> Library::LookupAnimations(
 	// 	std::vector<RE::Actor*>& a_actors,
@@ -132,23 +130,24 @@ namespace Registry
 	// 	const auto t1 = std::chrono::high_resolution_clock::now();
 	// 	// COMEBACK: Open thread to parse tags while constructing key here
 
-	// 	std::vector<std::pair<PositionFragment, size_t>> fragments;
+	// 	std::vector<std::pair<PositionFragmentation, size_t>> fragments;
 	// 	for (size_t i = 0; i < a_actors.size(); i++) {
-	// 		auto fragment = BuildFragment(a_actors[i], std::find(a_submissives.begin(), a_submissives.end(), a_actors[i]) != a_submissives.end());
+	// 		auto fragment = MakePositionFragment(a_actors[i], std::find(a_submissives.begin(), a_submissives.end(), a_actors[i]) != a_submissives.end());
 	// 		fragments.emplace_back(fragment, i);
 	// 	}
 	// 	std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) {
-	// 		return static_cast<FragmentUnderlying>(a.first) < static_cast<FragmentUnderlying>(b.first);
+	// 		return a.first.underlying() < b.first.underlying();
 	// 	});
 	// 	std::vector<PositionFragment> strippedFragments;
 	// 	strippedFragments.reserve(fragments.size());
 	// 	for (auto&& fragment : fragments) {
-	// 		strippedFragments.push_back(fragment.first);
+	// 		strippedFragments.push_back(fragment.first.get());
 	// 	}
 	// 	const auto hash = ConstructHashKey(strippedFragments, PositionHeader::None);
 
 	// 	const std::shared_lock lock{ read_write_lock };
 	// 	const auto rawScenes = this->scenes.at(hash);
+		
 	// 	// TODO: validate scale of the given actors with the specific position if enabled
 
 
@@ -157,6 +156,45 @@ namespace Registry
 	// 	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
 	// 	// logger::info("Found {} animations for {} actors in {}ms", a_actors.size(), GetSceneCount(), scenes.size(), ms_double.count());
 	// }
+
+	std::vector<RE::Actor*> Library::SortByScene(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, const Scene* a_scene) const
+	{
+		assert(a_positions.size() == a_scene->positions.size());
+		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> entries;
+		entries.reserve(a_positions.size());
+		for (size_t i = 0; i < a_positions.size(); i++) {
+			for (size_t n = 0; n < a_scene->positions.size(); n++) {
+				if (a_scene->positions[i].CanFillPosition(a_positions[i].second)) {
+					entries[i].emplace_back(n, a_positions[i].first);
+				}
+			}
+		}
+
+		// Go through every of entries combination and pick the first which consists exclusively of unique elements
+		std::vector<std::vector<std::pair<size_t, RE::Actor*>>::iterator> it;
+		for (auto& subvec : entries)
+	    it.push_back(subvec.begin());
+		const auto last_idx = it.size() - 1;
+		while (it[0] != entries[0].end()) {
+			std::vector<RE::Actor*> result{ it.size(), nullptr };
+			for (auto&& current : it) {
+				if (std::find(result.begin(), result.end(), current->second) != result.end()) {
+					goto NEXT;
+				}
+				result[current->first] = current->second;
+			}
+			assert(std::find(result.begin(), result.end(), nullptr) == result.end());
+			return result;
+
+NEXT:
+			++it[last_idx];
+			for (auto i = last_idx; i > 0 && it[i] == entries[i].end(); i--) {
+				it[i] = entries[i].begin();
+				++it[i - 1];
+			}
+		}
+		return {};
+	}
 
 	LibraryKey Library::ConstructHashKey(const std::vector<PositionFragment>& fragments, PositionHeader a_extra) const
 	{

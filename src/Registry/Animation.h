@@ -53,9 +53,10 @@ namespace Registry
 		Submissive = 1 << 9,
 		Unconscious = 1 << 10,
 	};
-	using FragmentUnderlying = std::underlying_type<PositionFragment>::type;
 	static inline constexpr size_t PositionFragmentSize = 11;
-	stl::enumeration<PositionFragment, FragmentUnderlying> BuildFragment(RE::Actor* a_actor, bool a_submissive);
+	using FragmentUnderlying = std::underlying_type<PositionFragment>::type;
+	using PositionFragmentation = stl::enumeration<PositionFragment, FragmentUnderlying>;
+	stl::enumeration<PositionFragment, FragmentUnderlying> MakePositionFragment(RE::Actor* a_actor, bool a_submissive);
 
 	enum class PositionHeader
 	{
@@ -97,9 +98,11 @@ namespace Registry
 			Vamprie = 1 << 2,
 			Unconscious = 1 << 3,
 		};
+
 	public:
-		_NODISCARD bool CanFillPosition(RE::Actor* a_actor);
-		_NODISCARD std::vector<PositionFragment> MakeFragments();
+		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
+		_NODISCARD bool CanFillPosition(PositionFragmentation a_fragment) const;
+		_NODISCARD std::vector<PositionFragmentation> MakeFragments() const;
 
 	public:
 		RaceKey race;
@@ -124,7 +127,8 @@ namespace Registry
 			author(a_author), hash(a_hash), start_animation(nullptr), furnituredata({}) {}
 		~Scene() = default;
 
-		Stage* GetStageByKey(std::string_view a_key) const;
+		_NODISCARD Stage* GetStageByKey(std::string_view a_key) const;
+		_NODISCARD std::vector<std::vector<PositionFragmentation>> GetFragmentations() const;
 
 	public:
 		std::string id;
