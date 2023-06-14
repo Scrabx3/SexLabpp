@@ -18,7 +18,6 @@ set(CXX_FILES
 
 	# src/Hooks/Hooks.h
 	# src/Hooks/Hooks.cpp
-	src/Registry/Util/Combinator.h
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp
 
