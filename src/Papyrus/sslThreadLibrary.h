@@ -1,6 +1,40 @@
 #pragma once
 
+#include "LegacyData.h"
+
 namespace Papyrus
 {
-  
-} // namespace Papyrus
+	std::vector<RE::Actor*> FindAvailableActors(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
+		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04);
+	RE::Actor* FindAvailableActor(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
+		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04, RE::BSFixedString a_targetrace);
+	RE::Actor* FindAvailableActorInFaction(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESFaction* a_faction, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
+		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04, bool a_hasfaction, RE::BSFixedString a_targetrace, bool a_samefloor);
+	RE::Actor* FindAvailableActorWornForm(VM* a_vm, StackID a_stackID, RE::TESQuest*, uint32_t a_slotmask, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
+		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04, bool a_recognizenostrip, bool a_iswearing, RE::BSFixedString a_targetrace,
+		bool a_samefloor);
+
+	std::vector<RE::Actor*> FindAvailablePartners(VM* a_vm, StackID a_stackID, RE::TESQuest*,
+		std::vector<RE::Actor*> a_positions, int a_total, int a_males, int a_females, float a_radius);
+	std::vector<RE::Actor*> FindAnimationPartnersImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
+		RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center, float a_radius, std::vector<RE::Actor*> a_includes);
+
+	std::vector<RE::Actor*> SortActorsByAnimationImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
+		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::vector<RE::Actor*> a_submissives);
+
+	inline bool Register(VM* a_vm)
+	{
+		REGISTERFUNC(FindAvailableActors, "sslThreadLibrary", true);
+		REGISTERFUNC(FindAvailableActor, "sslThreadLibrary", true);
+		REGISTERFUNC(FindAvailableActorInFaction, "sslThreadLibrary", true);
+		REGISTERFUNC(FindAvailableActorWornForm, "sslThreadLibrary", true);
+
+		REGISTERFUNC(FindAvailablePartners, "sslThreadLibrary", true);
+		REGISTERFUNC(FindAnimationPartnersImpl, "sslThreadLibrary", true);
+
+		REGISTERFUNC(SortActorsByAnimationImpl, "sslThreadLibrary", true);
+
+		return true;
+	}
+
+}	 // namespace Papyrus

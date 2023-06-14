@@ -28,11 +28,12 @@ namespace Papyrus
 		case Registry::Sex::Futa:
 			return creature ? (Settings::bCreatureGender ? CrtFemale : CrtMale) : Female;
 		}
+		return LegacySex::Male;
 	}
 
-	std::array<uint32_t, 4> GetLegacySex(std::vector<RE::Actor*> a_positions)
+	std::array<int32_t, 4> GetLegacySex(std::vector<RE::Actor*> a_positions)
 	{
-		std::array<uint32_t, 4> ret{ 0, 0, 0, 0 };
+		std::array<int32_t, 4> ret{ 0, 0, 0, 0 };
 		for (auto&& actor : a_positions) {
 			auto sex = GetLegacySex(actor);
       ret[sex]++;
