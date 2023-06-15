@@ -11,13 +11,6 @@ namespace Registry
 	class Library : public Singleton<Library>
 	{
 	public:
-		struct SceneEntry
-		{
-			Scene* scene;
-			std::vector<size_t> order;
-		};
-
-	public:
 		void Initialize();
 
 		_NODISCARD std::vector<Scene*> LookupAnimations(
@@ -31,6 +24,10 @@ namespace Registry
 
 		_NODISCARD std::vector<RE::Actor*> SortByScene(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, const Scene* a_scene) const;
 
+	public:
+		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<RE::BSFixedString>& a_tags) const;
+		// _NODISCARD std::vector<Scene*> GetByType(int32_t )
+
 	private:
 		// Construct a library key from a **sorted** list of fragments
 		LibraryKey ConstructHashKey(const std::vector<PositionFragment>& a_fragments, PositionHeader a_extra) const;
@@ -41,6 +38,8 @@ namespace Registry
 
 		std::map<std::string_view, Scene*> scene_map;
 		std::vector<std::unique_ptr<AnimPackage>> packages;
-		std::unordered_map<LibraryKey, std::vector<SceneEntry>> scenes;
+		std::unordered_map<LibraryKey, std::vector<Scene*>> scenes;
+
+		std::vector<std::pair<RE::TESQuest*, std::pair<Scene*, RE::BGSRefAlias*>>> legacy_mapping;
 	};
 }

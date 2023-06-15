@@ -26,7 +26,7 @@ namespace Registry
 			threads.emplace_back([this, file]() {
 				try {
 					auto package = Decoder::Decode(file);
-					std::vector<std::pair<LibraryKey, SceneEntry>> hashes;
+					std::vector<std::pair<LibraryKey, Scene*>> hashes;
 					for (auto&& scene : package->scenes) {
 						// for each scene, construct a list of every possible combination of fragments and add them to the list of hashes
 						// the list then allows fast access to a slice of the library based on the hash fragments a given collection of actors represents
@@ -35,18 +35,13 @@ namespace Registry
 							headerFragments.push_back(PositionHeader::AllowBed);
 						}
 						// Build 2D Vector containing all possible Fragments for all Infos
-						std::vector<std::vector<std::pair<PositionFragment, size_t>>> fragments;
+						std::vector<std::vector<PositionFragmentation>> fragments;
 						fragments.reserve(scene->positions.size());
-						for (size_t i = 0; i < scene->positions.size(); i++) {
-							auto frags_ = scene->positions[i].MakeFragments();
-							std::vector<std::pair<PositionFragment, size_t>> fragPiece{};
-							fragPiece.reserve(frags_.size());
-							for (auto&& frag_it : frags_) {
-								fragPiece.emplace_back(frag_it.get(), i);
-							}
-							fragments.push_back(std::move(fragPiece));
+						for (auto&& pinfo : scene->positions) {
+							auto element = pinfo.MakeFragments();
+							fragments.push_back(element);
 						}
-						std::vector<std::vector<std::pair<PositionFragment, size_t>>::iterator> it;
+						std::vector<std::vector<PositionFragmentation>::iterator> it;
 						for (auto& subvec : fragments)
 							it.push_back(subvec.begin());
 						// Cycle through every combination of every vector
@@ -54,21 +49,15 @@ namespace Registry
 						const auto K = it.size() - 1;
 						while (it[0] != fragments[0].end()) {
 							auto copy = it;	 // work on copy to not mix up iterator order
-							std::sort(copy.begin(), copy.end(), [](auto& a, auto& b) {
-								return static_cast<FragmentUnderlying>(a->first) < static_cast<FragmentUnderlying>(b->first);
-							});
-							SceneEntry entry{};
-							entry.scene = scene.get();
+							std::sort(copy.begin(), copy.end());
 							std::vector<PositionFragment> argFragment;
 							argFragment.reserve(copy.size());
-							entry.order.reserve(copy.size());
 							for (const auto& current : copy) {
-								argFragment.push_back(current->first);
-								entry.order.push_back(current->second);
+								argFragment.push_back(current->get());
 							}
 							for (const auto& argHeader : headerFragments) {
 								auto key = ConstructHashKey(argFragment, argHeader);
-								const auto pair = std::make_pair(key, entry);
+								const auto pair = std::make_pair(key, scene.get());
 								hashes.push_back(pair);
 							}
 							// Next
@@ -226,4 +215,17 @@ NEXT:
 		}
 		return ret;
 	}
+
+	// std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<RE::BSFixedString>& a_tags) const
+	// {
+	// 	std::vector<Scene*> ret{};
+	// 	ret.reserve(scene_map.size() >> 4);
+	// 	for (auto&& [key, scene] : scene_map) {
+	// 		if (scene->positions.size() != a_positions)
+	// 			continue;
+
+			
+	// 	}
+	// 	return ret;
+	// }
 }
