@@ -26,7 +26,6 @@ namespace Registry
 			threads.emplace_back([this, file]() {
 				try {
 					auto package = Decoder::Decode(file);
-					std::vector<std::pair<LibraryKey, Scene*>> hashes;
 					for (auto&& scene : package->scenes) {
 						// for each scene, construct a list of every possible combination of fragments and add them to the list of hashes
 						// the list then allows fast access to a slice of the library based on the hash fragments a given collection of actors represents
@@ -57,8 +56,17 @@ namespace Registry
 							}
 							for (const auto& argHeader : headerFragments) {
 								auto key = ConstructHashKey(argFragment, argHeader);
-								const auto pair = std::make_pair(key, scene.get());
-								hashes.push_back(pair);
+
+								const std::unique_lock lock{ read_write_lock };
+								const auto where = scenes.find(key);
+								if (where == scenes.end()) {
+									scenes.insert({ key, { scene.get() } });
+								} else {
+									auto& vec = where->second;
+									if (std::find(vec.begin(), vec.end(), scene.get()) != vec.end()) {
+										vec.push_back(scene.get());
+									}
+								}
 							}
 							// Next
 							++it[K];
@@ -69,15 +77,6 @@ namespace Registry
 						}
 					}
 					// TODO: optional postions arent added here yet
-					const std::unique_lock lock{ read_write_lock };
-					for (auto&& entry : hashes) {
-						const auto where = scenes.find(entry.first);
-						if (where == scenes.end()) {
-							scenes.insert({ entry.first, { std::move(entry.second) } });
-						} else {
-							where->second.push_back(std::move(entry.second));
-						}
-					}
 					for (auto&& scene : package->scenes) {
 						scene_map.insert({ scene->id, scene.get() });
 					}
