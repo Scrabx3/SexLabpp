@@ -16,8 +16,6 @@ namespace Registry
 	bool IsNPC(const RE::Actor* a_actor);
 	bool IsVampire(const RE::Actor* a_actor);
 
-	bool IsBed(const RE::TESObjectREFR* a_reference);
-
 	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor);
 	void SetVehicle(RE::Actor* a_this, RE::TESObjectREFR* a_vehicle);
 

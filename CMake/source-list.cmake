@@ -21,6 +21,8 @@ set(CXX_FILES
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp
 
+	src/Registry/Define/Furniture.h
+	src/Registry/Define/Furniture.cpp
 	src/Registry/Define/Tags.h
 	src/Registry/Define/Tags.cpp
 	src/Registry/Define/RaceKey.h

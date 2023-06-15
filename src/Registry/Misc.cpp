@@ -46,16 +46,6 @@ namespace Registry
 		return a_actor->HasKeyword(GameForms::Vampire);
 	}
 
-	bool IsBed(const RE::TESObjectREFR* a_reference)
-	{
-		if (a_reference->GetName()[0] == '\0')
-			return false;
-		const auto root = a_reference->Get3D();
-		const auto extra = root ? root->GetExtraData("FRN") : nullptr;
-		const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
-		return node && !node->markers.empty() && node->markers[0].animationType.all(RE::BSFurnitureMarker::AnimationType::kSleep);
-	}
-
 	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor)
 	{
 		const auto base = a_actor->GetTemplateActorBase();

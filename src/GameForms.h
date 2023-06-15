@@ -15,6 +15,7 @@ namespace GameForms
 	// Vanilla Forms
 	inline RE::BGSKeyword* Vampire;
 	inline RE::BGSKeyword* ActorTypeNPC;
+	inline RE::BGSKeyword* FurnitureBedRoll;
 	inline RE::BGSKeyword* DLC2RieklingMountedKeyword;
 
 	// SexLab Forms
@@ -28,6 +29,7 @@ namespace GameForms
 	{
 		LOOKUPGAME(Vampire, 0xA82BB);
 		LOOKUPGAME(ActorTypeNPC, 0x13794);
+		LOOKUPGAME(FurnitureBedRoll, 0xE4AD6);
 		LOOKUPGAME(DLC2RieklingMountedKeyword, 0x0403A159);
 
 		LOOKUPMOD(GenderFaction, 0x043A43, "SexLab.esm");
