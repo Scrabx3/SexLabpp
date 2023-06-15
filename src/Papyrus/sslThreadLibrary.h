@@ -4,6 +4,10 @@
 
 namespace Papyrus
 {
+	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusz);
+	int32_t GetBedType(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_reference);
+	bool IsBed(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_reference);
+
 	std::vector<RE::Actor*> FindAvailableActors(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
 		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04);
 	RE::Actor* FindAvailableActor(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
@@ -24,6 +28,10 @@ namespace Papyrus
 
 	inline bool Register(VM* a_vm)
 	{
+		REGISTERFUNC(FindBeds, "sslThreadLibrary", true);
+		REGISTERFUNC(GetBedType, "sslThreadLibrary", true);
+		REGISTERFUNC(IsBed, "sslThreadLibrary", true);
+
 		REGISTERFUNC(FindAvailableActors, "sslThreadLibrary", true);
 		REGISTERFUNC(FindAvailableActor, "sslThreadLibrary", true);
 		REGISTERFUNC(FindAvailableActorInFaction, "sslThreadLibrary", true);

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Papyrus/Settings.h"
-
 namespace Papyrus
 {
 #define REGISTERFUNC(func, c) a_vm->RegisterFunction(#func##sv, c, func)
@@ -21,9 +19,6 @@ namespace Papyrus
 	int32_t CheckStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form);
 
 	bool MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_tags, std::vector<std::string_view> a_match);
-
-	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* akCenterRef, float a_radius, float a_radiusz);
-	bool IsBed(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference);
 
 	RE::SpellItem* GetHDTHeelSpell(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference);
 
@@ -49,8 +44,6 @@ namespace Papyrus
 		REGISTERFUNC(EraseStripAll, "sslpp");
 		REGISTERFUNC(CheckStrip, "sslpp");
 		REGISTERFUNC(MatchTags, "sslpp");
-		REGISTERFUNC(FindBeds, "sslpp");
-		REGISTERFUNC(IsBed, "sslpp");
 		REGISTERFUNC(GetHDTHeelSpell, "sslpp");
 		REGISTERFUNC(GetEditorID, "sslpp");
 

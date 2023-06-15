@@ -1,12 +1,43 @@
 #include "Papyrus/sslThreadLibrary.h"
 
+#include "Registry/Animation.h"
+#include "Registry/Define/Furniture.h"
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Library.h"
 #include "Registry/Validation.h"
-#include "Registry/Animation.h"
 
 namespace Papyrus
 {
+	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusZ)
+	{
+		if (!a_center) {
+			a_vm->TraceStack("Cannot find refs from a none center", a_stackID);
+			return {};
+		} else if (a_radius < 0.0f) {
+			a_vm->TraceStack("Cannot find refs within a negative radius", a_stackID);
+			return {};
+		}
+		return Registry::BedHandler::GetBedsInArea(a_center, a_radius, a_radiusZ);
+	}
+
+	int32_t GetBedType(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_reference)
+	{
+		if (!a_reference) {
+			a_vm->TraceStack("Reference is none", a_stackID);
+			return false;
+		}
+		return static_cast<int32_t>(Registry::BedHandler::GetBedType(a_reference));
+	}
+
+	bool IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_reference)
+	{
+		if (!a_reference) {
+			a_vm->TraceStack("Reference is none", a_stackID);
+			return false;
+		}
+		return Registry::BedHandler::IsBed(a_reference);
+	}
+
 	std::vector<RE::Actor*> FindAvailableActors(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
 		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04)
 	{

@@ -193,63 +193,6 @@ bool Papyrus::MatchTags(RE::StaticFunctionTag*, std::vector<std::string_view> a_
 	return match != Unmatched;
 }
 
-std::vector<RE::TESObjectREFR*> Papyrus::FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusz)
-{
-	if (!a_center) {
-		a_vm->TraceStack("CenterRef is none", a_stackID);
-		return {};
-	}
-	const auto center = a_center->GetPosition();
-	std::vector<RE::TESObjectREFR*> ret{};
-	const auto add = [&](RE::TESObjectREFR& ref) {
-		if (!ref.GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusz > 0.0f ? (std::fabs(center.z - ref.GetPosition().z) <= a_radiusz) : true)
-			if (SexLab::IsBed(&ref))
-				ret.push_back(&ref);
-		return RE::BSContainer::ForEachResult::kContinue;
-	};
-	const auto TES = RE::TES::GetSingleton();
-	if (const auto interior = TES->interiorCell; interior) {
-		interior->ForEachReferenceInRange(center, a_radius, add);
-	} else if (const auto grids = TES->gridCells; grids) {
-		// Derived from: https://github.com/powerof3/PapyrusExtenderSSE
-		auto gridLength = grids->length;
-		if (gridLength > 0) {
-			float yPlus = center.y + a_radius;
-			float yMinus = center.y - a_radius;
-			float xPlus = center.x + a_radius;
-			float xMinus = center.x - a_radius;
-			for (uint32_t x = 0, y = 0; (x < gridLength && y < gridLength); x++, y++) {
-				const auto gridcell = grids->GetCell(x, y);
-				if (gridcell && gridcell->IsAttached()) {
-					auto cellCoords = gridcell->GetCoordinates();
-					if (!cellCoords)
-						continue;
-					float worldX = cellCoords->worldX;
-					float worldY = cellCoords->worldY;
-					if (worldX < xPlus && (worldX + 4096.0) > xMinus && worldY < yPlus && (worldY + 4096.0) > yMinus) {
-						gridcell->ForEachReferenceInRange(center, a_radius, add);
-					}
-				}
-			}
-		}
-		if (!ret.empty()) {
-			std::sort(ret.begin(), ret.end(), [&](RE::TESObjectREFR* a_refA, RE::TESObjectREFR* a_refB) {
-				return center.GetDistance(a_refA->GetPosition()) < center.GetDistance(a_refB->GetPosition());
-			});
-		}
-	}
-	return ret;
-}
-
-bool Papyrus::IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference)
-{
-	if (!a_reference) {
-		a_vm->TraceStack("Reference is none", a_stackID);
-		return false;
-	}
-	return SexLab::IsBed(a_reference);
-}
-
 RE::TESAmmo* Papyrus::GetEquippedAmmo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
 {
 	if (!a_actor) {
