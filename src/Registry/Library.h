@@ -25,7 +25,7 @@ namespace Registry
 		_NODISCARD std::vector<RE::Actor*> SortByScene(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, const Scene* a_scene) const;
 
 	public:
-		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<RE::BSFixedString>& a_tags) const;
+		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
 		// _NODISCARD std::vector<Scene*> GetByType(int32_t )
 
 	private:

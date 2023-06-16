@@ -48,24 +48,18 @@ namespace Registry
 
 	struct TagData
 	{
-		friend class Decoder;
+		bool MatchTags(const std::vector<std::string_view>& a_match) const;
 
-	public:
-		TagData() = default;
-		TagData(std::string_view a_tags);
-		~TagData() = default;
-
-		bool AddTag(std::string_view a_tag);
-
-		bool operator==(const TagData& a_rhs) const;
-
-	private:
 		BaseTag tag;
 		std::vector<RE::BSFixedString> extra;
 	};
 
 	struct TagHandler
 	{
+		/// @brief If the given enumeration contains a_cmp
+		/// @return -1 if a_cmp is now a base tag, 0 if the enumeration doesnt include it, 1 if it does
+		static int32_t HasTag(const BaseTag& a_enumeration, const std::string_view a_cmp);
+
 		static bool AddTag(BaseTag& a_enumeration, const std::string_view a_stringtag);
 		static bool RemoveTag(BaseTag& a_enumeration, const std::string_view a_stringtag);
 	};

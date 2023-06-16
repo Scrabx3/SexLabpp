@@ -39,7 +39,7 @@ namespace Registry
 			readNumeric(tmp);
 			a_out = static_cast<float>(tmp) / 1000.0f;
 		};
-		const auto readString = [&](std::string& a_out) {
+		const auto readString = [&]<typename T>(T& a_out) {
 			uint64_t u64;
 			readNumeric(u64);
 			std::vector<char> buffer;
@@ -109,9 +109,15 @@ namespace Registry
 				readNumeric(tag_count);
 				for (size_t j = 0; j < tag_count; j++) {
 					// ------------------------- TAGS
-					std::string tag;
+					RE::BSFixedString tag;
 					readString(tag);
-					stage->tags.AddTag(tag);
+					if (!TagHandler::AddTag(stage->tags.tag, tag)) {
+						const auto where = std::find(stage->tags.extra.begin(), stage->tags.extra.end(), tag);
+						if (where == stage->tags.extra.end()) {
+							stage->tags.extra.push_back(tag);
+						}
+					}
+					
 				}
 			}
 			if (!scene->start_animation)
@@ -147,7 +153,10 @@ namespace Registry
 			// ------------------------- Upstream Stage Data
 			for (auto&& stage : scene->stages) {
 				for (auto&& stage_tag : stage->tags.extra) {
-					scene->tags.AddTag(stage_tag);
+					const auto where = std::find(scene->tags.extra.begin(), scene->tags.extra.end(), stage_tag);
+					if (where == scene->tags.extra.end()) {
+						scene->tags.extra.push_back(stage_tag);
+					}
 				}
 				scene->tags.tag |= stage->tags.tag;
 			}

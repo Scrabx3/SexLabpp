@@ -70,46 +70,52 @@ namespace Registry
 		return true;
 	}
 
-	TagData::TagData(std::string_view a_tags)
+	int32_t TagHandler::HasTag(const BaseTag& a_enumeration, const std::string_view a_cmp)
 	{
-		ASSERTLOWERCASE(a_tags);
-		auto splits = StringSplit(a_tags, ',');
-		for (auto&& it : splits) {
-			AddTag(it);
-		}
+		ASSERTLOWERCASE(a_cmp);
+		const auto where = lookup.find(a_cmp);
+		if (where == lookup.end())
+			return -1;
+
+		return a_enumeration.all(where->second);
 	}
 
-	bool TagData::AddTag(std::string_view a_tag)
+	bool TagData::MatchTags(const std::vector<std::string_view>& a_match) const
 	{
-		ASSERTLOWERCASE(a_tag);
-		if (TagHandler::AddTag(this->tag, a_tag)) {
-			return true;
-		}
-		if (std::find(extra.begin(), extra.end(), a_tag) == extra.end()) {
-			extra.push_back(a_tag);
-			std::sort(extra.begin(), extra.end(), [](const RE::BSFixedString& a_lhs, const RE::BSFixedString& a_rhs) {
-				const auto cmp = a_lhs.size() <=> a_rhs.size();
-				if (cmp < 0)
-					return true;
-				else if (cmp > 0)
-					return false;
+		enum
+		{
+			no_option = -1,
+			missing_option = 0,
+			has_option = 1,
+		};
 
-				for (RE::detail::BSFixedString<char>::size_type i = 0; i < a_lhs.size(); i++) {
-					const auto char_cmp = a_lhs[i] <=> a_rhs[i];
-					if (char_cmp < 0)
-						return true;
-					else if (char_cmp > 0)
-						return false;
+		auto option = no_option;
+		for (auto&& it : a_match) {
+			if (it.empty()) {
+				continue;
+			}
+
+			ASSERTLOWERCASE(it);
+			switch (it[0]) {
+			case '~':
+				if (option != has_option) {
+					option = TagHandler::HasTag(tag, it.substr(1)) || std::find(extra.begin(), extra.end(), it.substr(1)) != extra.end() ?
+										 has_option :
+										 missing_option;
 				}
-				return false;
-			});
-			return true;
+				break;
+			case '-':
+				if (TagHandler::HasTag(tag, it.substr(1)) || std::find(extra.begin(), extra.end(), it.substr(1)) != extra.end()) {
+					return false;
+				}
+				break;
+			default:
+				if (!TagHandler::HasTag(tag, it.substr(1)) && std::find(extra.begin(), extra.end(), it.substr(1)) == extra.end()) {
+					return false;
+				}
+				break;
+			}
 		}
-		return false;
-	}
-
-	bool TagData::operator==(const TagData& a_rhs) const
-	{
-		return this->tag == a_rhs.tag && this->extra == a_rhs.extra;
+		return option != missing_option;
 	}
 }

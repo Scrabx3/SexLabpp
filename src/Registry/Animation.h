@@ -141,8 +141,10 @@ namespace Registry
 		FurnitureData furnitures;
 		TagData tags;
 
-		private :
-			std::vector<std::unique_ptr<Stage>> stages;
+		bool enabled;
+
+	private:
+		std::vector<std::unique_ptr<Stage>> stages;
 	};
 
 	class AnimPackage

@@ -220,16 +220,19 @@ NEXT:
 		return ret;
 	}
 
-	// std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<RE::BSFixedString>& a_tags) const
-	// {
-	// 	std::vector<Scene*> ret{};
-	// 	ret.reserve(scene_map.size() >> 4);
-	// 	for (auto&& [key, scene] : scene_map) {
-	// 		if (scene->positions.size() != a_positions)
-	// 			continue;
-
-			
-	// 	}
-	// 	return ret;
-	// }
+	std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
+	{
+		std::vector<Scene*> ret{};
+		ret.reserve(scene_map.size() >> 5);
+		for (auto&& [key, scene] : scene_map) {
+			if (!scene->enabled)
+				continue;
+			if (scene->positions.size() != a_positions)
+				continue;
+			if (!scene->tags.MatchTags(a_tags))
+				continue;
+			ret.push_back(scene);
+		}
+		return ret;
+	}
 }
