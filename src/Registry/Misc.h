@@ -24,18 +24,18 @@ namespace Registry
 	{
 		std::transform(str.cbegin(), str.cend(), str.begin(), [](unsigned char c) { return static_cast<unsigned char>(std::tolower(c)); });
 	}
-
 	template <class T>
 	constexpr T AsLower(T str)
 	{
 		std::transform(str.cbegin(), str.cend(), str.begin(), [](unsigned char c) { return static_cast<unsigned char>(std::tolower(c)); });
 		return str;
 	}
-
 	template <class T, class U>
-	bool IsEqualString(T lhs, U rhs)
+	bool StringCmpCI(T lhs, U rhs)
 	{
 		return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
 			[](char lhs, char rhs) { return tolower(lhs) == tolower(rhs); });
 	}
+
+	std::vector<std::string_view> Split(const std::string_view a_view, const char a_delim = ',');
 }

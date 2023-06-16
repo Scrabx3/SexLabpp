@@ -59,4 +59,27 @@ namespace Registry
 		return func(nullptr, 0, a_this, a_vehicle);
 	}
 
+	std::vector<std::string_view> Split(const std::string_view a_view, const char a_delim)
+	{
+		std::vector<std::string_view> result;
+
+		size_t previous = 0;
+		while (previous < a_view.size()) {
+			auto next = a_view.find(a_delim);
+
+			auto word = a_view.substr(previous, next);
+			const auto trimidx = word.find_first_not_of(" \n\t");
+			word.remove_prefix(std::min<size_t>(trimidx, word.size()));
+			while (!word.empty() && std::isspace(word.back())) {
+				word.remove_suffix(1);
+			}
+			if (!word.empty()) {
+				result.push_back(word);
+			}
+
+			previous = next;
+		}
+		return result;
+	}
+
 }
