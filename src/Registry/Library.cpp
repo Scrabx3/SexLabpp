@@ -38,6 +38,9 @@ namespace Registry
 						fragments.reserve(scene->positions.size());
 						for (auto&& pinfo : scene->positions) {
 							auto element = pinfo.MakeFragments();
+							if (pinfo.extra.all(PositionInfo::Extra::Optional)) {
+								element.push_back(PositionFragment::None);
+							}
 							fragments.push_back(element);
 						}
 						std::vector<std::vector<PositionFragmentation>::iterator> it;
@@ -47,13 +50,15 @@ namespace Registry
 						assert(it.size() > 0 && it.size() == fragments.size());
 						const auto K = it.size() - 1;
 						while (it[0] != fragments[0].end()) {
-							auto copy = it;	 // work on copy to not mix up iterator order
-							std::sort(copy.begin(), copy.end());
 							std::vector<PositionFragment> argFragment;
-							argFragment.reserve(copy.size());
-							for (const auto& current : copy) {
+							argFragment.reserve(it.size());
+							for (const auto& current : it) {
+								if (*current == PositionFragment::None) {
+									continue;
+								}
 								argFragment.push_back(current->get());
 							}
+							std::sort(argFragment.begin(), argFragment.end());
 							for (const auto& argHeader : headerFragments) {
 								auto key = ConstructHashKey(argFragment, argHeader);
 
@@ -76,7 +81,7 @@ namespace Registry
 							}
 						}
 					}
-					// TODO: optional postions arent added here yet
+					const std::unique_lock lock{ read_write_lock };
 					for (auto&& scene : package->scenes) {
 						scene_map.insert({ scene->id, scene.get() });
 					}
