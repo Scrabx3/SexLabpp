@@ -82,8 +82,7 @@ namespace Registry
 
 		float fixedlength;
 		std::string navtext;
-		stl::enumeration<Tag, uint64_t> tags;
-		std::vector<std::string> extratags;
+		TagData tags;
 	};
 
 	struct PositionInfo
@@ -109,7 +108,7 @@ namespace Registry
 		float scale;
 	};
 
-	struct FurnitureInfo
+	struct FurnitureData
 	{
 		bool allowbed;
 		float offset[Offset::Total];
@@ -121,7 +120,7 @@ namespace Registry
 
 	public:
 		Scene(const std::string_view a_author, const std::string_view a_hash) :
-			author(a_author), hash(a_hash), start_animation(nullptr), furnituredata({}) {}
+			author(a_author), hash(a_hash), start_animation(nullptr), furnitures({}), tags({}) {}
 		~Scene() = default;
 
 		_NODISCARD const Stage* GetStageByKey(std::string_view a_key) const;
@@ -139,12 +138,11 @@ namespace Registry
 		std::vector<std::pair<Stage*, std::forward_list<Stage*>>> graph;
 		Stage* start_animation;
 
-		FurnitureInfo furnituredata;
-		stl::enumeration<Tag, uint64_t> tags;
-		std::vector<std::string_view> extratags;
+		FurnitureData furnitures;
+		TagData tags;
 
-	private:
-		std::vector<std::unique_ptr<Stage>> stages;
+		private :
+			std::vector<std::unique_ptr<Stage>> stages;
 	};
 
 	class AnimPackage

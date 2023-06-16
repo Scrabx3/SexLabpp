@@ -44,11 +44,28 @@ namespace Registry
 		Behind = 1ULL << 46,
 		Facing = 1ULL << 47
 	};
+	using BaseTag = stl::enumeration<Tag, std::underlying_type<Tag>::type>;
+
+	struct TagData
+	{
+		friend class Decoder;
+
+	public:
+		TagData() = default;
+		TagData(std::string_view a_tags);
+		~TagData() = default;
+
+		bool operator==(const TagData& a_rhs);
+
+	private:
+		BaseTag tag;
+		std::vector<RE::BSFixedString> extra;
+	};
 
 	struct TagHandler
 	{
-		static bool AddTag(stl::enumeration<Tag, uint64_t>& a_enumeration, const std::string& a_stringtag);
-		static bool RemoveTag(stl::enumeration<Tag, uint64_t>& a_enumeration, const std::string& a_stringtag);
+		static bool AddTag(BaseTag& a_enumeration, const std::string_view a_stringtag);
+		static bool RemoveTag(BaseTag& a_enumeration, const std::string_view a_stringtag);
 	};
 
 }	 // namespace Registry

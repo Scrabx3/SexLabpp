@@ -8,7 +8,7 @@ namespace Registry
 	}
 
 	using enum Tag;
-	static inline const std::map<std::string, Tag> lookup = {
+	static inline const std::map<std::string_view, Tag> lookup = {
 		MAPENTRY(SixtyNine),
 		MAPENTRY(Aggressive),
 		MAPENTRY(Anal),
@@ -58,15 +58,15 @@ namespace Registry
 	a_enumeration.func(where->second);                                                                \
 	return true;
 
-	bool TagHandler::AddTag(stl::enumeration<Tag, uint64_t>& a_enumeration, const std::string& a_stringtag)
+	bool TagHandler::AddTag(BaseTag& a_enumeration, const std::string_view a_stringtag)
 	{
 		EDITTAG(set)
 	}
 
-	bool TagHandler::RemoveTag(stl::enumeration<Tag, uint64_t>& a_enumeration, const std::string& a_stringtag)
-	{
+	bool TagHandler::RemoveTag(BaseTag& a_enumeration, const std::string_view a_stringtag){
 		EDITTAG(reset)
 	}
 
 #undef EDITTAG
+
 }

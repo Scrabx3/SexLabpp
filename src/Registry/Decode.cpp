@@ -111,9 +111,9 @@ namespace Registry
 					// ------------------------- TAGS
 					std::string tag;
 					readString(tag);
-					if (TagHandler::AddTag(stage->tags, tag))
+					if (TagHandler::AddTag(stage->tags.tag, tag))
 						continue;
-					stage->extratags.push_back(tag);
+					stage->tags.extra.push_back(tag);
 				}
 			}
 			if (!scene->start_animation)
@@ -145,16 +145,16 @@ namespace Registry
 					list.second.push_front(getStage(edgestage));
 				}
 			}
-			a_stream.read(reinterpret_cast<char*>(&scene->furnituredata.allowbed), 1);
+			a_stream.read(reinterpret_cast<char*>(&scene->furnitures.allowbed), 1);
 			// ------------------------- Upstream Stage Data
 			for (auto&& stage : scene->stages) {
-				for (auto&& tag : stage->extratags) {
-					const auto where = std::find(scene->extratags.begin(), scene->extratags.end(), tag);
-					if (where != scene->extratags.end()) {
-						scene->extratags.push_back(tag);
+				for (auto&& stage_tag : stage->tags.extra) {
+					const auto where = std::find(scene->tags.extra.begin(), scene->tags.extra.end(), stage_tag);
+					if (where != scene->tags.extra.end()) {
+						scene->tags.extra.push_back(stage_tag);
 					}
 				}
-				scene->tags |= stage->tags;
+				scene->tags.tag |= stage->tags.tag;
 			}
 		}
 		return package;

@@ -30,7 +30,7 @@ namespace Registry
 						// for each scene, construct a list of every possible combination of fragments and add them to the list of hashes
 						// the list then allows fast access to a slice of the library based on the hash fragments a given collection of actors represents
 						std::vector<PositionHeader> headerFragments{ PositionHeader(0) };
-						if (scene->furnituredata.allowbed) {
+						if (scene->furnitures.allowbed) {
 							headerFragments.push_back(PositionHeader::AllowBed);
 						}
 						// Build 2D Vector containing all possible Fragments for all Infos
