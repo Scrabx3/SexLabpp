@@ -2,7 +2,7 @@
 
 #include "LegacyData.h"
 
-namespace Papyrus
+namespace Papyrus::ThreadLibrary
 {
 	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusz);
 	int32_t GetBedType(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_reference);
@@ -45,4 +45,4 @@ namespace Papyrus
 		return true;
 	}
 
-}	 // namespace Papyrus
+}	 // namespace Papyrus::ThreadLibrary

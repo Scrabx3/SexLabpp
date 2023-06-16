@@ -16,7 +16,7 @@ namespace Papyrus
     None = -1,
   };
 
-  LegacySex GetLegacySex(RE::Actor* a_actor)
+  inline LegacySex GetLegacySex(RE::Actor* a_actor)
 	{
 		auto creature = !Registry::IsNPC(a_actor);
 		auto sex = Registry::GetSex(a_actor);
@@ -31,7 +31,7 @@ namespace Papyrus
 		return LegacySex::Male;
 	}
 
-	std::array<int32_t, 4> GetLegacySex(std::vector<RE::Actor*> a_positions)
+	inline std::array<int32_t, 4> GetLegacySex(std::vector<RE::Actor*> a_positions)
 	{
 		std::array<int32_t, 4> ret{ 0, 0, 0, 0 };
 		for (auto&& actor : a_positions) {

@@ -26,7 +26,8 @@ namespace Registry
 
 	public:
 		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
-		// _NODISCARD std::vector<Scene*> GetByType(int32_t )
+
+		_NODISCARD std::vector<RE::BGSRefAlias*> MapToProxy(const RE::TESQuest* a_owner, const std::vector<Scene*>& a_scenes) const;
 
 	private:
 		// Construct a library key from a **sorted** list of fragments
@@ -40,6 +41,6 @@ namespace Registry
 		std::vector<std::unique_ptr<AnimPackage>> packages;
 		std::unordered_map<LibraryKey, std::vector<Scene*>> scenes;
 
-		std::vector<std::pair<RE::TESQuest*, std::pair<Scene*, RE::BGSRefAlias*>>> legacy_mapping;
+		std::vector<std::pair<RE::TESQuest*, std::map<Scene*, RE::BGSRefAlias*>>> legacy_mapping;
 	};
 }

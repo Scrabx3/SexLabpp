@@ -6,7 +6,7 @@
 #include "Registry/Library.h"
 #include "Registry/Validation.h"
 
-namespace Papyrus
+namespace Papyrus::ThreadLibrary
 {
 	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusZ)
 	{
@@ -254,10 +254,11 @@ namespace Papyrus
 				actor,
 				Registry::MakePositionFragment(
 					actor,
-					submissive).get());
+					submissive)
+					.get());
 		}
 		auto ret = library->SortByScene(argFrag, scene);
 		return ret.empty() ? a_positions : ret;
 	}
 
-}	 // namespace Papyrus
+}	 // namespace Papyrus::ThreadLibrary

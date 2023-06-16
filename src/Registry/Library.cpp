@@ -235,4 +235,25 @@ NEXT:
 		}
 		return ret;
 	}
+
+	std::vector<RE::BGSRefAlias*> Library::MapToProxy(const RE::TESQuest* a_owner, const std::vector<Scene*>& a_scenes) const
+	{
+		for (auto&& [quest, mapping] : legacy_mapping) {
+			if (quest != a_owner)
+				continue;
+
+			std::vector<RE::BGSRefAlias*> ret{};
+			for (auto&& scene : a_scenes) {
+				const auto where = mapping.find(scene);
+				if (where == mapping.end()) {
+					logger::info("Scene {}-{} not mapped to any proxy", scene->hash, scene->id);
+					continue;
+				}
+				ret.push_back(where->second);
+			}
+			return ret;
+		}
+		logger::error("Quest {} has no storage allocated", a_owner->GetFormID());
+		return {};
+	}
 }
