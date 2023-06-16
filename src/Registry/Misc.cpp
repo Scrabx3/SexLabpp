@@ -59,7 +59,7 @@ namespace Registry
 		return func(nullptr, 0, a_this, a_vehicle);
 	}
 
-	std::vector<std::string_view> Split(const std::string_view a_view, const char a_delim)
+	std::vector<std::string_view> StringSplit(const std::string_view a_view, const char a_delim)
 	{
 		std::vector<std::string_view> result;
 

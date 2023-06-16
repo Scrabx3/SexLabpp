@@ -111,9 +111,7 @@ namespace Registry
 					// ------------------------- TAGS
 					std::string tag;
 					readString(tag);
-					if (TagHandler::AddTag(stage->tags.tag, tag))
-						continue;
-					stage->tags.extra.push_back(tag);
+					stage->tags.AddTag(tag);
 				}
 			}
 			if (!scene->start_animation)
@@ -149,10 +147,7 @@ namespace Registry
 			// ------------------------- Upstream Stage Data
 			for (auto&& stage : scene->stages) {
 				for (auto&& stage_tag : stage->tags.extra) {
-					const auto where = std::find(scene->tags.extra.begin(), scene->tags.extra.end(), stage_tag);
-					if (where != scene->tags.extra.end()) {
-						scene->tags.extra.push_back(stage_tag);
-					}
+					scene->tags.AddTag(stage_tag);
 				}
 				scene->tags.tag |= stage->tags.tag;
 			}

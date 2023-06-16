@@ -37,5 +37,5 @@ namespace Registry
 			[](char lhs, char rhs) { return tolower(lhs) == tolower(rhs); });
 	}
 
-	std::vector<std::string_view> Split(const std::string_view a_view, const char a_delim = ',');
+	std::vector<std::string_view> StringSplit(const std::string_view a_view, const char a_delim = ',');
 }

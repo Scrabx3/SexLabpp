@@ -55,7 +55,9 @@ namespace Registry
 		TagData(std::string_view a_tags);
 		~TagData() = default;
 
-		bool operator==(const TagData& a_rhs);
+		bool AddTag(std::string_view a_tag);
+
+		bool operator==(const TagData& a_rhs) const;
 
 	private:
 		BaseTag tag;
