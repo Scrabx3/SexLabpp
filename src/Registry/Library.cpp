@@ -213,6 +213,7 @@ NEXT:
 
 	size_t Library::GetSceneCount() const
 	{
+		const std::shared_lock lock{ read_write_lock };
 		size_t ret = 0;
 		for (auto&& package : packages) {
 			ret += package->scenes.size();
@@ -222,6 +223,7 @@ NEXT:
 
 	std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
 	{
+		const std::shared_lock lock{ read_write_lock };
 		std::vector<Scene*> ret{};
 		ret.reserve(scene_map.size() >> 5);
 		for (auto&& [key, scene] : scene_map) {
@@ -238,6 +240,7 @@ NEXT:
 
 	std::vector<RE::BGSRefAlias*> Library::MapToProxy(const RE::TESQuest* a_owner, const std::vector<Scene*>& a_scenes) const
 	{
+		const std::shared_lock lock{ read_write_lock };
 		for (auto&& [quest, mapping] : legacy_mapping) {
 			if (quest != a_owner)
 				continue;
