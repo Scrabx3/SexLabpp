@@ -277,6 +277,18 @@ NEXT:
 		return {};
 	}
 
+	const std::map<Scene*, RE::BGSRefAlias*>& Library::GetProxyMapping(const RE::TESQuest* a_proxy) const
+	{
+		for (auto&& [quest, mapping] : legacy_mapping) {
+			if (quest != a_proxy)
+				continue;
+
+			return mapping;
+		}
+		logger::error("Quest {} has no storage allocated", a_proxy->GetFormID());
+		return {};
+	}
+
 	int32_t Library::GetProxySize(const RE::TESQuest* a_proxy) const
 	{
 		for (auto&& [quest, mapping] : legacy_mapping) {
@@ -285,6 +297,7 @@ NEXT:
 
 			return static_cast<int32_t>(min(mapping.size(), static_cast<size_t>((std::numeric_limits<int32_t>::max)())));
 		}
+		logger::error("Quest {} has no storage allocated", a_proxy->GetFormID());
 		return 0;
 	}
 }
