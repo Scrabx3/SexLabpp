@@ -118,4 +118,82 @@ namespace Registry
 		}
 		return option != missing_option;
 	}
+
+	bool TagData::MatchTags(const TagTypeData& a_data) const
+	{
+		if (!this->tag.all(a_data[TagType::Required].first.get()) ||
+				this->tag.none(a_data[TagType::Optional].first.get()) || 
+				this->tag.any(a_data[TagType::Disallow].first.get())) {
+			return false;
+		}
+		const auto hasExtra = [this](const RE::BSFixedString& a_tag) {
+			const auto where = std::find(this->extra.begin(), this->extra.end(), a_tag);
+			return where != this->extra.end();
+		};
+		// Continue if has all tags
+		for (auto&& it : a_data[TagType::Required].second) {
+			if (!hasExtra(it)) {
+				return false;
+			}
+		}
+		// Continue if Has none tags
+		for (auto&& it : a_data[TagType::Disallow].second) {
+			if (hasExtra(it)) {
+				return false;
+			}
+		}
+		// Return true if has any tag
+		for (auto&& it : a_data[TagType::Optional].second) {
+			if (hasExtra(it)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	TagData::TagTypeData TagData::ParseTagsByType(const std::string_view a_tags)
+	{
+		const auto list = StringSplit(a_tags);
+		return ParseTagsByType(list);
+	}
+
+	TagData::TagTypeData TagData::ParseTagsByType(const std::vector<std::string_view>& a_tags)
+	{
+		TagTypeData ret{};
+		for (auto&& tag : a_tags) {
+			if (tag.empty())
+				continue;
+
+			switch (tag[0]) {
+			case '~':
+				{
+					auto tag_ = tag.substr(1);
+					auto& [base, extra] = ret[TagType::Optional];
+					if (TagHandler::AddTag(base, tag_))
+						continue;
+					extra.push_back(tag_);
+				}
+				break;
+			case '-':
+				{
+					auto tag_ = tag.substr(1);
+					auto& [base, extra] = ret[TagType::Disallow];
+					if (TagHandler::AddTag(base, tag_))
+						continue;
+					extra.push_back(tag_);
+				}
+				break;
+			default:
+				{
+					auto& [base, extra] = ret[TagType::Required];
+					if (TagHandler::AddTag(base, tag))
+						continue;
+					extra.push_back(tag);
+				}
+				break;
+			}
+		}
+		return ret;
+	}
+
 }

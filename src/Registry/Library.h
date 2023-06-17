@@ -13,10 +13,7 @@ namespace Registry
 	public:
 		void Initialize();
 
-		_NODISCARD std::vector<Scene*> LookupAnimations(
-			std::vector<RE::Actor*>& a_actors,
-			const std::vector<std::string_view>& tags,
-			std::vector<RE::Actor*>& a_submissives) const;
+		_NODISCARD std::vector<Scene*> LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& tags, const std::vector<RE::Actor*>& a_submissives) const;
 
 		_NODISCARD const Scene* GetSceneByID(const std::string& a_id) const;
 		_NODISCARD const Scene* GetSceneByID(const RE::BSFixedString& a_id) const;

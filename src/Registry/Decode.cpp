@@ -16,6 +16,7 @@ namespace Registry
 		switch (version) {
 		case 1:
 			package = Version1(stream);
+			break;
 		default:
 			throw std::runtime_error(fmt::format("Invalid version {}", version).c_str());
 		}

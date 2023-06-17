@@ -114,40 +114,48 @@ namespace Registry
 		return GetSceneByID(id);
 	}
 
-	// std::vector<Scene*> Library::LookupAnimations(
-	// 	std::vector<RE::Actor*>& a_actors,
-	// 	[[maybe_unused]] const std::vector<std::string_view>& tags,
-	// 	[[maybe_unused]] std::vector<RE::Actor*>& a_submissives) const
-	// {
-	// 	const auto t1 = std::chrono::high_resolution_clock::now();
-	// 	// COMEBACK: Open thread to parse tags while constructing key here
+	std::vector<Scene*> Library::LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
+	{
+		const auto t1 = std::chrono::high_resolution_clock::now();
+		TagData::TagTypeData tags;
+		std::thread tag_parser{ [&]() {
+			// Multithread this as it may take a short while depending on how many tags are being passed to this function
+			tags = TagData::ParseTagsByType(a_tags);
+		} };
 
-	// 	std::vector<std::pair<PositionFragmentation, size_t>> fragments;
-	// 	for (size_t i = 0; i < a_actors.size(); i++) {
-	// 		auto fragment = MakePositionFragment(a_actors[i], std::find(a_submissives.begin(), a_submissives.end(), a_actors[i]) != a_submissives.end());
-	// 		fragments.emplace_back(fragment, i);
-	// 	}
-	// 	std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) {
-	// 		return a.first.underlying() < b.first.underlying();
-	// 	});
-	// 	std::vector<PositionFragment> strippedFragments;
-	// 	strippedFragments.reserve(fragments.size());
-	// 	for (auto&& fragment : fragments) {
-	// 		strippedFragments.push_back(fragment.first.get());
-	// 	}
-	// 	const auto hash = ConstructHashKey(strippedFragments, PositionHeader::None);
+		std::vector<std::pair<PositionFragmentation, RE::Actor*>> fragments;
+		for (auto&& position : a_actors) {
+			const auto submissive = std::find(a_submissives.begin(), a_submissives.end(), position) != a_submissives.end();
+			const auto fragment = MakePositionFragment(position, submissive);
+			fragments.emplace_back(fragment, position);
+		}
+		std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) { return a.first < b.first; });
+		std::vector<PositionFragment> strippedFragments;
+		strippedFragments.reserve(fragments.size());
+		for (auto&& [fragment, actor] : fragments) {
+			strippedFragments.push_back(fragment.get());
+		}
+		const auto hash = ConstructHashKey(strippedFragments, PositionHeader::None);
+		tag_parser.join();	// Wait for tags to finish parsing
 
-	// 	const std::shared_lock lock{ read_write_lock };
-	// 	const auto rawScenes = this->scenes.at(hash);
-		
-	// 	// TODO: validate scale of the given actors with the specific position if enabled
+		const std::shared_lock lock{ read_write_lock };
+	  const auto& rawScenes = this->scenes.at(hash);
 
+		std::vector<Scene*> ret;
+		ret.reserve(rawScenes.size() / 2);
+		std::copy_if(ret.begin(), ret.end(), std::back_inserter(ret), [&](Scene* a_scene){
+			if (!a_scene->tags.MatchTags(tags))
+				return false;
 
-	// 	const auto t2 = std::chrono::high_resolution_clock::now();
-	// 	// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-	// 	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-	// 	// logger::info("Found {} animations for {} actors in {}ms", a_actors.size(), GetSceneCount(), scenes.size(), ms_double.count());
-	// }
+			return true;
+		});
+
+		const auto t2 = std::chrono::high_resolution_clock::now();
+		// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
+		logger::info("Found {} scenes for query [{} | {} <{}>] actors in {}ms", ret.size(), a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size(), ms_double.count());
+		return ret;
+	}
 
 	std::vector<RE::Actor*> Library::SortByScene(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, const Scene* a_scene) const
 	{
@@ -266,7 +274,7 @@ NEXT:
 			if (quest != a_proxy)
 				continue;
 
-			return mapping.size();
+			return static_cast<int32_t>(min(mapping.size(), static_cast<size_t>((std::numeric_limits<int32_t>::max)())));
 		}
 		return 0;
 	}

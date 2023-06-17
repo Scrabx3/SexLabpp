@@ -48,7 +48,20 @@ namespace Registry
 
 	struct TagData
 	{
+		enum TagType
+		{
+			Required,
+			Disallow,
+			Optional,
+
+			Total
+		};
+		using TagTypeData = std::array<std::pair<BaseTag, std::vector<RE::BSFixedString>>, TagType::Total>;
+		static TagTypeData ParseTagsByType(const std::string_view a_tags);
+		static TagTypeData ParseTagsByType(const std::vector<std::string_view>& a_tags);
+
 		bool MatchTags(const std::vector<std::string_view>& a_match) const;
+		bool MatchTags(const TagTypeData& a_data) const;
 
 		BaseTag tag;
 		std::vector<RE::BSFixedString> extra;
