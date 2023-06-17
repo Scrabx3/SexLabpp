@@ -139,11 +139,16 @@ namespace Registry
 		tag_parser.join();	// Wait for tags to finish parsing
 
 		const std::shared_lock lock{ read_write_lock };
-	  const auto& rawScenes = this->scenes.at(hash);
+	  const auto where = this->scenes.find(hash);
+		if (where == this->scenes.end()) {
+			logger::info("Invalid query: [{} | {} <{}>]", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size());
+			return {};
+		}
+		const auto& rawScenes = where->second;
 
 		std::vector<Scene*> ret;
 		ret.reserve(rawScenes.size() / 2);
-		std::copy_if(ret.begin(), ret.end(), std::back_inserter(ret), [&](Scene* a_scene){
+		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene){
 			if (!a_scene->tags.MatchTags(tags))
 				return false;
 
