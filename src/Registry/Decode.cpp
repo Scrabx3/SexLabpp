@@ -10,14 +10,95 @@ namespace Registry
 		stream.exceptions(std::fstream::badbit);
 		stream.exceptions(std::fstream::failbit);
 
+		std::unique_ptr<AnimPackage> package;
 		uint8_t version;
 		stream.read(reinterpret_cast<char*>(&version), 1);
 		switch (version) {
 		case 1:
-			return Version1(stream);
+			package = Version1(stream);
 		default:
 			throw std::runtime_error(fmt::format("Invalid version {}", version).c_str());
 		}
+		// Upstream child data and add legacy information to scene
+		for (auto&& scene : package->scenes) {
+			for (auto&& stage : scene->stages) {
+				for (auto&& stage_tag : stage->tags.extra) {
+					const auto where = std::find(scene->tags.extra.begin(), scene->tags.extra.end(), stage_tag);
+					if (where == scene->tags.extra.end()) {
+						scene->tags.extra.push_back(stage_tag);
+					}
+				}
+				scene->tags.tag |= stage->tags.tag;
+			}
+
+			enum legacySex
+			{
+				Male = 0,
+				Female = 1,
+				Creature = 2,
+			};
+
+			std::vector<std::vector<legacySex>> sexes{};
+			sexes.reserve(scene->positions.size());
+			for (auto&& position : scene->positions) {
+				std::vector<legacySex> vec;
+				if (position.race == RaceKey::Human) {
+					if (position.sex.all(Sex::Male)) {
+						vec.push_back(legacySex::Male);
+					}
+					if (position.sex.any(Sex::Female, Sex::Futa)) {
+						vec.push_back(legacySex::Female);
+					}
+				} else {
+					vec.push_back(legacySex::Creature);
+				}
+				if (vec.empty()) {
+					throw std::runtime_error(fmt::format("Invalid position configuration for scene {}-{}. Position has no associated sex", scene->hash, scene->id).c_str());
+				}
+				sexes.push_back(vec);
+			}
+			std::vector<std::vector<legacySex>::iterator> it;
+			for (auto& subvec : sexes)
+				it.push_back(subvec.begin());
+			const auto K = it.size() - 1;
+			while (it[0] != sexes[0].end()) {
+				std::array<size_t, 3> count{ 0, 0, 0 };
+				for (auto&& sex : it) {
+					count[*sex]++;
+				}
+				std::vector<char> gender_tag;
+				for (auto&& size : count) {
+					for (size_t i = 0; i < size; i++) {
+						switch (size) {
+						case 0:
+							gender_tag.push_back('M');
+							break;
+						case 1:
+							gender_tag.push_back('F');
+							break;
+						case 2:
+							gender_tag.push_back('C');
+							break;
+						}
+					}
+				}
+				RE::BSFixedString gTag1{ std::string{ gender_tag.begin(), gender_tag.end() } };
+				if (auto& tags = scene->tags.extra; std::find(tags.begin(), tags.end(), gTag1) != tags.end()) {
+					tags.push_back(gTag1);
+					RE::BSFixedString gTag2{ std::string{ gender_tag.rbegin(), gender_tag.rend() } };
+					if (gTag2 != gTag1)
+						tags.push_back(gTag2);
+				}
+
+				// Next
+				++it[K];
+				for (auto i = K; i > 0 && it[i] == sexes[i].end(); i--) {
+					it[i] = sexes[i].begin();
+					++it[i - 1];
+				}
+			}
+		}
+		return package;
 	}
 
 	std::unique_ptr<AnimPackage> Decoder::Version1(std::ifstream& a_stream)
@@ -150,16 +231,6 @@ namespace Registry
 				}
 			}
 			a_stream.read(reinterpret_cast<char*>(&scene->furnitures.allowbed), 1);
-			// ------------------------- Upstream Stage Data
-			for (auto&& stage : scene->stages) {
-				for (auto&& stage_tag : stage->tags.extra) {
-					const auto where = std::find(scene->tags.extra.begin(), scene->tags.extra.end(), stage_tag);
-					if (where == scene->tags.extra.end()) {
-						scene->tags.extra.push_back(stage_tag);
-					}
-				}
-				scene->tags.tag |= stage->tags.tag;
-			}
 		}
 		return package;
 	}
