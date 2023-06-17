@@ -27,7 +27,8 @@ namespace Registry
 	public:
 		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
 
-		_NODISCARD std::vector<RE::BGSRefAlias*> MapToProxy(const RE::TESQuest* a_owner, const std::vector<Scene*>& a_scenes) const;
+		_NODISCARD int32_t GetProxySize(const RE::TESQuest* a_proxy) const;
+		_NODISCARD std::vector<RE::BGSRefAlias*> MapToProxy(const RE::TESQuest* a_proxy, const std::vector<Scene*>& a_scenes) const;
 
 	private:
 		// Construct a library key from a **sorted** list of fragments

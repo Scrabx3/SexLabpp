@@ -238,11 +238,11 @@ NEXT:
 		return ret;
 	}
 
-	std::vector<RE::BGSRefAlias*> Library::MapToProxy(const RE::TESQuest* a_owner, const std::vector<Scene*>& a_scenes) const
+	std::vector<RE::BGSRefAlias*> Library::MapToProxy(const RE::TESQuest* a_proxy, const std::vector<Scene*>& a_scenes) const
 	{
 		const std::shared_lock lock{ read_write_lock };
 		for (auto&& [quest, mapping] : legacy_mapping) {
-			if (quest != a_owner)
+			if (quest != a_proxy)
 				continue;
 
 			std::vector<RE::BGSRefAlias*> ret{};
@@ -256,7 +256,18 @@ NEXT:
 			}
 			return ret;
 		}
-		logger::error("Quest {} has no storage allocated", a_owner->GetFormID());
+		logger::error("Quest {} has no storage allocated", a_proxy->GetFormID());
 		return {};
+	}
+
+	int32_t Library::GetProxySize(const RE::TESQuest* a_proxy) const
+	{
+		for (auto&& [quest, mapping] : legacy_mapping) {
+			if (quest != a_proxy)
+				continue;
+
+			return mapping.size();
+		}
+		return 0;
 	}
 }
