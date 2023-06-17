@@ -141,19 +141,23 @@ namespace Registry
 		const std::shared_lock lock{ read_write_lock };
 	  const auto where = this->scenes.find(hash);
 		if (where == this->scenes.end()) {
-			logger::info("Invalid query: [{} | {} <{}>]", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size());
+			logger::info("Invalid query: [{} | {} <{}>]; No animations for given actors", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size());
 			return {};
 		}
 		const auto& rawScenes = where->second;
 
 		std::vector<Scene*> ret;
 		ret.reserve(rawScenes.size() / 2);
-		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene){
+		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
 			if (!a_scene->tags.MatchTags(tags))
 				return false;
 
 			return true;
 		});
+		if (ret.empty()) {
+			logger::info("Invalid query: [{} | {} <{}>]; 0/{} animations use requested tags", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size(), where->second.size());
+			return {};
+		}
 
 		const auto t2 = std::chrono::high_resolution_clock::now();
 		// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
