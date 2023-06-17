@@ -69,9 +69,10 @@ namespace Registry
 
 	struct RaceHandler
 	{
-		static RaceKey GetRaceKey(RE::Actor* a_actor);
-		static bool HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey);
-		static bool HasRaceKey(RE::Actor* a_actor, RaceKey a_racekey);
+		_NODISCARD static RaceKey GetRaceKey(RE::Actor* a_actor);
+		_NODISCARD static RaceKey GetRaceKey(RE::BSFixedString& a_racestring);
+		_NODISCARD static bool HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey);
+		_NODISCARD static bool HasRaceKey(RE::Actor* a_actor, RaceKey a_racekey);
 	};
 
 }	 // namespace Registry

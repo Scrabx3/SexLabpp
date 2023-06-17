@@ -217,7 +217,17 @@ namespace Registry
 		}
 	}
 
-	bool RaceHandler::HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey)
+	RaceKey RaceHandler::GetRaceKey(RE::BSFixedString& a_racestring)
+	{
+		for (auto&& [racekey, racestring] : LegacyRaceKeys) {
+			if (a_racestring == racestring) {
+				return racekey;
+			}
+		}
+		return RaceKey::None;
+	}
+
+		bool RaceHandler::HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey)
 	{
 		const auto key = GetRaceKey(a_actor);
 		if (key == RaceKey::None) {
