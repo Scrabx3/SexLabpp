@@ -8,7 +8,7 @@ option(BUILD_AE "Build with Skyrim AE Configuration" OFF)
 
 # ---- Project ----
 project(
-    SexLabpp
+    SexLab
     VERSION 0.0.1
     LANGUAGES CXX
 )
