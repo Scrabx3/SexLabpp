@@ -128,7 +128,7 @@ namespace Registry
 		return GetRaceKey(race, Scale::GetSingleton()->GetScale(a_actor), sex);
 	}
 
-	RaceKey GetRaceKey(const RE::TESRace* a_race, float a_scale, RE::SEXES::SEX a_sex)
+	RaceKey RaceHandler::GetRaceKey(const RE::TESRace* a_race, float a_scale, RE::SEXES::SEX a_sex)
 	{
 		const std::string_view rootTMP{ a_race->rootBehaviorGraphNames[a_sex].data() };
 		const auto root{ rootTMP.substr(rootTMP.rfind('\\') + 1) };
@@ -264,7 +264,7 @@ namespace Registry
 		}
 	}
 
-	static bool IsCompatibleRaceKey(RaceKey a_racekey1, RaceKey a_racekey2)
+	bool RaceHandler::IsCompatibleRaceKey(RaceKey a_racekey1, RaceKey a_racekey2)
 	{
 		switch (a_racekey1) {
 		case RaceKey::Canine:

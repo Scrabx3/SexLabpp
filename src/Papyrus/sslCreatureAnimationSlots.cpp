@@ -21,13 +21,16 @@ namespace Papyrus::CreatureAnimationSlots
 			a_vm->TraceStack("Invalid racekey", a_stackID);
 			return {};
 		}
-    const auto& mapping = Registry::Library::GetSingleton()->GetProxyMapping(a_qst);
+		const auto mapping = Registry::Library::GetSingleton()->GetProxyMapping(a_qst);
+		if (!mapping)
+			return {};
+
 		std::vector<RE::BGSRefAlias*> ret;
-		for (auto&& [scene, reference] : mapping) {
-      if (!scene->enabled)
-        continue;
-      if (scene->positions.size() != a_actorcount)
-        continue;
+		for (auto&& [scene, reference] : *mapping) {
+			if (!scene->enabled)
+				continue;
+			if (scene->positions.size() != a_actorcount)
+				continue;
 			if (!scene->tags.MatchTags(a_tags))
 				continue;
 			for (auto&& position : scene->positions) {
@@ -37,7 +40,7 @@ namespace Papyrus::CreatureAnimationSlots
 				}
 			}
 		}
-    return ret;
+		return ret;
 	}
 
 	std::vector<RE::BGSRefAlias*> GetByCreatureActorsTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
@@ -59,9 +62,12 @@ namespace Papyrus::CreatureAnimationSlots
 			a_vm->TraceStack("Actor array should be less or equal than actor count but was greater", a_stackID);
 			return {};
 		}
-		const auto& mapping = Registry::Library::GetSingleton()->GetProxyMapping(a_qst);
+		const auto mapping = Registry::Library::GetSingleton()->GetProxyMapping(a_qst);
+		if (!mapping)
+			return {};
+
 		std::vector<RE::BGSRefAlias*> ret;
-		for (auto&& [scene, reference] : mapping) {
+		for (auto&& [scene, reference] : *mapping) {
 			if (!scene->enabled)
 				continue;
 			if (scene->positions.size() != a_actorcount)
@@ -69,7 +75,7 @@ namespace Papyrus::CreatureAnimationSlots
 			if (!scene->tags.MatchTags(a_tags))
 				continue;
 
-			size_t reqtrue = a_creatures.size();
+			int32_t reqtrue = static_cast<int32_t>(a_creatures.size());
 			std::vector<bool> control(a_actorcount, false);
 			for (auto&& creature : a_creatures) {
 				const auto racekey = Registry::RaceHandler::GetRaceKey(creature);
@@ -119,9 +125,11 @@ namespace Papyrus::CreatureAnimationSlots
 			a_vm->TraceStack("Invalid racekey", a_stackID);
 			return {};
 		}
-		const auto& mapping = Registry::Library::GetSingleton()->GetProxyMapping(a_qst);
+		const auto mapping = Registry::Library::GetSingleton()->GetProxyMapping(a_qst);
+		if (!mapping)
+			return {};
 		std::vector<RE::BGSRefAlias*> ret;
-		for (auto&& [scene, reference] : mapping) {
+		for (auto&& [scene, reference] : *mapping) {
 			if (!scene->enabled)
 				continue;
 			if (scene->positions.size() != a_actorcount)

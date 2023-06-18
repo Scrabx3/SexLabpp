@@ -257,47 +257,39 @@ NEXT:
 
 	std::vector<RE::BGSRefAlias*> Library::MapToProxy(const RE::TESQuest* a_proxy, const std::vector<Scene*>& a_scenes) const
 	{
-		const std::shared_lock lock{ read_write_lock };
-		for (auto&& [quest, mapping] : legacy_mapping) {
-			if (quest != a_proxy)
-				continue;
+		const auto mapping = GetProxyMapping(a_proxy);
+		if (!mapping)
+			return {};
 
-			std::vector<RE::BGSRefAlias*> ret{};
-			for (auto&& scene : a_scenes) {
-				const auto where = mapping.find(scene);
-				if (where == mapping.end()) {
-					logger::info("Scene {}-{} not mapped to any proxy", scene->hash, scene->id);
-					continue;
-				}
-				ret.push_back(where->second);
+		std::vector<RE::BGSRefAlias*> ret{};
+		for (auto&& scene : a_scenes) {
+			const auto where = mapping->find(scene);
+			if (where == mapping->end()) {
+				logger::info("Scene {}-{} not mapped to any proxy", scene->hash, scene->id);
+				continue;
 			}
-			return ret;
+			ret.push_back(where->second);
 		}
-		logger::error("Quest {} has no storage allocated", a_proxy->GetFormID());
-		return {};
+		return ret;
 	}
 
-	const std::map<Scene*, RE::BGSRefAlias*>& Library::GetProxyMapping(const RE::TESQuest* a_proxy) const
+	const std::map<Scene*, RE::BGSRefAlias*>* Library::GetProxyMapping(const RE::TESQuest* a_proxy) const
 	{
 		for (auto&& [quest, mapping] : legacy_mapping) {
 			if (quest != a_proxy)
 				continue;
 
-			return mapping;
+			return &mapping;
 		}
 		logger::error("Quest {} has no storage allocated", a_proxy->GetFormID());
-		return {};
+		return nullptr;
 	}
 
 	int32_t Library::GetProxySize(const RE::TESQuest* a_proxy) const
 	{
-		for (auto&& [quest, mapping] : legacy_mapping) {
-			if (quest != a_proxy)
-				continue;
-
-			return static_cast<int32_t>(min(mapping.size(), static_cast<size_t>((std::numeric_limits<int32_t>::max)())));
-		}
-		logger::error("Quest {} has no storage allocated", a_proxy->GetFormID());
-		return 0;
+		const auto mapping = GetProxyMapping(a_proxy);
+		return mapping ?
+						 static_cast<int32_t>(min(mapping->size(), static_cast<size_t>((std::numeric_limits<int32_t>::max)()))) :
+						 0;
 	}
 }

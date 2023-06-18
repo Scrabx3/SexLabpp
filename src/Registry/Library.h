@@ -25,7 +25,7 @@ namespace Registry
 		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
 
 		_NODISCARD int32_t GetProxySize(const RE::TESQuest* a_proxy) const;
-		_NODISCARD const std::map<Scene*, RE::BGSRefAlias*>& GetProxyMapping(const RE::TESQuest* a_proxy) const;
+		_NODISCARD const std::map<Scene*, RE::BGSRefAlias*>* GetProxyMapping(const RE::TESQuest* a_proxy) const;	// Throws exception if proxy isnt registered
 		_NODISCARD std::vector<RE::BGSRefAlias*> MapToProxy(const RE::TESQuest* a_proxy, const std::vector<Scene*>& a_scenes) const;
 
 	private:
