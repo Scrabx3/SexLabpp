@@ -125,7 +125,12 @@ namespace Registry
 			logger::critical("Actor {:X} (Base: {:X}) has no race/base/sex", a_actor->GetFormID(), base ? base->GetFormID() : 0);
 			return RaceKey::None;
 		}
-		const std::string_view rootTMP{ race->rootBehaviorGraphNames[sex].data() };
+		return GetRaceKey(race, Scale::GetSingleton()->GetScale(a_actor), sex);
+	}
+
+	RaceKey GetRaceKey(const RE::TESRace* a_race, float a_scale, RE::SEXES::SEX a_sex)
+	{
+		const std::string_view rootTMP{ a_race->rootBehaviorGraphNames[a_sex].data() };
 		const auto root{ rootTMP.substr(rootTMP.rfind('\\') + 1) };
 		if (root == "0_Master.hkx") {
 			return RaceKey::Human;
@@ -181,25 +186,25 @@ namespace Registry
 
 		const auto where = behaviorfiles.find(root);
 		if (where == behaviorfiles.end()) {
-			logger::error("Unrecognized Race: {:X}", race->GetFormID());
+			logger::error("Unrecognized Race: {:X}", a_race->GetFormID());
 			return RaceKey::None;
 		}
 		switch (where->second) {
 		case RaceKey::Boar:
-			if (race->HasKeyword(GameForms::DLC2RieklingMountedKeyword)) {
+			if (a_race->HasKeyword(GameForms::DLC2RieklingMountedKeyword)) {
 				return RaceKey::BoarMounted;
 			} else {
 				return RaceKey::BoarSingle;
 			}
 			break;
 		case RaceKey::Chaurus:
-			if (race->data.height[sex] < 1.0) {
+			if (auto scale = a_scale == 0.0 ? a_race->data.height[a_sex] : a_scale; scale < 1.0) {
 				return RaceKey::Chaurus;
 			} else {
 				return RaceKey::ChaurusReaper;
 			}
 		case RaceKey::Spider:
-			if (auto scale = Scale::GetSingleton()->GetScale(a_actor); scale < 0.9) {
+			if (auto scale = a_scale == 0.0 ? a_race->data.height[a_sex] : a_scale; scale < 0.9) {
 				return RaceKey::Spider;
 			} else if (scale < 1.5) {
 				return RaceKey::LargeSpider;
@@ -207,7 +212,7 @@ namespace Registry
 				return RaceKey::GiantSpider;
 			}
 		case RaceKey::Wolf:
-			if (AsLower(std::string{ race->formEditorID }).find("fox") != std::string::npos) {
+			if (AsLower(std::string{ a_race->formEditorID }).find("fox") != std::string::npos) {
 				return RaceKey::Fox;
 			} else {
 				return RaceKey::Wolf;
@@ -217,7 +222,7 @@ namespace Registry
 		}
 	}
 
-	RaceKey RaceHandler::GetRaceKey(RE::BSFixedString& a_racestring)
+	RaceKey RaceHandler::GetRaceKey(const RE::BSFixedString& a_racestring)
 	{
 		for (auto&& [racekey, racestring] : LegacyRaceKeys) {
 			if (a_racestring == racestring) {
@@ -256,6 +261,24 @@ namespace Registry
 			return key == RaceKey::BoarSingle || key == RaceKey::BoarMounted;
 		default:
 			return key == a_racekey;
+		}
+	}
+
+	static bool IsCompatibleRaceKey(RaceKey a_racekey1, RaceKey a_racekey2)
+	{
+		switch (a_racekey1) {
+		case RaceKey::Canine:
+			return a_racekey2 == RaceKey::Canine || a_racekey2 == RaceKey::Dog || a_racekey2 == RaceKey::Wolf;
+		case RaceKey::Boar:
+			return a_racekey2 == RaceKey::Boar || a_racekey2 == RaceKey::BoarSingle || a_racekey2 == RaceKey::BoarMounted;
+		case RaceKey::Dog:
+		case RaceKey::Wolf:
+			return a_racekey2 == RaceKey::Canine || a_racekey1 == a_racekey2;
+		case RaceKey::BoarSingle:
+		case RaceKey::BoarMounted:
+			return a_racekey2 == RaceKey::Boar || a_racekey1 == a_racekey2;
+		default:
+			return a_racekey1 == a_racekey2;
 		}
 	}
 
