@@ -4,9 +4,9 @@
 
 namespace Papyrus::ThreadLibrary
 {
-	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusz);
-	int32_t GetBedType(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_reference);
-	bool IsBed(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_reference);
+	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusz);
+	int32_t GetBedTypeImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference);
+	bool IsBed(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference);
 
 	std::vector<RE::Actor*> FindAvailableActors(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
 		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04);
@@ -25,11 +25,16 @@ namespace Papyrus::ThreadLibrary
 
 	std::vector<RE::Actor*> SortActorsByAnimationImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
 		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::vector<RE::Actor*> a_submissives);
+	
+	bool IsActorTrackedImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
+	void TrackActorImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_callback, bool a_dotrack);
+	void TrackFactionImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_faction, RE::BSFixedString a_callback, bool a_dotrack);
+	std::vector<std::string> GetAllTrackingEvents(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_hook);
 
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(FindBeds, "sslThreadLibrary", true);
-		REGISTERFUNC(GetBedType, "sslThreadLibrary", true);
+		REGISTERFUNC(GetBedTypeImpl, "sslThreadLibrary", true);
 		REGISTERFUNC(IsBed, "sslThreadLibrary", true);
 
 		REGISTERFUNC(FindAvailableActors, "sslThreadLibrary", true);

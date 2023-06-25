@@ -1,5 +1,6 @@
 #include "Papyrus/sslThreadLibrary.h"
 
+#include "Papyrus/Serialize.h"
 #include "Registry/Animation.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Define/RaceKey.h"
@@ -8,7 +9,7 @@
 
 namespace Papyrus::ThreadLibrary
 {
-	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusZ)
+	std::vector<RE::TESObjectREFR*> FindBeds(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_center, float a_radius, float a_radiusZ)
 	{
 		if (!a_center) {
 			a_vm->TraceStack("Cannot find refs from a none center", a_stackID);
@@ -20,7 +21,7 @@ namespace Papyrus::ThreadLibrary
 		return Registry::BedHandler::GetBedsInArea(a_center, a_radius, a_radiusZ);
 	}
 
-	int32_t GetBedType(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_reference)
+	int32_t GetBedTypeImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference)
 	{
 		if (!a_reference) {
 			a_vm->TraceStack("Reference is none", a_stackID);
@@ -29,7 +30,7 @@ namespace Papyrus::ThreadLibrary
 		return static_cast<int32_t>(Registry::BedHandler::GetBedType(a_reference));
 	}
 
-	bool IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_reference)
+	bool IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference)
 	{
 		if (!a_reference) {
 			a_vm->TraceStack("Reference is none", a_stackID);
@@ -259,6 +260,95 @@ namespace Papyrus::ThreadLibrary
 		}
 		auto ret = library->SortByScene(argFrag, scene);
 		return ret.empty() ? a_positions : ret;
+	}
+
+	bool IsActorTrackedImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Cannot check track status on a none reference", a_stackID);
+			return false;
+		}
+		if (a_actor->IsPlayerRef()) {
+			return true;
+		}
+		const auto data = Tracking::GetSingleton();
+		if (data->_actors.contains(a_actor->formID)) {
+			return true;
+		}
+
+		bool ret = false;
+		a_actor->VisitFactions([&](auto fac, auto rank) {
+			if (!fac || rank < 0)
+				return false;
+
+			if (data->_factions.contains(fac->formID)) {
+				ret = true;
+				return true;
+			}
+			return false;
+		});
+		return ret;
+	}
+
+	void TrackActorImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_callback, bool a_dotrack)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Cannot track on a none reference", a_stackID);
+			return;
+		}
+		if (a_actor->IsPlayerRef()) {
+			return;	 // player is always tracked
+		}
+		auto data = Tracking::GetSingleton();
+		if (a_dotrack) {
+			data->Add(data->_actors, a_actor->formID, a_callback);
+		} else {
+			data->Remove(data->_actors, a_actor->formID, a_callback);
+		}
+	}
+
+	void TrackFactionImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_faction, RE::BSFixedString a_callback, bool a_dotrack)
+	{
+		if (!a_faction) {
+			a_vm->TraceStack("Cannot track on a none faction", a_stackID);
+			return;
+		}
+		auto data = Tracking::GetSingleton();
+		if (a_dotrack) {
+			data->Add(data->_factions, a_faction->formID, a_callback);
+		} else {
+			data->Remove(data->_factions, a_faction->formID, a_callback);
+		}
+	}
+
+	std::vector<std::string> GetAllTrackingEvents(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_hook)
+	{
+		const auto suffix = a_hook.empty() ? "" : fmt::format("_{}", a_hook.data());
+		auto data = Tracking::GetSingleton();
+		std::vector<std::string> ret{};
+		if (a_actor->IsPlayerRef()) {
+			ret.push_back(fmt::format("PlayerTrack{}", suffix));
+		}
+		const auto where = data->_actors.find(a_actor->formID);
+		if (where != data->_actors.end()) {
+			for (auto&& event : where->second) {
+				ret.push_back(fmt::format("{}{}", event, suffix));
+			}
+		}
+		a_actor->VisitFactions([&](auto fac, auto rank) {
+			if (!fac || rank < 0)
+				return false;
+
+			const auto it = data->_factions.find(fac->formID);
+			if (it == data->_factions.end())
+				return false;
+
+			for (auto&& event : it->second) {
+				ret.push_back(fmt::format("{}{}", event, suffix));
+			}
+			return false;
+		});
+		return ret;
 	}
 
 }	 // namespace Papyrus::ThreadLibrary
