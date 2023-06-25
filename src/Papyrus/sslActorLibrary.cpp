@@ -4,7 +4,7 @@
 
 namespace Papyrus::ActorLibrary
 {
-	int32_t ValidateActor(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_actor)
+	int32_t ValidateActorImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_actor)
 	{
 		if (!a_actor)
 		{
