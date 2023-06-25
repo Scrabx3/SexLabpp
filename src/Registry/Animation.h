@@ -69,9 +69,26 @@ namespace Registry
 
 	struct Position
 	{
+		enum class StripData : uint8_t
+		{
+			None = 0,
+			Helmet = 1 << 1,
+			Gloves = 1 << 2,
+			Boots = 1 << 3,
+			// Unused = 1 << 4,
+			// Unused = 1 << 5,
+			// Unused = 1 << 6,
+			// Unused = 1 << 7,
+
+			All = static_cast<std::underlying_type_t<StripData>>(-1),
+		};
+
 		std::string event;
 
 		bool climax;
+		stl::enumeration<StripData, uint8_t> strips;
+		bool strip_weapons;
+
 		float offset[Offset::Total];
 	};
 
