@@ -2,7 +2,7 @@
 
 #include "Define/RaceKey.h"
 #include "Define/Tags.h"
-
+#include "Define/Furniture.h"
 
 namespace Registry
 {
@@ -72,13 +72,14 @@ namespace Registry
 		enum class StripData : uint8_t
 		{
 			None = 0,
-			Helmet = 1 << 1,
-			Gloves = 1 << 2,
-			Boots = 1 << 3,
+			Helmet = 1 << 0,
+			Gloves = 1 << 1,
+			Boots = 1 << 2,
+			// Unused = 1 << 3,
 			// Unused = 1 << 4,
 			// Unused = 1 << 5,
 			// Unused = 1 << 6,
-			// Unused = 1 << 7,
+			Default = 1 << 7,
 
 			All = static_cast<std::underlying_type_t<StripData>>(-1),
 		};
@@ -87,7 +88,6 @@ namespace Registry
 
 		bool climax;
 		stl::enumeration<StripData, uint8_t> strips;
-		bool strip_weapons;
 
 		float offset[Offset::Total];
 	};
@@ -110,6 +110,11 @@ namespace Registry
 			Optional = 1 << 1,
 			Vamprie = 1 << 2,
 			Unconscious = 1 << 3,
+
+			Yoke = 1 << 4,
+			Armbinder = 1 << 5,
+			Legbinder = 1 << 6,
+			Petsuit = 1 << 7,
 		};
 
 	public:
@@ -127,6 +132,8 @@ namespace Registry
 
 	struct FurnitureData
 	{
+		stl::enumeration<FurnitureType, uint32_t> furnitures;
+
 		bool allowbed;
 		float offset[Offset::Total];
 	};

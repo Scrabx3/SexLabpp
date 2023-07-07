@@ -79,4 +79,11 @@ namespace Registry
 		return GetBedType(a_reference) != BedType::None;
 	}
 
+	// FurnitureType FurnitureHandler::GetFurnitureType(RE::TESObjectREFR* a_ref)
+	// {
+	// 	const auto obj = a_ref->Get3D();
+	// 	const auto tri = obj->AsTriShape();
+	// 	tri->
+	// }
+
 } // namespace Registry

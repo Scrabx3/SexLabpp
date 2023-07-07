@@ -184,6 +184,7 @@ namespace Registry
 					readFloat(position.offset[Offset::Y]);
 					readFloat(position.offset[Offset::Z]);
 					readFloat(position.offset[Offset::R]);
+					a_stream.read(reinterpret_cast<char*>(&position.strips), 1);
 				}
 				readFloat(stage->fixedlength);
 				readString(stage->navtext);
@@ -231,7 +232,14 @@ namespace Registry
 					list.second.push_front(getStage(edgestage));
 				}
 			}
+			uint32_t furnis;
+			readNumeric(furnis);
+			scene->furnitures.furnitures = FurnitureType(furnis);
 			a_stream.read(reinterpret_cast<char*>(&scene->furnitures.allowbed), 1);
+			readFloat(scene->furnitures.offset[Offset::X]);
+			readFloat(scene->furnitures.offset[Offset::Y]);
+			readFloat(scene->furnitures.offset[Offset::Z]);
+			readFloat(scene->furnitures.offset[Offset::R]);
 		}
 		return package;
 	}
