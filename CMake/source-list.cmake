@@ -56,4 +56,6 @@ set(CXX_FILES
 	src/Papyrus/sslCreatureAnimationSlots.cpp
 	src/Papyrus/sslThreadLibrary.h
 	src/Papyrus/sslThreadLibrary.cpp
+	src/Papyrus/sslThreadModel.h
+	src/Papyrus/sslThreadModel.cpp
 )

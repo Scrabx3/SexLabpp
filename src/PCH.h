@@ -22,7 +22,7 @@ namespace logger = SKSE::log;
 namespace fs = std::filesystem;
 using namespace std::literals;
 
-// #include "Random.h"
+#include "Random.h"
 #include "GameForms.h"
 #include "Registry/Misc.h"
 #include "Script.h"

@@ -6,8 +6,9 @@ namespace Settings
   static inline bool bAllowCreatures{ false };
 	static inline bool bCreatureGender{ false };
 
-  // --- INI
-  // Validation
+	// --- INI
+	// Animation
+	static inline float fScanRadius{ 750.0f };
 	static inline float fMinScale{ 0.88f };
   static inline bool bAllowDead{ false };
 
@@ -65,7 +66,7 @@ namespace Settings
 	static inline bool bWispmother{ true };
 	static inline bool bWolf{ true };
 
-	// Misc
+	// --- Misc
 	inline std::vector<RE::FormID> SOS_ExcludeFactions{};
 
 }	 // namespace Settings
