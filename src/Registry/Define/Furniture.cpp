@@ -48,7 +48,10 @@ namespace Registry
 
 	BedHandler::BedType BedHandler::GetBedType(const RE::TESObjectREFR* a_reference)
 	{
-		if (a_reference->GetName()[0] == '\0')
+		if (a_reference->HasKeyword(GameForms::FurnitureBedRoll)) {
+			return BedType::BedRoll;
+		}
+		if (std::string name{ a_reference->GetName() }; name.empty() || AsLower(name).find("bed") == std::string::npos)
 			return BedType::None;
 		const auto root = a_reference->Get3D();
 		const auto extra = root ? root->GetExtraData("FRN") : nullptr;
@@ -66,11 +69,9 @@ namespace Registry
 		case 0:
       return BedType::None;
 		case 1:
-			return a_reference->HasKeyword(GameForms::FurnitureBedRoll) ?
-							 BedType::BedRoll :
-							 BedType::Single;
+			return BedType::Single;
 		default:
-      return BedType::Double;
+			return BedType::Double;
 		}
 	}
 
@@ -79,11 +80,116 @@ namespace Registry
 		return GetBedType(a_reference) != BedType::None;
 	}
 
-	// FurnitureType FurnitureHandler::GetFurnitureType(RE::TESObjectREFR* a_ref)
-	// {
-	// 	const auto obj = a_ref->Get3D();
-	// 	const auto tri = obj->AsTriShape();
-	// 	tri->
-	// }
+	FurnitureType FurnitureHandler::GetFurnitureType(RE::TESObjectREFR* a_ref)
+	{
+		using BenchType = RE::TESFurniture::WorkBenchData::BenchType;
+	
+		const auto base = a_ref->GetBaseObject();
+		if (!base)
+			return FurnitureType::None;
+
+		switch (base->formID) {
+		case 0x0005'2FF5:	// WallLeanmarker
+			return FurnitureType::Wall;
+		case 0x0007'0EA1:	// RailLeanMarker
+			return FurnitureType::Railing;
+		case 0x00016'B691:
+			return FurnitureType::ChairNoble;
+		case 0x0007'4EC6:
+			return FurnitureType::ChairBar;
+		case 0x0003'6340:
+			return FurnitureType::ChairWood;
+		case 0x0000'CA02:
+			return FurnitureType::BenchNoble;
+		case 0x0002'67D3:	// Nordic Throne
+		case 0x0009'85C2: // Katariah Ship
+			return FurnitureType::ThroneNordic;
+		case 0x000F'507A:	// CounterBarLeanMarker
+		case 0x0006'CF36:	// CounterLeanMarker
+			return FurnitureType::TableCounter;
+		case 0x000C'4EF1:
+			return FurnitureType::Table;
+		}
+
+		switch (BedHandler::GetBedType(a_ref)) {
+		case BedHandler::BedType::BedRoll:
+			return FurnitureType::BedRoll;
+		case BedHandler::BedType::Double:
+			return FurnitureType::BedDouble;
+		case BedHandler::BedType::Single:
+			return FurnitureType::BedSingle;
+		}
+
+		const auto name = AsLower<std::string>({ a_ref->GetName() });
+		const auto furniture = base->As<RE::TESFurniture>();
+		if (furniture) {
+			if (name.find("chair") != std::string::npos) {
+				const auto model = AsLower<std::string>({ furniture->model.c_str() });
+				if (model.find("dlc2darkelfchair01") != std::string::npos ||
+						model.find("dwefurniturechair01") != std::string::npos ||
+						model.find("dwefurniturehighchair01") != std::string::npos ||
+						model.find("hhfurniturechair02.nif") != std::string::npos) {
+					return FurnitureType::Chair;
+				}
+				if (model.find("commonchair") != std::string::npos ||
+						model.find("upperchair01") != std::string::npos ||
+						model.find("orcchair01") != std::string::npos) {
+					return FurnitureType::ChairCommon;
+				}
+				FurnitureType::ChairMisc;
+			}
+
+			if (name.find("throne")) {
+				const auto model = AsLower<std::string>({ furniture->model.c_str() });
+				if (model.find("throneriften")) {
+					return FurnitureType::ThroneRiften;
+				}
+				return FurnitureType::Throne;
+			}
+
+			if (name.find("bench") != std::string::npos) {
+				const auto root = a_ref->Get3D();
+				const auto extra = root ? root->GetExtraData("FRN") : nullptr;
+				const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
+				if (node) {
+					size_t count = 0;
+					for (auto&& marker : node->markers) {
+						if (marker.animationType.all(RE::BSFurnitureMarker::AnimationType::kSit)) {
+							if (count++) {
+								return FurnitureType::Bench;
+							}
+						}
+					}
+				}
+				// A bench with only 1 sit node or no 3d (fallback to unspecified chair)
+				return FurnitureType::ChairMisc;
+			}
+
+			switch (furniture->workBenchData.benchType.get()) {
+			case BenchType::kSmithingWeapon:
+				return FurnitureType::CraftGrindstone;
+			case BenchType::kSmithingArmor:
+				return FurnitureType::CraftWorkbench;
+			case BenchType::kAlchemy:
+				return FurnitureType::CraftAlchemy;
+			case BenchType::kEnchanting:
+				return FurnitureType::CraftEnchanting;
+			case BenchType::kCreateObject:
+				if (name.find("cooking") != std::string::npos) {
+					return FurnitureType::CraftCookingPot;
+				} else if (name.find("forge") != std::string::npos) {
+					return FurnitureType::CraftSmithing;
+				} else if (name.find("anvil") != std::string::npos) {
+					return FurnitureType::CraftAnvil;
+				}
+				break;
+			}
+		}
+
+		// TODO: consider static tables and chairs
+		// TODO: BDSM furniture
+
+		return FurnitureType::None;
+	}
 
 } // namespace Registry
