@@ -323,6 +323,10 @@ namespace Papyrus::ThreadLibrary
 
 	std::vector<std::string> GetAllTrackingEvents(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_hook)
 	{
+		if (!a_actor) {
+			a_vm->TraceStack("Cannot get tracking events from a none reference", a_stackID);
+			return {};
+		}
 		const auto suffix = a_hook.empty() ? "" : fmt::format("_{}", a_hook.data());
 		auto data = Tracking::GetSingleton();
 		std::vector<std::string> ret{};

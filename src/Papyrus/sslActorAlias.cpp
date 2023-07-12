@@ -8,12 +8,12 @@ namespace Papyrus::sslActorAlias
 	{
 		if (!a_alias) {
 			a_vm->TraceStack("Cannot call LockActorImpl on a none reference", a_stackID);
-			return false;
+			return;
 		}
 		const auto act = a_alias->GetActorReference();
 		if (!act) {
 			a_vm->TraceStack("LockActorImpl requires the filled reference to be an actor", a_stackID);
-			return false;
+			return;
 		}
 		const auto state = act->AsActorState();
 		state->actorState1.sneaking = 0;
@@ -31,7 +31,7 @@ namespace Papyrus::sslActorAlias
 		act->InterruptCast(false);
 		act->StopInteractingQuick(true);
 
-		if (const auto currentProcess = act->currentProcess) {
+		if (const auto currentProcess = act->GetActorRuntimeData().currentProcess) {
 			currentProcess->ClearMuzzleFlashes();
 		}
 
@@ -48,12 +48,12 @@ namespace Papyrus::sslActorAlias
 	{
 		if (!a_alias) {
 			a_vm->TraceStack("Cannot call LockActorImpl on a none reference", a_stackID);
-			return false;
+			return;
 		}
 		const auto act = a_alias->GetActorReference();
 		if (!act) {
 			a_vm->TraceStack("LockActorImpl requires the filled reference to be an actor", a_stackID);
-			return false;
+			return;
 		}
 		const auto state = act->AsActorState();
 		state->actorState1.sneaking = 0;

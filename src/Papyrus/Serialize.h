@@ -55,7 +55,7 @@ namespace Papyrus
 						stl::write_string(a_intfc, event);
 					}
 
-					a_intfc->WriteRecordData<uint32_t>(-1);
+					a_intfc->WriteRecordData((std::numeric_limits<uint32_t>::max)());
 				}
 			};
 
@@ -77,7 +77,7 @@ namespace Papyrus
 					RE::FormID id, newid;
 					a_intfc->ReadRecordData(id);
 					if (!a_intfc->ResolveFormID(id, newid)) {
-						while (a_intfc->ReadRecordData(id) && id != -1) {}
+						while (a_intfc->ReadRecordData(id) && id != (std::numeric_limits<uint32_t>::max)()) {}
 						continue;
 					}
 
@@ -86,7 +86,7 @@ namespace Papyrus
 					a_intfc->ReadRecordData(numEvents);
 					list.reserve(numEvents);
 
-					for (size_t i = 0; i < numEvents; i++) {
+					for (size_t n = 0; n < numEvents; n++) {
 						std::string next;
 						stl::read_string(a_intfc, next);
 						list.push_back(next);
@@ -100,7 +100,7 @@ namespace Papyrus
 			logger::info("Loaded {} tracked factions and {} actors", _factions.size(), _actors.size());
 		}
 
-		void Revert(SKSE::SerializationInterface* a_intfc)
+		void Revert(SKSE::SerializationInterface*)
     {
 			_factions.clear();
 			_actors.clear();
