@@ -5,7 +5,7 @@
 
 namespace Registry
 {
-  void Library::Initialize()
+  void Library::Initialize() noexcept
   {
 		logger::info("Loading files..");
 		const auto t1 = std::chrono::high_resolution_clock::now();

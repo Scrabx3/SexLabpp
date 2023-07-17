@@ -84,10 +84,9 @@ namespace Registry
 			All = static_cast<std::underlying_type_t<StripData>>(-1),
 		};
 
-		std::string event;
-
-		bool climax;
+		RE::BSFixedString event;
 		stl::enumeration<StripData, uint8_t> strips;
+		bool climax;
 
 		float offset[Offset::Total];
 	};
@@ -147,7 +146,7 @@ namespace Registry
 			author(a_author), hash(a_hash), start_animation(nullptr), furnitures({}), tags({}) {}
 		~Scene() = default;
 
-		_NODISCARD const Stage* GetStageByKey(std::string_view a_key) const;
+		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_key) const;
 		_NODISCARD std::vector<std::vector<PositionFragmentation>> GetFragmentations() const;
 
 		_NODISCARD uint32_t GetSubmissiveCount() const;

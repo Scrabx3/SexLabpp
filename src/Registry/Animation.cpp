@@ -223,10 +223,14 @@ namespace Registry
 		return fragments;
 	}
 
-	const Stage* Scene::GetStageByKey(std::string_view a_key) const
+	const Stage* Scene::GetStageByKey(const RE::BSFixedString& a_key) const
 	{
+		if (a_key.empty()) {
+			return start_animation;
+		}
+
 		for (auto&& [key, dest] : graph) {
-			if (key->id == a_key)
+			if (a_key == key->id.c_str())
 				return key;
 		}
 		return nullptr;

@@ -11,7 +11,7 @@ namespace Registry
 	class Library : public Singleton<Library>
 	{
 	public:
-		void Initialize();
+		void Initialize() noexcept;
 
 		_NODISCARD std::vector<Scene*> LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& tags, const std::vector<RE::Actor*>& a_submissives) const;
 
