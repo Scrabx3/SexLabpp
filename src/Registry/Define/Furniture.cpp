@@ -83,7 +83,9 @@ namespace Registry
 	FurnitureType FurnitureHandler::GetFurnitureType(RE::TESObjectREFR* a_ref)
 	{
 		using BenchType = RE::TESFurniture::WorkBenchData::BenchType;
-	
+		if (!a_ref->HasCollision()) {
+			return FurnitureType::None;
+		}
 		const auto base = a_ref->GetBaseObject();
 		if (!base)
 			return FurnitureType::None;
