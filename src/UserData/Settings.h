@@ -2,15 +2,81 @@
 
 namespace Settings
 {
-  // --- MCM
-  static inline bool bAllowCreatures{ false };
+	// --- MCM
+	// Booleans
 	static inline bool bCreatureGender{ false };
+	static inline bool bAllowCreatures{ false };
+	static inline bool bUseStrapons{ true };
+	static inline bool bRedressVictim{ true };
+	static inline bool bUseLipSync{ false };
+	static inline bool bUseExpressions{ false };
+	static inline bool bUseCum{ true };
+	static inline bool bDisablePlayer{ false };
+	static inline bool bAutoTFC{ false };
+	static inline bool bAutoAdvance{ true };
+	static inline bool bOrgasmEffects{ false };
+	static inline bool bLimitedStrip{ true };
+	static inline bool bRestrictSameSex{ false };
+	static inline bool bShowInMap{ false };
+	static inline bool bDisableTeleport{ true };
+	static inline bool bDisableScale{ false };
+	static inline bool bUndressAnimation{ false };
+
+	// Integers
+	static inline int32_t iAskBed{ 1 };
+	static inline int32_t iNPCBed{ 0 };
+	static inline int32_t iOpenMouthSize{ 80 };
+	static inline int32_t iUseFade{ 0 };
+
+	// KeyBinds/Scene Control Related
+	static inline bool AdjustTargetStage{ false };
+	static inline int32_t iAdjustStage{ 157 };
+	static inline int32_t iBackwards{ 54 };
+	static inline int32_t iAdvanceAnimation{ 57 };
+	static inline int32_t iChangeAnimation{ 24 };
+	static inline int32_t iChangePositions{ 13 };
+	static inline int32_t iAdjustChange{ 37 };
+	static inline int32_t iAdjustForward{ 38 };
+	static inline int32_t iAdjustSideways{ 40 };
+	static inline int32_t iAdjustUpward{ 39 };
+	static inline int32_t iRealignActors{ 26 };
+	static inline int32_t iMoveScene{ 27 };
+	static inline int32_t iRestoreOffsets{ 12 };
+	static inline int32_t iRotateScene{ 22 };
+	static inline int32_t iEndAnimation{ 207 };
+	static inline int32_t iAdjustSchlong{ 46 };
+
+	// Misc Keys
+	static inline int32_t iToggleFreeCamera{ 81 };
+	static inline int32_t iTargetActor{ 49 };
+
+	// Floats
+	static inline float fCumTimer{ 120.0 };
+	static inline float fShakeStrength{ 0.7 };
+	static inline float fAutoSUCSM{ 5.0 };
+	static inline float fMaleVoiceDelay{ 5.0 };
+	static inline float fFemaleVoiceDelay{ 4.0 };
+	static inline float fExpressionDelay{ 2.0 };
+	static inline float fVoiceVolume{ 1.0 };
+	static inline float fSFXDelay{ 3.0 };
+	static inline float fSFXVolume{ 1.0 };
+
+	// Int Array
+	static inline std::vector<int> jStripForms{ 1032555423, 1, 1032555423, 1, 4719365, 1, 16901, 1, 3952148, 0, 83952148, 0, 352389654, 1, 352389654, 1 };
+
+	// Phoneme Related
+	static inline int32_t iLipsPhoneme{ 1 };
+	static inline bool bLipsFixedValue{ true };
+	static inline int32_t iLipsSoundTime{ 0 };
+	static inline int32_t LipsMaxValue{ 20 };
+	static inline int32_t LipsSoundTime{ 50 };
+	static inline float fLipsMoveTime{ 0.2 };
 
 	// --- INI
 	// Animation
 	static inline float fScanRadius{ 750.0f };
 	static inline float fMinScale{ 0.88f };
-  static inline bool bAllowDead{ false };
+	static inline bool bAllowDead{ false };
 
 	// Race
 	static inline bool bAshHopper{ true };
@@ -68,5 +134,32 @@ namespace Settings
 
 	// --- Misc
 	inline std::vector<RE::FormID> SOS_ExcludeFactions{};
+
+	// --- MCM Access
+	struct StringCmp
+	{
+		bool operator()(const std::string& a_lhs, const std::string& a_rhs) const
+		{
+			return _strcmpi(a_lhs.c_str(), a_rhs.c_str()) < 0;
+		}
+	};
+
+	enum class VariantType
+	{
+		FLOAT = 0,			 // f
+		STRING = 1,			 // s
+		BOOL = 2,				 // b
+		INT = 3,				 // i
+		FLOATARRAY = 4,	 // v
+		INTARRAY = 5		 // j
+	};
+
+#define ENTRY(var) \
+	{                \
+		#var##s, &var  \
+	}
+	static inline std::map<std::string, std::variant<float*, std::string*, bool*, int*, std::vector<float>*, std::vector<int>*>, StringCmp> table{
+		// ENTRY(ProcessingEnabled),
+	};
 
 }	 // namespace Settings
