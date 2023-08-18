@@ -40,11 +40,11 @@ namespace Registry
 		case RE::SEXES::kMale:
 			return Sex::Male;
 		case RE::SEXES::kFemale:
-			if (IsNPC(a_actor) && IsFuta(a_actor))
-				return Sex::Female;
-			else
+			if (!IsNPC(a_actor))
+				return Settings::bCreatureGender ? Sex::Female : Sex::Male;
+			else if (IsFuta(a_actor))
 				return Sex::Futa;
-			break;
+			return Sex::Female;
 		}
 	}
 
