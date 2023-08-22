@@ -47,6 +47,11 @@ namespace Papyrus::ThreadLibrary
 
 		REGISTERFUNC(SortActorsByAnimationImpl, "sslThreadLibrary", true);
 
+		REGISTERFUNC(IsActorTrackedImpl, "sslThreadLibrary", true);
+		REGISTERFUNC(TrackActorImpl, "sslThreadLibrary", true);
+		REGISTERFUNC(TrackFactionImpl, "sslThreadLibrary", true);
+		REGISTERFUNC(GetAllTrackingEvents, "sslThreadLibrary", true);
+
 		return true;
 	}
 
