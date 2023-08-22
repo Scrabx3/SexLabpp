@@ -52,13 +52,6 @@ namespace Registry
 		return base ? base : a_actor->GetActorBase();
 	}
 
-	void SetVehicle(RE::Actor* a_this, RE::TESObjectREFR* a_vehicle)
-	{
-		using func_t = void(RE::BSScript::Internal::VirtualMachine*, RE::VMStackID, RE::Actor*, RE::TESObjectREFR*);
-		REL::Relocation<func_t> func{ REL::RelocationID(53940, 54764) };
-		return func(nullptr, 0, a_this, a_vehicle);
-	}
-
 	std::vector<std::string_view> StringSplit(const std::string_view a_view, const char a_delim)
 	{
 		std::vector<std::string_view> result;

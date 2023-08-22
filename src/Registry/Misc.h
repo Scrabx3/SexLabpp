@@ -17,7 +17,6 @@ namespace Registry
 	bool IsVampire(const RE::Actor* a_actor);
 
 	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor);
-	void SetVehicle(RE::Actor* a_this, RE::TESObjectREFR* a_vehicle);
 
 	template <class T>
 	constexpr void ToLower(T& str)

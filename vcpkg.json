@@ -6,7 +6,6 @@
     "boost-stl-interfaces",
     "rsm-binary-io",
     "spdlog",
-    "commonlibsse-ng",
     "simpleini",
     "yaml-cpp"
   ],

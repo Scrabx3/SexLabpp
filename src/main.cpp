@@ -15,7 +15,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		Registry::Library::GetSingleton()->Initialize();
 		if (!GameForms::LoadData()) {
 			logger::critical("Unable to load esp objects");
-			if (MessageBox(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
+			if (SKSE::WinAPI::MessageBox(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
@@ -28,20 +28,18 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	}
 }
 
+#ifdef SKYRIM_SUPPORT_AE
 extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
 	SKSE::PluginVersionData v;
 	v.PluginVersion(Plugin::VERSION);
 	v.PluginName(Plugin::NAME);
 	v.AuthorName("Scrab Joséline"sv);
-	v.UsesAddressLibrary(true);
-	v.UsesStructsPost629(true);
-	v.CompatibleVersions({ SKSE::RUNTIME_LATEST_VR, SKSE::RUNTIME_SSE_LATEST_SE, SKSE::RUNTIME_SSE_LATEST });
-	//
-	// v.UsesStructsPost629(false);
-	// v.CompatibleVersions({ SKSE::RUNTIME_SSE_1_6_353 });
+	v.UsesAddressLibrary();
+	v.UsesUpdatedStructs();
+	v.CompatibleVersions({ SKSE::RUNTIME_LATEST });
 	return v;
 }();
-
+#else
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* a_info)
 {
 	a_info->infoVersion = SKSE::PluginInfo::kVersion;
@@ -49,6 +47,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, 
 	a_info->version = Plugin::VERSION.pack();
 	return true;
 }
+#endif
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
@@ -63,19 +62,29 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true);
 #endif
 		auto log = std::make_shared<spdlog::logger>("global log"s, std::move(sink));
+#ifndef NDEBUG
 		log->set_level(spdlog::level::trace);
 		log->flush_on(spdlog::level::trace);
-
+#else
+		log->set_level(spdlog::level::info);
+		log->flush_on(spdlog::level::info);
+#endif
 		spdlog::set_default_logger(std::move(log));
+#ifndef NDEBUG
 		spdlog::set_pattern("%s(%#): [%^%l%$] %v"s);
+#else
+		spdlog::set_pattern("[%^%l%$] %v"s);
+#endif
 
-		logger::info("{} v{}sv", Plugin::NAME, Plugin::VERSION.string());
+		logger::info("{} v{}"sv, Plugin::NAME, Plugin::VERSION.string());
 		return true;
 	};
+
 	if (a_skse->IsEditor()) {
 		logger::critical("Loaded in editor, marking as incompatible"sv);
 		return false;
 	} else if (!InitLogger()) {
+		logger::critical("Failed to initialize logger"sv);
 		return false;
 	}
 
@@ -89,6 +98,10 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	}
 
 	const auto papyrus = SKSE::GetPapyrusInterface();
+	if (!papyrus) {
+		logger::critical("Failed to get papyurs interface");
+		return false;
+	}
 	papyrus->Register(Papyrus::ActorLibrary::Register);
 	papyrus->Register(Papyrus::AnimationSlots::Register);
 	papyrus->Register(Papyrus::ThreadLibrary::Register);

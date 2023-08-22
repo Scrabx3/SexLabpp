@@ -16,7 +16,7 @@ namespace Registry
 			const auto msg = ec ? fmt::format("An error occured while initializing SexLab animations.\nError: {}", ec.message()) :
 														fmt::format("Unable to load SexLab animations. Folder path {} is empty or does not exist.", path.string());
 			logger::critical("{}", msg);
-			if (MessageBox(nullptr, fmt::format("{}\n\nExit game now?", msg).c_str(), "SexLab p+ Registry", 0x00000004) == 6)
+			if (SKSE::WinAPI::MessageBox(nullptr, fmt::format("{}\n\nExit game now?", msg).c_str(), "SexLab p+ Registry", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
@@ -289,7 +289,7 @@ NEXT:
 	{
 		const auto mapping = GetProxyMapping(a_proxy);
 		return mapping ?
-						 static_cast<int32_t>(min(mapping->size(), static_cast<size_t>((std::numeric_limits<int32_t>::max)()))) :
+						 static_cast<int32_t>(std::min(mapping->size(), static_cast<size_t>((std::numeric_limits<int32_t>::max)()))) :
 						 0;
 	}
 }

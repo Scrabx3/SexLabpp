@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.22)
 set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # ---- Options ----
-option(COPY_OUTPUT "Copy Output into Skyrim Directory" OFF)
-option(BUILD_AE "Build with Skyrim AE Configuration" OFF)
 
 # ---- Project ----
 project(
@@ -48,11 +46,10 @@ set_from_environment(Skyrim64Path)
 # set_from_environment(CommonLibSSEPath)
 
 # ---- Dependencies ----
-# add_subdirectory("./lib" CommonLibSSE)
+add_subdirectory("./lib" CommonLibSSE)
 
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
-find_package(CommonLibSSE CONFIG REQUIRED)
 
 # ---- Add source files ----
 include(CMake/source-list.cmake)
@@ -128,18 +125,3 @@ target_precompile_headers("${PROJECT_NAME}"
     PUBLIC
     "src/PCH.h"
 )
-
-# ---- File copying ----
-if("${COPY_OUTPUT}")
-    if(DEFINED Skyrim64Path)
-        add_custom_command(
-            TARGET "${PROJECT_NAME}"
-            POST_BUILD
-            COMMAND "${CMAKE_COMMAND}" -E make_directory "${Skyrim64Path}/Data/SKSE/Plugins/"
-            COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:${PROJECT_NAME}>" "${Skyrim64Path}/Data/SKSE/Plugins/"
-            VERBATIM
-        )
-    else()
-        message(WARNING "Variable Skyrim64Path is not defined. Skipping post-build copy command.")
-    endif()
-endif()

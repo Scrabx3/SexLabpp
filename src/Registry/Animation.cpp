@@ -92,7 +92,7 @@ namespace Registry
 			break;
 		}
 
-		if (a_actor->IsDead() || a_actor->AsActorState()->IsUnconscious()) {
+		if (a_actor->IsDead() || a_actor->IsUnconscious()) {
 			ret.set(PositionFragment::Unconscious);
 		} else if (a_submissive) {
 			ret.set(PositionFragment::Submissive);
@@ -105,7 +105,7 @@ namespace Registry
 	{
 		if (extra.all(Extra::Vamprie) && !IsVampire(a_actor))
 			return false;
-		if (extra.all(Extra::Unconscious) && !a_actor->IsDead() && !a_actor->AsActorState()->IsUnconscious())
+		if (extra.all(Extra::Unconscious) && !a_actor->IsDead() && !a_actor->IsUnconscious())
 			return false;
 		if (sex.none(GetSex(a_actor)))
 			return false;

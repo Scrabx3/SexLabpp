@@ -71,7 +71,6 @@ void Papyrus::LocateReferences(VM* a_vm, StackID a_stackID, RE::StaticFunctionTa
 	positions.reserve(a_refs.size());
 	angles.reserve(a_refs.size());
 	for (size_t i = 0; i < a_refs.size(); i++) {
-		// SexLab::SetVehicle(a_refs[i], a_center);
 
 		RE::NiPoint3 pos{ centerPos }, ang{ centerAng };
 		const auto& forward = a_offsets[i * 4 + 0];
