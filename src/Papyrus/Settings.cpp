@@ -20,8 +20,7 @@ namespace Settings
 							SOS_ExcludeFactions.push_back(fac);
 						}
 					}
-				} else {
-					// if node isnt sequence, its a single integer
+				} else {	// no sequence, simple entry
 					const auto formid = node.as<uint32_t>();
 					const auto fac = handler->LookupFormID(formid, esp);
 					if (fac) {
