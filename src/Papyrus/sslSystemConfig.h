@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Papyrus
+namespace Papyrus::SystemConfig
 {
 	int GetSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting);
 	float GetSettingFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting);

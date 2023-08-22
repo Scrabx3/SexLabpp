@@ -1,6 +1,6 @@
 #include "sslSystemConfig.h"
 
-namespace Papyrus
+namespace Papyrus::SystemConfig
 {
 	template <class T, size_t ArgC = -1>
 	inline T GetSetting(VM* a_vm, StackID a_stackID, const std::string& a_setting)
@@ -92,7 +92,7 @@ namespace Papyrus
 			return;
 		if (n < 0 || n >= s->size()) {
 			a_vm->TraceStack(fmt::format("Index out of range: {}/{}", n, s->size()).c_str(), a_stackID);
-			return 0;
+			return;
 		}
 
 		(*s)[n] = a_value;
@@ -105,7 +105,7 @@ namespace Papyrus
 			return;
 		if (n < 0 || n >= s->size()) {
 			a_vm->TraceStack(fmt::format("Index out of range: {}/{}", n, s->size()).c_str(), a_stackID);
-			return 0;
+			return;
 		}
 
 		(*s)[n] = a_value;
