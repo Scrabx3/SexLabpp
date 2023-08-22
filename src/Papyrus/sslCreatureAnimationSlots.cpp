@@ -5,13 +5,11 @@
 
 namespace Papyrus::CreatureAnimationSlots
 {
-	std::vector<RE::BGSRefAlias*> GetByRaceKeyTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
-		int32_t a_actorcount, RE::BSFixedString a_racekey, std::vector<std::string_view> a_tags)
+	std::vector<RE::BSFixedString> GetByRaceKeyTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
+		int32_t a_actorcount, 
+		RE::BSFixedString a_racekey, 
+		std::vector<std::string_view> a_tags)
 	{
-		if (!a_qst) {
-			a_vm->TraceStack("Cannot call GetByRaceKeyTagsImpl on a none object", a_stackID);
-			return {};
-		}
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
 			a_vm->TraceStack(fmt::format("Actorcount should be between 0 and {}", Registry::MAX_ACTOR_COUNT).c_str(), a_stackID);
 			return {};
@@ -21,35 +19,29 @@ namespace Papyrus::CreatureAnimationSlots
 			a_vm->TraceStack("Invalid racekey", a_stackID);
 			return {};
 		}
-		const auto mapping = Registry::Library::GetSingleton()->GetProxyMapping(a_qst);
-		if (!mapping)
-			return {};
-
-		std::vector<RE::BGSRefAlias*> ret;
-		for (auto&& [scene, reference] : *mapping) {
-			if (!scene->enabled)
-				continue;
-			if (scene->positions.size() != a_actorcount)
-				continue;
-			if (!scene->tags.MatchTags(a_tags))
-				continue;
-			for (auto&& position : scene->positions) {
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(256);
+		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
+			if (!a_scene->IsEnabled())
+				return false;
+			if (a_scene->positions.size() != a_actorcount)
+				return false;
+			if (!a_scene->tags.MatchTags(a_tags))
+				return false;
+			for (auto&& position : a_scene->positions) {
 				if (Registry::RaceHandler::IsCompatibleRaceKey(position.race, racekey)) {
-					ret.push_back(reference);
+					ret.push_back(a_scene->id);
 					break;
 				}
 			}
-		}
+			return ret.size() == ret.capacity();
+		});
 		return ret;
 	}
 
-	std::vector<RE::BGSRefAlias*> GetByCreatureActorsTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
+	std::vector<RE::BSFixedString> GetByCreatureActorsTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
 		int32_t a_actorcount, std::vector<RE::Actor*> a_creatures, std::vector<std::string_view> a_tags)
 	{
-		if (!a_qst) {
-			a_vm->TraceStack("Cannot call GetByCreatureActorsTagsImpl on a none object", a_stackID);
-			return {};
-		}
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
 			a_vm->TraceStack(fmt::format("Actorcount should be between 0 and {}", Registry::MAX_ACTOR_COUNT).c_str(), a_stackID);
 			return {};
@@ -62,18 +54,16 @@ namespace Papyrus::CreatureAnimationSlots
 			a_vm->TraceStack("Actor array should be less or equal than actor count but was greater", a_stackID);
 			return {};
 		}
-		const auto mapping = Registry::Library::GetSingleton()->GetProxyMapping(a_qst);
-		if (!mapping)
-			return {};
 
-		std::vector<RE::BGSRefAlias*> ret;
-		for (auto&& [scene, reference] : *mapping) {
-			if (!scene->enabled)
-				continue;
-			if (scene->positions.size() != a_actorcount)
-				continue;
-			if (!scene->tags.MatchTags(a_tags))
-				continue;
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(256);
+		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
+			if (!a_scene->IsEnabled())
+				return false;
+			if (a_scene->positions.size() != a_actorcount)
+				return false;
+			if (!a_scene->tags.MatchTags(a_tags))
+				return false;
 
 			int32_t reqtrue = static_cast<int32_t>(a_creatures.size());
 			std::vector<bool> control(a_actorcount, false);
@@ -81,16 +71,17 @@ namespace Papyrus::CreatureAnimationSlots
 				const auto racekey = Registry::RaceHandler::GetRaceKey(creature);
 				if (racekey == Registry::RaceKey::None) {
 					a_vm->TraceStack("Invalid racekey", a_stackID);
-					return {};
+					ret.clear();
+					return true;
 				}
 				if (racekey == Registry::RaceKey::Human) {
 					reqtrue -= 1;
 					continue;
 				}
-				for (size_t i = 0; i < scene->positions.size(); i++) {
+				for (size_t i = 0; i < a_scene->positions.size(); i++) {
 					if (control[i])
 						continue;
-					const auto& position = scene->positions[i];
+					const auto& position = a_scene->positions[i];
 					if (Registry::RaceHandler::IsCompatibleRaceKey(position.race, racekey)) {
 						control[i] = true;
 						break;
@@ -98,20 +89,21 @@ namespace Papyrus::CreatureAnimationSlots
 				}
 			}
 			if (reqtrue != std::count(control.begin(), control.end(), true)) {
-				continue;
+				return false;
 			}
-			ret.push_back(reference);
-		}
+			ret.push_back(a_scene->id);
+			return ret.size() == ret.capacity();
+		});
 		return ret;
 	}
 
-	std::vector<RE::BGSRefAlias*> GetByRaceGendersTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
-		int32_t a_actorcount, RE::BSFixedString a_racekey, int32_t a_malecrt, int32_t a_femalecrt, std::vector<std::string_view> a_tags)
+	std::vector<RE::BSFixedString> GetByRaceGendersTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
+		int32_t a_actorcount, 
+		RE::BSFixedString a_racekey, 
+		int32_t a_malecrt, 
+		int32_t a_femalecrt, 
+		std::vector<std::string_view> a_tags)
 	{
-		if (!a_qst) {
-			a_vm->TraceStack("Cannot call GetByRaceGendersTagsImpl on a none object", a_stackID);
-			return {};
-		}
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
 			a_vm->TraceStack(fmt::format("Actorcount should be between 0 and {}", Registry::MAX_ACTOR_COUNT).c_str(), a_stackID);
 			return {};
@@ -125,30 +117,27 @@ namespace Papyrus::CreatureAnimationSlots
 			a_vm->TraceStack("Invalid racekey", a_stackID);
 			return {};
 		}
-		const auto mapping = Registry::Library::GetSingleton()->GetProxyMapping(a_qst);
-		if (!mapping)
-			return {};
-		std::vector<RE::BGSRefAlias*> ret;
-		for (auto&& [scene, reference] : *mapping) {
-			if (!scene->enabled)
-				continue;
-			if (scene->positions.size() != a_actorcount)
-				continue;
-			if (!scene->tags.MatchTags(a_tags))
-				continue;
+		std::vector<RE::BSFixedString> ret;
+		ret.reserve(256);
+		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
+			if (!a_scene->IsEnabled())
+				return false;
+			if (a_scene->positions.size() != a_actorcount)
+				return false;
+			if (!a_scene->tags.MatchTags(a_tags))
+				return false;
 			bool has_race = false;
-			for (auto&& position : scene->positions) {
+			for (auto&& position : a_scene->positions) {
 				if (Registry::RaceHandler::IsCompatibleRaceKey(position.race, racekey)) {
 					has_race = true;
 					break;
 				}
 			}
 			if (!has_race) {
-				continue;
+				return false;
 			}
-
 			bool match_gender = false;
-			for (auto&& tag : scene->tags.extra) {
+			for (auto&& tag : a_scene->tags.extra) {
 				std::string_view view{ tag.data() };
 				if (view.find_first_not_of("MFC") != std::string_view::npos) {
 					continue;
@@ -164,7 +153,7 @@ namespace Papyrus::CreatureAnimationSlots
 					Either = 2,
 				};
 				std::vector<int> count;
-				for (auto&& position : scene->positions) {
+				for (auto&& position : a_scene->positions) {
 					if (position.race == Registry::RaceKey::Human)
 						continue;
 					if (position.sex.none(Registry::Sex::Female)) {
@@ -182,10 +171,11 @@ namespace Papyrus::CreatureAnimationSlots
 				break;
 			}
 			if (!match_gender) {
-				continue;
+				return false;
 			}
-			ret.push_back(reference);
-		}
+			ret.push_back(a_scene->id);
+			return ret.size() == ret.capacity();
+		});
 		return ret;
 	}
 

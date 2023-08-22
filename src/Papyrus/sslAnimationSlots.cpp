@@ -5,17 +5,13 @@
 
 namespace Papyrus::AnimationSlots
 {
-  int32_t GetAllocatedSize(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst)
+	inline std::vector<RE::BSFixedString> ScenesToString(std::vector<Registry::Scene*> a_scenes)
 	{
-		if (!a_qst) {
-			a_vm->TraceStack("Cannot call GetAllocatedSize on a none object", a_stackID);
-			return 0;
-		}
-    return Registry::Library::GetSingleton()->GetProxySize(a_qst);
+
 	}
 
-	std::vector<RE::BGSRefAlias*> GetByTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int32_t a_actorcount, std::vector<std::string_view> a_tags)
-  {
+	std::vector<RE::BSFixedString> GetByTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int32_t a_actorcount, std::vector<std::string_view> a_tags)
+	{
 		if (!a_qst) {
 			a_vm->TraceStack("Cannot call GetByTagsImpl on a none object", a_stackID);
 			return {};
@@ -26,10 +22,10 @@ namespace Papyrus::AnimationSlots
 		}
 		const auto lib = Registry::Library::GetSingleton();
     const auto scenes = lib->GetByTags(a_actorcount, a_tags);
-		return lib->MapToProxy(a_qst, scenes);
+		return ScenesToString(scenes);
 	}
 
-	std::vector<RE::BGSRefAlias*> GetByTypeImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
+	std::vector<RE::BSFixedString> GetByTypeImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
 		int32_t a_actorcount, int32_t a_males, int32_t a_females, std::vector<std::string_view> a_tags)
 	{
 		if (!a_qst) {
@@ -58,10 +54,10 @@ namespace Papyrus::AnimationSlots
       return false;
 		});
 		scenes.erase(end, scenes.end());
-		return lib->MapToProxy(a_qst, scenes);
+		return ScenesToString(scenes);
 	}
 
-	std::vector<RE::BGSRefAlias*> PickByActorsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, std::vector<std::string_view> a_tags)
+	std::vector<RE::BSFixedString> PickByActorsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, std::vector<std::string_view> a_tags)
 	{
 		if (!a_qst) {
 			a_vm->TraceStack("Cannot call PickByActorsImpl on a none object", a_stackID);
@@ -77,7 +73,23 @@ namespace Papyrus::AnimationSlots
 			vic.push_back(a_positions[0]);
 		}
 		const auto scenes = lib->LookupScenes(a_positions, a_tags, vic);
-		return lib->MapToProxy(a_qst, scenes);
+		return ScenesToString(scenes);
+	}
+
+	std::vector<RE::BSFixedString> CreateProxyArray(VM* a_vm, StackID a_stackID, RE::TESQuest*, uint32_t a_returnsize, uint32_t crt_specifier)
+	{
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(a_returnsize);
+		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
+			if (crt_specifier == 0 && a_scene->HasCreatures())
+				return false;
+			else if (crt_specifier == 1 && !a_scene->HasCreatures())
+				return false;
+
+			ret.push_back(a_scene->id);
+			return ret.size() == a_returnsize;
+		});
+		return ret;
 	}
 
 } // namespace Papyrus::AnimationSlots

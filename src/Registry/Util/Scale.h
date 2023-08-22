@@ -9,7 +9,7 @@ namespace Registry
 	{
 		static constexpr const char* namekey{ "SexLabRegistry" };
 		static constexpr const char* basenode{ "NPC" };
-		// COMEBACK: Below is not used. Idk how or where you can set this
+		// NOTE: below isnt used, Im not sure if its necessary
 		static constexpr const char* extranode{ "NPC Root [Root]" };
 
 		enum ScaleModes

@@ -145,11 +145,14 @@ namespace Registry
 		Scene(const std::string_view a_author, const std::string_view a_hash) :
 			author(a_author), hash(a_hash), start_animation(nullptr), furnitures({}), tags({}) {}
 		~Scene() = default;
+		
+		_NODISCARD bool IsEnabled() const;
 
 		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_key) const;
 		_NODISCARD std::vector<std::vector<PositionFragmentation>> GetFragmentations() const;
 
 		_NODISCARD uint32_t GetSubmissiveCount() const;
+		_NODISCARD bool HasCreatures() const;
 
 	public:
 		std::string id;

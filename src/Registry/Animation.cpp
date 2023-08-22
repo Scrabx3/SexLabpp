@@ -257,4 +257,18 @@ namespace Registry
 		return ret;
 	}
 
+	bool Scene::HasCreatures() const
+	{
+		for (auto&& info : positions) {
+			if (info.race != Registry::RaceKey::Human)
+				return true;
+		}
+		return false;
+	}
+
+	bool Scene::IsEnabled() const
+	{
+		return !is_private && enabled;
+	}
+
 }	 // namespace Registry

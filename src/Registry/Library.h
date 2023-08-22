@@ -14,6 +14,7 @@ namespace Registry
 		void Initialize() noexcept;
 
 		_NODISCARD std::vector<Scene*> LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& tags, const std::vector<RE::Actor*>& a_submissives) const;
+		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
 
 		_NODISCARD const Scene* GetSceneByID(const std::string& a_id) const;
 		_NODISCARD const Scene* GetSceneByID(const RE::BSFixedString& a_id) const;
@@ -22,11 +23,7 @@ namespace Registry
 		_NODISCARD std::vector<RE::Actor*> SortByScene(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, const Scene* a_scene) const;
 
 	public:
-		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
-
-		_NODISCARD int32_t GetProxySize(const RE::TESQuest* a_proxy) const;
-		_NODISCARD const std::map<Scene*, RE::BGSRefAlias*>* GetProxyMapping(const RE::TESQuest* a_proxy) const;	// Throws exception if proxy isnt registered
-		_NODISCARD std::vector<RE::BGSRefAlias*> MapToProxy(const RE::TESQuest* a_proxy, const std::vector<Scene*>& a_scenes) const;
+		void ForEachScene(std::function<bool(const Scene*)> a_visitor) const;
 
 	private:
 		// Construct a library key from a **sorted** list of fragments
@@ -39,7 +36,5 @@ namespace Registry
 		std::map<std::string_view, Scene*> scene_map;
 		std::vector<std::unique_ptr<AnimPackage>> packages;
 		std::unordered_map<LibraryKey, std::vector<Scene*>> scenes;
-
-		std::vector<std::pair<RE::TESQuest*, std::map<Scene*, RE::BGSRefAlias*>>> legacy_mapping;
 	};
 }

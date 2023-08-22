@@ -244,7 +244,7 @@ NEXT:
 		std::vector<Scene*> ret{};
 		ret.reserve(scene_map.size() >> 5);
 		for (auto&& [key, scene] : scene_map) {
-			if (!scene->enabled)
+			if (!scene->IsEnabled())
 				continue;
 			if (scene->positions.size() != a_positions)
 				continue;
@@ -255,41 +255,12 @@ NEXT:
 		return ret;
 	}
 
-	std::vector<RE::BGSRefAlias*> Library::MapToProxy(const RE::TESQuest* a_proxy, const std::vector<Scene*>& a_scenes) const
+	void Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const
 	{
-		const auto mapping = GetProxyMapping(a_proxy);
-		if (!mapping)
-			return {};
-
-		std::vector<RE::BGSRefAlias*> ret{};
-		for (auto&& scene : a_scenes) {
-			const auto where = mapping->find(scene);
-			if (where == mapping->end()) {
-				logger::info("Scene {}-{} not mapped to any proxy", scene->hash, scene->id);
-				continue;
-			}
-			ret.push_back(where->second);
+		for (auto&& [key, scene] : scene_map) {
+			if (a_visitor(scene))
+				break;
 		}
-		return ret;
 	}
 
-	const std::map<Scene*, RE::BGSRefAlias*>* Library::GetProxyMapping(const RE::TESQuest* a_proxy) const
-	{
-		for (auto&& [quest, mapping] : legacy_mapping) {
-			if (quest != a_proxy)
-				continue;
-
-			return &mapping;
-		}
-		logger::error("Quest {} has no storage allocated", a_proxy->GetFormID());
-		return nullptr;
-	}
-
-	int32_t Library::GetProxySize(const RE::TESQuest* a_proxy) const
-	{
-		const auto mapping = GetProxyMapping(a_proxy);
-		return mapping ?
-						 static_cast<int32_t>(std::min(mapping->size(), static_cast<size_t>((std::numeric_limits<int32_t>::max)()))) :
-						 0;
-	}
 }
