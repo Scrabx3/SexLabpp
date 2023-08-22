@@ -2,6 +2,10 @@
 
 namespace Settings
 {
+	void Initialize();			// Pre LoadData
+	void InitializeData();	// Post LoadData
+	void Save();
+
 	// --- MCM
 	// Booleans
 	static inline bool bCreatureGender{ false };
@@ -62,7 +66,12 @@ namespace Settings
 	static inline float fSFXVolume{ 1.0 };
 
 	// Int Array
-	static inline std::vector<int> jStripForms{ 1032555423, 1, 1032555423, 1, 4719365, 1, 16901, 1, 3952148, 0, 83952148, 0, 352389654, 1, 352389654, 1 };
+	static inline std::vector<int> iStripForms{ 1032555423, 1, 1032555423, 1, 4719365, 1, 16901, 1, 3952148, 0, 83952148, 0, 352389654, 1, 352389654, 1 };
+
+	// Float Array
+	static inline std::vector<float> fTimers{ 30, 20, 15, 15, 9, 10, 10, 10, 8, 8, 20, 15, 10, 10, 4 };
+	static inline std::vector<float> fOpenMouthMale{ 0, 0.8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16 };
+	static inline std::vector<float> fOpenMouthFemale{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16 };
 
 	// Phoneme Related
 	static inline int32_t iLipsPhoneme{ 1 };
@@ -159,7 +168,64 @@ namespace Settings
 		#var##s, &var  \
 	}
 	static inline std::map<std::string, std::variant<float*, std::string*, bool*, int*, std::vector<float>*, std::vector<int>*>, StringCmp> table{
-		// ENTRY(ProcessingEnabled),
+		ENTRY(bCreatureGender),
+		ENTRY(bAllowCreatures),
+		ENTRY(bUseStrapons),
+		ENTRY(bRedressVictim),
+		ENTRY(bUseLipSync),
+		ENTRY(bUseExpressions),
+		ENTRY(bUseCum),
+		ENTRY(bDisablePlayer),
+		ENTRY(bAutoTFC),
+		ENTRY(bAutoAdvance),
+		ENTRY(bOrgasmEffects),
+		ENTRY(bLimitedStrip),
+		ENTRY(bRestrictSameSex),
+		ENTRY(bShowInMap),
+		ENTRY(bDisableTeleport),
+		ENTRY(bDisableScale),
+		ENTRY(bUndressAnimation),
+		ENTRY(iAskBed),
+		ENTRY(iNPCBed),
+		ENTRY(iOpenMouthSize),
+		ENTRY(iUseFade),
+		ENTRY(AdjustTargetStage),
+		ENTRY(iAdjustStage),
+		ENTRY(iBackwards),
+		ENTRY(iAdvanceAnimation),
+		ENTRY(iChangeAnimation),
+		ENTRY(iChangePositions),
+		ENTRY(iAdjustChange),
+		ENTRY(iAdjustForward),
+		ENTRY(iAdjustSideways),
+		ENTRY(iAdjustUpward),
+		ENTRY(iRealignActors),
+		ENTRY(iMoveScene),
+		ENTRY(iRestoreOffsets),
+		ENTRY(iRotateScene),
+		ENTRY(iEndAnimation),
+		ENTRY(iAdjustSchlong),
+		ENTRY(iToggleFreeCamera),
+		ENTRY(iTargetActor),
+		ENTRY(fCumTimer),
+		ENTRY(fShakeStrength),
+		ENTRY(fAutoSUCSM),
+		ENTRY(fMaleVoiceDelay),
+		ENTRY(fFemaleVoiceDelay),
+		ENTRY(fExpressionDelay),
+		ENTRY(fVoiceVolume),
+		ENTRY(fSFXDelay),
+		ENTRY(fSFXVolume),
+		ENTRY(iStripForms),
+		ENTRY(fTimers),
+		ENTRY(fOpenMouthMale),
+		ENTRY(fOpenMouthFemale),
+		ENTRY(iLipsPhoneme),
+		ENTRY(bLipsFixedValue),
+		ENTRY(iLipsSoundTime),
+		ENTRY(LipsMaxValue),
+		ENTRY(LipsSoundTime),
+		ENTRY(fLipsMoveTime)
 	};
 
 }	 // namespace Settings

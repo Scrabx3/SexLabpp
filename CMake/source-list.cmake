@@ -12,6 +12,7 @@ set(CXX_FILES
 	src/UserData/Offset.h
 	src/UserData/Offset.cpp
 	src/UserData/Settings.h
+	src/UserData/Settings.cpp
 	src/UserData/StripData.h
 	src/UserData/StripData.cpp
 
@@ -56,6 +57,8 @@ set(CXX_FILES
 	src/Papyrus/sslAnimationSlots.cpp
 	src/Papyrus/sslCreatureAnimationSlots.h
 	src/Papyrus/sslCreatureAnimationSlots.cpp
+	src/Papyrus/sslSystemConfig.h
+	src/Papyrus/sslSystemConfig.cpp
 	src/Papyrus/sslThreadLibrary.h
 	src/Papyrus/sslThreadLibrary.cpp
 	src/Papyrus/sslThreadModel.h
