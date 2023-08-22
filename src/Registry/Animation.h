@@ -164,6 +164,7 @@ namespace Registry
 		FurnitureData furnitures;
 		TagData tags;
 
+		bool is_private;
 		bool enabled;
 
 	private:

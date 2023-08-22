@@ -240,6 +240,7 @@ namespace Registry
 			readFloat(scene->furnitures.offset[Offset::Y]);
 			readFloat(scene->furnitures.offset[Offset::Z]);
 			readFloat(scene->furnitures.offset[Offset::R]);
+			a_stream.read(reinterpret_cast<char*>(&scene->is_private), 1);
 		}
 		return package;
 	}
