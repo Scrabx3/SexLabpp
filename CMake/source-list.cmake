@@ -9,8 +9,8 @@ set(CXX_FILES
 
 	src/IPluginInterface.h
 
-	src/UserData/Offset.h
-	src/UserData/Offset.cpp
+	src/UserData/ConfigData.h
+	src/UserData/ConfigData.cpp
 	src/UserData/Settings.h
 	src/UserData/Settings.cpp
 	src/UserData/StripData.h

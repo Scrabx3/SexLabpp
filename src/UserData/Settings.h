@@ -30,7 +30,7 @@ namespace Settings
 	static inline int32_t iAskBed{ 1 };
 	static inline int32_t iNPCBed{ 0 };
 	static inline int32_t iOpenMouthSize{ 80 };
-	static inline int32_t iUseFade{ 0 };
+	static inline int32_t iUseFade{ 2 };
 
 	// KeyBinds/Scene Control Related
 	static inline bool AdjustTargetStage{ false };
