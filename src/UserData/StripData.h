@@ -2,18 +2,18 @@
 
 namespace UserData
 {
+	enum class Strip
+	{
+		NoStrip = -1,
+		Always = 1,
+
+		None = 0
+	};
+
 	class StripData :
 		public Singleton<StripData>
 	{
 	public:
-		enum class Strip
-		{
-			NoStrip = -1,
-			Always = 1,
-
-			None = 0
-		};
-
 		Strip CheckStrip(RE::TESForm* a_form);
 		Strip CheckKeywords(RE::TESForm* a_form);
 
@@ -29,4 +29,4 @@ namespace UserData
 		std::map<RE::FormID, Strip> strips{};
 		YAML::Node _root;
 	};
-} // namespace UserData
+}	 // namespace UserData
