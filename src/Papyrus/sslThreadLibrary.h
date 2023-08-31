@@ -33,17 +33,17 @@ namespace Papyrus::ThreadLibrary
 
 	inline bool Register(VM* a_vm)
 	{
-		REGISTERFUNC(FindBeds, "sslThreadLibrary", true);
-		REGISTERFUNC(GetBedTypeImpl, "sslThreadLibrary", true);
-		REGISTERFUNC(IsBed, "sslThreadLibrary", true);
+		REGISTERFUNC(FindBeds, "sslThreadLibrary", false);
+		REGISTERFUNC(GetBedTypeImpl, "sslThreadLibrary", false);
+		REGISTERFUNC(IsBed, "sslThreadLibrary", false);
 
-		REGISTERFUNC(FindAvailableActors, "sslThreadLibrary", true);
-		REGISTERFUNC(FindAvailableActor, "sslThreadLibrary", true);
-		REGISTERFUNC(FindAvailableActorInFaction, "sslThreadLibrary", true);
-		REGISTERFUNC(FindAvailableActorWornForm, "sslThreadLibrary", true);
+		REGISTERFUNC(FindAvailableActors, "sslThreadLibrary", false);
+		REGISTERFUNC(FindAvailableActor, "sslThreadLibrary", false);
+		REGISTERFUNC(FindAvailableActorInFaction, "sslThreadLibrary", false);
+		REGISTERFUNC(FindAvailableActorWornForm, "sslThreadLibrary", false);
 
-		REGISTERFUNC(FindAvailablePartners, "sslThreadLibrary", true);
-		REGISTERFUNC(FindAnimationPartnersImpl, "sslThreadLibrary", true);
+		REGISTERFUNC(FindAvailablePartners, "sslThreadLibrary", false);
+		REGISTERFUNC(FindAnimationPartnersImpl, "sslThreadLibrary", false);
 
 		REGISTERFUNC(SortActorsByAnimationImpl, "sslThreadLibrary", true);
 
