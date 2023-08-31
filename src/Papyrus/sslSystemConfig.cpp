@@ -1,5 +1,8 @@
 #include "sslSystemConfig.h"
 
+#include "Registry/Library.h"
+#include "UserData/StripData.h"
+
 namespace Papyrus::SystemConfig
 {
 	template <class T, size_t ArgC = -1>
@@ -109,6 +112,35 @@ namespace Papyrus::SystemConfig
 		}
 
 		(*s)[n] = a_value;
+	}
+
+	int GetAnimationCount(RE::StaticFunctionTag*)
+	{
+		Registry::Library::GetSingleton()->GetSceneCount();
+	}
+
+	std::vector<RE::TESForm*> GetStrippableItems(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target, bool a_wornonly)
+	{
+		if (!a_target) {
+			a_vm->TraceStack("Cannot retrieve hdt spell from a none reference", a_stackID);
+			return {};
+		}
+		std::vector<RE::TESForm*> ret{};
+		const auto cstrip = UserData::StripData::GetSingleton();
+		const auto& inventory = a_target->GetInventory();
+		for (const auto& [form, data] : inventory) {
+			if (!data.second->IsWorn()) {
+				if (a_wornonly)
+					continue;
+				if (!form->IsArmor() && !form->IsWeapon() && !form->IsAmmo())
+					continue;
+			}
+			if (cstrip->CheckKeywords(form) != UserData::Strip::None)
+				continue;
+
+			ret.push_back(form);
+		}
+		return ret;
 	}
 
 
