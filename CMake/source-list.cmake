@@ -16,9 +16,6 @@ set(CXX_FILES
 	src/UserData/StripData.h
 	src/UserData/StripData.cpp
 
-	# src/SexLab/DataKey.h
-	# src/SexLab/DataKey.cpp
-
 	# src/Hooks/Hooks.h
 	# src/Hooks/Hooks.cpp
 	src/Registry/Util/Scale.h
@@ -45,10 +42,6 @@ set(CXX_FILES
 	src/Papyrus/LegacyData.h
 	src/Papyrus/Serialize.h
 
-	# src/Papyrus/Functions.h
-	# src/Papyrus/Functions.cpp
-	# src/Papyrus/Settings.h
-	# src/Papyrus/Settings.cpp
 	src/Papyrus/sslActorAlias.h
 	src/Papyrus/sslActorAlias.cpp
 	src/Papyrus/sslActorLibrary.h
