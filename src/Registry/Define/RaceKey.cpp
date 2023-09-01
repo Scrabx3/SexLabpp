@@ -232,7 +232,21 @@ namespace Registry
 		return RaceKey::None;
 	}
 
-		bool RaceHandler::HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey)
+	RaceKey RaceHandler::GetVariantKey(RaceKey a_racekey)
+	{
+		switch (a_racekey) {
+		case RaceKey::Wolf:
+		case RaceKey::Dog:
+			return RaceKey::Canine;
+		case RaceKey::BoarMounted:
+		case RaceKey::BoarSingle:
+			return RaceKey::Boar;
+		default:
+			return RaceKey::None;
+		}
+	}
+
+	bool RaceHandler::HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey)
 	{
 		const auto key = GetRaceKey(a_actor);
 		if (key == RaceKey::None) {
@@ -280,6 +294,75 @@ namespace Registry
 		default:
 			return a_racekey1 == a_racekey2;
 		}
+	}
+
+	RE::BSFixedString RaceHandler::AsString(RaceKey a_racekey)
+	{
+		const auto where = LegacyRaceKeys.find(a_racekey);
+		if (where == LegacyRaceKeys.end())
+		 	return "";
+		return where->second;
+	}
+
+	std::vector<RE::BSFixedString> RaceHandler::GetAllRaceKeys(bool a_ignoreambiguous)
+	{
+		std::vector<RE::BSFixedString> ret {
+			AsString(RaceKey::AshHopper),
+			AsString(RaceKey::Bear),
+			AsString(RaceKey::BoarMounted),
+			AsString(RaceKey::BoarSingle),
+			AsString(RaceKey::Chaurus),
+			AsString(RaceKey::ChaurusHunter),
+			AsString(RaceKey::ChaurusReaper),
+			AsString(RaceKey::Chicken),
+			AsString(RaceKey::Cow),
+			AsString(RaceKey::Deer),
+			AsString(RaceKey::Dog),
+			AsString(RaceKey::Dragon),
+			AsString(RaceKey::DragonPriest),
+			AsString(RaceKey::Draugr),
+			AsString(RaceKey::DwarvenBallista),
+			AsString(RaceKey::DwarvenCenturion),
+			AsString(RaceKey::DwarvenSphere),
+			AsString(RaceKey::DwarvenSpider),
+			AsString(RaceKey::Falmer),
+			AsString(RaceKey::FlameAtronach),
+			AsString(RaceKey::Fox),
+			AsString(RaceKey::FrostAtronach),
+			AsString(RaceKey::Gargoyle),
+			AsString(RaceKey::Giant),
+			AsString(RaceKey::GiantSpider),
+			AsString(RaceKey::Goat),
+			AsString(RaceKey::Hagraven),
+			AsString(RaceKey::Hare),
+			AsString(RaceKey::Horker),
+			AsString(RaceKey::Horse),
+			AsString(RaceKey::IceWraith),
+			AsString(RaceKey::LargeSpider),
+			AsString(RaceKey::Lurker),
+			AsString(RaceKey::Mammoth),
+			AsString(RaceKey::Mudcrab),
+			AsString(RaceKey::Netch),
+			AsString(RaceKey::Riekling),
+			AsString(RaceKey::Sabrecat),
+			AsString(RaceKey::Seeker),
+			AsString(RaceKey::Skeever),
+			AsString(RaceKey::Slaughterfish),
+			AsString(RaceKey::Spider),
+			AsString(RaceKey::Spriggan),
+			AsString(RaceKey::StormAtronach),
+			AsString(RaceKey::Troll),
+			AsString(RaceKey::VampireLord),
+			AsString(RaceKey::Werewolf),
+			AsString(RaceKey::Wisp),
+			AsString(RaceKey::Wispmother),
+			AsString(RaceKey::Wolf),
+		};
+		if (!a_ignoreambiguous) {
+			ret.push_back(AsString(RaceKey::Boar));
+			ret.push_back(AsString(RaceKey::Canine));
+		}
+		return ret;
 	}
 
 }	 // namespace SexLab::RaceKey

@@ -24,7 +24,7 @@ namespace Registry
 
 		None = static_cast<std::underlying_type_t<Sex>>(-1),
 	};
-	Sex GetSex(RE::Actor* a_actor);
+	Sex GetSex(RE::Actor* a_actor, bool a_skipfactions = false);
 
 	enum class PositionFragment
 	{
