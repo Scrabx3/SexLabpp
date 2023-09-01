@@ -3,6 +3,7 @@
 #include "Define/RaceKey.h"
 #include "Define/Tags.h"
 #include "Define/Furniture.h"
+#include "Define/Sex.h"
 
 namespace Registry
 {
@@ -15,16 +16,6 @@ namespace Registry
 
 		Total
 	};
-
-	enum class Sex : uint8_t
-	{
-		Male = 1 << 0,
-		Female = 1 << 1,
-		Futa = 1 << 2,
-
-		None = static_cast<std::underlying_type_t<Sex>>(-1),
-	};
-	Sex GetSex(RE::Actor* a_actor, bool a_skipfactions = false);
 
 	enum class PositionFragment
 	{

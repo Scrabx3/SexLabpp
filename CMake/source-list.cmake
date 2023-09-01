@@ -23,10 +23,12 @@ set(CXX_FILES
 
 	src/Registry/Define/Furniture.h
 	src/Registry/Define/Furniture.cpp
-	src/Registry/Define/Tags.h
-	src/Registry/Define/Tags.cpp
 	src/Registry/Define/RaceKey.h
 	src/Registry/Define/RaceKey.cpp
+	src/Registry/Define/Sex.h
+	src/Registry/Define/Sex.cpp
+	src/Registry/Define/Tags.h
+	src/Registry/Define/Tags.cpp
 
 	src/Registry/Animation.h
 	src/Registry/Animation.cpp
