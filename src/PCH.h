@@ -42,6 +42,19 @@ void ASSERTLOWERCASE(T string)
 #define ASSERTLOWERCASE(expression) ((void)0)
 #endif
 
+namespace Registry
+{
+	enum Offset : uint8_t
+	{
+		X = 0,
+		Y,
+		Z,
+		R,
+
+		Total
+	};
+}
+
 namespace stl
 {
 	using namespace SKSE::stl;

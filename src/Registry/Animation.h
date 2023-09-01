@@ -7,16 +7,6 @@
 
 namespace Registry
 {
-	enum Offset : uint8_t
-	{
-		X = 0,
-		Y,
-		Z,
-		R,
-
-		Total
-	};
-
 	enum class PositionFragment
 	{
 		None = 0,
