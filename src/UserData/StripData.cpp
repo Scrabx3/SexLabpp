@@ -52,7 +52,7 @@ namespace UserData
 		logger::info("Saved custom strip settings for {} mods", _root.size());
 	}
 
-	StripData::Strip StripData::CheckStrip(RE::TESForm* a_form)
+	Strip StripData::CheckStrip(RE::TESForm* a_form)
 	{
 		const auto it = strips.find(a_form->formID);
 		if (it == strips.end() || it->second == Strip::None) {
@@ -61,7 +61,7 @@ namespace UserData
 		return it->second;
 	}
 
-	StripData::Strip StripData::CheckKeywords(RE::TESForm* a_form)
+	Strip StripData::CheckKeywords(RE::TESForm* a_form)
 	{
 		const auto& kwd = a_form->As<RE::BGSKeywordForm>();
 		if (kwd) {

@@ -6,7 +6,7 @@ namespace Papyrus::AnimationSlots
 	std::vector<RE::BSFixedString> GetByTypeImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int32_t a_actorcount, int32_t a_males, int32_t a_females, std::vector<std::string_view> a_tags);
 	std::vector<RE::BSFixedString> PickByActorsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, std::vector<std::string_view> a_tags);
 
-	std::vector<RE::BSFixedString> CreateProxyArray(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, uint32_t a_returnsize, uint32_t crt_specifier);
+	std::vector<RE::BSFixedString> CreateProxyArray(RE::TESQuest* a_qst, uint32_t a_returnsize, uint32_t crt_specifier);
 
 	inline bool Register(VM* a_vm)
 	{

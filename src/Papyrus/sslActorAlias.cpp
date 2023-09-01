@@ -157,8 +157,8 @@ namespace Papyrus::sslActorAlias
 				continue;
 			case UserData::Strip::None:
 				if (const auto biped = form->As<RE::TESObjectARMO>()) {
-					const auto slots = static_cast<uint32_t>(biped->GetSlotMask());
-					if ((slots & slots) == 0) {
+					const auto biped_slots = static_cast<uint32_t>(biped->GetSlotMask());
+					if ((biped_slots & slots) == 0) {
 						continue;
 					// } else if (slots & static_cast<uint32_t>(SlotMask::kFeet)) {
 					// 	const auto hdtspell = [&]() -> RE::SpellItem* {

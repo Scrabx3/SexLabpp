@@ -116,8 +116,8 @@ namespace Papyrus::SystemConfig
 
 	int GetAnimationCount(RE::StaticFunctionTag*)
 	{
-		Registry::Library::GetSingleton()->GetSceneCount();
-	}
+		return static_cast<int32_t>(Registry::Library::GetSingleton()->GetSceneCount());
+	} 
 
 	std::vector<RE::TESForm*> GetStrippableItems(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target, bool a_wornonly)
 	{

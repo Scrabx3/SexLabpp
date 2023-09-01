@@ -3,7 +3,7 @@
 #include "Registry/Animation.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
-#include "UserData/Offset.h"
+#include "UserData/ConfigData.h"
 
 using Offset = Registry::Offset;
 
@@ -296,7 +296,7 @@ namespace Papyrus::ThreadModel
 
 		if (const auto base = center->GetBaseObject()) {
 			if (const auto model = skyrim_cast<RE::TESModelTextureSwap*>(center)) {
-				UserData::Offset::AdjustModelOffset(ret, model);
+				UserData::ConfigData::GetSingleton()->AdjustOffsetByModel(model, ret);
 			}
 		}
 
@@ -346,7 +346,7 @@ namespace Papyrus::ThreadModel
 				a_coordinates[Offset::Z] + stage->positions[i].offset[Offset::Z],
 				a_coordinates[Offset::R] + stage->positions[i].offset[Offset::R]
 			};
-			UserData::Offset::AdjustStageOffset(offsets, i, scene->id, stage->id);
+			UserData::ConfigData::GetSingleton()->AdjustOffsetByStage(scene->id, stage->id, i, offsets);
 
 			RE::NiPoint3 position{
 				offsets[Offset::X],

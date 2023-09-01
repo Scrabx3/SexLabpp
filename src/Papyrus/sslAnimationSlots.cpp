@@ -7,7 +7,12 @@ namespace Papyrus::AnimationSlots
 {
 	inline std::vector<RE::BSFixedString> ScenesToString(std::vector<Registry::Scene*> a_scenes)
 	{
-
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(a_scenes.size());
+		for (auto&& scene : a_scenes) {
+			ret.push_back(scene->id);
+		}
+		return ret;
 	}
 
 	std::vector<RE::BSFixedString> GetByTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int32_t a_actorcount, std::vector<std::string_view> a_tags)
@@ -76,7 +81,7 @@ namespace Papyrus::AnimationSlots
 		return ScenesToString(scenes);
 	}
 
-	std::vector<RE::BSFixedString> CreateProxyArray(VM* a_vm, StackID a_stackID, RE::TESQuest*, uint32_t a_returnsize, uint32_t crt_specifier)
+	std::vector<RE::BSFixedString> CreateProxyArray(RE::TESQuest*, uint32_t a_returnsize, uint32_t crt_specifier)
 	{
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(a_returnsize);
@@ -92,4 +97,4 @@ namespace Papyrus::AnimationSlots
 		return ret;
 	}
 
-} // namespace Papyrus::AnimationSlots
+}	 // namespace Papyrus::AnimationSlots
