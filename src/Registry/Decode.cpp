@@ -1,5 +1,7 @@
 #include "Decode.h"
 
+#include "Util/Combinatorics.h"
+
 namespace Registry
 {
 	std::unique_ptr<AnimPackage> Decoder::Decode(const fs::path a_file)
@@ -58,15 +60,10 @@ namespace Registry
 				}
 				sexes.push_back(vec);
 			}
-			std::vector<std::vector<legacySex>::iterator> it;
-			for (auto& subvec : sexes)
-				it.push_back(subvec.begin());
-			const auto K = it.size() - 1;
-			while (it[0] != sexes[0].end()) {
+			Combinatorics::ForEachCombination(sexes, [&](auto& it) {
 				std::array<size_t, 3> count{ 0, 0, 0 };
-				for (auto&& sex : it) {
+				for (auto&& sex : it)
 					count[*sex]++;
-				}
 				std::vector<char> gender_tag;
 				for (auto&& size : count) {
 					for (size_t i = 0; i < size; i++) {
@@ -91,13 +88,8 @@ namespace Registry
 						tags.push_back(gTag2);
 				}
 
-				// Next
-				++it[K];
-				for (auto i = K; i > 0 && it[i] == sexes[i].end(); i--) {
-					it[i] = sexes[i].begin();
-					++it[i - 1];
-				}
-			}
+				return Combinatorics::CResult::Next;
+			});
 		}
 		return package;
 	}

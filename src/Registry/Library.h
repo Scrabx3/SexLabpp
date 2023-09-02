@@ -1,13 +1,11 @@
 #pragma once
 
 #include "Animation.h"
+#include "Define/Fragment.h"
 #include <shared_mutex>
 
 namespace Registry
 {
-	static inline constexpr size_t MAX_ACTOR_COUNT = 5;
-	using LibraryKey = std::bitset<MAX_ACTOR_COUNT * PositionFragmentSize + PositionHeaderSize>;
-
 	class Library : public Singleton<Library>
 	{
 	public:
@@ -26,15 +24,10 @@ namespace Registry
 		void ForEachScene(std::function<bool(const Scene*)> a_visitor) const;
 
 	private:
-		// Construct a library key from a **sorted** list of fragments
-		LibraryKey ConstructHashKey(const std::vector<PositionFragment>& a_fragments, PositionHeader a_extra) const;
-		LibraryKey ConstructHashKeyUnsorted(std::vector<PositionFragment>& a_fragments, PositionHeader a_extra) const;
-
-	private:
 		mutable std::shared_mutex read_write_lock{};
 
-		std::map<std::string_view, Scene*> scene_map;
-		std::vector<std::unique_ptr<AnimPackage>> packages;
-		std::unordered_map<LibraryKey, std::vector<Scene*>> scenes;
+		std::map<std::string_view, Scene*> scene_map;									 // Mapping every scene to their respective id for quick lookup
+		std::vector<std::unique_ptr<AnimPackage>> packages;						 // All registered packages, containing all available scenes
+		std::unordered_map<FragmentHash, std::vector<Scene*>> scenes;	 // The main lookup table using LibraryKeys
 	};
 }

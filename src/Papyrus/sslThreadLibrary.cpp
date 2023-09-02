@@ -2,6 +2,7 @@
 
 #include "Papyrus/Serialize.h"
 #include "Registry/Animation.h"
+#include "Registry/Define/Fragment.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Library.h"
@@ -253,10 +254,9 @@ namespace Papyrus::ThreadLibrary
 			}
 			argFrag.emplace_back(
 				actor,
-				Registry::MakePositionFragment(
+				Registry::MakeFragmentFromActor(
 					actor,
-					submissive)
-					.get());
+					submissive));
 		}
 		auto ret = library->SortByScene(argFrag, scene);
 		return ret.empty() ? a_positions : ret;

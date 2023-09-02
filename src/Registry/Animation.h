@@ -1,53 +1,13 @@
 #pragma once
 
-#include "Define/RaceKey.h"
-#include "Define/Tags.h"
+#include "Define/Fragment.h"
 #include "Define/Furniture.h"
+#include "Define/RaceKey.h"
 #include "Define/Sex.h"
+#include "Define/Tags.h"
 
 namespace Registry
 {
-	enum class PositionFragment
-	{
-		None = 0,
-
-		Male = 1 << 0,
-		Female = 1 << 1,
-		Futa = (Male | Female),
-
-		Human = 1 << 2,
-		Vampire = 1 << 3,
-		Yoke = 1 << 4,
-		Arminder = 1 << 5,
-		HandShackle = (Yoke | Arminder),
-		LegsBound = 1 << 6,
-		Petsuit = 1 << 7,
-		// Unused = 1 << 8,
-
-		CrtBit0 = 1 << 3,
-		CrtBit1 = 1 << 4,
-		CrtBit2 = 1 << 5,
-		CrtBit3 = 1 << 6,
-		CrtBit4 = 1 << 7,
-		CrtBit5 = 1 << 8,
-
-		Submissive = 1 << 9,
-		Unconscious = 1 << 10,
-	};
-	static inline constexpr size_t PositionFragmentSize = 11;
-	using FragmentUnderlying = std::underlying_type<PositionFragment>::type;
-	using PositionFragmentation = stl::enumeration<PositionFragment, FragmentUnderlying>;
-	stl::enumeration<PositionFragment, FragmentUnderlying> MakePositionFragment(RE::Actor* a_actor, bool a_submissive);
-
-	enum class PositionHeader
-	{
-		None = 0,
-
-		AllowBed = 1ULL << 0,
-	};
-	static inline constexpr size_t PositionHeaderSize = 1;
-	using FragmentHeaderUnderlying = std::underlying_type<PositionHeader>::type;
-
 	struct Position
 	{
 		enum class StripData : uint8_t
@@ -94,13 +54,12 @@ namespace Registry
 			Yoke = 1 << 4,
 			Armbinder = 1 << 5,
 			Legbinder = 1 << 6,
-			Petsuit = 1 << 7,
 		};
 
 	public:
 		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
-		_NODISCARD bool CanFillPosition(PositionFragmentation a_fragment) const;
-		_NODISCARD std::vector<PositionFragmentation> MakeFragments() const;
+		_NODISCARD bool CanFillPosition(PositionFragment a_fragment) const;
+		_NODISCARD std::vector<PositionFragment> MakeFragments() const;
 
 	public:
 		RaceKey race;
@@ -126,14 +85,15 @@ namespace Registry
 		Scene(const std::string_view a_author, const std::string_view a_hash) :
 			author(a_author), hash(a_hash), start_animation(nullptr), furnitures({}), tags({}) {}
 		~Scene() = default;
-		
+
 		_NODISCARD bool IsEnabled() const;
+		_NODISCARD bool HasCreatures() const;
+		_NODISCARD uint32_t GetSubmissiveCount() const;
+
+		_NODISCARD std::vector<HeaderFragment> MakeHeaders() const;
+		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
 
 		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_key) const;
-		_NODISCARD std::vector<std::vector<PositionFragmentation>> GetFragmentations() const;
-
-		_NODISCARD uint32_t GetSubmissiveCount() const;
-		_NODISCARD bool HasCreatures() const;
 
 	public:
 		std::string id;

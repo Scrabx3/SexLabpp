@@ -18,9 +18,12 @@ set(CXX_FILES
 
 	# src/Hooks/Hooks.h
 	# src/Hooks/Hooks.cpp
+	src/Registry/Util/Combinatorics.h
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp
 
+	src/Registry/Define/Fragment.h
+	src/Registry/Define/Fragment.cpp
 	src/Registry/Define/Furniture.h
 	src/Registry/Define/Furniture.cpp
 	src/Registry/Define/RaceKey.h

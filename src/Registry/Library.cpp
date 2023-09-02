@@ -2,6 +2,7 @@
 
 #include "Decode.h"
 #include "Define/RaceKey.h"
+#include "Util/Combinatorics.h"
 
 namespace Registry
 {
@@ -27,59 +28,37 @@ namespace Registry
 				try {
 					auto package = Decoder::Decode(file);
 					for (auto&& scene : package->scenes) {
-						// for each scene, construct a list of every possible combination of fragments and add them to the list of hashes
-						// the list then allows fast access to a slice of the library based on the hash fragments a given collection of actors represents
-						std::vector<PositionHeader> headerFragments{ PositionHeader(0) };
-						if (scene->furnitures.allowbed) {
-							headerFragments.push_back(PositionHeader::AllowBed);
-						}
-						// Build 2D Vector containing all possible Fragments for all Infos
-						std::vector<std::vector<PositionFragmentation>> fragments;
-						fragments.reserve(scene->positions.size());
-						for (auto&& pinfo : scene->positions) {
-							auto element = pinfo.MakeFragments();
-							if (pinfo.extra.all(PositionInfo::Extra::Optional)) {
-								element.push_back(PositionFragment::None);
-							}
-							fragments.push_back(element);
-						}
-						std::vector<std::vector<PositionFragmentation>::iterator> it;
-						for (auto& subvec : fragments)
-							it.push_back(subvec.begin());
-						// Cycle through every combination of every vector
-						assert(it.size() > 0 && it.size() == fragments.size());
-						const auto K = it.size() - 1;
-						while (it[0] != fragments[0].end()) {
+						// For each scene, find all viable hash locks and sort them into the library
+						const auto headerFragments = scene->MakeHeaders();
+						const auto positionFragments = scene->MakeFragments();
+						Combinatorics::ForEachCombination<PositionFragment>(positionFragments, [&](const std::vector<std::vector<PositionFragment>::const_iterator>& it) {
+							// Create a copy of the current scene, filter out empty/optional positions and create hashkeys from them
 							std::vector<PositionFragment> argFragment;
 							argFragment.reserve(it.size());
 							for (const auto& current : it) {
 								if (*current == PositionFragment::None) {
 									continue;
 								}
-								argFragment.push_back(current->get());
+								argFragment.push_back(*current);
 							}
-							std::sort(argFragment.begin(), argFragment.end());
+							std::stable_sort(argFragment.begin(), argFragment.end());
+							// creating one key for each scene header and store into hashed scene map
 							for (const auto& argHeader : headerFragments) {
-								auto key = ConstructHashKey(argFragment, argHeader);
-
+								auto key = CombineFragments(argFragment, argHeader);
 								const std::unique_lock lock{ read_write_lock };
 								const auto where = scenes.find(key);
 								if (where == scenes.end()) {
-									scenes.insert({ key, { scene.get() } });
-								} else {
-									auto& vec = where->second;
-									if (std::find(vec.begin(), vec.end(), scene.get()) != vec.end()) {
-										vec.push_back(scene.get());
-									}
+									scenes[key] = { scene.get() };
+									continue;
+								}
+								// A scene containing similar positions may create identical hashes in different iterations
+								auto& vec = where->second;
+								if (std::find(vec.begin(), vec.end(), scene.get()) != vec.end()) {
+									vec.push_back(scene.get());
 								}
 							}
-							// Next
-							++it[K];
-							for (auto i = K; i > 0 && it[i] == fragments[i].end(); i--) {
-								it[i] = fragments[i].begin();
-								++it[i - 1];
-							}
-						}
+							return Combinatorics::CResult::Next;
+						});
 					}
 					const std::unique_lock lock{ read_write_lock };
 					for (auto&& scene : package->scenes) {
@@ -123,19 +102,14 @@ namespace Registry
 			tags = TagData::ParseTagsByType(a_tags);
 		} };
 
-		std::vector<std::pair<PositionFragmentation, RE::Actor*>> fragments;
+		std::vector<PositionFragment> fragments;
 		for (auto&& position : a_actors) {
 			const auto submissive = std::find(a_submissives.begin(), a_submissives.end(), position) != a_submissives.end();
-			const auto fragment = MakePositionFragment(position, submissive);
-			fragments.emplace_back(fragment, position);
+			const auto fragment = MakeFragmentFromActor(position, submissive);
+			fragments.push_back(fragment);
 		}
-		std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) { return a.first < b.first; });
-		std::vector<PositionFragment> strippedFragments;
-		strippedFragments.reserve(fragments.size());
-		for (auto&& [fragment, actor] : fragments) {
-			strippedFragments.push_back(fragment.get());
-		}
-		const auto hash = ConstructHashKey(strippedFragments, PositionHeader::None);
+		std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) { return a < b; });
+		const auto hash = CombineFragments(fragments, HeaderFragment::None); // TODO: Make header
 		tag_parser.join();	// Wait for tags to finish parsing
 
 		const std::shared_lock lock{ read_write_lock };
@@ -155,7 +129,7 @@ namespace Registry
 			return true;
 		});
 		if (ret.empty()) {
-			logger::info("Invalid query: [{} | {} <{}>]; 0/{} animations use requested tags", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size(), where->second.size());
+			logger::info("Invalid query: [{} | {} <{}>]; 0/{} animations use given tags", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size(), where->second.size());
 			return {};
 		}
 
@@ -203,29 +177,6 @@ NEXT:
 			}
 		}
 		return {};
-	}
-
-	LibraryKey Library::ConstructHashKey(const std::vector<PositionFragment>& fragments, PositionHeader a_extra) const
-	{
-		assert(fragments.size() <= 5);
-		LibraryKey ret{};
-		ret |= static_cast<std::underlying_type<PositionFragment>::type>(fragments[0]);
-		size_t i = 1;
-		for (; i < fragments.size(); i++) {
-			ret <<= PositionFragmentSize;
-			ret |= static_cast<std::underlying_type<PositionFragment>::type>(fragments[i]);
-		}
-		for (size_t n = i; n < 5; n++) {
-			ret <<= PositionFragmentSize;
-		}
-		ret <<= PositionHeaderSize;
-		ret |= static_cast<std::underlying_type<PositionHeader>::type>(a_extra);
-		return ret;
-	}
-
-	LibraryKey Library::ConstructHashKeyUnsorted(std::vector<PositionFragment>& a_fragments, PositionHeader a_extra) const {
-		std::sort(a_fragments.begin(), a_fragments.end(), [](auto a, auto b) { return static_cast<uint64_t>(a) < static_cast<uint64_t>(b); });
-		return ConstructHashKey(a_fragments, a_extra);
 	}
 
 	size_t Library::GetSceneCount() const
