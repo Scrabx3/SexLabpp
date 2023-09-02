@@ -169,15 +169,6 @@ namespace Registry
 		return !is_private && enabled;
 	}
 
-	std::vector<HeaderFragment> Scene::MakeHeaders() const
-	{
-		std::vector<HeaderFragment> ret{ HeaderFragment::None };
-		if (this->furnitures.allowbed) {
-			ret.push_back(HeaderFragment::AllowBed);
-		}
-		return ret;
-	}
-
 	std::vector<std::vector<PositionFragment>> Scene::MakeFragments() const
 	{
 		std::vector<std::vector<PositionFragment>> ret;

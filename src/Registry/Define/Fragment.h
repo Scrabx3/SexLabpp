@@ -6,14 +6,6 @@ namespace Registry
 {
 	static inline constexpr size_t MAX_ACTOR_COUNT = 5;
 
-	enum class HeaderFragment
-	{
-		None = 0,
-
-		AllowBed = 1ULL << 0,
-	};
-	static inline constexpr size_t HeaderFragmentSize = 1;
-
 	enum class PositionFragment
 	{
 		None = 0,
@@ -43,14 +35,12 @@ namespace Registry
 	};
 	static inline constexpr size_t PositionFragmentSize = 11;
 
-	using HeaderUnderlying = std::underlying_type<HeaderFragment>::type;
-	using FragmentUnderlying = std::underlying_type<PositionFragment>::type;
-	using FragmentHash = std::bitset<MAX_ACTOR_COUNT * PositionFragmentSize + HeaderFragmentSize>;
+	using FragmentHash = std::bitset<MAX_ACTOR_COUNT * PositionFragmentSize>;
 
 	RaceKey FragmentAsRaceKey(PositionFragment a_fragment);
 	PositionFragment RaceKeyAsFragment(RaceKey a_racekey);
 
 	PositionFragment MakeFragmentFromActor(RE::Actor* a_actor, bool a_submissive);
-	FragmentHash CombineFragments(const std::vector<PositionFragment>& a_fragments, HeaderFragment a_header);
+	FragmentHash CombineFragments(const std::vector<PositionFragment>& a_fragments);
 
 } // namespace Registry

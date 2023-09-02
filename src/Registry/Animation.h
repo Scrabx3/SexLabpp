@@ -90,9 +90,7 @@ namespace Registry
 		_NODISCARD bool HasCreatures() const;
 		_NODISCARD uint32_t GetSubmissiveCount() const;
 
-		_NODISCARD std::vector<HeaderFragment> MakeHeaders() const;
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
-
 		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_key) const;
 
 	public:

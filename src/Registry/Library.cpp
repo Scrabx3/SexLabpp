@@ -29,7 +29,6 @@ namespace Registry
 					auto package = Decoder::Decode(file);
 					for (auto&& scene : package->scenes) {
 						// For each scene, find all viable hash locks and sort them into the library
-						const auto headerFragments = scene->MakeHeaders();
 						const auto positionFragments = scene->MakeFragments();
 						Combinatorics::ForEachCombination<PositionFragment>(positionFragments, [&](const std::vector<std::vector<PositionFragment>::const_iterator>& it) {
 							// Create a copy of the current scene, filter out empty/optional positions and create hashkeys from them
@@ -42,15 +41,12 @@ namespace Registry
 								argFragment.push_back(*current);
 							}
 							std::stable_sort(argFragment.begin(), argFragment.end());
-							// creating one key for each scene header and store into hashed scene map
-							for (const auto& argHeader : headerFragments) {
-								auto key = CombineFragments(argFragment, argHeader);
-								const std::unique_lock lock{ read_write_lock };
-								const auto where = scenes.find(key);
-								if (where == scenes.end()) {
-									scenes[key] = { scene.get() };
-									continue;
-								}
+							auto key = CombineFragments(argFragment);
+							const std::unique_lock lock{ read_write_lock };
+							const auto where = scenes.find(key);
+							if (where == scenes.end()) {
+								scenes[key] = { scene.get() };
+							} else {
 								// A scene containing similar positions may create identical hashes in different iterations
 								auto& vec = where->second;
 								if (std::find(vec.begin(), vec.end(), scene.get()) != vec.end()) {
@@ -109,7 +105,7 @@ namespace Registry
 			fragments.push_back(fragment);
 		}
 		std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) { return a < b; });
-		const auto hash = CombineFragments(fragments, HeaderFragment::None); // TODO: Make header
+		const auto hash = CombineFragments(fragments);
 		tag_parser.join();	// Wait for tags to finish parsing
 
 		const std::shared_lock lock{ read_write_lock };

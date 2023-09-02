@@ -11,7 +11,7 @@ namespace Registry
 		}
 
 		auto sex = base ? base->GetSex() : RE::SEXES::kNone;
-		stl::enumeration<PositionFragment, FragmentUnderlying> ret{};
+		stl::enumeration<PositionFragment> ret{};
 		switch (sex) {
 		case RE::SEXES::kFemale:
 			ret.set(Registry::IsFuta(a_actor) ? PositionFragment::Futa : PositionFragment::Female);
@@ -55,7 +55,7 @@ namespace Registry
 		return ret.get();
 	}
 
-	FragmentHash CombineFragments(const std::vector<PositionFragment>& a_fragments, HeaderFragment a_header)
+	FragmentHash CombineFragments(const std::vector<PositionFragment>& a_fragments)
   {
 		assert(a_fragments.size() <= MAX_ACTOR_COUNT);
 		FragmentHash ret{};
@@ -68,8 +68,8 @@ namespace Registry
 		for (size_t n = i; n < 5; n++) {
 			ret <<= PositionFragmentSize;
 		}
-		ret <<= HeaderFragmentSize;
-		ret |= static_cast<std::underlying_type<HeaderFragment>::type>(a_header);
+		// ret <<= HeaderFragmentSize;
+		// ret |= static_cast<std::underlying_type<HeaderFragment>::type>(a_header);
 		return ret;
   }
 
