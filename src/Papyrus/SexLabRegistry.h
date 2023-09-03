@@ -27,22 +27,14 @@ namespace Papyrus::SexLabRegistry
 	std::vector<RE::BSFixedString> LookupScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, FurniturePreference a_furniturepref, RE::TESObjectREFR* a_center);
 
-
 	bool ValidateScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::string a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive);
 	bool ValidateSceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::string a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives);
-
-
 	std::vector<RE::BSFixedString> ValidateScenes(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::vector<std::string> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive);
 	std::vector<RE::BSFixedString> ValidateScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::vector<std::string> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives);
-
-
-	RE::TESObjectREFR* GetSceneCenter(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_sceneid, RE::TESObjectREFR* a_center);
-	bool IsCompatibleCenter(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_sceneid, RE::TESObjectREFR* a_center);
-
 
 	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, std::string a_sceneid, bool a_allowfallback);
 	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, std::vector<std::string> a_sceneids, bool a_allowfallback);
@@ -64,7 +56,16 @@ namespace Papyrus::SexLabRegistry
 
 		REGISTERFUNC(GetAllRaceKeys, "SexLabRegistry", true);
 
-		REGISTERFUNC(GetSex, "SexLabRegistry", true);
+		REGISTERFUNC(LookupScenes, "SexLabRegistry", true);
+		REGISTERFUNC(LookupScenesA, "SexLabRegistry", true);
+
+		REGISTERFUNC(ValidateScene, "SexLabRegistry", true);
+		REGISTERFUNC(ValidateSceneA, "SexLabRegistry", true);
+		REGISTERFUNC(ValidateScenes, "SexLabRegistry", true);
+		REGISTERFUNC(ValidateScenesA, "SexLabRegistry", true);
+
+		REGISTERFUNC(SortByScene, "SexLabRegistry", true);
+		REGISTERFUNC(SortBySceneEx, "SexLabRegistry", true);
 
 		return true;
 	}

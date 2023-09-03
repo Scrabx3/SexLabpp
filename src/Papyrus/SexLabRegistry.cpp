@@ -222,10 +222,67 @@ namespace Papyrus::SexLabRegistry
 		return ValidateScenesA(a_vm, a_stackID, nullptr, a_sceneids, a_positions, a_tags, argSubmissive);
 	}
 
-	// std::vector<RE::BSFixedString> ValidateScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-	// 	std::vector<std::string> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives)
-	// {
+	std::vector<RE::BSFixedString> ValidateScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		std::vector<std::string> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives)
+	{
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(a_sceneids.size());
+		const auto fragments = Registry::MakeFragmentPair(a_positions, a_submissives);
+		const auto tagdetail = Registry::TagDetails{ a_tags };
+		const auto lib = Registry::Library::GetSingleton();
+		for (auto&& sceneid : a_sceneids) {
+			const auto scene = lib->GetSceneByID(sceneid);
+			if (!scene) {
+				a_vm->TraceStack("Invalid scene id ", a_stackID);
+				break;
+			}
+			if (!scene->IsCompatibleTags(tagdetail))
+				continue;
+			if (!scene->SortActors(fragments))
+				continue;
+			ret.push_back(sceneid);
+		}
+		return ret;
+	}
 
-	// }	
+	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, std::string a_sceneid, bool a_allowfallback)
+	{
+		const auto lib = Registry::Library::GetSingleton();
+		const auto scene = lib->GetSceneByID(a_sceneid);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id ", a_stackID);
+			return false;
+		}
+		const auto ret = scene->SortActors(a_positions, a_allowfallback);
+		if (!ret)
+			return false;
+
+		for (size_t i = 0; i < ret->size(); i++) {
+			a_positions[i] = ret->at(i);
+		}
+		return true;
+	}
+
+	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, std::vector<std::string> a_sceneids, bool a_allowfallback)
+	{
+		const auto lib = Registry::Library::GetSingleton();
+		for (size_t i = 0; i < a_sceneids.size(); i++) {
+			const auto scene = lib->GetSceneByID(a_sceneids[i]);
+			if (!scene) {
+				a_vm->TraceStack("Invalid scene id ", a_stackID);
+				break;
+			}
+			const auto result = scene->SortActors(a_positions, a_allowfallback);
+			if (result) {
+				for (size_t i = 0; i < result->size(); i++) {
+					a_positions[i] = result->at(i);
+				}
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
 
 }	 // namespace Papyrus::SexLabRegistry
