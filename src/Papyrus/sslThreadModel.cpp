@@ -361,4 +361,18 @@ namespace Papyrus::ThreadModel
 		return stage->id;
 	}
 
+	bool GetIsCompatiblecenter(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center)
+	{
+		if (!a_center) {
+			a_vm->TraceStack("Cannot validate a none reference center", a_stackID);
+			return false;
+		}
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_sceneid);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return false;
+		}
+		return scene->IsCompatibleFurniture(a_center);
+	}
+
 }	 // namespace Papyrus::ThreadModel
