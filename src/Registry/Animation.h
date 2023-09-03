@@ -57,14 +57,22 @@ namespace Registry
 		};
 
 	public:
+		_NODISCARD bool IsHuman() const { return race == RaceKey::Human; }
+
+		_NODISCARD bool IsMale() const { return sex.all(Sex::Male); }
+		_NODISCARD bool IsFemale() const { return sex.all(Sex::Female); }
+		_NODISCARD bool IsFuta() const { return sex.all(Sex::Futa); }
+
+		_NODISCARD bool IsSubmissive() const { return extra.all(Extra::Submissive); }
+
 		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
 		_NODISCARD bool CanFillPosition(PositionFragment a_fragment) const;
 		_NODISCARD std::vector<PositionFragment> MakeFragments() const;
 
 	public:
 		RaceKey race;
-		stl::enumeration<Sex, uint8_t> sex;
-		stl::enumeration<Extra, uint8_t> extra;
+		stl::enumeration<Sex> sex;
+		stl::enumeration<Extra> extra;
 
 		float scale;
 	};
@@ -88,10 +96,26 @@ namespace Registry
 
 		_NODISCARD bool IsEnabled() const;
 		_NODISCARD bool HasCreatures() const;
-		_NODISCARD uint32_t GetSubmissiveCount() const;
+		_NODISCARD bool UsesFurniture() const;
+
+		_NODISCARD bool IsCompatibleTags(const TagData& a_tags) const;
+		_NODISCARD bool IsCompatibleTags(const TagDetails& a_details) const;
+		_NODISCARD bool IsCompatibleFurniture(FurnitureType a_furniture) const;
+		_NODISCARD bool IsCompatiblePositions(const std::vector<RE::Actor*>& a_positions) const;
+
+		_NODISCARD uint32_t CountPositions() const;
+		_NODISCARD uint32_t CountSubmissives() const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<RE::Actor*>& a_positions) const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const;
+
 		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_key) const;
+
+	public:
+		// If the animation only includes humans, with specified amount of males and females
+		_NODISCARD bool Legacy_IsCompatibleSexCount(int32_t a_males, int32_t a_females) const;
+		_NODISCARD bool Legacy_IsCompatibleSexCountCrt(int32_t a_males, int32_t a_females) const;
 
 	public:
 		std::string id;

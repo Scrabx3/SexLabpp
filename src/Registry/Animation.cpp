@@ -1,6 +1,7 @@
 #include "Animation.h"
 
 #include "Registry/Define/RaceKey.h"
+#include "Util/Combinatorics.h"
 
 namespace Registry
 {
@@ -144,24 +145,29 @@ namespace Registry
 		return nullptr;
 	}
 
-	uint32_t Scene::GetSubmissiveCount() const
+	bool Scene::HasCreatures() const
+	{
+		for (auto&& info : positions) {
+			if (!info.IsHuman())
+				return true;
+		}
+		return false;
+	}
+
+	uint32_t Scene::CountSubmissives() const
 	{
 		uint32_t ret = 0;
 		for (auto&& info : positions) {
-			if (info.extra.all(PositionInfo::Extra::Submissive)) {
+			if (info.IsSubmissive()) {
 				ret++;
 			}
 		}
 		return ret;
 	}
 
-	bool Scene::HasCreatures() const
+	uint32_t Scene::CountPositions() const
 	{
-		for (auto&& info : positions) {
-			if (info.race != Registry::RaceKey::Human)
-				return true;
-		}
-		return false;
+		return static_cast<uint32_t>(positions.size());
 	}
 
 	bool Scene::IsEnabled() const
@@ -179,4 +185,145 @@ namespace Registry
 		return ret;
 	}
 
-}	 // namespace Registry
+	bool Scene::IsCompatibleTags(const TagData& a_tags) const
+	{
+		return this->tags.HasTags(a_tags, true);
+	}
+	bool Scene::IsCompatibleTags(const TagDetails& a_details) const
+	{
+		return a_details.MatchTags(tags);
+	}
+
+	bool Scene::UsesFurniture() const
+	{
+		return this->furnitures.furnitures != FurnitureType::None;
+	}
+
+	bool Scene::IsCompatibleFurniture(FurnitureType a_furniture) const
+	{
+		switch (a_furniture) {
+		case FurnitureType::None:
+			return !UsesFurniture();
+		case FurnitureType::BedDouble:
+		case FurnitureType::BedSingle:
+			if (this->furnitures.allowbed)
+				return true;
+			break;
+		}
+		return this->furnitures.furnitures.any(a_furniture);
+	}
+
+	bool Scene::Legacy_IsCompatibleSexCount(int32_t a_males, int32_t a_females) const
+	{
+		if (a_males < 0 && a_females < 0) {
+			return true;
+		}
+
+		bool ret = false;
+		tags.ForEachExtra([&](const std::string_view a_tag) {
+			if (a_tag.find_first_not_of("MFC") != std::string_view::npos) {
+				return false;
+			}
+			if (a_males == -1 || std::count(a_tag.begin(), a_tag.end(), 'M') == a_males) {
+				if (a_females == -1 || std::count(a_tag.begin(), a_tag.end(), 'F') == a_females) {
+					ret = true;
+					return true;
+				}
+			}
+			return false;
+		});
+		return ret;
+	}
+
+	bool Scene::Legacy_IsCompatibleSexCountCrt(int32_t a_males, int32_t a_females) const
+	{
+		enum
+		{
+			Male = 0,
+			Female = 1,
+			Either = 2,
+		};
+
+		bool ret = false;
+		tags.ForEachExtra([&](const std::string_view a_tag) {
+			if (a_tag.find_first_not_of("MFC") != std::string_view::npos) {
+				return false;
+			}
+			const auto crt_total = std::count(a_tag.begin(), a_tag.end(), 'C');
+			if (crt_total != a_males + a_females) {
+				return true;
+			}
+
+			std::vector<int> count;
+			for (auto&& position : positions) {
+				if (position.race == Registry::RaceKey::Human)
+					continue;
+				if (position.sex.none(Registry::Sex::Female)) {
+					count[Male]++;
+				} else if (position.sex.none(Registry::Sex::Male)) {
+					count[Female]++;
+				} else {
+					count[Either]++;
+				}
+			}
+			if (count[Male] <= a_males && count[Male] + count[Either] >= a_males) {
+				count[Either] -= a_males - count[Male];
+				ret = count[Female] + count[Either] == a_females;
+			}
+			return true;
+		});
+		return ret;
+	}
+
+	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<RE::Actor*>& a_positions) const
+	{
+		if (a_positions.size() < positions.size())
+			return std::nullopt;
+
+		std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> argActor{};
+		for (size_t i = 0; i < positions.size(); i++) {
+			argActor.emplace_back(
+				a_positions[i],
+				MakeFragmentFromActor(a_positions[i], positions[i].IsSubmissive())
+			);
+		}
+		return SortActors(argActor);
+	}
+
+	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const
+	{
+		if (a_positions.size() < positions.size())
+			return std::nullopt;
+		// Mark every position that every actor can be placed in
+		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
+		compatibles.reserve(positions.size());
+		for (size_t i = 0; i < a_positions.size(); i++) {
+			for (size_t n = 0; n < positions.size(); n++) {
+				if (positions[i].CanFillPosition(a_positions[i].second)) {
+					compatibles[i].emplace_back(n, a_positions[i].first);
+				}
+			}
+		}
+		// Then find a combination of compatibles that consists exclusively of unique elements
+		std::vector<RE::Actor*> ret{};
+		Combinatorics::ForEachCombination(compatibles, [&](auto it) {
+			// Iteration always use the same nth actor + some idx of a compatible position
+			std::vector<RE::Actor*> result{ it.size(), nullptr };
+			for (auto&& current : it) {
+				const auto [scene_idx, actor] = *current;
+				if (result[scene_idx] != nullptr) {
+					return Combinatorics::CResult::Next;
+				}
+				result[scene_idx] = actor;
+			}
+			assert(std::find(result.begin(), result.end(), nullptr) == result.end());
+			ret = result;
+			return Combinatorics::CResult::Stop;
+		});
+		if (ret.empty()) {
+			return std::nullopt;
+		}
+		return ret;
+	}
+
+	}	 // namespace Registry

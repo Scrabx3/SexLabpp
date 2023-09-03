@@ -61,11 +61,11 @@ namespace Registry
 			auto next = a_view.find(a_delim);
 
 			auto word = a_view.substr(previous, next);
-			const auto trimidx = word.find_first_not_of(" \n\t");
-			word.remove_prefix(std::min<size_t>(trimidx, word.size()));
-			while (!word.empty() && std::isspace(word.back())) {
+			while (!word.empty() && std::isspace(word[0]))
+				word.remove_prefix(1);
+			while (!word.empty() && std::isspace(word.back()))
 				word.remove_suffix(1);
-			}
+
 			if (!word.empty()) {
 				result.push_back(word);
 			}

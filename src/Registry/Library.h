@@ -18,8 +18,6 @@ namespace Registry
 		_NODISCARD const Scene* GetSceneByID(const RE::BSFixedString& a_id) const;
 		_NODISCARD size_t GetSceneCount() const;
 
-		_NODISCARD std::vector<RE::Actor*> SortByScene(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, const Scene* a_scene) const;
-
 	public:
 		void ForEachScene(std::function<bool(const Scene*)> a_visitor) const;
 

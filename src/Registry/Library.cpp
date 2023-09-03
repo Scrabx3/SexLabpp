@@ -92,21 +92,19 @@ namespace Registry
 	std::vector<Scene*> Library::LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
 	{
 		const auto t1 = std::chrono::high_resolution_clock::now();
-		TagData::TagTypeData tags;
-		std::thread tag_parser{ [&]() {
-			// Multithread this as it may take a short while depending on how many tags are being passed to this function
-			tags = TagData::ParseTagsByType(a_tags);
+		FragmentHash hash;
+		std::thread _hashbuilder{ [&]() {
+			std::vector<PositionFragment> fragments;
+			for (auto&& position : a_actors) {
+				const auto submissive = std::find(a_submissives.begin(), a_submissives.end(), position) != a_submissives.end();
+				const auto fragment = MakeFragmentFromActor(position, submissive);
+				fragments.push_back(fragment);
+			}
+			std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) { return a < b; });
+			hash = CombineFragments(fragments);
 		} };
-
-		std::vector<PositionFragment> fragments;
-		for (auto&& position : a_actors) {
-			const auto submissive = std::find(a_submissives.begin(), a_submissives.end(), position) != a_submissives.end();
-			const auto fragment = MakeFragmentFromActor(position, submissive);
-			fragments.push_back(fragment);
-		}
-		std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) { return a < b; });
-		const auto hash = CombineFragments(fragments);
-		tag_parser.join();	// Wait for tags to finish parsing
+		TagDetails tags = TagDetails{ tags };
+		_hashbuilder.join();
 
 		const std::shared_lock lock{ read_write_lock };
 	  const auto where = this->scenes.find(hash);
@@ -119,60 +117,17 @@ namespace Registry
 		std::vector<Scene*> ret;
 		ret.reserve(rawScenes.size() / 2);
 		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
-			if (!a_scene->tags.MatchTags(tags))
-				return false;
-
-			return true;
+			return a_scene->IsCompatibleTags(tags);
 		});
 		if (ret.empty()) {
 			logger::info("Invalid query: [{} | {} <{}>]; 0/{} animations use given tags", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size(), where->second.size());
 			return {};
 		}
-
 		const auto t2 = std::chrono::high_resolution_clock::now();
 		// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
 		logger::info("Found {} scenes for query [{} | {} <{}>] actors in {}ms", ret.size(), a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size(), ms_double.count());
 		return ret;
-	}
-
-	std::vector<RE::Actor*> Library::SortByScene(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, const Scene* a_scene) const
-	{
-		assert(a_positions.size() == a_scene->positions.size());
-		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> entries;
-		entries.reserve(a_positions.size());
-		for (size_t i = 0; i < a_positions.size(); i++) {
-			for (size_t n = 0; n < a_scene->positions.size(); n++) {
-				if (a_scene->positions[i].CanFillPosition(a_positions[i].second)) {
-					entries[i].emplace_back(n, a_positions[i].first);
-				}
-			}
-		}
-
-		// Go through every of entries combination and pick the first which consists exclusively of unique elements
-		std::vector<std::vector<std::pair<size_t, RE::Actor*>>::iterator> it;
-		for (auto& subvec : entries)
-	    it.push_back(subvec.begin());
-		const auto last_idx = it.size() - 1;
-		while (it[0] != entries[0].end()) {
-			std::vector<RE::Actor*> result{ it.size(), nullptr };
-			for (auto&& current : it) {
-				if (std::find(result.begin(), result.end(), current->second) != result.end()) {
-					goto NEXT;
-				}
-				result[current->first] = current->second;
-			}
-			assert(std::find(result.begin(), result.end(), nullptr) == result.end());
-			return result;
-
-NEXT:
-			++it[last_idx];
-			for (auto i = last_idx; i > 0 && it[i] == entries[i].end(); i--) {
-				it[i] = entries[i].begin();
-				++it[i - 1];
-			}
-		}
-		return {};
 	}
 
 	size_t Library::GetSceneCount() const
@@ -187,15 +142,16 @@ NEXT:
 
 	std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
 	{
-		const std::shared_lock lock{ read_write_lock };
+		TagData tags{ a_tags };
 		std::vector<Scene*> ret{};
 		ret.reserve(scene_map.size() >> 5);
+		const std::shared_lock lock{ read_write_lock };
 		for (auto&& [key, scene] : scene_map) {
 			if (!scene->IsEnabled())
 				continue;
 			if (scene->positions.size() != a_positions)
 				continue;
-			if (!scene->tags.MatchTags(a_tags))
+			if (!scene->IsCompatibleTags(tags))
 				continue;
 			ret.push_back(scene);
 		}

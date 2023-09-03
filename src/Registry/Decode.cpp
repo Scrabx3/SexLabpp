@@ -25,13 +25,7 @@ namespace Registry
 		// Upstream child data and add legacy information to scene
 		for (auto&& scene : package->scenes) {
 			for (auto&& stage : scene->stages) {
-				for (auto&& stage_tag : stage->tags.extra) {
-					const auto where = std::find(scene->tags.extra.begin(), scene->tags.extra.end(), stage_tag);
-					if (where == scene->tags.extra.end()) {
-						scene->tags.extra.push_back(stage_tag);
-					}
-				}
-				scene->tags.tag |= stage->tags.tag;
+				scene->tags.AddTag(stage->tags);
 			}
 
 			enum legacySex
@@ -81,11 +75,10 @@ namespace Registry
 					}
 				}
 				RE::BSFixedString gTag1{ std::string{ gender_tag.begin(), gender_tag.end() } };
-				if (auto& tags = scene->tags.extra; std::find(tags.begin(), tags.end(), gTag1) != tags.end()) {
-					tags.push_back(gTag1);
-					RE::BSFixedString gTag2{ std::string{ gender_tag.rbegin(), gender_tag.rend() } };
-					if (gTag2 != gTag1)
-						tags.push_back(gTag2);
+				RE::BSFixedString gTag2{ std::string{ gender_tag.rbegin(), gender_tag.rend() } };
+				scene->tags.AddTag(gTag1);
+				if (gTag2 != gTag1) {
+					scene->tags.AddTag(gTag2);
 				}
 
 				return Combinatorics::CResult::Next;
@@ -186,13 +179,7 @@ namespace Registry
 					// ------------------------- TAGS
 					RE::BSFixedString tag;
 					readString(tag);
-					if (!TagHandler::AddTag(stage->tags.tag, tag)) {
-						const auto where = std::find(stage->tags.extra.begin(), stage->tags.extra.end(), tag);
-						if (where == stage->tags.extra.end()) {
-							stage->tags.extra.push_back(tag);
-						}
-					}
-					
+					stage->tags.AddTag(tag);					
 				}
 			}
 			if (!scene->start_animation)
