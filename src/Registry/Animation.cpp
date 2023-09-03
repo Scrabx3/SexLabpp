@@ -199,6 +199,12 @@ namespace Registry
 		return this->furnitures.furnitures != FurnitureType::None;
 	}
 
+	bool Scene::IsCompatibleFurniture(RE::TESObjectREFR* a_reference) const
+	{
+		const auto type = FurnitureHandler::GetFurnitureType(a_reference);
+		return IsCompatibleFurniture(type);
+	}
+
 	bool Scene::IsCompatibleFurniture(FurnitureType a_furniture) const
 	{
 		switch (a_furniture) {
@@ -275,7 +281,7 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<RE::Actor*>& a_positions) const
+	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<RE::Actor*>& a_positions, bool a_withfallback) const
 	{
 		if (a_positions.size() < positions.size())
 			return std::nullopt;
@@ -287,7 +293,7 @@ namespace Registry
 				MakeFragmentFromActor(a_positions[i], positions[i].IsSubmissive())
 			);
 		}
-		return SortActors(argActor);
+		return a_withfallback ? SortActors(argActor) : SortActorsFB(argActor);
 	}
 
 	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const
@@ -324,6 +330,26 @@ namespace Registry
 			return std::nullopt;
 		}
 		return ret;
+	}
+
+	std::optional<std::vector<RE::Actor*>> Scene::SortActorsFB(std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> a_positions) const
+	{
+		auto ret = SortActors(a_positions);
+		if (ret)
+			return ret;
+
+		for (auto&& [actor, fragment] : a_positions) {
+			auto e = stl::enumeration(fragment);
+			if (e.all(PositionFragment::Human, PositionFragment::Female) && e.none(PositionFragment::Male)) {
+				e.reset(PositionFragment::Female);
+				e.set(PositionFragment::Male);
+			}
+			fragment = e.get();
+			ret = SortActors(a_positions);
+			if (ret)
+				return ret;
+		}
+		return std::nullopt;
 	}
 
 	}	 // namespace Registry

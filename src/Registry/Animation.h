@@ -101,14 +101,15 @@ namespace Registry
 		_NODISCARD bool IsCompatibleTags(const TagData& a_tags) const;
 		_NODISCARD bool IsCompatibleTags(const TagDetails& a_details) const;
 		_NODISCARD bool IsCompatibleFurniture(FurnitureType a_furniture) const;
-		_NODISCARD bool IsCompatiblePositions(const std::vector<RE::Actor*>& a_positions) const;
+		_NODISCARD bool IsCompatibleFurniture(RE::TESObjectREFR* a_reference) const;
 
 		_NODISCARD uint32_t CountPositions() const;
 		_NODISCARD uint32_t CountSubmissives() const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<RE::Actor*>& a_positions) const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<RE::Actor*>& a_positions, bool a_withfallback) const;
 		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFB(std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> a_positions) const;
 
 		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_key) const;
 
