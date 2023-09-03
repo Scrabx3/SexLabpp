@@ -93,4 +93,16 @@ namespace Registry
 		return PositionFragment(static_cast<underlying>(a_racekey) << 3);
 	}
 
+	std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> MakeFragmentPair(std::vector<RE::Actor*> a_actors, std::vector<RE::Actor*> a_submissives)
+	{
+		std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> ret{};
+		for (auto&& actor : a_actors) {
+			const auto submissive = std::find(a_submissives.begin(), a_submissives.end(), actor) != a_submissives.end();
+			ret.emplace_back(
+				actor,
+				MakeFragmentFromActor(actor, submissive));
+		}
+		return ret;
+	}
+
 } // namespace Registry
