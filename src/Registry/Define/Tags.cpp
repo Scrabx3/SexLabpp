@@ -2,13 +2,22 @@
 
 namespace Registry
 {
-#define MAPENTRY(value)                                   \
-	{                                                       \
-		AsLower(#value##s), value \
+#define MAPENTRY(value) \
+	{                     \
+		#value, value       \
 	}
 
+	struct TagCmp
+	{
+		bool operator()(const RE::BSFixedString& lhs, const RE::BSFixedString& rhs) const
+		{
+			return strcmp(lhs.data(), rhs.data()) < 0;
+		}
+	};
+
+
 	using enum Tag;
-	static inline const std::map<std::string_view, Tag> lookup = {
+	static inline const std::map<RE::BSFixedString, Tag, TagCmp> TagTable = {
 		MAPENTRY(SixtyNine),
 		MAPENTRY(Aggressive),
 		MAPENTRY(Anal),
@@ -50,150 +59,159 @@ namespace Registry
 	};
 #undef MAPENTRY
 
-	bool TagHandler::AddTag(BaseTag& a_enumeration, const std::string_view a_stringtag)
+	TagData::TagData(const std::vector<std::string_view>& a_tags)
 	{
-		ASSERTLOWERCASE(a_stringtag);
-		const auto where = lookup.find(a_stringtag);
-		if (where == lookup.end())
-			return false;
-		a_enumeration.set(where->second);
-		return true;
-	}
-
-	bool TagHandler::RemoveTag(BaseTag& a_enumeration, const std::string_view a_stringtag)
-	{
-		ASSERTLOWERCASE(a_stringtag);
-		const auto where = lookup.find(a_stringtag);
-		if (where == lookup.end())
-			return false;
-		a_enumeration.reset(where->second);
-		return true;
-	}
-
-	int32_t TagHandler::HasTag(const BaseTag& a_enumeration, const std::string_view a_cmp)
-	{
-		ASSERTLOWERCASE(a_cmp);
-		const auto where = lookup.find(a_cmp);
-		if (where == lookup.end())
-			return -1;
-
-		return a_enumeration.all(where->second);
-	}
-
-	bool TagData::MatchTags(const std::vector<std::string_view>& a_match) const
-	{
-		enum
-		{
-			no_option = -1,
-			missing_option = 0,
-			has_option = 1,
-		};
-
-		auto option = no_option;
-		for (auto&& it : a_match) {
-			if (it.empty()) {
-				continue;
-			}
-
-			ASSERTLOWERCASE(it);
-			switch (it[0]) {
-			case '~':
-				if (option != has_option) {
-					option = TagHandler::HasTag(tag, it.substr(1)) || std::find(extra.begin(), extra.end(), it.substr(1)) != extra.end() ?
-										 has_option :
-										 missing_option;
-				}
-				break;
-			case '-':
-				if (TagHandler::HasTag(tag, it.substr(1)) || std::find(extra.begin(), extra.end(), it.substr(1)) != extra.end()) {
-					return false;
-				}
-				break;
-			default:
-				if (!TagHandler::HasTag(tag, it.substr(1)) && std::find(extra.begin(), extra.end(), it.substr(1)) == extra.end()) {
-					return false;
-				}
-				break;
-			}
+		for (auto&& tag : a_tags) {
+			AddTag(tag);
 		}
-		return option != missing_option;
 	}
 
-	bool TagData::MatchTags(const TagTypeData& a_data) const
+	void TagData::AddTag(Tag a_tag)
 	{
-		if (!this->tag.all(a_data[TagType::Required].first.get()) ||
-				this->tag.none(a_data[TagType::Optional].first.get()) || 
-				this->tag.any(a_data[TagType::Disallow].first.get())) {
-			return false;
+		_basetags.set(a_tag);
+	}
+
+	void TagData::AddTag(const TagData& a_tag)
+	{
+		_basetags.set(a_tag._basetags.get());
+		_extratags.reserve(_extratags.size() + a_tag._extratags.size());
+		for (auto&& tag : a_tag._extratags) {
+			AddExtraTag(tag);
 		}
-		const auto hasExtra = [this](const RE::BSFixedString& a_tag) {
-			const auto where = std::find(this->extra.begin(), this->extra.end(), a_tag);
-			return where != this->extra.end();
-		};
-		// Continue if has all tags
-		for (auto&& it : a_data[TagType::Required].second) {
-			if (!hasExtra(it)) {
-				return false;
+	}
+
+	void TagData::AddTag(RE::BSFixedString a_tag)
+	{
+		const auto where = TagTable.find(a_tag);
+		if (where != TagTable.end()) {
+			_basetags.set(where->second);
+		} else {
+			AddExtraTag(a_tag);
+		}
+	}
+
+	void TagData::RemoveTag(Tag a_tag)
+	{
+		_basetags.reset(a_tag);
+	}
+
+	void TagData::RemoveTag(const TagData& a_tag)
+	{
+		_basetags.reset(a_tag._basetags.get());
+		for (auto&& tag : a_tag._extratags) {
+			RemoveExtraTag(tag);
+		}
+	}
+
+	void TagData::RemoveTag(const RE::BSFixedString& a_tag)
+	{
+		const auto where = TagTable.find(a_tag);
+		if (where != TagTable.end()) {
+			_basetags.reset(where->second);
+		} else {
+			RemoveExtraTag(a_tag);
+		}
+	}
+
+	bool TagData::HasTag(Tag a_tag) const
+	{
+		return _basetags.all(a_tag);
+	}
+
+	bool TagData::HasTag(const RE::BSFixedString& a_tag) const
+	{
+		const auto where = TagTable.find(a_tag);
+		return where == TagTable.end() ? HasExtraTag(a_tag) : _basetags.all(where->second);
+	}
+
+	bool TagData::HasTags(const TagData& a_tag, bool a_all) const
+	{
+		if (a_all) {
+			if (!_basetags.all(a_tag._basetags.get()))
+				return false;	 // Want all but missing base
+		} else if (_basetags.any(a_tag._basetags.get())) {
+			return true;	// Want any and has at least 1 base match
+		}
+		for (auto&& tag : a_tag._extratags) {
+			bool has = HasTag(tag);
+			if (a_all) {
+				if (!has)
+					return false;	 // Wants all but misses at least one
+			} else if (has) {
+				return true;	// wants any and has at least one
 			}
 		}
-		// Continue if Has none tags
-		for (auto&& it : a_data[TagType::Disallow].second) {
-			if (hasExtra(it)) {
-				return false;
-			}
-		}
-		// Return true if has any tag
-		for (auto&& it : a_data[TagType::Optional].second) {
-			if (hasExtra(it)) {
-				return true;
-			}
-		}
-		return false;
+		// if here we either want all and havent found 1 missing
+		// or want any and havent found 1 matching
+		return a_all;
 	}
 
-	TagData::TagTypeData TagData::ParseTagsByType(const std::string_view a_tags)
+	void TagData::ForEachExtra(std::function<bool(const std::string_view)> a_visitor) const
 	{
-		const auto list = StringSplit(a_tags);
-		return ParseTagsByType(list);
+		for (auto&& tag : _extratags) {
+			if (a_visitor(tag.data()))
+				return;
+		}
 	}
 
-	TagData::TagTypeData TagData::ParseTagsByType(const std::vector<std::string_view>& a_tags)
+	void TagData::AddExtraTag(const RE::BSFixedString& a_tag)
 	{
-		TagTypeData ret{};
+		if (HasExtraTag(a_tag))
+			return;
+		_extratags.push_back(a_tag);
+	}
+
+	void TagData::RemoveExtraTag(const RE::BSFixedString& a_tag)
+	{
+		const auto where = std::find(_extratags.begin(), _extratags.end(), a_tag);
+		if (where == _extratags.end())
+			return;
+		_extratags.erase(where);
+	}
+
+	bool TagData::HasExtraTag(const RE::BSFixedString& a_tag) const
+	{
+		return std::find(_extratags.begin(), _extratags.end(), a_tag) != _extratags.end();
+	}
+
+	TagDetails::TagDetails(const std::string_view a_tags) :
+		TagDetails(StringSplit(a_tags, ',')) {}
+
+	TagDetails::TagDetails(const std::vector<std::string_view> a_tags)
+	{
 		for (auto&& tag : a_tags) {
 			if (tag.empty())
 				continue;
 
 			switch (tag[0]) {
+			case '!':	 // Scene Meta for Papyrus, ignore
+				continue;
 			case '~':
-				{
-					auto tag_ = tag.substr(1);
-					auto& [base, extra] = ret[TagType::Optional];
-					if (TagHandler::AddTag(base, tag_))
-						continue;
-					extra.push_back(tag_);
-				}
+				_tags[TagType::Optional].AddTag(tag.substr(1));
 				break;
 			case '-':
-				{
-					auto tag_ = tag.substr(1);
-					auto& [base, extra] = ret[TagType::Disallow];
-					if (TagHandler::AddTag(base, tag_))
-						continue;
-					extra.push_back(tag_);
-				}
+				_tags[TagType::Disallow].AddTag(tag.substr(1));
 				break;
 			default:
-				{
-					auto& [base, extra] = ret[TagType::Required];
-					if (TagHandler::AddTag(base, tag))
-						continue;
-					extra.push_back(tag);
-				}
+				_tags[TagType::Disallow].AddTag(tag);
 				break;
 			}
 		}
-		return ret;
+	}
+
+	TagDetails::TagDetails(const std::array<TagData, TagType::Total> a_tags)
+	{
+		for (size_t i = 0; i < TagType::Total; i++)
+			_tags[i] = a_tags[i];
+	}
+
+	bool TagDetails::MatchTags(const TagData& a_data) const
+	{
+		if (a_data.HasTags(_tags[TagType::Disallow], false))
+			return false;
+		if (!a_data.HasTags(_tags[TagType::Optional], false))
+			return false;
+		return a_data.HasTags(_tags[TagType::Required], true);
 	}
 
 }

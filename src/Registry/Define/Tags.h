@@ -44,37 +44,67 @@ namespace Registry
 		Behind = 1ULL << 46,
 		Facing = 1ULL << 47
 	};
-	using BaseTag = stl::enumeration<Tag, std::underlying_type<Tag>::type>;
 
-	struct TagData
+	class TagData
 	{
+	public:
+		TagData(const std::vector<std::string_view>& a_tags);
+		TagData() = default;
+		~TagData() = default;
+	public:
+		/// @brief Add (all of) the arguments tags to this
+		void AddTag(Tag a_tag);
+		void AddTag(const TagData& a_tag);
+		void AddTag(RE::BSFixedString a_tag);
+
+		/// @brief Remove (all of) the arguments tags from this
+		void RemoveTag(Tag a_tag);
+		void RemoveTag(const TagData& a_tag);
+		void RemoveTag(const RE::BSFixedString& a_tag);
+
+		/// @brief If this has (all of) the arguments tags
+		_NODISCARD bool HasTag(Tag a_tag) const;
+		_NODISCARD bool HasTag(const RE::BSFixedString& a_tag) const;
+
+		/// @brief Checks if this has any or all of the arguments tags
+		_NODISCARD bool HasTags(const TagData& a_tag, bool a_all) const;
+
+	public:
+		// visitor returns true to stop cycling
+		void ForEachExtra(std::function<bool(const std::string_view)> a_visitor) const;
+
+	private:
+		void AddExtraTag(const RE::BSFixedString& a_tag);
+		void RemoveExtraTag(const RE::BSFixedString& a_tag);
+		_NODISCARD bool HasExtraTag(const RE::BSFixedString& a_tag) const;
+
+		stl::enumeration<Tag> _basetags;
+		std::vector<RE::BSFixedString> _extratags;
+	};
+
+	class TagDetails
+	{
+	public:
 		enum TagType
 		{
-			Required,
+			Required = 0,
 			Disallow,
 			Optional,
 
 			Total
 		};
-		using TagTypeData = std::array<std::pair<BaseTag, std::vector<RE::BSFixedString>>, TagType::Total>;
-		static TagTypeData ParseTagsByType(const std::string_view a_tags);
-		static TagTypeData ParseTagsByType(const std::vector<std::string_view>& a_tags);
 
-		bool MatchTags(const std::vector<std::string_view>& a_match) const;
-		bool MatchTags(const TagTypeData& a_data) const;
+	public:
+		TagDetails(const std::string_view a_tags);
+		TagDetails(const std::vector<std::string_view> a_tags);
+		TagDetails(const std::array<TagData, TagType::Total> a_tags);
+		~TagDetails() = default;
 
-		BaseTag tag;
-		std::vector<RE::BSFixedString> extra;
-	};
+		/// @brief If the given tag data matches all of the this's tags
+		_NODISCARD bool MatchTags(const TagData& a_data) const;
 
-	struct TagHandler
-	{
-		/// @brief If the given enumeration contains a_cmp
-		/// @return -1 if a_cmp is now a base tag, 0 if the enumeration doesnt include it, 1 if it does
-		static int32_t HasTag(const BaseTag& a_enumeration, const std::string_view a_cmp);
-
-		static bool AddTag(BaseTag& a_enumeration, const std::string_view a_stringtag);
-		static bool RemoveTag(BaseTag& a_enumeration, const std::string_view a_stringtag);
+	private:
+		TagData _tags[TagType::Total];
 	};
 
 }	 // namespace Registry
