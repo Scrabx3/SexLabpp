@@ -274,10 +274,10 @@ namespace Papyrus::SexLabRegistry
 			}
 			const auto result = scene->SortActors(a_positions, a_allowfallback);
 			if (result) {
-				for (size_t i = 0; i < result->size(); i++) {
-					a_positions[i] = result->at(i);
+				for (size_t n = 0; n < result->size(); n++) {
+					a_positions[n] = result->at(n);
 				}
-				return i;
+				return static_cast<int32_t>(i);
 			}
 		}
 
