@@ -245,7 +245,7 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Cannot sort actors by a none scene", a_stackID);
 			return a_positions;
 		}
-		auto subcount = scene->GetSubmissiveCount();
+		auto subcount = scene->CountSubmissives();
 		std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> argFrag;
 		for (auto&& actor : a_positions) {
 			const auto submissive = subcount > 0 && std::find(a_submissives.begin(), a_submissives.end(), actor) != a_submissives.end();
@@ -258,8 +258,8 @@ namespace Papyrus::ThreadLibrary
 					actor,
 					submissive));
 		}
-		auto ret = library->SortByScene(argFrag, scene);
-		return ret.empty() ? a_positions : ret;
+		auto ret = scene->SortActors(argFrag);
+		return ret ? *ret : a_positions;
 	}
 
 	bool IsActorTrackedImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)

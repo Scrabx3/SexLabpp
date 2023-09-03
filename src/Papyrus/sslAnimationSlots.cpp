@@ -44,21 +44,11 @@ namespace Papyrus::AnimationSlots
 		const auto lib = Registry::Library::GetSingleton();
 		auto scenes = lib->GetByTags(a_actorcount, a_tags);
 		const auto end = std::remove_if(scenes.begin(), scenes.end(), [&](Registry::Scene* a_scene) {
-			for (auto&& tag : a_scene->tags.extra) {
-				std::string_view view{ tag.data() };
-				if (view.find_first_not_of("MFC") != std::string_view::npos) {
-					continue;
-				}
-				if (a_males != -1 && std::count(view.begin(), view.end(), 'M') != a_males)
-					return true;
-				if (a_females != -1 && std::count(view.begin(), view.end(), 'F') != a_females)
-					return true;
-				return false;
-			}
-      logger::error("Scene {}-{} has no sex tag", a_scene->hash, a_scene->id);
-      return false;
+			return !a_scene->Legacy_IsCompatibleSexCount(a_males, a_females);
 		});
+		const auto size = scenes.size();
 		scenes.erase(end, scenes.end());
+		logger::info("Get by tags found {} scenes; {}/{} match sex arguments", size, scenes.size(), size);
 		return ScenesToString(scenes);
 	}
 

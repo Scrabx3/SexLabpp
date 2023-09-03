@@ -2,6 +2,7 @@
 
 #include "Registry/Animation.h"
 #include "Registry/Define/RaceKey.h"
+#include "Registry/Library.h"
 
 namespace Papyrus::SexLabRegistry
 {
@@ -153,5 +154,78 @@ namespace Papyrus::SexLabRegistry
 			return 0;
 		}
 	}
+
+	std::vector<RE::BSFixedString> LookupScenes(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive, FurniturePreference a_furniturepref, RE::TESObjectREFR* a_center)
+	{
+		auto argSubmissive{ a_submissive ? std::vector<RE::Actor*>{ a_submissive } : std::vector<RE::Actor*>{} };
+		return LookupScenesA(a_vm, a_stackID, nullptr, a_positions, a_tags, argSubmissive, a_furniturepref, a_center);
+	}
+
+	std::vector<RE::BSFixedString> LookupScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, FurniturePreference a_furniturepref, RE::TESObjectREFR* a_center)
+	{
+		if (a_positions.empty()) {
+			a_vm->TraceStack("Cannot lookup animations without actors", a_stackID);
+			return {};
+		}
+		const auto tags = Registry::StringSplit(a_tags, ',');
+		auto scenes = Registry::Library::GetSingleton()->LookupScenes(a_positions, tags, a_submissives);
+		const auto pretrim = scenes.size();
+		logger::info("Found {} Scenes, trimming by furniture preference and center...", pretrim);
+		if (a_center) {
+			const auto type = Registry::FurnitureHandler::GetFurnitureType(a_center);
+			if (type != Registry::FurnitureType::None) {
+				std::erase_if(scenes, [&](Registry::Scene* a_scene) {
+					return !a_scene->IsCompatibleFurniture(type);
+				});
+			}
+		} else if (a_furniturepref == FurniturePreference::Prefer ) {
+			const auto where = std::remove_if(scenes.begin(), scenes.end(), [&](Registry::Scene* a_scene) {
+				return !a_scene->UsesFurniture();
+			});
+			if (where != scenes.begin()) {
+				scenes.erase(where, scenes.end());
+			} else {
+				logger::info("Furniture preferred but no furniture animations found, ignoring filter");
+			}
+		} else if (a_furniturepref == FurniturePreference::Disallow) {
+			std::erase_if(scenes, [&](Registry::Scene* a_scene) {
+				return a_scene->UsesFurniture();
+			});
+		}
+		logger::info("Finished trimming, returning {}/{} scenes", scenes.size(), pretrim);
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(scenes.size());
+		for (auto&& scene : scenes)
+			ret.push_back(scene->id);
+		return ret;
+	}
+
+	bool ValidateScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		std::string a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive)
+	{
+		auto argSubmissive{ a_submissive ? std::vector<RE::Actor*>{ a_submissive } : std::vector<RE::Actor*>{} };
+		return ValidateSceneA(a_vm, a_stackID, nullptr, a_sceneid, a_positions, a_tags, argSubmissive);
+	}
+
+	bool ValidateSceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		std::string a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives)
+	{
+		return !ValidateScenesA(a_vm, a_stackID, nullptr, { a_sceneid }, a_positions, a_tags, a_submissives).empty();
+	}
+
+	std::vector<RE::BSFixedString> ValidateScenes(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		std::vector<std::string> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive)
+	{
+		auto argSubmissive{ a_submissive ? std::vector<RE::Actor*>{ a_submissive } : std::vector<RE::Actor*>{} };
+		return ValidateScenesA(a_vm, a_stackID, nullptr, a_sceneids, a_positions, a_tags, argSubmissive);
+	}
+
+	// std::vector<RE::BSFixedString> ValidateScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+	// 	std::vector<std::string> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives)
+	// {
+
+	// }	
 
 }	 // namespace Papyrus::SexLabRegistry

@@ -19,6 +19,7 @@ namespace Papyrus::CreatureAnimationSlots
 			a_vm->TraceStack("Invalid racekey", a_stackID);
 			return {};
 		}
+		Registry::TagDetails tagdetails{ a_tags };
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(256);
 		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
@@ -26,7 +27,7 @@ namespace Papyrus::CreatureAnimationSlots
 				return false;
 			if (a_scene->positions.size() != a_actorcount)
 				return false;
-			if (!a_scene->tags.MatchTags(a_tags))
+			if (!a_scene->IsCompatibleTags(tagdetails))
 				return false;
 			for (auto&& position : a_scene->positions) {
 				if (Registry::RaceHandler::IsCompatibleRaceKey(position.race, racekey)) {
@@ -55,6 +56,7 @@ namespace Papyrus::CreatureAnimationSlots
 			return {};
 		}
 
+		Registry::TagDetails tagdetails{ a_tags };
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(256);
 		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
@@ -62,7 +64,7 @@ namespace Papyrus::CreatureAnimationSlots
 				return false;
 			if (a_scene->positions.size() != a_actorcount)
 				return false;
-			if (!a_scene->tags.MatchTags(a_tags))
+			if (!a_scene->IsCompatibleTags(tagdetails))
 				return false;
 
 			int32_t reqtrue = static_cast<int32_t>(a_creatures.size());
@@ -117,6 +119,7 @@ namespace Papyrus::CreatureAnimationSlots
 			a_vm->TraceStack("Invalid racekey", a_stackID);
 			return {};
 		}
+		Registry::TagDetails tagdetails{ a_tags };
 		std::vector<RE::BSFixedString> ret;
 		ret.reserve(256);
 		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
@@ -124,7 +127,7 @@ namespace Papyrus::CreatureAnimationSlots
 				return false;
 			if (a_scene->positions.size() != a_actorcount)
 				return false;
-			if (!a_scene->tags.MatchTags(a_tags))
+			if (!a_scene->IsCompatibleTags(tagdetails))
 				return false;
 			bool has_race = false;
 			for (auto&& position : a_scene->positions) {
@@ -136,40 +139,7 @@ namespace Papyrus::CreatureAnimationSlots
 			if (!has_race) {
 				return false;
 			}
-			bool match_gender = false;
-			for (auto&& tag : a_scene->tags.extra) {
-				std::string_view view{ tag.data() };
-				if (view.find_first_not_of("MFC") != std::string_view::npos) {
-					continue;
-				}
-				const auto crt_total = std::count(view.begin(), view.end(), 'C');
-				if (crt_total != a_femalecrt + a_malecrt)
-					break;
-
-				enum
-				{
-					Male = 0,
-					Female = 1,
-					Either = 2,
-				};
-				std::vector<int> count;
-				for (auto&& position : a_scene->positions) {
-					if (position.race == Registry::RaceKey::Human)
-						continue;
-					if (position.sex.none(Registry::Sex::Female)) {
-						count[Male]++;
-					} else if (position.sex.none(Registry::Sex::Male)) {
-						count[Female]++;
-					} else {
-						count[Either]++;
-					}
-				}
-				if (count[Male] <= a_malecrt && count[Male] + count[Either] >= a_malecrt) {
-					count[Either] -= a_malecrt - count[Male];
-					match_gender = count[Female] + count[Either] == a_femalecrt;
-				}
-				break;
-			}
+			bool match_gender = a_scene->Legacy_IsCompatibleSexCountCrt(a_malecrt, a_femalecrt);
 			if (!match_gender) {
 				return false;
 			}
