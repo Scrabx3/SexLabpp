@@ -70,8 +70,11 @@ namespace Registry
 		_NODISCARD bool HasTags(const TagData& a_tag, bool a_all) const;
 
 	public:
-		// visitor returns true to stop cycling
+		/// @brief visitor returns true to stop cycling
 		void ForEachExtra(std::function<bool(const std::string_view)> a_visitor) const;
+
+		/// @brief get all tags in this data in a single vector
+		std::vector<RE::BSFixedString> AsVector() const;
 
 	private:
 		void AddExtraTag(const RE::BSFixedString& a_tag);

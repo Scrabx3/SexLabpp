@@ -16,10 +16,15 @@ namespace Registry
 
 		_NODISCARD const Scene* GetSceneByID(const std::string& a_id) const;
 		_NODISCARD const Scene* GetSceneByID(const RE::BSFixedString& a_id) const;
+		_NODISCARD Scene* GetSceneByID_Mutable(const RE::BSFixedString& a_id) const;
 		_NODISCARD size_t GetSceneCount() const;
 
 	public:
 		void ForEachScene(std::function<bool(const Scene*)> a_visitor) const;
+
+		// TODO: Save/Load user related data (Enabled status)
+		void Save();
+		void Load();
 
 	private:
 		mutable std::shared_mutex read_write_lock{};

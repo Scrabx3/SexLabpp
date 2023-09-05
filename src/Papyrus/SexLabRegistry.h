@@ -26,7 +26,6 @@ namespace Papyrus::SexLabRegistry
 		std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissives, FurniturePreference a_furniturepref, RE::TESObjectREFR* a_center);
 	std::vector<RE::BSFixedString> LookupScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, FurniturePreference a_furniturepref, RE::TESObjectREFR* a_center);
-
 	bool ValidateScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::string a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive);
 	bool ValidateSceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
@@ -39,6 +38,52 @@ namespace Papyrus::SexLabRegistry
 	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, std::string a_sceneid, bool a_allowfallback);
 	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, std::vector<std::string> a_sceneids, bool a_allowfallback);
 
+	bool SceneExists(RE::StaticFunctionTag*, RE::BSFixedString a_sceneid);
+	std::vector<RE::BSFixedString> SceneExistA(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_sceneids);
+	bool IsSceneEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_sceneid);
+	void SetSceneEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_sceneid, bool a_enabled);
+	RE::BSFixedString GetSceneName(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_sceneid);
+
+	bool IsSceneTag(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_tag);
+	bool IsSceneTagA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, std::vector<std::string_view> a_tags);
+	bool IsStageTag(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stageid, RE::BSFixedString a_tag);
+	bool IsStageTagA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stageid, std::vector<std::string_view> a_tags);
+	std::vector<RE::BSFixedString> GetSceneTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+	std::vector<RE::BSFixedString> GetStageTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
+	std::vector<RE::BSFixedString> GetCommonTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_ids);
+
+	RE::BSFixedString GetAnimationEvent(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	std::vector<RE::BSFixedString> GetAnimationEventA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
+
+	RE::BSFixedString BranchTo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	int32_t GetNumBranches(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
+	int32_t GetNodeType(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
+
+	std::vector<RE::BSFixedString> GetPathMin(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
+	std::vector<RE::BSFixedString> GetPathMax(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
+
+	int32_t GetActorCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+	int32_t GetOptionalActorCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+	
+	bool IsSimilarPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, int m);
+	bool CanFillPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, RE::Actor* a_actor);
+
+	std::vector<RE::BSFixedString> GetFixedLengthStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+	float GetFixedLength(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
+	std::vector<RE::BSFixedString> GetClimaxStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+
+	int32_t GetPositionSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n);
+	std::vector<int32_t> GetPositionSexA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+	int32_t GetRaceIDPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n);
+	std::vector<int32_t> GetRaceIDPositionA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+	RE::BSFixedString GetRaceKeyPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n);
+	std::vector<RE::BSFixedString> GetRaceKeyPositionA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+
+	std::vector<float> GetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	std::vector<float> GetOffsetRaw(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+
+	int32_t GetStripData(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	std::vector<int32_t> GetStripDataA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 
 	inline bool Register(VM* a_vm)
 	{
@@ -58,7 +103,6 @@ namespace Papyrus::SexLabRegistry
 
 		REGISTERFUNC(LookupScenes, "SexLabRegistry", true);
 		REGISTERFUNC(LookupScenesA, "SexLabRegistry", true);
-
 		REGISTERFUNC(ValidateScene, "SexLabRegistry", true);
 		REGISTERFUNC(ValidateSceneA, "SexLabRegistry", true);
 		REGISTERFUNC(ValidateScenes, "SexLabRegistry", true);
@@ -66,6 +110,53 @@ namespace Papyrus::SexLabRegistry
 
 		REGISTERFUNC(SortByScene, "SexLabRegistry", true);
 		REGISTERFUNC(SortBySceneEx, "SexLabRegistry", true);
+
+		REGISTERFUNC(SceneExists, "SexLabRegistry", true);
+		REGISTERFUNC(SceneExistA, "SexLabRegistry", true);
+		REGISTERFUNC(IsSceneEnabled, "SexLabRegistry", true);
+		REGISTERFUNC(SetSceneEnabled, "SexLabRegistry", true);
+		REGISTERFUNC(GetSceneName, "SexLabRegistry", true);
+
+		REGISTERFUNC(IsSceneTag, "SexLabRegistry", true);
+		REGISTERFUNC(IsSceneTagA, "SexLabRegistry", true);
+		REGISTERFUNC(IsStageTag, "SexLabRegistry", true);
+		REGISTERFUNC(IsStageTagA, "SexLabRegistry", true);
+		REGISTERFUNC(GetSceneTags, "SexLabRegistry", true);
+		REGISTERFUNC(GetStageTags, "SexLabRegistry", true);
+		REGISTERFUNC(GetCommonTags, "SexLabRegistry", true);
+
+		REGISTERFUNC(GetAnimationEvent, "SexLabRegistry", true);
+		REGISTERFUNC(GetAnimationEventA, "SexLabRegistry", true);
+
+		REGISTERFUNC(BranchTo, "SexLabRegistry", true);
+		REGISTERFUNC(GetNumBranches, "SexLabRegistry", true);
+		REGISTERFUNC(GetNodeType, "SexLabRegistry", true);
+
+		REGISTERFUNC(GetPathMin, "SexLabRegistry", true);
+		REGISTERFUNC(GetPathMax, "SexLabRegistry", true);
+
+		REGISTERFUNC(GetActorCount, "SexLabRegistry", true);
+		REGISTERFUNC(GetOptionalActorCount, "SexLabRegistry", true);
+
+		REGISTERFUNC(IsSimilarPosition, "SexLabRegistry", true);
+		REGISTERFUNC(CanFillPosition, "SexLabRegistry", true);
+
+		REGISTERFUNC(GetFixedLengthStages, "SexLabRegistry", true);
+		REGISTERFUNC(GetFixedLength, "SexLabRegistry", true);
+		REGISTERFUNC(GetClimaxStages, "SexLabRegistry", true);
+
+		REGISTERFUNC(GetPositionSex, "SexLabRegistry", true);
+		REGISTERFUNC(GetPositionSexA, "SexLabRegistry", true);
+		REGISTERFUNC(GetRaceIDPosition, "SexLabRegistry", true);
+		REGISTERFUNC(GetRaceIDPositionA, "SexLabRegistry", true);
+		REGISTERFUNC(GetRaceKeyPosition, "SexLabRegistry", true);
+		REGISTERFUNC(GetRaceKeyPositionA, "SexLabRegistry", true);
+
+		REGISTERFUNC(GetOffset, "SexLabRegistry", true);
+		REGISTERFUNC(GetOffsetRaw, "SexLabRegistry", true);
+
+		REGISTERFUNC(GetStripData, "SexLabRegistry", true);
+		REGISTERFUNC(GetStripDataA, "SexLabRegistry", true);
 
 		return true;
 	}

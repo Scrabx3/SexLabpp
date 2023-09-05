@@ -3,9 +3,25 @@
 #include "Registry/Animation.h"
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Library.h"
+#include "UserData/ConfigData.h"
 
 namespace Papyrus::SexLabRegistry
 {
+#define SCENE(argRet)                                 \
+	const auto lib = Registry::Library::GetSingleton(); \
+	const auto scene = lib->GetSceneByID(a_id);         \
+	if (!scene) {                                       \
+		a_vm->TraceStack("Invalid scene id", a_stackID);  \
+		return argRet;                                    \
+	}
+
+#define STAGE(argRet)                                 \
+	const auto stage = scene->GetStageByKey(a_stage); \
+	if (!stage) {                                       \
+		a_vm->TraceStack("Invalid stage id", a_stackID);  \
+		return argRet;                                    \
+	}
+
 	int32_t GetRaceID(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
 	{
 		if (!a_actor) {
@@ -280,9 +296,342 @@ namespace Papyrus::SexLabRegistry
 				return static_cast<int32_t>(i);
 			}
 		}
-
 		return -1;
 	}
 
+	bool SceneExists(RE::StaticFunctionTag*, RE::BSFixedString a_sceneid)
+	{
+		return Registry::Library::GetSingleton()->GetSceneByID(a_sceneid);
+	}
+
+	std::vector<RE::BSFixedString> SceneExistA(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_sceneids)
+	{
+		const auto lib = Registry::Library::GetSingleton();
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(a_sceneids.size());
+		for (auto&& id : a_sceneids) {
+			if (!lib->GetSceneByID(id))
+				continue;
+			ret.push_back(id);
+		}
+		return ret;
+	}
+
+	bool IsSceneEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE(false);
+		return scene->enabled;
+	}
+
+	void SetSceneEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_enabled)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		scene->enabled = a_enabled;
+	}
+
+	RE::BSFixedString GetSceneName(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE(false);
+		return scene->name;
+	}
+	
+	bool IsSceneTag(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_tag)
+	{
+		SCENE(false);
+		return scene->tags.HasTag(a_tag);
+	}
+
+	bool IsSceneTagA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, std::vector<std::string_view> a_tags)
+	{
+		SCENE(false);
+		const auto details = Registry::TagDetails(a_tags);
+		return scene->IsCompatibleTags(details);
+	}
+
+	bool IsStageTag(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, RE::BSFixedString a_tag)
+	{
+		SCENE(false);
+		STAGE(false);
+		return stage->tags.HasTag(a_tag);
+	}
+
+	bool IsStageTagA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, std::vector<std::string_view> a_tags)
+	{
+		SCENE(false);
+		STAGE(false);
+		const auto details = Registry::TagDetails{ a_tags };
+		return details.MatchTags(stage->tags);
+	}
+
+	std::vector<RE::BSFixedString> GetSceneTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE({});
+		return scene->tags.AsVector();
+	}
+
+	std::vector<RE::BSFixedString> GetStageTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE({});
+		STAGE({});
+		return stage->tags.AsVector();
+	}
+
+	std::vector<RE::BSFixedString> GetCommonTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_ids)
+	{
+		const auto lib = Registry::Library::GetSingleton();
+		Registry::TagData ret{};
+		for (auto&& sceneid : a_ids) {
+			const auto scene = lib->GetSceneByID(sceneid);
+			if (!scene) {
+				a_vm->TraceStack("Invalid scene id", a_stackID);
+				break;
+			}
+			ret.AddTag(scene->tags);
+		}
+		return ret.AsVector();
+	}
+
+	RE::BSFixedString GetAnimationEvent(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	{
+		SCENE({});
+		STAGE({});
+		return scene->GetNthAnimationEvent(stage, n);
+	}
+
+	std::vector<RE::BSFixedString> GetAnimationEventA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE({});
+		STAGE({});
+		return scene->GetAnimationEvents(stage);
+	}
+
+	RE::BSFixedString BranchTo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	{
+		SCENE("");
+		STAGE("");
+		const auto ret = scene->GetNthLinkedStage(stage, n);
+		return ret ? ret->id : "";
+	}
+
+	int32_t GetNumBranches(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE(0);
+		STAGE(0);
+		return static_cast<int32_t>(scene->GetNumLinkedStages(stage));
+	}
+
+	int32_t GetNodeType(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE(static_cast<int32_t>(Registry::Scene::NodeType::None));
+		STAGE(static_cast<int32_t>(Registry::Scene::NodeType::None));
+		return static_cast<int32_t>(scene->GetStageNodeType(stage));
+	}
+
+	std::vector<RE::BSFixedString> GetPathMin(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE({});
+		STAGE({});
+		const auto path = scene->GetShortestPath(stage);
+		std::vector<RE::BSFixedString> ret{};
+		for (auto&& p : path) {
+			ret.push_back(p->id);
+		}
+		return ret;
+	}
+
+	std::vector<RE::BSFixedString> GetPathMax(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE({});
+		STAGE({});
+		const auto path = scene->GetLongestPath(stage);
+		std::vector<RE::BSFixedString> ret{};
+		for (auto&& p : path) {
+			ret.push_back(p->id);
+		}
+		return ret;
+	}
+
+	int32_t GetActorCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE(false);
+		return scene->CountPositions();
+	}
+
+	int32_t GetOptionalActorCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE(false);
+		return scene->CountOptionalPositions();
+	}
+
+	bool IsSimilarPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, int m)
+	{
+		SCENE(false);
+		if (n < 0 || m < 0 || n >= scene->positions.size() || m >= scene->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return false;
+		}
+		return scene->positions[n].CanFillPosition(scene->positions[m]);
+	}
+
+	bool CanFillPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, RE::Actor* a_actor)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return false;
+		}
+		SCENE(false);
+		if (n < 0 || n >= scene->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return false;
+		}
+		return scene->positions[n].CanFillPosition(a_actor);
+	}
+
+	std::vector<RE::BSFixedString> GetFixedLengthStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE({});
+		const auto stages = scene->GetFixedLengthStages();
+		std::vector<RE::BSFixedString> ret{};
+		for (auto&& stage : stages) {
+			ret.push_back(stage->id);
+		}
+		return ret;
+	}
+
+	float GetFixedLength(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE(0);
+		STAGE(0);
+		return stage->fixedlength;
+	}
+
+	std::vector<RE::BSFixedString> GetClimaxStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE({});
+		const auto stages = scene->GetClimaxStages();
+		std::vector<RE::BSFixedString> ret{};
+		for (auto&& stage : stages) {
+			ret.push_back(stage->id);
+		}
+		return ret;
+	}
+
+	int32_t GetPositionSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n)
+	{
+		SCENE(0);
+		if (n < 0 || n >= scene->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return 0;
+		}
+		return static_cast<int32_t>(scene->positions[n].GetSexPapyrus());
+	}
+
+	std::vector<int32_t> GetPositionSexA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE({});
+		std::vector<int32_t> ret{};
+		ret.reserve(scene->positions.size());
+		for (auto&& position : scene->positions) {
+			const auto sex = static_cast<int32_t>(position.GetSexPapyrus());
+			ret.push_back(sex);
+		}
+		return ret;
+	}
+
+	int32_t GetRaceIDPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n)
+	{
+		SCENE(0);
+		if (n < 0 || n >= scene->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return 0;
+		}
+		return static_cast<int32_t>(scene->positions[n].race);
+	}
+
+	std::vector<int32_t> GetRaceIDPositionA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE({});
+		std::vector<int32_t> ret{};
+		ret.reserve(scene->positions.size());
+		for (auto&& position : scene->positions) {
+			const auto race = static_cast<int32_t>(position.race);
+			ret.push_back(race);
+		}
+		return ret;
+	}
+
+	RE::BSFixedString GetRaceKeyPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n)
+	{
+		SCENE(0);
+		if (n < 0 || n >= scene->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return 0;
+		}
+		return Registry::RaceHandler::AsString(scene->positions[n].race);
+	}
+
+	std::vector<RE::BSFixedString> GetRaceKeyPositionA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE({});
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(scene->positions.size());
+		for (auto&& position : scene->positions) {
+			const auto race = Registry::RaceHandler::AsString(position.race);
+			ret.push_back(race);
+		}
+		return ret;
+	}
+
+	std::vector<float> GetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	{
+		auto offset = GetOffsetRaw(a_vm, a_stackID, nullptr, a_id, a_stage, n);
+		UserData::ConfigData::GetSingleton()->AdjustOffsetByStage(a_id.data(), a_stage.data(), n, offset);
+		return offset;
+	}
+
+	std::vector<float> GetOffsetRaw(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	{
+		std::vector<float> argRet{ 0, 0, 0, 0 };
+		SCENE(argRet);
+		STAGE(argRet);
+		if (n < 0 || n >= stage->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return argRet;
+		}
+		const auto& position_offset = stage->positions[n].offset;
+		return {
+			position_offset[Registry::Offset::X],
+			position_offset[Registry::Offset::Y],
+			position_offset[Registry::Offset::Z],
+			position_offset[Registry::Offset::R],
+		};
+	}
+
+	int32_t GetStripData(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	{
+		SCENE(0);
+		STAGE(0);
+		if (n < 0 || n >= stage->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return 0;
+		}
+		return stage->positions[n].strips.underlying();
+	}
+
+	std::vector<int32_t> GetStripDataA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE({});
+		STAGE({});
+		std::vector<int32_t> ret{};
+		ret.reserve(stage->positions.size());
+		for (auto&& position : stage->positions) {
+			ret.push_back(position.strips.underlying());
+		}
+		return ret;
+	}
 
 }	 // namespace Papyrus::SexLabRegistry

@@ -192,24 +192,25 @@ namespace Registry
 				throw std::runtime_error(fmt::format("Unrecognized stage referenced in graph: {}", id).c_str());
 			};
 
-			uint64_t graph_count = getLoopCountAndReserve(scene->graph);
+			uint64_t graph_count;
+			readNumeric(graph_count);
 			if (graph_count != stage_count)
 				throw std::runtime_error(fmt::format("Invalid stage count; expected {} but got {}", stage_count, graph_count).c_str());
 			for (size_t n = 0; n < graph_count; n++) {
 				// ------------------------- GRAPH
 				std::string keystage(idcount, 'X');
 				a_stream.read(keystage.data(), idcount);
-				auto& list = scene->graph.emplace_back(std::make_pair(
-					getStage(keystage),
-					std::forward_list<Stage*>{}));
+				const auto key = getStage(keystage);
+				std::vector<const Stage*> value{};
 
 				uint64_t edge_count;
 				readNumeric(edge_count);
 				for (size_t j = 0; j < edge_count; j++) {
 					std::string edgestage(idcount, 'X');
 					a_stream.read(edgestage.data(), idcount);
-					list.second.push_front(getStage(edgestage));
+					value.push_back(getStage(edgestage));
 				}
+				scene->graph.insert(std::make_pair(key, value));
 			}
 			uint32_t furnis;
 			readNumeric(furnis);

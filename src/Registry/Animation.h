@@ -62,10 +62,13 @@ namespace Registry
 		_NODISCARD bool IsMale() const { return sex.all(Sex::Male); }
 		_NODISCARD bool IsFemale() const { return sex.all(Sex::Female); }
 		_NODISCARD bool IsFuta() const { return sex.all(Sex::Futa); }
+		_NODISCARD PapyrusSex GetSexPapyrus() const;
 
 		_NODISCARD bool IsSubmissive() const { return extra.all(Extra::Submissive); }
+		_NODISCARD bool IsOptional() const { return extra.all(Extra::Optional); }
 
 		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
+		_NODISCARD bool CanFillPosition(const PositionInfo& a_other) const;
 		_NODISCARD bool CanFillPosition(PositionFragment a_fragment) const;
 		_NODISCARD std::vector<PositionFragment> MakeFragments() const;
 
@@ -88,6 +91,15 @@ namespace Registry
 	class Scene
 	{
 		friend class Decoder;
+	public:
+		enum class NodeType
+		{
+			None = -1,
+
+			Root = 0,
+			Default = 1,
+			Sink = 2,
+		};
 
 	public:
 		Scene(const std::string_view a_author, const std::string_view a_hash) :
@@ -104,6 +116,7 @@ namespace Registry
 		_NODISCARD bool IsCompatibleFurniture(RE::TESObjectREFR* a_reference) const;
 
 		_NODISCARD uint32_t CountPositions() const;
+		_NODISCARD uint32_t CountOptionalPositions() const;
 		_NODISCARD uint32_t CountSubmissives() const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
@@ -111,7 +124,17 @@ namespace Registry
 		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const;
 		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFB(std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> a_positions) const;
 
-		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_key) const;
+		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_stage) const;
+		_NODISCARD std::vector<const Stage*> GetLongestPath(const Stage* a_src) const;
+		_NODISCARD std::vector<const Stage*> GetShortestPath(const Stage* a_src) const;
+
+		_NODISCARD NodeType GetStageNodeType(const Stage* a_stage) const;
+		_NODISCARD std::vector<const Stage*> GetClimaxStages() const;
+		_NODISCARD std::vector<const Stage*> GetFixedLengthStages() const;
+		_NODISCARD size_t GetNumLinkedStages(const Stage* a_stage) const;
+		_NODISCARD const Stage* GetNthLinkedStage(const Stage* a_stage, size_t n) const;
+		_NODISCARD RE::BSFixedString GetNthAnimationEvent(const Stage* a_stage, size_t n) const;
+		_NODISCARD std::vector<RE::BSFixedString> GetAnimationEvents(const Stage* a_stage) const;
 
 	public:
 		// If the animation only includes humans, with specified amount of males and females
@@ -125,17 +148,18 @@ namespace Registry
 		std::string_view hash;
 
 		std::vector<PositionInfo> positions;
-		std::vector<std::pair<Stage*, std::forward_list<Stage*>>> graph;
-		Stage* start_animation;
-
 		FurnitureData furnitures;
 		TagData tags;
 
-		bool is_private;
 		bool enabled;
+		bool is_private;
 
 	private:
+		Stage* GetStageByKeyImpl(const RE::BSFixedString& a_stage) const;
+
 		std::vector<std::unique_ptr<Stage>> stages;
+		std::map<const Stage*, std::vector<const Stage*>> graph;
+		const Stage* start_animation;
 	};
 
 	class AnimPackage

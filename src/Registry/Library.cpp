@@ -89,6 +89,14 @@ namespace Registry
 		return GetSceneByID(id);
 	}
 
+	Scene* Library::GetSceneByID_Mutable(const RE::BSFixedString& a_id) const
+	{
+		std::string id{ a_id.data() };
+		Registry::ToLower(id);
+		const auto where = scene_map.find(id);
+		return where != scene_map.end() ? where->second : nullptr;
+	}
+
 	std::vector<Scene*> Library::LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
 	{
 		const auto t1 = std::chrono::high_resolution_clock::now();

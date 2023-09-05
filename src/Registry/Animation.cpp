@@ -27,20 +27,31 @@ namespace Registry
 
 		if (fragment.all(PositionFragment::Unconscious) != this->extra.all(Extra::Unconscious))
 			return false;
-		if (fragment.all(PositionFragment::Submissive) != this->extra.all(Extra::Submissive))
+		else if (fragment.all(PositionFragment::Submissive) != this->extra.all(Extra::Submissive))
 			return false;
 
 		if (fragment.all(PositionFragment::Human)) {
-			if (this->extra.all(Extra::Vamprie) && !fragment.all(PositionFragment::Vampire)) {
+			if (this->extra.all(Extra::Vamprie) && !fragment.all(PositionFragment::Vampire))
 				return false;
-			}
-			// COMEBACK: Bindings check
+			if (extra.any(Extra::Armbinder) != fragment.all(PositionFragment::Arminder))
+				return false;
+			if (extra.any(Extra::Yoke) != fragment.all(PositionFragment::Yoke))
+				return false;
+			if (extra.any(Extra::Legbinder) != fragment.all(PositionFragment::LegsBound))
+				return false;
 		} else {
 			const auto thisrace = static_cast<uint64_t>(race);
 			if ((fragment.underlying() & thisrace) != thisrace)
 				return false;
 		}
 		return true;
+	}
+
+	bool PositionInfo::CanFillPosition(const PositionInfo& a_other) const
+	{
+		auto extra_copy = a_other.extra;
+		extra_copy.reset(Extra::Optional);
+		return race == a_other.race && sex.any(a_other.sex.get()) && extra.all(extra_copy.get());
 	}
 
 	std::vector<PositionFragment> PositionInfo::MakeFragments() const
@@ -132,6 +143,21 @@ namespace Registry
 		return ret;
 	}
 
+	PapyrusSex PositionInfo::GetSexPapyrus() const
+	{
+		if (race == Registry::RaceKey::Human) {
+			return PapyrusSex(sex.underlying());
+		} else {
+			stl::enumeration<PapyrusSex> ret{ PapyrusSex::None };
+			if (sex.all(Registry::Sex::Male))
+				ret.set(PapyrusSex::CrtMale);
+			if (sex.all(Registry::Sex::Female))
+				ret.set(PapyrusSex::CrtFemale);
+
+			return ret == PapyrusSex::None ? ret.get() : PapyrusSex::CrtMale;
+		}
+	}
+
 	const Stage* Scene::GetStageByKey(const RE::BSFixedString& a_key) const
 	{
 		if (a_key.empty()) {
@@ -168,6 +194,18 @@ namespace Registry
 	uint32_t Scene::CountPositions() const
 	{
 		return static_cast<uint32_t>(positions.size());
+	}
+
+	uint32_t Scene::CountOptionalPositions() const
+	{
+		uint32_t ret = 0;
+		for (auto&& info : positions) {
+			if (info.IsOptional()) {
+				ret++;
+			}
+		}
+		return ret;
+
 	}
 
 	bool Scene::IsEnabled() const
@@ -352,4 +390,142 @@ namespace Registry
 		return std::nullopt;
 	}
 
-	}	 // namespace Registry
+	size_t Scene::GetNumLinkedStages(const Stage* a_stage) const
+	{
+		const auto where = graph.find(a_stage);
+		if (where == graph.end())
+			return 0;
+		
+		return where->second.size();
+	}
+
+	const Stage* Scene::GetNthLinkedStage(const Stage* a_stage, size_t n) const
+	{
+		const auto where = graph.find(a_stage);
+		if (where == graph.end())
+			return 0;
+
+		if (n < 0 || n >= where->second.size())
+			return 0;
+		
+		return where->second[n];
+	}
+
+	RE::BSFixedString Scene::GetNthAnimationEvent(const Stage* a_stage, size_t n) const
+	{
+		if (n < 0 || n >= a_stage->positions.size())
+			return "";
+		std::string ret{ hash };
+		return ret + a_stage->positions[n].event.data();
+	}
+
+	std::vector<RE::BSFixedString> Scene::GetAnimationEvents(const Stage* a_stage) const
+	{
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(a_stage->positions.size());
+		for (auto&& position : a_stage->positions) {
+			std::string event{ hash };
+			ret.push_back(event + position.event.data());
+		}
+		return ret;
+	}
+
+	Scene::NodeType Scene::GetStageNodeType(const Stage* a_stage) const
+	{
+		if (a_stage == start_animation)
+			return NodeType::Root;
+		
+		const auto where = graph.find(a_stage);
+		if (where == graph.end())
+			return NodeType::None;
+		
+		return where->second.size() == 0 ? NodeType::Sink : NodeType::Default;
+	}
+
+	std::vector<const Stage*> Scene::GetLongestPath(const Stage* a_src) const
+	{
+		if (GetStageNodeType(a_src) == NodeType::Sink)
+			return { a_src };
+
+		std::set<const Stage*> visited{};
+		std::function<std::vector<const Stage*>(const Stage*)> DFS = [&](const Stage* src) -> std::vector<const Stage*> {
+			if (visited.contains(src))
+				return {};
+			visited.insert(src);
+
+			std::vector<const Stage*> longest_path{ src };
+			const auto& neighbours = this->graph.find(src);
+			assert(neighbours != this->graph.end());
+			for (auto&& n : neighbours->second) {
+				const auto cmp = DFS(n);
+				if (cmp.size() + 1 > longest_path.size()) {
+					longest_path.assign(cmp.begin(), cmp.end());
+					longest_path.insert(cmp.begin(), src);
+				}
+			}
+			return longest_path;
+		};
+		return DFS(a_src);
+	}
+
+	std::vector<const Stage*> Scene::GetShortestPath(const Stage* a_src) const
+	{
+		if (GetStageNodeType(a_src) == NodeType::Sink)
+			return { a_src };
+
+		std::function<std::vector<const Stage*>(const Stage*)> BFS = [&](const Stage* src) -> std::vector<const Stage*> {
+			std::set<const Stage*> visited{ src };
+			std::map<const Stage*, const Stage*> pred{ { src, nullptr } };
+			std::queue<const Stage*> queue{ { src } };
+			while (!queue.empty()) {
+				const auto it = queue.front();
+				const auto neighbours = graph.find(it);
+				assert(neighbours != this->graph.end());
+				for (auto&& n : neighbours->second) {
+					if (visited.contains(n))
+						continue;
+					if (GetStageNodeType(n) == NodeType::Sink) {
+						std::vector<const Stage*> ret{};
+						auto p = pred.at(it);
+						while (p != nullptr) {
+							ret.push_back(p);
+							p = pred.at(p);
+						}
+						return { ret.rbegin(), ret.rend() };
+					}
+					pred.emplace(n, it);
+					visited.insert(n);
+					queue.push(n);
+				}
+				queue.pop();
+			}
+			return { src };
+		};
+		return BFS(a_src);
+	}
+
+	std::vector<const Stage*> Scene::GetClimaxStages() const
+	{
+		std::vector<const Stage*> ret{};
+		for (auto&& stage : stages) {
+			for (auto&& position : stage->positions) {
+				if (position.climax) {
+					ret.push_back(stage.get());
+					break;
+				}
+			}
+		}
+		return ret;
+	}
+
+	std::vector<const Stage*> Scene::GetFixedLengthStages() const
+	{
+		std::vector<const Stage*> ret{};
+		for (auto&& stage : stages) {
+			if (stage->fixedlength)
+				ret.push_back(stage.get());
+		}
+		return ret;
+	}
+
+}	 // namespace Registry

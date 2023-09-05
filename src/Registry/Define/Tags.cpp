@@ -154,6 +154,16 @@ namespace Registry
 		}
 	}
 
+	std::vector<RE::BSFixedString> TagData::AsVector() const
+	{
+		std::vector<RE::BSFixedString> ret{ _extratags.begin(), _extratags.end() };
+		for (auto&& [tag_str, tag] : TagTable)
+			if (_basetags.all(tag))
+				ret.push_back(tag_str);
+
+		return ret;
+	}
+
 	void TagData::AddExtraTag(const RE::BSFixedString& a_tag)
 	{
 		if (HasExtraTag(a_tag))
