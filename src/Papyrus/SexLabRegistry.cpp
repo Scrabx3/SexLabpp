@@ -335,7 +335,7 @@ namespace Papyrus::SexLabRegistry
 
 	RE::BSFixedString GetSceneName(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 	{
-		SCENE(false);
+		SCENE("");
 		return scene->name;
 	}
 	
