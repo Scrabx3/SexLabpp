@@ -89,8 +89,8 @@ namespace Registry
 
 	std::unique_ptr<AnimPackage> Decoder::Version1(std::ifstream& a_stream)
 	{
-		constexpr auto hashcount = 4;
-		constexpr auto idcount = 8;
+		constexpr auto HASH_SIZE = 4;
+		constexpr auto ID_SIZE = 8;
 
 		const auto readNumeric = [&]<typename T>(T& a_out) {
 			constexpr size_t n = sizeof(T);
@@ -124,16 +124,16 @@ namespace Registry
 		auto package = std::make_unique<AnimPackage>();
 		readString(package->name);
 		readString(package->author);
-		package->hash.resize(hashcount);
-		a_stream.read(package->hash.data(), hashcount);
+		package->hash.resize(HASH_SIZE);
+		a_stream.read(package->hash.data(), HASH_SIZE);
 
 		uint64_t scene_count = getLoopCountAndReserve(package->scenes);
 		for (size_t i = 0; i < scene_count; i++) {
 			// ------------------------- SCENE
-			package->scenes.push_back(std::make_unique<Scene>(package->author, package->hash));
+			package->scenes.push_back(std::make_unique<Scene>(package->hash));
 			auto& scene = package->scenes.back();
-			scene->id.resize(idcount);
-			a_stream.read(scene->id.data(), idcount);
+			scene->id.resize(ID_SIZE);
+			a_stream.read(scene->id.data(), ID_SIZE);
 			readString(scene->name);
 			uint64_t position_info_count = getLoopCountAndReserve(scene->positions);
 			for (size_t n = 0; n < position_info_count; n++) {
@@ -144,16 +144,16 @@ namespace Registry
 				readFloat(info.scale);
 				a_stream.read(reinterpret_cast<char*>(&info.extra), 1);
 			}
-			std::string startstage(idcount, 'X');
-			a_stream.read(startstage.data(), idcount);
+			std::string startstage(ID_SIZE, 'X');
+			a_stream.read(startstage.data(), ID_SIZE);
 
 			uint64_t stage_count = getLoopCountAndReserve(scene->stages);
 			for (size_t n = 0; n < stage_count; n++) {
 				// ------------------------- STAGE
 				scene->stages.push_back(std::make_unique<Stage>());
 				auto& stage = scene->stages.back();
-				stage->id.resize(idcount);
-				a_stream.read(stage->id.data(), idcount);
+				stage->id.resize(ID_SIZE);
+				a_stream.read(stage->id.data(), ID_SIZE);
 				if (startstage == stage->id)
 					scene->start_animation = stage.get();
 
@@ -198,16 +198,16 @@ namespace Registry
 				throw std::runtime_error(fmt::format("Invalid stage count; expected {} but got {}", stage_count, graph_count).c_str());
 			for (size_t n = 0; n < graph_count; n++) {
 				// ------------------------- GRAPH
-				std::string keystage(idcount, 'X');
-				a_stream.read(keystage.data(), idcount);
+				std::string keystage(ID_SIZE, 'X');
+				a_stream.read(keystage.data(), ID_SIZE);
 				const auto key = getStage(keystage);
 				std::vector<const Stage*> value{};
 
 				uint64_t edge_count;
 				readNumeric(edge_count);
 				for (size_t j = 0; j < edge_count; j++) {
-					std::string edgestage(idcount, 'X');
-					a_stream.read(edgestage.data(), idcount);
+					std::string edgestage(ID_SIZE, 'X');
+					a_stream.read(edgestage.data(), ID_SIZE);
 					value.push_back(getStage(edgestage));
 				}
 				scene->graph.insert(std::make_pair(key, value));
