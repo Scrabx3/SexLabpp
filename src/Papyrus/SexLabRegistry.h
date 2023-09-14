@@ -27,16 +27,16 @@ namespace Papyrus::SexLabRegistry
 	std::vector<RE::BSFixedString> LookupScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, FurniturePreference a_furniturepref, RE::TESObjectREFR* a_center);
 	bool ValidateScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		std::string a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive);
+		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive);
 	bool ValidateSceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		std::string a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives);
+		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives);
 	std::vector<RE::BSFixedString> ValidateScenes(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		std::vector<std::string> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive);
+		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive);
 	std::vector<RE::BSFixedString> ValidateScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		std::vector<std::string> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives);
+		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives);
 
-	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, std::string a_sceneid, bool a_allowfallback);
-	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions, std::vector<std::string> a_sceneids, bool a_allowfallback);
+	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::reference_array<RE::Actor*> a_positions, std::string a_sceneid, bool a_allowfallback);
+	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::reference_array<RE::Actor*> a_positions, std::vector<std::string> a_sceneids, bool a_allowfallback);
 
 	bool SceneExists(RE::StaticFunctionTag*, RE::BSFixedString a_sceneid);
 	std::vector<RE::BSFixedString> SceneExistA(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_sceneids);
@@ -91,15 +91,14 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(MapRaceKeyToID, "SexLabRegistry", true);
 		REGISTERFUNC(GetRaceIDA, "SexLabRegistry", true);
 		REGISTERFUNC(MapRaceKeyToIDA, "SexLabRegistry", true);
-
 		REGISTERFUNC(GetRaceKey, "SexLabRegistry", true);
 		REGISTERFUNC(GetRaceKeyByRace, "SexLabRegistry", true);
 		REGISTERFUNC(MapRaceIDToRaceKey, "SexLabRegistry", true);
 		REGISTERFUNC(GetRaceKeyA, "SexLabRegistry", true);
 		REGISTERFUNC(GetRaceKeyByRaceA, "SexLabRegistry", true);
 		REGISTERFUNC(MapRaceIDToRaceKeyA, "SexLabRegistry", true);
-
 		REGISTERFUNC(GetAllRaceKeys, "SexLabRegistry", true);
+		REGISTERFUNC(GetSex, "SexLabRegistry", true);
 
 		REGISTERFUNC(LookupScenes, "SexLabRegistry", true);
 		REGISTERFUNC(LookupScenesA, "SexLabRegistry", true);

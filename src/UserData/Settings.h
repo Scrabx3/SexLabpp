@@ -83,9 +83,10 @@ namespace Settings
 
 	// --- INI
 	// Animation
-	static inline float fScanRadius{ 750.0f };
-	static inline float fMinScale{ 0.88f };
-	static inline bool bAllowDead{ false };
+	static inline uint32_t iFurniturePrefWeight{ 2 };	 // Weight ised in FindCenter() to use Furniture over default center. Chance = (1 / weight + 1)
+	static inline float fScanRadius{ 750.0f };				 // Radius used in FindCenter() in which to look for potential furniture refs
+	static inline float fMinScale{ 0.88f };						 // Min Scale for an actor be animated
+	static inline bool bAllowDead{ false };						 // if dead actors are allowed in the framework
 
 	// Race
 	static inline bool bAshHopper{ true };

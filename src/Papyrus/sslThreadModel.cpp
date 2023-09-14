@@ -3,6 +3,7 @@
 #include "Registry/Animation.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
+#include "Registry/Util/CellCrawler.h"
 #include "UserData/ConfigData.h"
 
 using Offset = Registry::Offset;
@@ -38,7 +39,7 @@ namespace Papyrus::ThreadModel
 	RE::TESObjectREFR* FindCenter(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
 		const std::vector<RE::BSFixedString> a_scenes,
 		const RE::BSFixedString a_preferedscene,
-		std::vector<RE::BSFixedString> a_out,
+		RE::reference_array<RE::BSFixedString> a_out,
 		FurniStatus a_status)
 	{
 		if (!a_qst) {
@@ -50,164 +51,135 @@ namespace Papyrus::ThreadModel
 		}
 		std::vector<const Registry::Scene*> scenes_furni{};
 		std::vector<const Registry::Scene*> scenes_none{};
-		{	 // get scene objects from argument ids
-			const auto lib = Registry::Library::GetSingleton();
-			auto get = [&](const RE::BSFixedString& a_id) mutable {
-				if (a_id.empty())
-					return;
-				if (const auto scene = lib->GetSceneByID(a_id)) {
-					if (scene->furnitures.furnitures.get() != Registry::FurnitureType::None && a_status != FurniStatus::Disallow) {
-						scenes_furni.push_back(scene);
-					} else {
-						if (scene->furnitures.allowbed && a_status != FurniStatus::Disallow) {
-							scenes_furni.push_back(scene);
-						}
-						scenes_none.push_back(scene);
-					}
-				}
-			};
-			get(a_preferedscene);
-			for (auto&& sceneid : a_scenes) {
-				get(sceneid);
-			}
-			if (scenes_furni.empty() && scenes_none.empty()) {
-				a_vm->TraceStack("Cannot set center object without any provided scenes", a_stackID);
-				return nullptr;
-			}
-		}
-		const auto [center, actor] = GetAliasRefs(a_qst);
-		if (!center) {
-			a_vm->TraceStack("Missing actor in some alias", a_stackID);
-			return nullptr;
-		} else if (!actor) {
-			a_vm->TraceStack("Missing center alias", a_stackID);
-			return nullptr;
-		}
-
-		const auto getScene = [&](Registry::FurnitureType a_checktype) -> const Registry::Scene* {
-			if (a_checktype == Registry::FurnitureType::None) {
-				if (!scenes_none.empty()) {
-					return scenes_none[0];
-				}
+		// get and sort scenes into furniture and non-furniure scenes
+		const auto sort_in_array = [&](auto scene) {
+			if (scene->furnitures.furnitures.get() != Registry::FurnitureType::None && a_status != FurniStatus::Disallow) {
+				scenes_furni.push_back(scene);
 			} else {
-				for (auto&& scene : scenes_furni) {
-					switch (a_checktype) {
-					case Registry::FurnitureType::BedSingle:
-					case Registry::FurnitureType::BedDouble:
-						if (scene->furnitures.allowbed) {
-							return scene;
-						}
-						__fallthrough;
-					default:
-						if (scene->furnitures.furnitures.all(a_checktype)) {
-							return scene;
-						}
-						break;
-					}
+				if (scene->furnitures.allowbed && a_status != FurniStatus::Disallow) {
+					scenes_furni.push_back(scene);
 				}
+				scenes_none.push_back(scene);
 			}
-			return nullptr;
 		};
-		if (const auto scene = center ? getScene(Registry::FurnitureHandler::GetFurnitureType(center)) : nullptr; scene) {
-			a_out[0] = scene->id;
-			return center;
+		const auto lib = Registry::Library::GetSingleton();
+		const auto preferred_scene = lib->GetSceneByID(a_preferedscene);
+		for (auto&& sceneid : a_scenes) {
+			const auto scene = lib->GetSceneByID(sceneid);
+			if (!scene)
+				continue;
+			sort_in_array(scene);
 		}
-		// default search with unknown center
-		bool found_primary = false;	 // if some center matches the preferred scene, ignore all non preferred ones
-		std::vector<std::pair<RE::TESObjectREFR*, const Registry::Scene*>> potentials{};
-		// non furniture animations
-		for (auto&& scene : scenes_none) {
-			if (a_preferedscene == scene->id.c_str()) {
-				potentials.clear();
-				potentials.emplace_back(actor, scene);
-				found_primary = true;
+		if (scenes_furni.empty() && scenes_none.empty()) {
+			a_vm->TraceStack("Cannot set center object without any provided scenes", a_stackID);
+			return nullptr;
+		}
+		// get aliases from quest,
+		// if center is given, check for an animation that uses center
+		// otherwise if preferred animation is given,
+		const auto get_compatible_type = [](const Registry::Scene* a_scene, Registry::FurnitureType a_type) -> bool {
+			switch (a_type) {
+			case Registry::FurnitureType::BedSingle:
+			case Registry::FurnitureType::BedDouble:
+				if (a_scene->furnitures.allowbed) {
+					return true;
+				}
+				__fallthrough;
+			default:
+				if (a_scene->furnitures.furnitures.all(a_type)) {
+					return true;
+				}
 				break;
-			} else {
-				potentials.emplace_back(actor, scene);
 			}
+			return false;
+		};
+		const auto [center, actor] = GetAliasRefs(a_qst);
+		if (!actor) {
+			a_vm->TraceStack("Quest should have some actor positions filled", a_stackID);
+			return nullptr;
 		}
-		if (found_primary && !potentials[0].second->furnitures.allowbed) {
-			// if the preferred scene is valid here and doesnt allow furniture interaction..
+		// is given center valid?
+		if (center) {
+			const auto centertype = Registry::FurnitureHandler::GetFurnitureType(center);
+			const auto scene = [&]() -> const Registry::Scene* {
+				if (preferred_scene && preferred_scene->IsCompatibleFurniture(centertype))
+					return preferred_scene;
+
+				if (centertype == Registry::FurnitureType::None)
+					return scenes_none.empty() ? nullptr : scenes_none[Random::draw<size_t>(0, scenes_none.size() - 1)];
+
+				for (auto&& scene : scenes_furni) {
+					if (get_compatible_type(scene, centertype)) {
+						return scene;
+					}
+				}
+				return nullptr;
+			}();
+			if (scene) {
+				a_out[0] = scene->id;
+				return center;
+			}
+			return nullptr;
+		}
+		// non furniture animations
+		if (a_status == FurniStatus::Disallow) {
+			if (preferred_scene && preferred_scene->furnitures.furnitures == Registry::FurnitureType::None) {
+				a_out[0] = a_preferedscene;
+			} else {
+				if (scenes_none.empty()) {
+					return nullptr;
+				}
+				a_out[0] = scenes_none.at(Random::draw<size_t>(0, scenes_none.size() - 1))->id;
+			}
+			return actor;
+		}
+		// check cells for furniture compatible objects
+		std::vector<std::pair<RE::TESObjectREFR*, const Registry::Scene*>> potentials{};
+		const auto fromref = center ? center : actor;
+		RE::TESObjectREFR* retref = nullptr;
+		CellCrawler::ForEachObjectInRange(fromref, Settings::fScanRadius, [&](RE::TESObjectREFR& a_ref) {
+			// TODO: Check if the object is actually reachable from current location (or if theres a wall between them)
+			if (std::fabs(fromref->GetPositionZ() - a_ref.GetPosition().z) > 256)
+				return RE::BSContainer::ForEachResult::kContinue;	 // not same floor
+
+			// Skip, using actor for non furni animations
+			const auto type = Registry::FurnitureHandler::GetFurnitureType(&a_ref);
+			if (type == Registry::FurnitureType::None)
+				return RE::BSContainer::ForEachResult::kContinue;
+
+			// is pref compatible?
+			if (preferred_scene && preferred_scene->furnitures.furnitures.all(type)) {
+				a_out[0] = a_preferedscene;
+				retref = &a_ref;
+				return RE::BSContainer::ForEachResult::kStop;
+			}
+
+			// potentials
+			for (auto&& scene : scenes_furni) {
+				if (!scene || !get_compatible_type(scene, type)) {
+					continue;
+				}
+				potentials.emplace_back(&a_ref, scene);
+				scene = nullptr;
+			}
+			return RE::BSContainer::ForEachResult::kContinue;
+		});
+		if (retref) {	 // valid furniture for preferred scene
+			return retref;
+		} else if (potentials.size() && (a_status == FurniStatus::Prefer || Random::draw<int>(0, Settings::iFurniturePrefWeight))) {
+			const auto frompos = fromref->GetPosition();
+			std::sort(potentials.begin(), potentials.end(), [&](auto& a, auto& b) {
+				return a.first->GetPosition().GetDistance(frompos) < b.first->GetPosition().GetDistance(frompos);
+			});
 			a_out[0] = potentials[0].second->id;
 			return potentials[0].first;
-		}
-		const size_t loose_potentials = potentials.size();
-		// furniture animations
-		if (a_status != FurniStatus::Disallow) {
-			const auto center_coords = center ? center->GetPosition() : actor->GetPosition();
-			const auto callback = [&](RE::TESObjectREFR& a_reference) mutable {
-				// TODO: Check if the object is actually reachable from current location (or if theres a wall between them)
-
-				if (std::fabs(center_coords.z - a_reference.GetPosition().z) > 256)
-					return RE::BSContainer::ForEachResult::kContinue;	 // not same floor
-
-				const auto type = Registry::FurnitureHandler::GetFurnitureType(&a_reference);
-				if (type == Registry::FurnitureType::None)
-					return RE::BSContainer::ForEachResult::kContinue;
-
-				if (found_primary) {
-					assert(!potentials.empty());
-					const auto scene = potentials[0].second;
-					if (scene->furnitures.furnitures.all(type)) {
-						if (potentials[0].first == actor) {
-							// Animation is loose (non furniture) but theres a compatible furniture closeby
-							potentials.clear();
-						}
-						potentials.push_back({ &a_reference, scene });
-					}
-				} else if (const auto scene = getScene(type)) {
-					if (a_preferedscene == scene->id.c_str()) {
-						if (!found_primary) {
-							found_primary = true;
-							potentials.clear();
-						}
-					}
-					potentials.emplace_back(&a_reference, scene);
-				}
-				return RE::BSContainer::ForEachResult::kContinue;
-			};
-			const auto TES = RE::TES::GetSingleton();
-			if (const auto interior = TES->interiorCell; interior) {
-				interior->ForEachReferenceInRange(center_coords, Settings::fScanRadius, callback);
-			} else if (const auto grids = TES->gridCells; grids) {
-				auto gridLength = grids->length;
-				if (gridLength > 0) {
-					float yPlus = center_coords.y + Settings::fScanRadius;
-					float yMinus = center_coords.y - Settings::fScanRadius;
-					float xPlus = center_coords.x + Settings::fScanRadius;
-					float xMinus = center_coords.x - Settings::fScanRadius;
-					for (uint32_t x = 0, y = 0; (x < gridLength && y < gridLength); x++, y++) {
-						const auto gridcell = grids->GetCell(x, y);
-						if (gridcell && gridcell->IsAttached()) {
-							auto cellCoords = gridcell->GetCoordinates();
-							if (!cellCoords)
-								continue;
-							float worldX = cellCoords->worldX;
-							float worldY = cellCoords->worldY;
-							if (worldX < xPlus && (worldX + 4096.0) > xMinus && worldY < yPlus && (worldY + 4096.0) > yMinus) {
-								gridcell->ForEachReferenceInRange(center_coords, Settings::fScanRadius, callback);
-							}
-						}
-					}
-				}
+		} else {
+			if (scenes_none.empty()) {
+				return nullptr;
 			}
+			a_out[0] = scenes_none.at(Random::draw<size_t>(0, scenes_none.size() - 1))->id;
+			return actor;
 		}
-		// pick and return some valid
-		const auto chosen_idx = Random::draw<size_t>(
-			a_status == FurniStatus::Prefer && loose_potentials < potentials.size() ? loose_potentials : 0,
-			potentials.size() - 1);
-		const auto chosen_center = potentials.at(chosen_idx).first;
-		size_t i = 0;
-		for (auto&& [centerRef, scene] : potentials) {
-			if (centerRef != chosen_center)
-				continue;
-
-			a_out[i++] = scene->id;
-			if (i >= a_out.size()) {
-				break;
-			}
-		}
-		return chosen_center;
 	}
 
 	std::vector<float> GetBaseCoordinates(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::BSFixedString a_scene)

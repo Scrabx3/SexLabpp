@@ -10,7 +10,7 @@ namespace Papyrus::ThreadModel
 	};
 
 	RE::TESObjectREFR* FindCenter(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
-		const std::vector<RE::BSFixedString> a_scenes, const RE::BSFixedString a_preferedscene, std::vector<RE::BSFixedString> a_out, FurniStatus a_status);
+		const std::vector<RE::BSFixedString> a_scenes, const RE::BSFixedString a_preferedscene, RE::reference_array<RE::BSFixedString> a_out, FurniStatus a_status);
 	bool GetIsCompatiblecenter(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center);
 
 	std::vector<float> GetBaseCoordinates(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::BSFixedString a_scene);
