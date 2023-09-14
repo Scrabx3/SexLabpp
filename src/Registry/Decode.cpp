@@ -32,7 +32,8 @@ namespace Registry
 			{
 				Male = 0,
 				Female = 1,
-				Creature = 2,
+				Futa = 2,
+				Creature = 3,
 			};
 
 			std::vector<std::vector<legacySex>> sexes{};
@@ -40,12 +41,12 @@ namespace Registry
 			for (auto&& position : scene->positions) {
 				std::vector<legacySex> vec;
 				if (position.race == RaceKey::Human) {
-					if (position.sex.all(Sex::Male)) {
+					if (position.sex.all(Sex::Male))
 						vec.push_back(legacySex::Male);
-					}
-					if (position.sex.any(Sex::Female, Sex::Futa)) {
+					if (position.sex.all(Sex::Female))
 						vec.push_back(legacySex::Female);
-					}
+					if (position.sex.all(Sex::Futa))
+						vec.push_back(legacySex::Futa);
 				} else {
 					vec.push_back(legacySex::Creature);
 				}
@@ -55,23 +56,21 @@ namespace Registry
 				sexes.push_back(vec);
 			}
 			Combinatorics::ForEachCombination(sexes, [&](auto& it) {
-				std::array<size_t, 3> count{ 0, 0, 0 };
-				for (auto&& sex : it)
-					count[*sex]++;
 				std::vector<char> gender_tag;
-				for (auto&& size : count) {
-					for (size_t i = 0; i < size; i++) {
-						switch (size) {
-						case 0:
-							gender_tag.push_back('M');
-							break;
-						case 1:
-							gender_tag.push_back('F');
-							break;
-						case 2:
-							gender_tag.push_back('C');
-							break;
-						}
+				for (auto&& sex : it) {
+					switch (*sex) {
+					case Male:
+						gender_tag.push_back('M');
+						break;
+					case Female:
+						gender_tag.push_back('F');
+						break;
+					case Futa:
+						gender_tag.push_back('H');
+						break;
+					case Creature:
+						gender_tag.push_back('C');
+						break;
 					}
 				}
 				RE::BSFixedString gTag1{ std::string{ gender_tag.begin(), gender_tag.end() } };
