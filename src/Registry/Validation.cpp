@@ -42,6 +42,9 @@ int32_t Registry::IsValidActorImpl(RE::Actor* a_actor)
 
 
 	const auto race = RaceHandler::GetRaceKey(a_actor);
+	if (!Settings::bAllowCreatures && race != RaceKey::Human) {
+		return -17;
+	}
 	switch (race) {
 	case RaceKey::Human:
 		{
@@ -66,13 +69,6 @@ int32_t Registry::IsValidActorImpl(RE::Actor* a_actor)
 			// }
 		}
 		return true;
-	case RaceKey::None:
-		return -18;
-	default:	// Any creatures
-		if (!Settings::bAllowCreatures) {
-			return -17;
-		}
-		__fallthrough;
 	case RaceKey::AshHopper:
 		return Settings::bAshHopper;
 	case RaceKey::Bear:
@@ -177,5 +173,7 @@ int32_t Registry::IsValidActorImpl(RE::Actor* a_actor)
 		return Settings::bWispmother;
 	case RaceKey::Wolf:
 		return Settings::bWolf;
+	default:
+		return -18;
 	}
 }
