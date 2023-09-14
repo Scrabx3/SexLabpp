@@ -2,7 +2,7 @@
 
 #include "UserData/StripData.h"
 
-namespace Papyrus::sslActorAlias
+namespace Papyrus::ActorAlias
 {
   // COMEBACK: Make a map to store charController flags?
 
@@ -217,5 +217,5 @@ namespace Papyrus::sslActorAlias
 	// ; 	EndIf
 	// ; EndIf
 
-}	 // namespace Papyrus::sslActorAlias
+}	 // namespace Papyrus::ActorAlias
 

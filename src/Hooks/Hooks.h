@@ -1,6 +1,6 @@
 #pragma once
 
-namespace SexLab::Hooks
+namespace Hooks
 {
 	constexpr auto no_collision_flag = static_cast<std::uint32_t>(RE::CFilter::Flag::kNoCollision);
 
@@ -20,7 +20,7 @@ namespace SexLab::Hooks
 				return false;
 
 			auto& filter = bumpedColObj->collidable.broadPhaseHandle.collisionFilterInfo;
-			if (filter & no_collision_flag)
+			if (filter & (no_collision_flag))
 				return false;
 
 			const auto bumpedColRef = RE::TESHavokUtilities::FindCollidableRef(bumpedColObj->collidable);
@@ -52,8 +52,8 @@ namespace SexLab::Hooks
 	inline void Install()
 	{
 		// TODO: find VR offset
-		REL::Relocation<std::uintptr_t> target{ REL::RelocationID(36359, 37350), REL::VariantOffset(0xF0, 0xFB, 0xF0) };
+		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(36359, 37350), OFFSET(0xF0, 0xFB) };
 		stl::write_thunk_call<CollisionHandler>(target.address());
 	}
 
-}	 // namespace SexLab::Hooks
+}	 // namespace Hooks

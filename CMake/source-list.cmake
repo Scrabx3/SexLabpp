@@ -16,8 +16,9 @@ set(CXX_FILES
 	src/UserData/StripData.h
 	src/UserData/StripData.cpp
 
-	# src/Hooks/Hooks.h
-	# src/Hooks/Hooks.cpp
+	src/Hooks/Hooks.h
+	src/Hooks/Hooks.cpp
+
 	src/Registry/Util/Combinatorics.h
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp

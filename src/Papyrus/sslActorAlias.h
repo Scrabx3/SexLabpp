@@ -2,7 +2,7 @@
 
 #include "Registry/Animation.h"
 
-namespace Papyrus::sslActorAlias
+namespace Papyrus::ActorAlias
 {
 	void LockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias);
 	void UnlockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias);
@@ -22,4 +22,4 @@ namespace Papyrus::sslActorAlias
 
 		return true;
 	}
-}	 // namespace Papyrus::sslActorAlias
+}	 // namespace Papyrus::ActorAlias

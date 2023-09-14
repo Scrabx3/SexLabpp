@@ -42,6 +42,12 @@ void ASSERTLOWERCASE(T string)
 #define ASSERTLOWERCASE(expression) ((void)0)
 #endif
 
+#ifdef SKYRIM_SUPPORT_AE
+#define OFFSET(SE, AE) AE
+#else
+#define OFFSET(SE, AE) SE
+#endif
+
 namespace Registry
 {
 	enum Offset : uint8_t

@@ -1,16 +1,24 @@
+#include "Hooks/Hooks.h"
+#include "Papyrus/SexLabRegistry.h"
+#include "Papyrus/sslActorAlias.h"
 #include "Papyrus/sslActorLibrary.h"
 #include "Papyrus/sslAnimationSlots.h"
+#include "Papyrus/sslCreatureAnimationSlots.h"
 #include "Papyrus/sslSystemConfig.h"
 #include "Papyrus/sslThreadLibrary.h"
 #include "Papyrus/sslThreadModel.h"
 #include "Registry/Library.h"
+#include "UserData/StripData.h"
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
 	switch (message->type) {
 	case SKSE::MessagingInterface::kSaveGame:
-		// Settings::StripConfig::GetSingleton()->Save();
+		Settings::Save();
+		UserData::StripData::GetSingleton()->Save();
 		break;
+	case SKSE::MessagingInterface::kPreLoadGame:
+		Settings::Initialize();
 	case SKSE::MessagingInterface::kDataLoaded:
 		Registry::Library::GetSingleton()->Initialize();
 		if (!GameForms::LoadData()) {
@@ -19,8 +27,8 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
-		// Settings::LoadData();
-		// Settings::StripConfig::GetSingleton()->Load();
+		Settings::InitializeData();
+		UserData::StripData::GetSingleton()->Load();
 		break;
 	case SKSE::MessagingInterface::kNewGame:
 	case SKSE::MessagingInterface::kPostLoadGame:
@@ -102,14 +110,16 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		logger::critical("Failed to get papyurs interface");
 		return false;
 	}
+	papyrus->Register(Papyrus::SexLabRegistry::Register);
+	papyrus->Register(Papyrus::ActorAlias::Register);
 	papyrus->Register(Papyrus::ActorLibrary::Register);
 	papyrus->Register(Papyrus::AnimationSlots::Register);
+	papyrus->Register(Papyrus::CreatureAnimationSlots::Register);
 	papyrus->Register(Papyrus::ThreadLibrary::Register);
 	papyrus->Register(Papyrus::ThreadModel::Register);
 	papyrus->Register(Papyrus::SystemConfig::Register);
 
-	// SexLab::Hooks::Install();
-
+	// Hooks::Install();
 
 	logger::info("Initialization complete");
 
