@@ -24,6 +24,10 @@ namespace Registry
 
 		std::vector<std::thread> threads;
 		for (auto& file : fs::directory_iterator{ path }) {
+			if (file.path().extension() != ".slr") {
+				continue;
+			}
+
 			threads.emplace_back([this, file]() {
 				try {
 					auto package = Decoder::Decode(file);
@@ -49,7 +53,7 @@ namespace Registry
 							} else {
 								// A scene containing similar positions may create identical hashes in different iterations
 								auto& vec = where->second;
-								if (std::find(vec.begin(), vec.end(), scene.get()) != vec.end()) {
+								if (std::find(vec.begin(), vec.end(), scene.get()) == vec.end()) {
 									vec.push_back(scene.get());
 								}
 							}
@@ -62,7 +66,8 @@ namespace Registry
 					}
 					packages.push_back(std::move(package));
 				} catch (const std::exception& e) {
-					logger::critical("Unable to read registry file {}. The animation pack will NOT be added to the library. | Error: {}", file.path().filename().string(), e.what());
+					const auto filename = file.path().filename().string();
+					logger::critical("Unable to read registry file {}. The animation pack will NOT be added to the library. | Error: {}", filename, e.what());
 				}
 			});
 		}
@@ -108,14 +113,14 @@ namespace Registry
 				const auto fragment = MakeFragmentFromActor(position, submissive);
 				fragments.push_back(fragment);
 			}
-			std::stable_sort(fragments.begin(), fragments.end(), [](auto& a, auto& b) { return a < b; });
+			std::stable_sort(fragments.begin(), fragments.end());
 			hash = CombineFragments(fragments);
 		} };
-		TagDetails tags = TagDetails{ tags };
+		TagDetails tags{ a_tags };
 		_hashbuilder.join();
 
 		const std::shared_lock lock{ read_write_lock };
-	  const auto where = this->scenes.find(hash);
+		const auto where = this->scenes.find(hash);
 		if (where == this->scenes.end()) {
 			logger::info("Invalid query: [{} | {} <{}>]; No animations for given actors", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size());
 			return {};
