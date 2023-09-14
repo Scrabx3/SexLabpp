@@ -341,14 +341,14 @@ namespace Registry
 
 	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const
 	{
-		if (a_positions.size() < positions.size())
+		if (a_positions.size() > positions.size())
 			return std::nullopt;
 		// Mark every position that every actor can be placed in
 		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
-		compatibles.reserve(positions.size());
+		compatibles.resize(a_positions.size());
 		for (size_t i = 0; i < a_positions.size(); i++) {
 			for (size_t n = 0; n < positions.size(); n++) {
-				if (positions[i].CanFillPosition(a_positions[i].second)) {
+				if (positions[n].CanFillPosition(a_positions[i].second)) {
 					compatibles[i].emplace_back(n, a_positions[i].first);
 				}
 			}
@@ -465,7 +465,7 @@ namespace Registry
 				const auto cmp = DFS(n);
 				if (cmp.size() + 1 > longest_path.size()) {
 					longest_path.assign(cmp.begin(), cmp.end());
-					longest_path.insert(cmp.begin(), src);
+					longest_path.insert(longest_path.begin(), src);
 				}
 			}
 			return longest_path;
