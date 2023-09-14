@@ -13,14 +13,10 @@
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
 	switch (message->type) {
-	case SKSE::MessagingInterface::kSaveGame:
-		Settings::Save();
-		UserData::StripData::GetSingleton()->Save();
-		break;
-	case SKSE::MessagingInterface::kPreLoadGame:
-		Settings::Initialize();
-	case SKSE::MessagingInterface::kDataLoaded:
+	case SKSE::MessagingInterface::kPostLoad:
 		Registry::Library::GetSingleton()->Initialize();
+		break;
+	case SKSE::MessagingInterface::kDataLoaded:
 		if (!GameForms::LoadData()) {
 			logger::critical("Unable to load esp objects");
 			if (SKSE::WinAPI::MessageBox(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
@@ -30,8 +26,12 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		Settings::InitializeData();
 		UserData::StripData::GetSingleton()->Load();
 		break;
-	case SKSE::MessagingInterface::kNewGame:
-	case SKSE::MessagingInterface::kPostLoadGame:
+	case SKSE::MessagingInterface::kSaveGame:
+		Settings::Save();
+		UserData::StripData::GetSingleton()->Save();
+		break;
+	case SKSE::MessagingInterface::kPreLoadGame:
+		Settings::Initialize();
 		break;
 	}
 }
