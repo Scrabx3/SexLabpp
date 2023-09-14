@@ -23,7 +23,7 @@ namespace Papyrus::CreatureAnimationSlots
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(256);
 		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
-			if (!a_scene->IsEnabled())
+			if (!a_scene->IsEnabled() || a_scene->IsPrivate())
 				return false;
 			if (a_scene->positions.size() != a_actorcount)
 				return false;
@@ -60,7 +60,7 @@ namespace Papyrus::CreatureAnimationSlots
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(256);
 		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
-			if (!a_scene->IsEnabled())
+			if (!a_scene->IsEnabled() || a_scene->IsPrivate())
 				return false;
 			if (a_scene->positions.size() != a_actorcount)
 				return false;
@@ -123,7 +123,7 @@ namespace Papyrus::CreatureAnimationSlots
 		std::vector<RE::BSFixedString> ret;
 		ret.reserve(256);
 		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
-			if (!a_scene->IsEnabled())
+			if (!a_scene->IsEnabled() || a_scene->IsPrivate())
 				return false;
 			if (a_scene->positions.size() != a_actorcount)
 				return false;

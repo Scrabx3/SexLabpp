@@ -210,7 +210,12 @@ namespace Registry
 
 	bool Scene::IsEnabled() const
 	{
-		return !is_private && enabled;
+		return enabled;
+	}
+
+	bool Scene::IsPrivate() const
+	{
+		return is_private;
 	}
 
 	std::vector<std::vector<PositionFragment>> Scene::MakeFragments() const

@@ -155,7 +155,7 @@ namespace Registry
 		ret.reserve(scene_map.size() >> 5);
 		const std::shared_lock lock{ read_write_lock };
 		for (auto&& [key, scene] : scene_map) {
-			if (!scene->IsEnabled())
+			if (!scene->IsEnabled() || scene->IsPrivate())
 				continue;
 			if (scene->positions.size() != a_positions)
 				continue;

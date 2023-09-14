@@ -102,11 +102,12 @@ namespace Registry
 		};
 
 	public:
-		Scene(const std::string_view a_author, const std::string_view a_hash) :
-			author(a_author), hash(a_hash), start_animation(nullptr), furnitures({}), tags({}) {}
+		Scene(const std::string_view a_hash) :
+			hash(a_hash), start_animation(nullptr), furnitures({}), tags({}) {}
 		~Scene() = default;
 
 		_NODISCARD bool IsEnabled() const;
+		_NODISCARD bool IsPrivate() const;
 		_NODISCARD bool HasCreatures() const;
 		_NODISCARD bool UsesFurniture() const;
 
@@ -144,19 +145,19 @@ namespace Registry
 	public:
 		std::string id;
 		std::string name;
-		std::string_view author;
-		std::string_view hash;
 
 		std::vector<PositionInfo> positions;
 		FurnitureData furnitures;
 		TagData tags;
 
 		bool enabled;
-		bool is_private;
 
 	private:
 		Stage* GetStageByKeyImpl(const RE::BSFixedString& a_stage) const;
 
+		bool is_private;
+
+		std::string_view hash;
 		std::vector<std::unique_ptr<Stage>> stages;
 		std::map<const Stage*, std::vector<const Stage*>> graph;
 		const Stage* start_animation;
