@@ -141,7 +141,7 @@ namespace Registry
 	}
 
 	bool TagData::HasTags(const TagData& a_tag, bool a_all) const
-	{
+	{		
 		if (a_all) {
 			if (!_basetags.all(a_tag._basetags.get()))
 				return false;	 // Want all but missing base
@@ -160,6 +160,12 @@ namespace Registry
 		// if here we either want all and havent found 1 missing
 		// or want any and havent found 1 matching
 		return a_all;
+	}
+
+
+	bool TagData::IsEmpty() const
+	{
+		return _basetags.underlying() == 0 && _extratags.empty();
 	}
 
 	void TagData::ForEachExtra(std::function<bool(const std::string_view)> a_visitor) const
@@ -233,11 +239,11 @@ namespace Registry
 
 	bool TagDetails::MatchTags(const TagData& a_data) const
 	{
-		if (a_data.HasTags(_tags[TagType::Disallow], false))
+		if (!_tags[TagType::Disallow].IsEmpty() && a_data.HasTags(_tags[TagType::Disallow], false))
 			return false;
-		if (!a_data.HasTags(_tags[TagType::Optional], false))
+		if (!_tags[TagType::Optional].IsEmpty() && !a_data.HasTags(_tags[TagType::Optional], false))
 			return false;
-		return a_data.HasTags(_tags[TagType::Required], true);
+		return _tags[TagType::Required].IsEmpty() || a_data.HasTags(_tags[TagType::Required], true);
 	}
 
 }

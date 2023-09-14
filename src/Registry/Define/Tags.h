@@ -84,6 +84,9 @@ namespace Registry
 		/// @brief Checks if this has any or all of the arguments tags
 		_NODISCARD bool HasTags(const TagData& a_tag, bool a_all) const;
 
+		/// @brief If this data contains any tags
+		_NODISCARD bool IsEmpty() const;
+
 	public:
 		/// @brief visitor returns true to stop cycling
 		void ForEachExtra(std::function<bool(const std::string_view)> a_visitor) const;
