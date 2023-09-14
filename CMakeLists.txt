@@ -50,6 +50,7 @@ add_subdirectory("./lib" CommonLibSSE)
 
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
+find_package(glm REQUIRED CONFIG)
 
 # ---- Add source files ----
 include(CMake/source-list.cmake)
