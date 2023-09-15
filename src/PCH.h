@@ -69,7 +69,7 @@ namespace Decode
 	void Read(std::ifstream& a_stream, F& a_out)
 	{
 		int32_t tmp;
-		Read(tmp);
+		Read(a_stream, tmp);
 		a_out = static_cast<float>(tmp) / 1000.0f;
 	}
 
@@ -79,7 +79,7 @@ namespace Decode
 	void Read(std::ifstream& a_stream, S& a_out)
 	{
 		uint64_t u64;
-		Read(u64);
+		Read(a_stream, u64);
 		std::vector<char> buffer;
 		buffer.resize(u64);
 		a_stream.read(buffer.data(), u64);

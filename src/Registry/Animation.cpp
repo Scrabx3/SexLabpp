@@ -29,7 +29,7 @@ namespace Registry
 				scenes.reserve(scene_count);
 				for (size_t i = 0; i < scene_count; i++) {
 					scenes.push_back(
-						std::make_unique<Scene>(stream, version));
+						std::make_unique<Scene>(stream, hash));
 				}
 			}
 			break;
@@ -52,7 +52,7 @@ namespace Registry
 			positions.emplace_back(a_stream);
 		}
 
-		enum legacySex
+		enum legacySex : char
 		{
 			Male = 'M',
 			Female = 'F',
@@ -172,7 +172,7 @@ namespace Registry
 
 	Position::Position(std::ifstream& a_stream) :
 		event(Decode::Read<decltype(event)>(a_stream)),
-		climax(Decode::Read<uint8_t>(a_stream)),
+		climax(Decode::Read<uint8_t>(a_stream) > 0),
 		offset(Transform(a_stream))
 	{
 		a_stream.read(reinterpret_cast<char*>(&strips), 1);

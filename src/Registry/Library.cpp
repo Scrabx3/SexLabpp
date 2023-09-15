@@ -29,7 +29,7 @@ namespace Registry
 
 			threads.emplace_back([this, file]() {
 				try {
-					const auto package = std::make_unique<AnimPackage>(file);
+					auto package = std::make_unique<AnimPackage>(file);
 					for (auto&& scene : package->scenes) {
 						// For each scene, find all viable hash locks and sort them into the library
 						const auto positionFragments = scene->MakeFragments();
