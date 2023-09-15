@@ -5,6 +5,179 @@
 
 namespace Registry
 {
+	AnimPackage::AnimPackage(const fs::path a_file)
+	{
+		std::ifstream stream(a_file, std::ios::binary);
+		stream.unsetf(std::ios::skipws);
+		stream.exceptions(std::fstream::eofbit);
+		stream.exceptions(std::fstream::badbit);
+		stream.exceptions(std::fstream::failbit);
+
+		uint8_t version;
+		stream.read(reinterpret_cast<char*>(&version), 1);
+		switch (version) {
+		case 1:
+			{
+				Decode::Read(stream, name);
+				Decode::Read(stream, author);
+
+				hash.resize(Decode::HASH_SIZE);
+				stream.read(hash.data(), Decode::HASH_SIZE);
+
+				uint64_t scene_count;
+				Decode::Read(stream, scene_count);
+				scenes.reserve(scene_count);
+				for (size_t i = 0; i < scene_count; i++) {
+					scenes.push_back(
+						std::make_unique<Scene>(stream, version));
+				}
+			}
+			break;
+		default:
+			throw std::runtime_error(fmt::format("Invalid version: {}", version).c_str());
+		}
+	}
+
+	Scene::Scene(std::ifstream& a_stream, std::string_view a_hash) :
+		hash(a_hash)
+	{
+		id.resize(Decode::ID_SIZE);
+		a_stream.read(id.data(), Decode::ID_SIZE);
+		Decode::Read(a_stream, name);
+		// --- Position Infos
+		uint64_t info_count;
+		Decode::Read(a_stream, info_count);
+		positions.reserve(info_count);
+		for (size_t i = 0; i < info_count; i++) {
+			positions.emplace_back(a_stream);
+		}
+
+		enum legacySex
+		{
+			Male = 'M',
+			Female = 'F',
+			Futa = 'H',
+			Creature = 'C',
+		};
+		std::vector<std::vector<legacySex>> sexes{};
+		sexes.reserve(positions.size());
+		for (auto&& position : positions) {
+			std::vector<legacySex> vec{};
+			if (position.race == RaceKey::Human) {
+				if (position.sex.all(Sex::Male))
+					vec.push_back(legacySex::Male);
+				if (position.sex.all(Sex::Female))
+					vec.push_back(legacySex::Female);
+				if (position.sex.all(Sex::Futa))
+					vec.push_back(legacySex::Futa);
+			} else {
+				vec.push_back(legacySex::Creature);
+			}
+			if (vec.empty())
+				throw std::runtime_error(fmt::format("Some position has no associated sex in scene: {}", id).c_str());
+			sexes.push_back(vec);
+		}
+		Combinatorics::ForEachCombination(sexes, [&](auto& it) {
+			std::vector<char> gender_tag{};
+			for (auto&& sex : it) {
+				gender_tag.push_back(*sex);
+			}
+			RE::BSFixedString gTag1{ std::string{ gender_tag.begin(), gender_tag.end() } };
+			RE::BSFixedString gTag2{ std::string{ gender_tag.rbegin(), gender_tag.rend() } };
+			tags.AddTag(gTag1);
+			if (gTag2 != gTag1) {
+				tags.AddTag(gTag2);
+			}
+			return Combinatorics::CResult::Next;
+		});
+		// --- Stages
+		std::string startstage(Decode::ID_SIZE, 'X');
+		a_stream.read(startstage.data(), Decode::ID_SIZE);
+		uint64_t stage_count;
+		Decode::Read(a_stream, stage_count);
+		stages.reserve(stage_count);
+		for (size_t i = 0; i < stage_count; i++) {
+			const auto& stage = stages.emplace_back(
+				std::make_unique<Stage>(a_stream));
+
+			tags.AddTag(stage->tags);
+			if (stage->id == startstage) {
+				start_animation = stage.get();
+			}
+		}
+		if (!start_animation) {
+			throw std::runtime_error(fmt::format("Start animation {} is not found in scene {}", startstage, id).c_str());
+		}
+		// --- Graph
+		uint64_t graph_vertices;
+		Decode::Read(a_stream, graph_vertices);
+		if (graph_vertices != stage_count) {
+			throw std::runtime_error(fmt::format("Invalid graph vertex count; expected {} but got {}", stage_count, graph_vertices).c_str());
+		}
+		std::string vertexid(Decode::ID_SIZE, 'X');
+		for (size_t i = 0; i < graph_vertices; i++) {
+			a_stream.read(vertexid.data(), Decode::ID_SIZE);
+			const auto vertex = GetStageByKey(vertexid.data());
+			if (!vertex) {
+				throw std::runtime_error(fmt::format("Invalid vertex: {} in scene: {}", vertexid, id).c_str());
+			}
+			std::vector<const Stage*> edges{};
+			uint64_t edge_count;
+			Decode::Read(a_stream, edge_count);
+			std::string edgeid(Decode::ID_SIZE, 'X');
+			for (size_t n = 0; n < edge_count; n++) {
+				a_stream.read(edgeid.data(), Decode::ID_SIZE);
+				const auto edge = GetStageByKey(edgeid.data());
+				if (!edge) {
+					throw std::runtime_error(fmt::format("Invalid edge: {} for vertex: {} in scene: {}", edgeid, vertexid, id).c_str());
+				}
+				edges.push_back(edge);
+			}
+			graph.insert(std::make_pair(vertex, edges));
+		}		
+		// --- Misc
+		a_stream.read(reinterpret_cast<char*>(&furnitures.furnitures), 1);
+		a_stream.read(reinterpret_cast<char*>(&furnitures.allowbed), 1);
+		Decode::Read(a_stream, furnitures.offset[Offset::X]);
+		Decode::Read(a_stream, furnitures.offset[Offset::Y]);
+		Decode::Read(a_stream, furnitures.offset[Offset::Z]);
+		Decode::Read(a_stream, furnitures.offset[Offset::R]);
+		a_stream.read(reinterpret_cast<char*>(&is_private), 1);
+	}
+
+	PositionInfo::PositionInfo(std::ifstream& a_stream)
+	{
+		a_stream.read(reinterpret_cast<char*>(&race), 1);
+		a_stream.read(reinterpret_cast<char*>(&sex), 1);
+		Decode::Read(a_stream, scale);
+		a_stream.read(reinterpret_cast<char*>(&extra), 1);
+	}
+
+	Stage::Stage(std::ifstream& a_stream)
+	{
+		id.resize(Decode::ID_SIZE);
+		a_stream.read(id.data(), Decode::ID_SIZE);
+
+		uint64_t position_count;
+		Decode::Read(a_stream, position_count);
+		positions.reserve(position_count);
+		for (size_t i = 0; i < position_count; i++) {
+			positions.emplace_back(a_stream);
+		}
+
+		Decode::Read(a_stream, fixedlength);
+		Decode::Read(a_stream, navtext);
+		tags = TagData{ a_stream };
+	}
+
+	Position::Position(std::ifstream& a_stream) :
+		event(Decode::Read<decltype(event)>(a_stream)),
+		climax(Decode::Read<uint8_t>(a_stream)),
+		offset(Transform(a_stream))
+	{
+		a_stream.read(reinterpret_cast<char*>(&strips), 1);
+	}
+
 	bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
 	{
 		auto fragment = stl::enumeration(MakeFragmentFromActor(a_actor, false));

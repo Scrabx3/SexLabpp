@@ -39,8 +39,6 @@ set(CXX_FILES
 
 	src/Registry/Animation.h
 	src/Registry/Animation.cpp
-	src/Registry/Decode.h
-	src/Registry/Decode.cpp
 	src/Registry/Library.h
 	src/Registry/Library.cpp
 	src/Registry/Misc.h

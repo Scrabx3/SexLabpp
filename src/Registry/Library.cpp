@@ -1,6 +1,5 @@
 #include "Library.h"
 
-#include "Decode.h"
 #include "Define/RaceKey.h"
 #include "Util/Combinatorics.h"
 
@@ -30,7 +29,7 @@ namespace Registry
 
 			threads.emplace_back([this, file]() {
 				try {
-					auto package = Decoder::Decode(file);
+					const auto package = std::make_unique<AnimPackage>(file);
 					for (auto&& scene : package->scenes) {
 						// For each scene, find all viable hash locks and sort them into the library
 						const auto positionFragments = scene->MakeFragments();

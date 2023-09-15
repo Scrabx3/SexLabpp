@@ -82,6 +82,17 @@ namespace Registry
 		}
 	}
 
+	TagData::TagData(std::ifstream& a_stream)
+	{
+		uint64_t tag_count;
+		Decode::Read(a_stream, tag_count);
+		for (size_t j = 0; j < tag_count; j++) {
+			RE::BSFixedString tag;
+			Decode::Read(a_stream, tag);
+			AddTag(tag);
+		}
+	}
+
 	void TagData::AddTag(Tag a_tag)
 	{
 		_basetags.set(a_tag);

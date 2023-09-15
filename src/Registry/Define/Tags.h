@@ -64,6 +64,7 @@ namespace Registry
 	{
 	public:
 		TagData(const std::vector<std::string_view>& a_tags);
+		TagData(std::ifstream& a_stream);
 		TagData() = default;
 		~TagData() = default;
 	public:

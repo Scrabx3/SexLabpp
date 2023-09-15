@@ -5,6 +5,7 @@
 #include "Define/RaceKey.h"
 #include "Define/Sex.h"
 #include "Define/Tags.h"
+#include "Define/Transform.h"
 
 namespace Registry
 {
@@ -25,15 +26,25 @@ namespace Registry
 			All = static_cast<std::underlying_type_t<StripData>>(-1),
 		};
 
-		RE::BSFixedString event;
-		stl::enumeration<StripData, uint8_t> strips;
-		bool climax;
+	public:
+		Position(std::ifstream& a_stream);
+		~Position() = default;
 
-		float offset[Offset::Total];
+	public:
+		RE::BSFixedString event;
+
+		bool climax;
+		Transform offset;
+		stl::enumeration<StripData, uint8_t> strips;
 	};
 
 	struct Stage
 	{
+	public:
+		Stage(std::ifstream& a_stream);
+		~Stage() = default;
+
+	public:
 		std::string id;
 		std::vector<Position> positions;
 
@@ -57,8 +68,10 @@ namespace Registry
 		};
 
 	public:
-		_NODISCARD bool IsHuman() const { return race == RaceKey::Human; }
+		PositionInfo(std::ifstream& a_stream);
+		~PositionInfo() = default;
 
+		_NODISCARD bool IsHuman() const { return race == RaceKey::Human; }
 		_NODISCARD bool IsMale() const { return sex.all(Sex::Male); }
 		_NODISCARD bool IsFemale() const { return sex.all(Sex::Female); }
 		_NODISCARD bool IsFuta() const { return sex.all(Sex::Futa); }
@@ -80,17 +93,8 @@ namespace Registry
 		float scale;
 	};
 
-	struct FurnitureData
-	{
-		stl::enumeration<FurnitureType, uint32_t> furnitures;
-
-		bool allowbed;
-		float offset[Offset::Total];
-	};
-
 	class Scene
 	{
-		friend class Decoder;
 	public:
 		enum class NodeType
 		{
@@ -101,9 +105,15 @@ namespace Registry
 			Sink = 2,
 		};
 
+		struct FurnitureData
+		{
+			stl::enumeration<FurnitureType, uint32_t> furnitures;
+			bool allowbed;
+			std::array<float, Offset::Total> offset;
+		};
+
 	public:
-		Scene(const std::string_view a_hash) :
-			hash(a_hash), start_animation(nullptr), furnitures({}), tags({}) {}
+		Scene(std::ifstream& a_stream, std::string_view a_hash);
 		~Scene() = default;
 
 		_NODISCARD bool IsEnabled() const;
@@ -153,11 +163,9 @@ namespace Registry
 		bool enabled;
 
 	private:
-		Stage* GetStageByKeyImpl(const RE::BSFixedString& a_stage) const;
-
+		std::string_view hash;
 		bool is_private;
 
-		std::string_view hash;
 		std::vector<std::unique_ptr<Stage>> stages;
 		std::map<const Stage*, std::vector<const Stage*>> graph;
 		const Stage* start_animation;
@@ -166,11 +174,20 @@ namespace Registry
 	class AnimPackage
 	{
 	public:
-		std::string name;
-		std::string author;
-		std::string hash;
+		AnimPackage(const fs::path a_file);
+		~AnimPackage() = default;
 
+		RE::BSFixedString GetName() const { return name; }
+		RE::BSFixedString GetAuthor() const { return author; }
+		std::string_view GetHash() const { return hash; }
+
+	public:
 		std::vector<std::unique_ptr<Scene>> scenes;
+
+	private:
+		RE::BSFixedString name;
+		RE::BSFixedString author;
+		std::string hash;
 	};
 
 }	 // namespace Registry
