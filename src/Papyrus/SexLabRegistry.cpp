@@ -15,11 +15,11 @@ namespace Papyrus::SexLabRegistry
 		return argRet;                                    \
 	}
 
-#define STAGE(argRet)                                 \
-	const auto stage = scene->GetStageByKey(a_stage); \
-	if (!stage) {                                       \
-		a_vm->TraceStack("Invalid stage id", a_stackID);  \
-		return argRet;                                    \
+#define STAGE(argRet)                                \
+	const auto stage = scene->GetStageByKey(a_stage);  \
+	if (!stage) {                                      \
+		a_vm->TraceStack("Invalid stage id", a_stackID); \
+		return argRet;                                   \
 	}
 
 	int32_t GetRaceID(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
@@ -196,7 +196,7 @@ namespace Papyrus::SexLabRegistry
 					return !a_scene->IsCompatibleFurniture(type);
 				});
 			}
-		} else if (a_furniturepref == FurniturePreference::Prefer ) {
+		} else if (a_furniturepref == FurniturePreference::Prefer) {
 			const auto where = std::remove_if(scenes.begin(), scenes.end(), [&](Registry::Scene* a_scene) {
 				return !a_scene->UsesFurniture();
 			});
@@ -355,7 +355,7 @@ namespace Papyrus::SexLabRegistry
 		SCENE("");
 		return scene->name;
 	}
-	
+
 	bool IsSceneTag(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_tag)
 	{
 		SCENE(false);
@@ -605,9 +605,15 @@ namespace Papyrus::SexLabRegistry
 
 	std::vector<float> GetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
 	{
-		auto offset = GetOffsetRaw(a_vm, a_stackID, nullptr, a_id, a_stage, n);
-		UserData::ConfigData::GetSingleton()->AdjustOffsetByStage(a_id.data(), a_stage.data(), n, offset);
-		return offset;
+		std::vector<float> argRet{ 0, 0, 0, 0 };
+		SCENE(argRet);
+		STAGE(argRet);
+		if (n < 0 || n >= stage->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return argRet;
+		}
+		const auto ret = stage->positions[n].offset.GetOffset();
+		return { ret.begin(), ret.end() };
 	}
 
 	std::vector<float> GetOffsetRaw(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
@@ -619,13 +625,8 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid position idx", a_stackID);
 			return argRet;
 		}
-		const auto& position_offset = stage->positions[n].offset;
-		return {
-			position_offset[Registry::Offset::X],
-			position_offset[Registry::Offset::Y],
-			position_offset[Registry::Offset::Z],
-			position_offset[Registry::Offset::R],
-		};
+		const auto ret = stage->positions[n].offset.GetRawOffset();
+		return { ret.begin(), ret.end() };
 	}
 
 	int32_t GetStripData(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
