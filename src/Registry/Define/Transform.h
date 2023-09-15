@@ -34,12 +34,5 @@ namespace Registry
 		std::array<float, Offset::Total> _offset;
 		std::array<float, Offset::Total> _raw;
 	};
-  
-	class FurnitureTransform :
-		public Transform
-	{
-		
-
-	};
 
 } // namespace Registry

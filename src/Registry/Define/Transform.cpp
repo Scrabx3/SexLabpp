@@ -15,6 +15,16 @@ namespace Registry
     _offset = _raw;
 	}
 
+  const std::array<float, Offset::Total>& Transform::GetRawOffset() const
+  {
+    return _raw;
+  }
+
+	const std::array<float, Offset::Total>& Transform::GetOffset() const
+  {
+    return _offset;
+  }
+
 	void Transform::Apply(std::array<float, 4>& a_coordinate) const
 	{
 		const auto cos_theta = std::cosf(a_coordinate[3]);
