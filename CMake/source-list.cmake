@@ -34,6 +34,8 @@ set(CXX_FILES
 	src/Registry/Define/Sex.cpp
 	src/Registry/Define/Tags.h
 	src/Registry/Define/Tags.cpp
+	src/Registry/Define/Transform.h
+	src/Registry/Define/Transform.cpp
 
 	src/Registry/Animation.h
 	src/Registry/Animation.cpp
