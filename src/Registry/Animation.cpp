@@ -136,7 +136,7 @@ namespace Registry
 			graph.insert(std::make_pair(vertex, edges));
 		}		
 		// --- Misc
-		a_stream.read(reinterpret_cast<char*>(&furnitures.furnitures), 1);
+		a_stream.read(reinterpret_cast<char*>(&furnitures.furnitures), 4);
 		a_stream.read(reinterpret_cast<char*>(&furnitures.allowbed), 1);
 		Decode::Read(a_stream, furnitures.offset[Offset::X]);
 		Decode::Read(a_stream, furnitures.offset[Offset::Y]);
@@ -301,6 +301,7 @@ namespace Registry
 		case RaceKey::Canine:
 			setRaceBit(RaceKey::Dog);
 			addRaceVariance(RaceKey::Wolf);
+			break;
 		default:
 			setRaceBit(this->race);
 			break;
@@ -337,11 +338,8 @@ namespace Registry
 			return start_animation;
 		}
 
-		for (auto&& [key, dest] : graph) {
-			if (a_key == key->id.c_str())
-				return key;
-		}
-		return nullptr;
+		const auto where = std::find_if(stages.begin(), stages.end(), [&](const std::unique_ptr<Stage>& it) { return a_key == it->id.data(); });
+		return where == stages.end() ? nullptr : where->get();
 	}
 
 	bool Scene::HasCreatures() const
@@ -532,7 +530,7 @@ namespace Registry
 			// Iteration always use the same nth actor + some idx of a compatible position
 			std::vector<RE::Actor*> result{ it.size(), nullptr };
 			for (auto&& current : it) {
-				const auto [scene_idx, actor] = *current;
+				const auto& [scene_idx, actor] = *current;
 				if (result[scene_idx] != nullptr) {
 					return Combinatorics::CResult::Next;
 				}

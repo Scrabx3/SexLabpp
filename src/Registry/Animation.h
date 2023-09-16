@@ -107,9 +107,9 @@ namespace Registry
 
 		struct FurnitureData
 		{
-			stl::enumeration<FurnitureType, uint32_t> furnitures;
-			bool allowbed;
-			std::array<float, Offset::Total> offset;
+			stl::enumeration<FurnitureType> furnitures{ FurnitureType::None };
+			bool allowbed{ false };
+			std::array<float, Offset::Total> offset{ 0, 0, 0, 0 };
 		};
 
 	public:
