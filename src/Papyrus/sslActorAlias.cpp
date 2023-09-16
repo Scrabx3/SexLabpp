@@ -12,37 +12,29 @@ namespace Papyrus::ActorAlias
 			a_vm->TraceStack("Cannot call LockActorImpl on a none reference", a_stackID);
 			return;
 		}
-		const auto act = a_alias->GetActorReference();
-		if (!act) {
+		const auto actor = a_alias->GetActorReference();
+		if (!actor) {
 			a_vm->TraceStack("LockActorImpl requires the filled reference to be an actor", a_stackID);
 			return;
 		}
-		act->actorState1.sneaking = 0;
-		act->actorState1.flyState = RE::FLY_STATE::kNone;
-		act->actorState2.weaponState = RE::WEAPON_STATE::kSheathed;
-		if (act->IsPlayerRef()) {
+		actor->actorState1.sneaking = 0;
+		actor->actorState1.flyState = RE::FLY_STATE::kNone;
+		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(true);
-			act->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
+			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
 		} else {
-			act->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
+			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
 		}
 
-		act->StopCombat();
-		act->PauseCurrentDialogue();
-		act->InterruptCast(false);
-		act->StopInteractingQuick(true);
+		actor->StopCombat();
+		actor->PauseCurrentDialogue();
+		actor->InterruptCast(false);
+		actor->StopInteractingQuick(true);
 
-		if (const auto process = act->currentProcess) {
+		if (const auto process = actor->currentProcess) {
 			process->ClearMuzzleFlashes();
 		}
-
-		if (const auto charController = act->GetCharController(); charController) {
-			charController->flags.set(RE::CHARACTER_FLAGS::kNotPushable);
-
-			charController->flags.reset(RE::CHARACTER_FLAGS::kRecordHits);
-			charController->flags.reset(RE::CHARACTER_FLAGS::kHitFlags);
-		}
-		act->StopMoving(1.0f);
+		actor->StopMoving(1.0f);
 	}
 
 	void UnlockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias)
@@ -51,24 +43,14 @@ namespace Papyrus::ActorAlias
 			a_vm->TraceStack("Cannot call LockActorImpl on a none reference", a_stackID);
 			return;
 		}
-		const auto act = a_alias->GetActorReference();
-		if (!act) {
+		const auto actor = a_alias->GetActorReference();
+		if (!actor) {
 			a_vm->TraceStack("LockActorImpl requires the filled reference to be an actor", a_stackID);
 			return;
 		}
-		act->actorState1.sneaking = 0;
-		act->actorState1.flyState = RE::FLY_STATE::kNone;
-		act->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
-		act->actorState2.weaponState = RE::WEAPON_STATE::kSheathed;
-		if (act->IsPlayerRef()) {
+		actor->actorState1.lifeState = actor->GetActorValue(RE::ActorValue::kHealth) <= 0 ? RE::ACTOR_LIFE_STATE::kDying : RE::ACTOR_LIFE_STATE::kAlive;
+		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(false);
-		}
-
-		if (const auto charController = act->GetCharController(); charController) {
-			charController->flags.reset(RE::CHARACTER_FLAGS::kNotPushable);
-
-			charController->flags.set(RE::CHARACTER_FLAGS::kRecordHits);
-			charController->flags.set(RE::CHARACTER_FLAGS::kHitFlags);
 		}
 	}
 
