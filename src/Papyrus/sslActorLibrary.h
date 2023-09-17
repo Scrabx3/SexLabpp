@@ -9,9 +9,22 @@ namespace Papyrus::ActorLibrary
 	void EraseStripAll(RE::StaticFunctionTag*);
 	int32_t CheckStrip(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form);
 
+	std::vector<RE::TESForm*> UnequipSlots(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_reference, uint32_t a_slotmask);
+
+	bool HasVehicle(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
+
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(ValidateActorImpl, "sslActorLibrary", true);
+
+		REGISTERFUNC(WriteStrip, "sslActorLibrary", true);
+		REGISTERFUNC(EraseStrip, "sslActorLibrary", true);
+		REGISTERFUNC(EraseStripAll, "sslActorLibrary", true);
+		REGISTERFUNC(CheckStrip, "sslActorLibrary", true);
+
+		REGISTERFUNC(UnequipSlots, "sslActorLibrary", false);
+
+		REGISTERFUNC(HasVehicle, "sslActorLibrary", true);
 
 		return true;
   }
