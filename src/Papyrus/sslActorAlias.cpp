@@ -17,8 +17,6 @@ namespace Papyrus::ActorAlias
 			a_vm->TraceStack("LockActorImpl requires the filled reference to be an actor", a_stackID);
 			return;
 		}
-		actor->actorState1.sneaking = 0;
-		actor->actorState1.flyState = RE::FLY_STATE::kNone;
 		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(true);
 			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
@@ -29,7 +27,7 @@ namespace Papyrus::ActorAlias
 		actor->StopCombat();
 		actor->PauseCurrentDialogue();
 		actor->InterruptCast(false);
-		actor->StopInteractingQuick(true);
+		// actor->StopInteractingQuick(true);
 
 		if (const auto process = actor->currentProcess) {
 			process->ClearMuzzleFlashes();

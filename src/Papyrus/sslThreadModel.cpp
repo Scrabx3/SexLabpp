@@ -300,7 +300,7 @@ namespace Papyrus::ThreadModel
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return "";
-		} else if (a_positions.size() != scene->positions.size()) {
+		} else if (a_positions.size() > scene->positions.size()) {
 			a_vm->TraceStack("Number positions do not match number of scene positions", a_stackID);
 			return "";
 		}
@@ -312,22 +312,27 @@ namespace Papyrus::ThreadModel
 		}
 
 		for (size_t i = 0; i < a_positions.size(); i++) {
-			std::vector<float> offsets{
-				a_coordinates[Offset::X] + stage->positions[i].offset[Offset::X],
-				a_coordinates[Offset::Y] + stage->positions[i].offset[Offset::Y],
-				a_coordinates[Offset::Z] + stage->positions[i].offset[Offset::Z],
-				a_coordinates[Offset::R] + stage->positions[i].offset[Offset::R]
+			const auto& actor = a_positions[i];
+			std::array offset{
+				a_coordinates[Offset::X],
+				a_coordinates[Offset::Y],
+				a_coordinates[Offset::Z],
+				a_coordinates[Offset::R],
 			};
-			UserData::ConfigData::GetSingleton()->AdjustOffsetByStage(scene->id, stage->id, i, offsets);
+			stage->positions[i].offset.Apply(offset);
 
-			RE::NiPoint3 position{
-				offsets[Offset::X],
-				offsets[Offset::Y],
-				offsets[Offset::Z]
+			actor->DoReset3D(false);
+			RE::NiPoint3 coordinate{
+				offset[Offset::X],
+				offset[Offset::Y],
+				offset[Offset::Z],
 			};
-			a_positions[i]->data.angle.z = offsets[Offset::R];
-			a_positions[i]->SetPosition(position, false);
-			a_positions[i]->NotifyAnimationGraph(stage->positions[i].event);
+			actor->data.angle.z = offset[Offset::R];
+			actor->SetPosition(coordinate, true);
+
+			// SKSE::GetTaskInterface()->AddTask([=]() {
+				actor->NotifyAnimationGraph(stage->positions[i].event);
+			// });
 		}
 
 		return stage->id;
