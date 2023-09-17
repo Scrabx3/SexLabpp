@@ -129,7 +129,7 @@ namespace Registry
 		std::vector<Scene*> ret;
 		ret.reserve(rawScenes.size() / 2);
 		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
-			return a_scene->IsCompatibleTags(tags);
+			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
 		});
 		if (ret.empty()) {
 			logger::info("Invalid query: [{} | {} <{}>]; 0/{} animations use given tags", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size(), where->second.size());

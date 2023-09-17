@@ -39,7 +39,7 @@ namespace Registry
 	}
 
 	Scene::Scene(std::ifstream& a_stream, std::string_view a_hash) :
-		hash(a_hash)
+		hash(a_hash), enabled(true)
 	{
 		id.resize(Decode::ID_SIZE);
 		a_stream.read(id.data(), Decode::ID_SIZE);
