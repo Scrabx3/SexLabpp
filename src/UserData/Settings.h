@@ -1,10 +1,10 @@
 #pragma once
 
-namespace Settings
+struct Settings
 {
-	void Initialize();			// Pre LoadData
-	void InitializeData();	// Post LoadData
-	void Save();
+	static void Initialize();			// Pre LoadData
+	static void InitializeData();	// Post LoadData
+	static void Save();
 
 	// --- MCM
 	// Booleans
@@ -31,6 +31,7 @@ namespace Settings
 	static inline int32_t iNPCBed{ 0 };
 	static inline int32_t iOpenMouthSize{ 80 };
 	static inline int32_t iUseFade{ 1 };
+	static inline int32_t iClimaxType{ 0 };
 
 	// KeyBinds/Scene Control Related
 	static inline bool AdjustTargetStage{ false };
@@ -143,7 +144,7 @@ namespace Settings
 	static inline bool bWolf{ true };
 
 	// --- Misc
-	inline std::vector<RE::FormID> SOS_ExcludeFactions{};
+	static inline std::vector<RE::FormID> SOS_ExcludeFactions{};
 
 	// --- MCM Access
 	struct StringCmp
@@ -226,7 +227,7 @@ namespace Settings
 		ENTRY(iLipsSoundTime),
 		ENTRY(LipsMaxValue),
 		ENTRY(LipsSoundTime),
-		ENTRY(fLipsMoveTime)
+		ENTRY(fLipsMoveTime),
+		ENTRY(iClimaxType)
 	};
-
-}	 // namespace Settings
+};

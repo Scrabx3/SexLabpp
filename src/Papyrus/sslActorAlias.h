@@ -14,11 +14,11 @@ namespace Papyrus::ActorAlias
 
 	inline bool Register(VM* a_vm)
 	{
-		REGISTERFUNC(LockActorImpl, "sslActorLibrary", false);
-		REGISTERFUNC(UnlockActorImpl, "sslActorLibrary", false);
+		REGISTERFUNC(LockActorImpl, "sslActorAlias", false);
+		REGISTERFUNC(UnlockActorImpl, "sslActorAlias", false);
 
-		REGISTERFUNC(StripByData, "sslActorLibrary", false);
-		REGISTERFUNC(StripByDataEx, "sslActorLibrary", false);
+		REGISTERFUNC(StripByData, "sslActorAlias", false);
+		REGISTERFUNC(StripByDataEx, "sslActorAlias", false);
 
 		return true;
 	}

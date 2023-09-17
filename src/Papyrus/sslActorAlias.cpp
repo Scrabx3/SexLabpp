@@ -4,8 +4,6 @@
 
 namespace Papyrus::ActorAlias
 {
-  // COMEBACK: Make a map to store charController flags?
-
 	void LockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias)
 	{
 		if (!a_alias) {
@@ -27,7 +25,7 @@ namespace Papyrus::ActorAlias
 		actor->StopCombat();
 		actor->PauseCurrentDialogue();
 		actor->InterruptCast(false);
-		// actor->StopInteractingQuick(true);
+		actor->StopInteractingQuick(true);
 
 		if (const auto process = actor->currentProcess) {
 			process->ClearMuzzleFlashes();
@@ -71,15 +69,13 @@ namespace Papyrus::ActorAlias
 		using Strip = Registry::Position::StripData;
 		using SlotMask = RE::BIPED_MODEL::BipedObjectSlot;
 
-		enum MergeIDX {
+		enum MergeIDX
+		{
 			Spell = 0,
 			Right = 1,
 			Left = 2,
 		};
 
-		if (a_mergewith.size() < 3) {
-			a_mergewith.resize(3, nullptr);
-		}
 		if (!a_alias) {
 			a_vm->TraceStack("Cannot call StripByDataEx on a none alias", a_stackID);
 			return a_mergewith;
@@ -89,36 +85,41 @@ namespace Papyrus::ActorAlias
 			a_vm->TraceStack("ReferenceAlias must be filled with an actor reference", a_stackID);
 			return a_mergewith;
 		}
+		if (a_mergewith.size() < 3) {
+			a_mergewith.resize(3, nullptr);
+		}
+		if (a_stripdata == Strip::None) {
+			return a_mergewith;
+		}
 		uint32_t slots;
 		bool weapon;
-		if (a_overwrite[0] != 0) {
+		if (a_overwrite.size() >= 2 && a_overwrite[0] != 0) {
 			slots = a_overwrite[0];
 			weapon = a_overwrite[1];
-		} else if (a_stripdata == Strip::None) {
-			return a_mergewith;
-		} else if (a_stripdata == Strip::All) {
-			slots = static_cast<uint32_t>(-1);
-			weapon = true;
 		} else {
-			stl::enumeration<Strip, std::underlying_type<Strip>::type> stripnum;
-			if (stripnum.all(Strip::Default)) {
-				slots = a_defaults[0];
-				weapon = a_defaults[1];
+			stl::enumeration<Strip, std::underlying_type<Strip>::type> stripnum(a_stripdata);
+			if (stripnum.all(Strip::All)) {
+				slots = static_cast<uint32_t>(-1);
+				weapon = true;
 			} else {
-				slots = 0;
-				weapon = 0;
-			}
-			if (stripnum.all(Strip::Boots)) {
-				slots |= static_cast<uint32_t>(SlotMask::kFeet);
-			}
-			if (stripnum.all(Strip::Gloves)) {
-				slots |= static_cast<uint32_t>(SlotMask::kHands);
-			}
-			if (stripnum.all(Strip::Helmet)) {
-				slots |= static_cast<uint32_t>(SlotMask::kHead);
+				if (stripnum.all(Strip::Default) && a_defaults.size() >= 2) {
+					slots = a_defaults[0];
+					weapon = a_defaults[1];
+				} else {
+					slots = 0;
+					weapon = 0;
+				}
+				if (stripnum.all(Strip::Boots)) {
+					slots |= static_cast<uint32_t>(SlotMask::kFeet);
+				}
+				if (stripnum.all(Strip::Gloves)) {
+					slots |= static_cast<uint32_t>(SlotMask::kHands);
+				}
+				if (stripnum.all(Strip::Helmet)) {
+					slots |= static_cast<uint32_t>(SlotMask::kHead);
+				}
 			}
 		}
-
 		if (weapon && actor->currentProcess) {
 			a_mergewith[Left] = actor->currentProcess->GetEquippedLeftHand();
 			a_mergewith[Right] = actor->currentProcess->GetEquippedRightHand();
@@ -140,25 +141,25 @@ namespace Papyrus::ActorAlias
 					const auto biped_slots = static_cast<uint32_t>(biped->GetSlotMask());
 					if ((biped_slots & slots) == 0) {
 						continue;
-					// } else if (slots & static_cast<uint32_t>(SlotMask::kFeet)) {
-					// 	const auto hdtspell = [&]() -> RE::SpellItem* {
-					// 		static const auto* const heeleffect = RE::TESDataHandler::GetSingleton()->LookupForm<RE::EffectSetting>(0x800, "hdtHighHeel.esm"sv);
-					// 		if (!heeleffect)
-					// 			return nullptr;
-					// 		for (const auto& spell : actor->addedSpells) {
-					// 			if (!spell || spell->effects.empty())
-					// 				continue;
-					// 			for (const auto& effect : spell->effects) {
-					// 				if (effect && effect->baseEffect == heeleffect)
-					// 					return spell;
-					// 			}
-					// 		}
-					// 		return nullptr;
-					// 	}();
-					// 	if (hdtspell) {
-					// 		actor->RemoveSpell(hdtspell);
-					// 		a_mergewith[Spell] = hdtspell;
-					// 	}
+						// } else if (slots & static_cast<uint32_t>(SlotMask::kFeet)) {
+						// 	const auto hdtspell = [&]() -> RE::SpellItem* {
+						// 		static const auto* const heeleffect = RE::TESDataHandler::GetSingleton()->LookupForm<RE::EffectSetting>(0x800, "hdtHighHeel.esm"sv);
+						// 		if (!heeleffect)
+						// 			return nullptr;
+						// 		for (const auto& spell : actor->addedSpells) {
+						// 			if (!spell || spell->effects.empty())
+						// 				continue;
+						// 			for (const auto& effect : spell->effects) {
+						// 				if (effect && effect->baseEffect == heeleffect)
+						// 					return spell;
+						// 			}
+						// 		}
+						// 		return nullptr;
+						// 	}();
+						// 	if (hdtspell) {
+						// 		actor->RemoveSpell(hdtspell);
+						// 		a_mergewith[Spell] = hdtspell;
+						// 	}
 					}
 					a_mergewith.push_back(form);
 				}
@@ -166,11 +167,11 @@ namespace Papyrus::ActorAlias
 			}
 			manager->UnequipObject(actor, form);
 		}
-    actor->Update3DModel();
+		actor->Update3DModel();
 		return a_mergewith;
 	}
 
-  // NOTE: Stuff below isnt implemented (yet) wanna see if its actually needed
+	// NOTE: Stuff below isnt implemented (yet) wanna see if its actually needed
 	// ; ActorRef.QueueNiNodeUpdate()
 	// ; ; NiOverride High Heels
 	// ; If(Config.RemoveHeelEffect)
@@ -198,4 +199,3 @@ namespace Papyrus::ActorAlias
 	// ; EndIf
 
 }	 // namespace Papyrus::ActorAlias
-

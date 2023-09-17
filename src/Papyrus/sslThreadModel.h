@@ -17,6 +17,8 @@ namespace Papyrus::ThreadModel
 	RE::BSFixedString PlaceAndPlay(VM* a_vm, StackID a_stackID, RE::TESQuest*,
 		std::vector<RE::Actor*> a_positions, std::vector<float> a_coordinates, RE::BSFixedString a_scene, RE::BSFixedString a_stage);
 
+	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext);
+
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(FindCenter, "sslThreadModel", true);
@@ -24,6 +26,8 @@ namespace Papyrus::ThreadModel
 
 		REGISTERFUNC(GetBaseCoordinates, "sslThreadModel", true);
 		REGISTERFUNC(PlaceAndPlay, "sslThreadModel", false);
+
+		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
 
 		return true;
 	}

@@ -41,7 +41,7 @@ namespace Papyrus::ThreadLibrary
 	}
 
 	std::vector<RE::Actor*> FindAvailableActors(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
-		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04)
+		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04, RE::BSFixedString a_targetrace)
 	{
 		if (!a_center) {
 			a_vm->TraceStack("Cannot find actor from a none reference", a_stackID);
@@ -53,6 +53,17 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Cannot find actor in negative radius", a_stackID);
 			return {};
 		}
+		const auto targetsex = [&]() {
+			if (a_targetsex >= LegacySex::CrtMale || !a_targetrace.empty() && a_targetrace != "humans") {
+				if (a_targetsex == LegacySex::Male || !Settings::bCreatureGender) {
+					return LegacySex::CrtMale;
+				} else if (a_targetsex == LegacySex::Female) {
+					return LegacySex::CrtFemale;
+				}
+			}
+			return a_targetsex;
+		}();
+		const auto targetrace = Registry::RaceHandler::GetRaceKey(a_targetrace.empty() ? "humans" : a_targetrace);
 		std::vector<RE::Actor*> ret{};
 		const auto& highactors = RE::ProcessLists::GetSingleton()->highActorHandles;
 		for (auto&& handle : highactors) {
@@ -64,7 +75,11 @@ namespace Papyrus::ThreadLibrary
 					actor.get() == ignore_ref04)
 				continue;
 
-			if (!Registry::IsValidActor(actor.get()) || a_targetsex != LegacySex::None && GetLegacySex(actor.get()) != a_targetsex)
+			if (!Registry::RaceHandler::HasRaceKey(actor.get(), targetrace))
+				continue;
+			if (targetsex != LegacySex::None && GetLegacySex(actor.get()) != targetsex)
+				continue;
+			if (!Registry::IsValidActor(actor.get()))
 				continue;
 
 			ret.push_back(actor.get());
@@ -72,30 +87,10 @@ namespace Papyrus::ThreadLibrary
 		return ret;
 	}
 
-	inline LegacySex ValidateSex(LegacySex a_targetsex, const RE::BSFixedString& a_targetrace)
-	{
-		if (a_targetsex >= LegacySex::CrtMale || !a_targetrace.empty() && a_targetrace != "humans") {
-			if (a_targetsex == LegacySex::Male || !Settings::bCreatureGender) {
-				return LegacySex::CrtMale;
-			} else if (a_targetsex == LegacySex::Female) {
-				return LegacySex::CrtFemale;
-			}
-		}
-		return a_targetsex;
-	}
-
 	RE::Actor* FindAvailableActor(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
 		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04, RE::BSFixedString a_targetrace)
 	{
-		const auto targetsex = ValidateSex(a_targetsex, a_targetrace);
-		auto valids = FindAvailableActors(a_vm, a_stackID, nullptr, a_center, a_radius, targetsex, ignore_ref01, ignore_ref02, ignore_ref03, ignore_ref04);
-		if (!valids.empty()) {
-			const auto targetrace = a_targetrace.empty() ? "humans" : a_targetrace;
-			const auto where = std::remove_if(valids.begin(), valids.end(), [&](auto a_actor) {
-				return !Registry::RaceHandler::HasRaceKey(a_actor, targetrace);
-			});
-			valids.erase(where, valids.end());
-		}
+		auto valids = FindAvailableActors(a_vm, a_stackID, nullptr, a_center, a_radius, a_targetsex, ignore_ref01, ignore_ref02, ignore_ref03, ignore_ref04, a_targetrace);
 		return valids.empty() ? nullptr : valids[0];
 	}
 
@@ -106,14 +101,11 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Cannot find actor in none faction", a_stackID);
 			return nullptr;
 		}
-		const auto targetsex = ValidateSex(a_targetsex, a_targetrace);
-		auto valids = FindAvailableActors(a_vm, a_stackID, nullptr, a_center, a_radius, targetsex, ignore_ref01, ignore_ref02, ignore_ref03, ignore_ref04);
+		auto valids = FindAvailableActors(a_vm, a_stackID, nullptr, a_center, a_radius, a_targetsex, ignore_ref01, ignore_ref02, ignore_ref03, ignore_ref04, a_targetrace);
 		for (auto&& actor : valids) {
 			if (a_samefloor && std::fabs(a_center->GetPositionZ() - actor->GetPositionZ()) > 200)
 				continue;
 			if (actor->IsInFaction(a_faction) != a_hasfaction)
-				continue;
-			if (!Registry::RaceHandler::HasRaceKey(actor, a_targetrace))
 				continue;
 
 			return actor;
@@ -130,8 +122,7 @@ namespace Papyrus::ThreadLibrary
 			return nullptr;
 		}
 		const auto slotmask = RE::BGSBipedObjectForm::BipedObjectSlot(a_slotmask);
-		const auto targetsex = ValidateSex(a_targetsex, a_targetrace);
-		const auto valids = FindAvailableActors(a_vm, a_stackID, nullptr, a_center, a_radius, targetsex, ignore_ref01, ignore_ref02, ignore_ref03, ignore_ref04);
+		const auto valids = FindAvailableActors(a_vm, a_stackID, nullptr, a_center, a_radius, a_targetsex, ignore_ref01, ignore_ref02, ignore_ref03, ignore_ref04, a_targetrace);
 		for (auto&& actor : valids) {
 			if (a_samefloor && std::fabs(a_center->GetPositionZ() - actor->GetPositionZ()) > 200)
 				continue;
@@ -143,8 +134,6 @@ namespace Papyrus::ThreadLibrary
 				if (kywdform && kywdform->ContainsKeywordString("NoStrip"))
 					continue;
 			}
-			if (!Registry::RaceHandler::HasRaceKey(actor, a_targetrace))
-				continue;
 
 			return actor;
 		}
@@ -164,7 +153,8 @@ namespace Papyrus::ThreadLibrary
 			a_positions.size() > 0 ? a_positions[0] : nullptr,
 			a_positions.size() > 1 ? a_positions[1] : nullptr,
 			a_positions.size() > 2 ? a_positions[2] : nullptr,
-			a_positions.size() > 3 ? a_positions[3] : nullptr);
+			a_positions.size() > 3 ? a_positions[3] : nullptr,
+			"");
 
 		if (valids.empty()) {
 			return a_positions;
@@ -208,7 +198,8 @@ namespace Papyrus::ThreadLibrary
 			a_includes.size() > 0 ? a_includes[0] : nullptr,
 			a_includes.size() > 1 ? a_includes[1] : nullptr,
 			a_includes.size() > 2 ? a_includes[2] : nullptr,
-			a_includes.size() > 3 ? a_includes[3] : nullptr);
+			a_includes.size() > 3 ? a_includes[3] : nullptr,
+			"");
 
 		for (auto&& position : scene->positions) {
 			RE::Actor* fill = nullptr;
@@ -307,7 +298,7 @@ namespace Papyrus::ThreadLibrary
 		}
 	}
 
-	void TrackFactionImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_faction, RE::BSFixedString a_callback, bool a_dotrack)
+	void TrackFactionImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESFaction* a_faction, RE::BSFixedString a_callback, bool a_dotrack)
 	{
 		if (!a_faction) {
 			a_vm->TraceStack("Cannot track on a none faction", a_stackID);

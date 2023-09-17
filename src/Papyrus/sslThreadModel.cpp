@@ -352,4 +352,18 @@ namespace Papyrus::ThreadModel
 		return scene->IsCompatibleFurniture(a_center);
 	}
 
+	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext)
+	{
+		const auto list = Registry::StringSplit(a_newcontext, ',');
+		for (auto&& context : list) {
+			if (!context.starts_with('!'))
+				continue;
+			const auto context_ = context.substr(1);
+			if (std::find(a_oldcontext.begin(), a_oldcontext.end(), context_) != a_oldcontext.end())
+				continue;
+			a_oldcontext.push_back(context_);
+		}
+		return a_oldcontext;
+	}
+
 }	 // namespace Papyrus::ThreadModel

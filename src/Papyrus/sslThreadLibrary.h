@@ -9,7 +9,7 @@ namespace Papyrus::ThreadLibrary
 	bool IsBed(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference);
 
 	std::vector<RE::Actor*> FindAvailableActors(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
-		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04);
+		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04, RE::BSFixedString a_targetrace);
 	RE::Actor* FindAvailableActor(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
 		RE::Actor* ignore_ref01, RE::Actor* ignore_ref02, RE::Actor* ignore_ref03, RE::Actor* ignore_ref04, RE::BSFixedString a_targetrace);
 	RE::Actor* FindAvailableActorInFaction(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESFaction* a_faction, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,
@@ -28,7 +28,7 @@ namespace Papyrus::ThreadLibrary
 	
 	bool IsActorTrackedImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 	void TrackActorImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_callback, bool a_dotrack);
-	void TrackFactionImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_faction, RE::BSFixedString a_callback, bool a_dotrack);
+	void TrackFactionImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESFaction* a_faction, RE::BSFixedString a_callback, bool a_dotrack);
 	std::vector<std::string> GetAllTrackingEvents(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_hook);
 
 	inline bool Register(VM* a_vm)
