@@ -3,7 +3,6 @@
 #include "Registry/Animation.h"
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Library.h"
-#include "UserData/ConfigData.h"
 
 namespace Papyrus::SexLabRegistry
 {

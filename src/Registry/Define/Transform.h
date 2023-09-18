@@ -27,8 +27,8 @@ namespace Registry
 		const std::array<float, Offset::Total>& GetOffset() const;
 		void UpdateOffset(const std::array<float, Offset::Total>& a_newoffset);
 
-		void Load();
-		void Save();
+		void Save(YAML::Node& a_node) const;
+		void Load(const YAML::Node& a_node);
 
 	private:
 		std::array<float, Offset::Total> _offset;

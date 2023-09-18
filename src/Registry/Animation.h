@@ -30,6 +30,9 @@ namespace Registry
 		Position(std::ifstream& a_stream);
 		~Position() = default;
 
+		void Save(YAML::Node& a_node) const;
+		void Load(const YAML::Node& a_node);
+
 	public:
 		RE::BSFixedString event;
 
@@ -43,6 +46,9 @@ namespace Registry
 	public:
 		Stage(std::ifstream& a_stream);
 		~Stage() = default;
+
+		void Save(YAML::Node& a_node) const;
+		void Load(const YAML::Node& a_node);
 
 	public:
 		std::string id;
@@ -146,6 +152,9 @@ namespace Registry
 		_NODISCARD const Stage* GetNthLinkedStage(const Stage* a_stage, size_t n) const;
 		_NODISCARD RE::BSFixedString GetNthAnimationEvent(const Stage* a_stage, size_t n) const;
 		_NODISCARD std::vector<RE::BSFixedString> GetAnimationEvents(const Stage* a_stage) const;
+
+		void Save(YAML::Node& a_node) const;
+		void Load(const YAML::Node& a_node);
 
 	public:
 		// If the animation only includes humans, with specified amount of males and females

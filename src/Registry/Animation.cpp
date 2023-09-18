@@ -178,6 +178,58 @@ namespace Registry
 		a_stream.read(reinterpret_cast<char*>(&strips), 1);
 	}
 
+	void Position::Save(YAML::Node& a_node) const
+	{
+		auto transform = a_node["transform"];
+		offset.Save(transform);
+	}
+
+	void Position::Load(const YAML::Node& a_node)
+	{
+		if (auto transform = a_node["transform"]; transform.IsDefined()) {
+			offset.Load(transform);
+		}
+	}
+
+	void Stage::Save(YAML::Node& a_node) const
+	{
+		for (size_t i = 0; i < positions.size(); i++) {
+			auto node = a_node[i];
+			positions[i].Save(node);
+		}
+	}
+
+	void Stage::Load(const YAML::Node& a_node)
+	{
+		for (size_t i = 0; i < positions.size(); i++) {
+			if (auto node = a_node[i]; node.IsDefined()) {
+				positions[i].Load(node);
+			}
+		}
+	}
+
+	void Scene::Save(YAML::Node& a_node) const
+	{
+		a_node["enabled"] = this->enabled;
+		for (auto&& stage : stages) {
+			auto node = a_node[stage->id];
+			stage->Save(node);
+		}
+	}
+
+	void Scene::Load(const YAML::Node& a_node)
+	{
+		if (const auto enable = a_node["enabled"]; enable.IsDefined())
+			this->enabled = a_node["enabled"].as<bool>();
+
+		for (auto&& stage : stages) {
+			if (auto node = a_node[stage->id]; node.IsDefined()) {
+				stage->Load(node);
+			}
+		}
+	}
+
+
 	bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
 	{
 		auto fragment = stl::enumeration(MakeFragmentFromActor(a_actor, false));

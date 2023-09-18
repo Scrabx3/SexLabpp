@@ -5,8 +5,8 @@
 
 namespace Registry
 {
-  void Library::Initialize() noexcept
-  {
+	void Library::Initialize() noexcept
+	{
 		logger::info("Loading files..");
 		const auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -178,4 +178,50 @@ namespace Registry
 		}
 	}
 
+	void Library::Save()
+	{
+		std::vector<std::thread> threads{};
+		for (auto&& p : packages) {
+			threads.emplace_back([&]() {
+				YAML::Node data{};
+				for (auto&& scene : p->scenes) {
+					auto node = data[scene->id];
+					scene->Save(node);
+				}
+				const auto path = fmt::format("Registry\\UserData\\Scenes\\{}_{}.yaml", p->GetName(), p->GetHash());
+				std::ofstream fout(CONFIGPATH(path));
+				fout << data;
+			});
+		}
+		for (auto&& thread : threads) {
+			thread.join();
+		}
+		logger::info("Finished saving scene settings");
+	}
+
+	void Library::Load()
+	{
+		const auto path = fs::path{ CONFIGPATH("Registry\\UserData\\Scenes") };
+		if (!fs::exists(path))
+			return;
+
+		for (auto& file : fs::directory_iterator{ path }) {
+			if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
+				continue;
+			const auto filename = file.path().filename().string();
+			try {
+				const auto root = YAML::LoadFile(file.path().string());
+				for (auto&& [key, scene] : scene_map) {
+					const auto node = root[scene->id];
+					if (!node.IsDefined())
+						continue;
+					scene->Load(node);
+				}
+				logger::info("Loaded scene settings from file {}", filename);
+			} catch (const std::exception& e) {
+				logger::error("Error while loading scene settings from file {}: {}", filename, e.what());
+			}
+		}
+		logger::info("Finished loading scene settings");
+	}
 }

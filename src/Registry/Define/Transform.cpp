@@ -15,7 +15,23 @@ namespace Registry
     _offset = _raw;
 	}
 
-  const std::array<float, Offset::Total>& Transform::GetRawOffset() const
+	void Transform::Save(YAML::Node& a_node) const
+	{
+		a_node = _offset;
+	}
+
+	void Transform::Load(const YAML::Node& a_node)
+	{
+		const auto offset = a_node.as<std::vector<float>>();
+		for (size_t i = 0; i < Offset::Total; i++) {
+			if (offset.size() >= i)
+				break;
+			_offset[i] = offset[i];
+		}
+	}
+
+
+	const std::array<float, Offset::Total>& Transform::GetRawOffset() const
   {
     return _raw;
   }

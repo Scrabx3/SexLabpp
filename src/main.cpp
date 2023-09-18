@@ -15,6 +15,9 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	switch (message->type) {
 	case SKSE::MessagingInterface::kPostLoad:
 		Registry::Library::GetSingleton()->Initialize();
+		UserData::StripData::GetSingleton()->Load();
+		Registry::Library::GetSingleton()->Load();
+		Settings::Initialize();
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
 		if (!GameForms::LoadData()) {
@@ -24,14 +27,13 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 			return;
 		}
 		Settings::InitializeData();
-		UserData::StripData::GetSingleton()->Load();
 		break;
 	case SKSE::MessagingInterface::kSaveGame:
 		Settings::Save();
+		Registry::Library::GetSingleton()->Save();
 		UserData::StripData::GetSingleton()->Save();
 		break;
 	case SKSE::MessagingInterface::kPreLoadGame:
-		Settings::Initialize();
 		break;
 	}
 }
