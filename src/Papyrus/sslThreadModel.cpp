@@ -208,79 +208,83 @@ namespace Papyrus::ThreadModel
 			center->GetAngleZ()
 		};
 
+		// TODO: This here is a complete mess and nukes performance, w/e I was trying to do here aint worth it
 		switch (Registry::FurnitureHandler::GetFurnitureType(center)) {
+		case FT::None:
+			break;
 		case FT::BedDouble:
 		case FT::BedSingle:
+			// ret[Offset::Z] = 37.0
 			ret[Offset::Z] += 45;
 			break;
 		case FT::BedRoll:
 			ret[Offset::Z] += 7.5;
 			ret[Offset::R] += static_cast<float>(std::_Pi / 2);
 			break;
-		default:
-			const auto obj = center->Get3D();
-			const auto extra = obj ? obj->GetExtraData("FRN") : nullptr;
-			const auto markernode = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
-			if (!markernode || markernode->markers.size() <= 1)
-				break;
+		// default:
+		// 	const auto obj = center->Get3D();
+		// 	const auto extra = obj ? obj->GetExtraData("FRN") : nullptr;
+		// 	const auto markernode = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
+		// 	if (!markernode || markernode->markers.size() <= 1)
+		// 		break;
 
-			const auto actorpos = actor->GetPosition();
-			const RE::BSFurnitureMarker* closest = nullptr;
-			float closest_distance = 0;
-			for (const auto& marker : markernode->markers) {
-				const auto d = (marker.offset + RE::NiPoint3{ ret[0], ret[1], ret[2] }).GetDistance(actorpos);
-				if (d <= closest_distance) {
-					closest_distance = d;
-					closest = &marker;
-				}
-			}
-			assert(closest);
-			// getting middle marker from marker-set closest to the player
-			std::vector<decltype(closest)> neighbours{ closest };
-			for (const auto& marker : markernode->markers) {
-				if (&marker != closest && std::abs(marker.heading - closest->heading) <= 3) {
-					neighbours.push_back(&marker);
-				}
-			}
+		// 	const auto actorpos = actor->GetPosition();
+		// 	const RE::BSFurnitureMarker* closest = nullptr;
+		// 	float closest_distance = 0;
+		// 	for (const auto& marker : markernode->markers) {
+		// 		const auto d = (marker.offset + RE::NiPoint3{ ret[0], ret[1], ret[2] }).GetDistance(actorpos);
+		// 		if (d <= closest_distance) {
+		// 			closest_distance = d;
+		// 			closest = &marker;
+		// 		}
+		// 	}
+		// 	assert(closest);
+		// 	// getting middle marker from marker-set closest to the player
+		// 	std::vector<decltype(closest)> neighbours{ closest };
+		// 	for (const auto& marker : markernode->markers) {
+		// 		if (&marker != closest && std::abs(marker.heading - closest->heading) <= 3) {
+		// 			neighbours.push_back(&marker);
+		// 		}
+		// 	}
 
-			RE::NiPoint3 tmp{};
-			for (auto&& neighbour : neighbours) {
-				tmp.x += neighbour->offset.x;
-				tmp.y += neighbour->offset.y;
-				tmp.z += neighbour->offset.z;
-			}
-			tmp.x /= 3;
-			tmp.y /= 3;
-			tmp.z /= 3;
+		// 	RE::NiPoint3 tmp{};
+		// 	for (auto&& neighbour : neighbours) {
+		// 		tmp.x += neighbour->offset.x;
+		// 		tmp.y += neighbour->offset.y;
+		// 		tmp.z += neighbour->offset.z;
+		// 	}
+		// 	tmp.x /= 3;
+		// 	tmp.y /= 3;
+		// 	tmp.z /= 3;
 
-			std::sort(neighbours.begin(), neighbours.end(), [&](auto a, auto b) {
-				return a->offset.GetDistance(tmp) < b->offset.GetDistance(tmp);
-			});
-			ret[Offset::X] += neighbours[0]->offset[Offset::X];
-			ret[Offset::Y] += neighbours[0]->offset[Offset::Y];
-			ret[Offset::Z] += neighbours[0]->offset[Offset::Z];
-			ret[Offset::R] += neighbours[0]->heading;
+		// 	std::sort(neighbours.begin(), neighbours.end(), [&](auto a, auto b) {
+		// 		return a->offset.GetDistance(tmp) < b->offset.GetDistance(tmp);
+		// 	});
+		// 	ret[Offset::X] += neighbours[0]->offset[Offset::X];
+		// 	ret[Offset::Y] += neighbours[0]->offset[Offset::Y];
+		// 	ret[Offset::Z] += neighbours[0]->offset[Offset::Z];
+		// 	ret[Offset::R] += neighbours[0]->heading;
 
-			if (neighbours[0]->entryProperties.all(RE::BSFurnitureMarker::EntryProperties::kBehind)) {
-				ret[Offset::R] += static_cast<float>(std::_Pi / 2);
-			}
+		// 	if (neighbours[0]->entryProperties.all(RE::BSFurnitureMarker::EntryProperties::kBehind)) {
+		// 		ret[Offset::R] += static_cast<float>(std::_Pi / 2);
+		// 	}
 		}
 
-		if (const auto base = center->GetBaseObject()) {
-			if (const auto model = skyrim_cast<RE::TESModelTextureSwap*>(center)) {
-				UserData::ConfigData::GetSingleton()->AdjustOffsetByModel(model, ret);
-			}
-		}
+		// if (const auto base = center->GetBaseObject()) {
+		// 	if (const auto model = skyrim_cast<RE::TESModelTextureSwap*>(center)) {
+		// 		UserData::ConfigData::GetSingleton()->AdjustOffsetByModel(model, ret);
+		// 	}
+		// }
 
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id. Scene specific offset will NOT be applied", a_stackID);
-		} else {
-			ret[Offset::X] += scene->furnitures.offset[Offset::X];
-			ret[Offset::Y] += scene->furnitures.offset[Offset::Y];
-			ret[Offset::Z] += scene->furnitures.offset[Offset::Z];
-			ret[Offset::R] += scene->furnitures.offset[Offset::R];
-		}
+		// const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
+		// if (!scene) {
+		// 	a_vm->TraceStack("Invalid scene id. Scene specific offset will NOT be applied", a_stackID);
+		// } else {
+		// 	ret[Offset::X] += scene->furnitures.offset[Offset::X];
+		// 	ret[Offset::Y] += scene->furnitures.offset[Offset::Y];
+		// 	ret[Offset::Z] += scene->furnitures.offset[Offset::Z];
+		// 	ret[Offset::R] += scene->furnitures.offset[Offset::R];
+		// }
 
 		return ret;
 	}
