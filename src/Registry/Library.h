@@ -22,7 +22,6 @@ namespace Registry
 	public:
 		void ForEachScene(std::function<bool(const Scene*)> a_visitor) const;
 
-		// TODO: Save/Load user related data (Enabled status)
 		void Save();
 		void Load();
 

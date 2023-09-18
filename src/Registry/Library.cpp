@@ -172,6 +172,7 @@ namespace Registry
 
 	void Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const
 	{
+		std::shared_lock lock{ read_write_lock };
 		for (auto&& [key, scene] : scene_map) {
 			if (a_visitor(scene))
 				break;
@@ -180,6 +181,7 @@ namespace Registry
 
 	void Library::Save()
 	{
+		std::shared_lock lock{ read_write_lock };
 		std::vector<std::thread> threads{};
 		for (auto&& p : packages) {
 			threads.emplace_back([&]() {
@@ -205,6 +207,7 @@ namespace Registry
 		if (!fs::exists(path))
 			return;
 
+		std::unique_lock lock{ read_write_lock };
 		for (auto& file : fs::directory_iterator{ path }) {
 			if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
 				continue;
