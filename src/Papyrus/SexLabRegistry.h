@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Registry/Define/Transform.h"
+
 namespace Papyrus::SexLabRegistry
 {
 	enum class FurniturePreference
@@ -81,6 +83,9 @@ namespace Papyrus::SexLabRegistry
 
 	std::vector<float> GetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	std::vector<float> GetOffsetRaw(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	void UpdateOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::Offset a_idx);
+	void UpdateOffsetA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset);
+	void ResetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 
 	int32_t GetStripData(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	std::vector<int32_t> GetStripDataA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
@@ -153,6 +158,9 @@ namespace Papyrus::SexLabRegistry
 
 		REGISTERFUNC(GetOffset, "SexLabRegistry", true);
 		REGISTERFUNC(GetOffsetRaw, "SexLabRegistry", true);
+		REGISTERFUNC(UpdateOffset, "SexLabRegistry", true);
+		REGISTERFUNC(UpdateOffsetA, "SexLabRegistry", true);
+		REGISTERFUNC(ResetOffset, "SexLabRegistry", true);
 
 		REGISTERFUNC(GetStripData, "SexLabRegistry", true);
 		REGISTERFUNC(GetStripDataA, "SexLabRegistry", true);

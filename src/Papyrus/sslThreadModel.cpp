@@ -221,53 +221,53 @@ namespace Papyrus::ThreadModel
 			ret[Offset::Z] += 7.5;
 			ret[Offset::R] += static_cast<float>(std::_Pi / 2);
 			break;
-		// default:
-		// 	const auto obj = center->Get3D();
-		// 	const auto extra = obj ? obj->GetExtraData("FRN") : nullptr;
-		// 	const auto markernode = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
-		// 	if (!markernode || markernode->markers.size() <= 1)
-		// 		break;
+			// default:
+			// 	const auto obj = center->Get3D();
+			// 	const auto extra = obj ? obj->GetExtraData("FRN") : nullptr;
+			// 	const auto markernode = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
+			// 	if (!markernode || markernode->markers.size() <= 1)
+			// 		break;
 
-		// 	const auto actorpos = actor->GetPosition();
-		// 	const RE::BSFurnitureMarker* closest = nullptr;
-		// 	float closest_distance = 0;
-		// 	for (const auto& marker : markernode->markers) {
-		// 		const auto d = (marker.offset + RE::NiPoint3{ ret[0], ret[1], ret[2] }).GetDistance(actorpos);
-		// 		if (d <= closest_distance) {
-		// 			closest_distance = d;
-		// 			closest = &marker;
-		// 		}
-		// 	}
-		// 	assert(closest);
-		// 	// getting middle marker from marker-set closest to the player
-		// 	std::vector<decltype(closest)> neighbours{ closest };
-		// 	for (const auto& marker : markernode->markers) {
-		// 		if (&marker != closest && std::abs(marker.heading - closest->heading) <= 3) {
-		// 			neighbours.push_back(&marker);
-		// 		}
-		// 	}
+			// 	const auto actorpos = actor->GetPosition();
+			// 	const RE::BSFurnitureMarker* closest = nullptr;
+			// 	float closest_distance = 0;
+			// 	for (const auto& marker : markernode->markers) {
+			// 		const auto d = (marker.offset + RE::NiPoint3{ ret[0], ret[1], ret[2] }).GetDistance(actorpos);
+			// 		if (d <= closest_distance) {
+			// 			closest_distance = d;
+			// 			closest = &marker;
+			// 		}
+			// 	}
+			// 	assert(closest);
+			// 	// getting middle marker from marker-set closest to the player
+			// 	std::vector<decltype(closest)> neighbours{ closest };
+			// 	for (const auto& marker : markernode->markers) {
+			// 		if (&marker != closest && std::abs(marker.heading - closest->heading) <= 3) {
+			// 			neighbours.push_back(&marker);
+			// 		}
+			// 	}
 
-		// 	RE::NiPoint3 tmp{};
-		// 	for (auto&& neighbour : neighbours) {
-		// 		tmp.x += neighbour->offset.x;
-		// 		tmp.y += neighbour->offset.y;
-		// 		tmp.z += neighbour->offset.z;
-		// 	}
-		// 	tmp.x /= 3;
-		// 	tmp.y /= 3;
-		// 	tmp.z /= 3;
+			// 	RE::NiPoint3 tmp{};
+			// 	for (auto&& neighbour : neighbours) {
+			// 		tmp.x += neighbour->offset.x;
+			// 		tmp.y += neighbour->offset.y;
+			// 		tmp.z += neighbour->offset.z;
+			// 	}
+			// 	tmp.x /= 3;
+			// 	tmp.y /= 3;
+			// 	tmp.z /= 3;
 
-		// 	std::sort(neighbours.begin(), neighbours.end(), [&](auto a, auto b) {
-		// 		return a->offset.GetDistance(tmp) < b->offset.GetDistance(tmp);
-		// 	});
-		// 	ret[Offset::X] += neighbours[0]->offset[Offset::X];
-		// 	ret[Offset::Y] += neighbours[0]->offset[Offset::Y];
-		// 	ret[Offset::Z] += neighbours[0]->offset[Offset::Z];
-		// 	ret[Offset::R] += neighbours[0]->heading;
+			// 	std::sort(neighbours.begin(), neighbours.end(), [&](auto a, auto b) {
+			// 		return a->offset.GetDistance(tmp) < b->offset.GetDistance(tmp);
+			// 	});
+			// 	ret[Offset::X] += neighbours[0]->offset[Offset::X];
+			// 	ret[Offset::Y] += neighbours[0]->offset[Offset::Y];
+			// 	ret[Offset::Z] += neighbours[0]->offset[Offset::Z];
+			// 	ret[Offset::R] += neighbours[0]->heading;
 
-		// 	if (neighbours[0]->entryProperties.all(RE::BSFurnitureMarker::EntryProperties::kBehind)) {
-		// 		ret[Offset::R] += static_cast<float>(std::_Pi / 2);
-		// 	}
+			// 	if (neighbours[0]->entryProperties.all(RE::BSFurnitureMarker::EntryProperties::kBehind)) {
+			// 		ret[Offset::R] += static_cast<float>(std::_Pi / 2);
+			// 	}
 		}
 
 		// if (const auto base = center->GetBaseObject()) {
@@ -289,10 +289,10 @@ namespace Papyrus::ThreadModel
 		return ret;
 	}
 
-	RE::BSFixedString PlaceAndPlay(VM* a_vm, StackID a_stackID, RE::TESQuest*, 
-		std::vector<RE::Actor*> a_positions, 
+	RE::BSFixedString PlaceAndPlay(VM* a_vm, StackID a_stackID, RE::TESQuest*,
+		std::vector<RE::Actor*> a_positions,
 		std::vector<float> a_coordinates,
-		RE::BSFixedString a_scene, 
+		RE::BSFixedString a_scene,
 		RE::BSFixedString a_stage)
 	{
 		if (a_coordinates.size() != Offset::Total) {
@@ -306,6 +306,9 @@ namespace Papyrus::ThreadModel
 			return "";
 		} else if (a_positions.size() > scene->positions.size()) {
 			a_vm->TraceStack("Number positions do not match number of scene positions", a_stackID);
+			return "";
+		} else if (std::find(a_positions.begin(), a_positions.end(), nullptr) != a_positions.end()) {
+			a_vm->TraceStack("Array contains a none reference", a_stackID);
 			return "";
 		}
 
@@ -335,11 +338,47 @@ namespace Papyrus::ThreadModel
 			actor->SetPosition(coordinate, true);
 
 			// SKSE::GetTaskInterface()->AddTask([=]() {
-				actor->NotifyAnimationGraph(stage->positions[i].event);
+			actor->NotifyAnimationGraph(stage->positions[i].event);
 			// });
 		}
 
 		return stage->id;
+	}
+
+	void RePlace(VM* a_vm, StackID a_stackID, RE::TESQuest*,
+		RE::Actor* a_position,
+		std::vector<float> a_coordinates,
+		RE::BSFixedString a_scene,
+		RE::BSFixedString a_stage,
+		int32_t n)
+	{
+		if (!a_position) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return;
+		}
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		const auto stage = scene->GetStageByKey(a_stage);
+		if (!stage) {
+			a_vm->TraceStack("Invalid stage id", a_stackID);
+			return;
+		}
+		if (n < 0 || n >= stage->positions.size()) {
+			a_vm->TraceStack("Invalid stage id", a_stackID);
+			return;
+		}
+		std::array offset{
+			a_coordinates[Offset::X],
+			a_coordinates[Offset::Y],
+			a_coordinates[Offset::Z],
+			a_coordinates[Offset::R]
+		};
+		stage->positions[n].offset.Apply(offset);
+		a_position->data.angle.z = offset[Offset::R];
+		a_position->SetPosition({ offset[Offset::X], offset[Offset::Y], offset[Offset::Z] }, true);
 	}
 
 	bool GetIsCompatiblecenter(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center)

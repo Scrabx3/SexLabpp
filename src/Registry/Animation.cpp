@@ -384,6 +384,16 @@ namespace Registry
 		}
 	}
 
+	Stage* Scene::GetStageByKey_Mutable(const RE::BSFixedString& a_key)
+	{
+		if (a_key.empty()) {
+			return start_animation;
+		}
+
+		const auto where = std::find_if(stages.begin(), stages.end(), [&](const std::unique_ptr<Stage>& it) { return a_key == it->id.data(); });
+		return where == stages.end() ? nullptr : where->get();
+	}
+
 	const Stage* Scene::GetStageByKey(const RE::BSFixedString& a_key) const
 	{
 		if (a_key.empty()) {

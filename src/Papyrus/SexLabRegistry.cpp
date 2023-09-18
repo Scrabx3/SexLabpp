@@ -628,6 +628,77 @@ namespace Papyrus::SexLabRegistry
 		return { ret.begin(), ret.end() };
 	}
 
+	void UpdateOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::Offset a_idx)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		const auto stage = scene->GetStageByKey_Mutable(a_id);
+		if (!stage) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		if (n < 0 || n >= stage->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return;
+		}
+		if (a_idx < Registry::Offset::X || a_idx >= Registry::Offset::Total) {
+			a_vm->TraceStack("Invalid offset idx", a_stackID);
+			return;
+		}
+		stage->positions[n].offset.UpdateOffset(a_value, a_idx);
+	}
+
+	void UpdateOffsetA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		const auto stage = scene->GetStageByKey_Mutable(a_id);
+		if (!stage) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		if (n < 0 || n >= stage->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return;
+		}
+		if (a_newoffset.size() < Registry::Offset::Total) {
+			a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
+			return;
+		}
+		stage->positions[n].offset.UpdateOffset({
+			a_newoffset[Registry::Offset::X],
+			a_newoffset[Registry::Offset::Y],
+			a_newoffset[Registry::Offset::Z],
+			a_newoffset[Registry::Offset::R],
+		});
+	}
+
+	void ResetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		const auto stage = scene->GetStageByKey_Mutable(a_id);
+		if (!stage) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		if (n < 0 || n >= stage->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return;
+		}
+		stage->positions[n].offset.ResetOffset();
+	}
+
+
 	int32_t GetStripData(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
 	{
 		SCENE(0);

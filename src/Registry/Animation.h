@@ -141,6 +141,7 @@ namespace Registry
 		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const;
 		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFB(std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> a_positions) const;
 
+		_NODISCARD Stage* GetStageByKey_Mutable(const RE::BSFixedString& a_stage);
 		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_stage) const;
 		_NODISCARD std::vector<const Stage*> GetLongestPath(const Stage* a_src) const;
 		_NODISCARD std::vector<const Stage*> GetShortestPath(const Stage* a_src) const;
@@ -177,7 +178,7 @@ namespace Registry
 
 		std::vector<std::unique_ptr<Stage>> stages;
 		std::map<const Stage*, std::vector<const Stage*>> graph;
-		const Stage* start_animation;
+		Stage* start_animation;
 	};
 
 	class AnimPackage
