@@ -34,7 +34,7 @@ struct Settings
 	static inline int32_t iClimaxType{ 0 };
 
 	// KeyBinds/Scene Control Related
-	static inline bool AdjustTargetStage{ false };
+	static inline bool bAdjustTargetStage{ false };
 	static inline int32_t iAdjustStage{ 157 };
 	static inline int32_t iBackwards{ 54 };
 	static inline int32_t iAdvanceAnimation{ 57 };
@@ -191,7 +191,7 @@ struct Settings
 		ENTRY(iNPCBed),
 		ENTRY(iOpenMouthSize),
 		ENTRY(iUseFade),
-		ENTRY(AdjustTargetStage),
+		ENTRY(bAdjustTargetStage),
 		ENTRY(iAdjustStage),
 		ENTRY(iBackwards),
 		ENTRY(iAdvanceAnimation),

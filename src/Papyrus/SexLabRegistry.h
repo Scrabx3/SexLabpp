@@ -86,6 +86,7 @@ namespace Papyrus::SexLabRegistry
 	void UpdateOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::Offset a_idx);
 	void UpdateOffsetA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset);
 	void ResetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	void ResetOffsetA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 
 	int32_t GetStripData(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	std::vector<int32_t> GetStripDataA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
@@ -161,6 +162,7 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(UpdateOffset, "SexLabRegistry", true);
 		REGISTERFUNC(UpdateOffsetA, "SexLabRegistry", true);
 		REGISTERFUNC(ResetOffset, "SexLabRegistry", true);
+		REGISTERFUNC(ResetOffsetA, "SexLabRegistry", true);
 
 		REGISTERFUNC(GetStripData, "SexLabRegistry", true);
 		REGISTERFUNC(GetStripDataA, "SexLabRegistry", true);

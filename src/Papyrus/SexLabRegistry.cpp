@@ -635,9 +635,9 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey_Mutable(a_id);
+		const auto stage = scene->GetStageByKey_Mutable(a_stage);
 		if (!stage) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
+			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return;
 		}
 		if (n < 0 || n >= stage->positions.size()) {
@@ -658,9 +658,9 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey_Mutable(a_id);
+		const auto stage = scene->GetStageByKey_Mutable(a_stage);
 		if (!stage) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
+			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return;
 		}
 		if (n < 0 || n >= stage->positions.size()) {
@@ -686,9 +686,9 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey_Mutable(a_id);
+		const auto stage = scene->GetStageByKey_Mutable(a_stage);
 		if (!stage) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
+			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return;
 		}
 		if (n < 0 || n >= stage->positions.size()) {
@@ -698,6 +698,23 @@ namespace Papyrus::SexLabRegistry
 		stage->positions[n].offset.ResetOffset();
 	}
 
+
+	void ResetOffsetA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		const auto stage = scene->GetStageByKey_Mutable(a_stage);
+		if (!stage) {
+			a_vm->TraceStack("Invalid stage id", a_stackID);
+			return;
+		}
+		for (auto&& pos : stage->positions) {
+			pos.offset.ResetOffset();
+		}
+	}
 
 	int32_t GetStripData(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
 	{

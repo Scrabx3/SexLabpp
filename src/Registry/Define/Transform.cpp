@@ -1,5 +1,7 @@
 #include "Transform.h"
 
+#include <numbers>
+
 namespace Registry
 {
 	Transform::Transform(const std::array<float, Offset::Total>& a_rawoffset) :
@@ -32,7 +34,7 @@ namespace Registry
 
 	void Transform::UpdateOffset(float a_value, Offset a_where)
 	{
-		_offset[a_where] = a_value;
+		_offset[a_where] += a_value;
 	}
 
 	void Transform::ResetOffset()
@@ -48,7 +50,9 @@ namespace Registry
 		a_coordinate[0] += (_offset[0] * cos_theta) - (_offset[1] * sin_theta);
 		a_coordinate[1] += (_offset[0] * sin_theta) + (_offset[1] * cos_theta);
 		a_coordinate[2] += _offset[2];
-		a_coordinate[3] += _offset[3];
+		if (_offset[3]) {
+			a_coordinate[3] += _offset[3] * (std::numbers::pi_v<float> / 180.0f);
+		}
 	}
 
 	void Transform::Save(YAML::Node& a_node) const
