@@ -4,6 +4,7 @@
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
 #include "Registry/Util/CellCrawler.h"
+#include "Registry/Util/Scale.h"
 #include "UserData/ConfigData.h"
 
 using Offset = Registry::Offset;
@@ -336,6 +337,7 @@ namespace Papyrus::ThreadModel
 			};
 			actor->data.angle.z = offset[Offset::R];
 			actor->SetPosition(coordinate, true);
+			Registry::Scale::GetSingleton()->SetScale(actor, scene->positions[i].scale);
 
 			// SKSE::GetTaskInterface()->AddTask([=]() {
 			actor->NotifyAnimationGraph(stage->positions[i].event);

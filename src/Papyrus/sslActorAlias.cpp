@@ -1,6 +1,7 @@
 #include "sslActorAlias.h"
 
 #include "UserData/StripData.h"
+#include "Registry/Util/Scale.h"
 
 namespace Papyrus::ActorAlias
 {
@@ -44,6 +45,7 @@ namespace Papyrus::ActorAlias
 			a_vm->TraceStack("LockActorImpl requires the filled reference to be an actor", a_stackID);
 			return;
 		}
+		Registry::Scale::GetSingleton()->RemoveScale(actor);
 		actor->actorState1.lifeState = actor->GetActorValue(RE::ActorValue::kHealth) <= 0 ? RE::ACTOR_LIFE_STATE::kDying : RE::ACTOR_LIFE_STATE::kAlive;
 		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(false);

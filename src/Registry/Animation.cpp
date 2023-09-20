@@ -559,7 +559,7 @@ namespace Registry
 
 	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<RE::Actor*>& a_positions, bool a_withfallback) const
 	{
-		if (a_positions.size() < positions.size())
+		if (a_positions.size() > positions.size() || a_positions.size() + CountOptionalPositions() < positions.size())
 			return std::nullopt;
 
 		std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> argActor{};
@@ -574,7 +574,7 @@ namespace Registry
 
 	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const
 	{
-		if (a_positions.size() > positions.size())
+		if (a_positions.size() > positions.size() || a_positions.size() + CountOptionalPositions() < positions.size())
 			return std::nullopt;
 		// Mark every position that every actor can be placed in
 		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
