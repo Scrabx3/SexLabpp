@@ -64,10 +64,9 @@ namespace Registry
 		enum class Extra : uint8_t
 		{
 			Submissive = 1 << 0,
-			Optional = 1 << 1,
+			HandShackle = 1 << 1,
 			Vamprie = 1 << 2,
 			Unconscious = 1 << 3,
-
 			Yoke = 1 << 4,
 			Armbinder = 1 << 5,
 			Legbinder = 1 << 6,
@@ -84,7 +83,6 @@ namespace Registry
 		_NODISCARD PapyrusSex GetSexPapyrus() const;
 
 		_NODISCARD bool IsSubmissive() const { return extra.all(Extra::Submissive); }
-		_NODISCARD bool IsOptional() const { return extra.all(Extra::Optional); }
 
 		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
 		_NODISCARD bool CanFillPosition(const PositionInfo& a_other) const;
@@ -133,7 +131,6 @@ namespace Registry
 		_NODISCARD bool IsCompatibleFurniture(RE::TESObjectREFR* a_reference) const;
 
 		_NODISCARD uint32_t CountPositions() const;
-		_NODISCARD uint32_t CountOptionalPositions() const;
 		_NODISCARD uint32_t CountSubmissives() const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;

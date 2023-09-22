@@ -65,7 +65,6 @@ namespace Papyrus::SexLabRegistry
 	std::vector<RE::BSFixedString> GetPathMax(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 
 	int32_t GetActorCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
-	int32_t GetOptionalActorCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
 	
 	bool IsSimilarPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, int m);
 	bool CanFillPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, RE::Actor* a_actor);
@@ -141,7 +140,6 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(GetPathMax, "SexLabRegistry", true);
 
 		REGISTERFUNC(GetActorCount, "SexLabRegistry", true);
-		REGISTERFUNC(GetOptionalActorCount, "SexLabRegistry", true);
 
 		REGISTERFUNC(IsSimilarPosition, "SexLabRegistry", true);
 		REGISTERFUNC(CanFillPosition, "SexLabRegistry", true);

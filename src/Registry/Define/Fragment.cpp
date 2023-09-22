@@ -3,7 +3,7 @@
 namespace Registry
 {
 	PositionFragment MakeFragmentFromActor(RE::Actor* a_actor, bool a_submissive)
-	{
+	{		
 		auto base = a_actor->GetActorBase();
 		if (!base) {
 			logger::error("Invalid Actor {:X} (0): Missing base object", a_actor->formID);

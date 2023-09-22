@@ -18,7 +18,7 @@ namespace Registry
 		Vampire = 1 << 3,
 		Yoke = 1 << 4,
 		Arminder = 1 << 5,
-		// HandShackle = (Yoke | Arminder),
+		HandShackle = (Yoke | Arminder),
 		LegsBound = 1 << 6,
 		// Unused = 1 << 7,
 		// Unused = 1 << 8,

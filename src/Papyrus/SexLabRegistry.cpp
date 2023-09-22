@@ -268,7 +268,7 @@ namespace Papyrus::SexLabRegistry
 			}
 			if (!scene->IsCompatibleTags(tagdetail))
 				continue;
-			if (!scene->SortActors(fragments))
+			if (!scene->SortActorsFB(fragments))
 				continue;
 			ret.push_back(sceneid);
 		}
@@ -475,12 +475,6 @@ namespace Papyrus::SexLabRegistry
 	{
 		SCENE(false);
 		return scene->CountPositions();
-	}
-
-	int32_t GetOptionalActorCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
-	{
-		SCENE(false);
-		return scene->CountOptionalPositions();
 	}
 
 	bool IsSimilarPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, int m)

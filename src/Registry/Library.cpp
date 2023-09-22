@@ -34,7 +34,7 @@ namespace Registry
 						// For each scene, find all viable hash locks and sort them into the library
 						const auto positionFragments = scene->MakeFragments();
 						Combinatorics::ForEachCombination<PositionFragment>(positionFragments, [&](const std::vector<std::vector<PositionFragment>::const_iterator>& it) {
-							// Create a copy of the current scene, filter out empty/optional positions and create hashkeys from them
+							// Create a copy of the current scene
 							std::vector<PositionFragment> argFragment;
 							argFragment.reserve(it.size());
 							for (const auto& current : it) {
