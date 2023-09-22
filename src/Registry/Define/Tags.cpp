@@ -71,6 +71,9 @@ namespace Registry
 		MAPENTRY(Behind),
 		MAPENTRY(Facing),
 		MAPENTRY(Magic),
+
+		MAPENTRY(Ryona),
+		MAPENTRY(Gore)
 	};
 
 #undef MAPENTRY

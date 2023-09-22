@@ -58,6 +58,8 @@ namespace Registry
 		Spooning = 1ULL << 50,
 		Standing = 1ULL << 51,
 
+		Ryona = 1ULL << 52,
+		Gore = 1ULL << 53,
 	};
 
 	class TagData
