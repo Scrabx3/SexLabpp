@@ -576,12 +576,16 @@ namespace Registry
 					compatibles[i].emplace_back(n, a_positions[i].first);
 				}
 			}
+			if (compatibles[i].empty()) {
+				logger::info("Actor {:X} has no compatible positions for scene {} ({})", a_positions[i].first->formID, this->name, this->id);
+				return std::nullopt;
+			}
 		}
 		// Then find a combination of compatibles that consists exclusively of unique elements
 		std::vector<RE::Actor*> ret{};
 		Combinatorics::ForEachCombination(compatibles, [&](auto it) {
 			// Iteration always use the same nth actor + some idx of a compatible position
-			std::vector<RE::Actor*> result{ it.size(), nullptr };
+			std::vector<RE::Actor*> result(it.size(), nullptr);
 			for (auto&& current : it) {
 				const auto& [scene_idx, actor] = *current;
 				if (result[scene_idx] != nullptr) {
