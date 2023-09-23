@@ -13,6 +13,14 @@ namespace Registry
 	void Scale::SetScale(RE::Actor* a_actor, float a_absolutescale)
 	{
 		assert(a_actor && a_absolutescale > 0.0f);
+		if (Settings::bDisableScale) {
+			return;
+		} else if (!transformInterface) {
+			logger::error("Missing interface, scaling disabled");
+			Settings::bDisableScale = true;
+			return;
+		}
+
 		const auto base = a_actor->GetActorBase();
 		const auto female = base ? base->GetSex() == RE::SEXES::kFemale : false;
 		transformInterface->AddNodeTransformScaleMode(a_actor, false, female, basenode, namekey, ScaleModes::Multiplicative);
@@ -29,7 +37,15 @@ namespace Registry
 
   void Scale::RemoveScale(RE::Actor* a_actor)
   {
-    assert(a_actor);
+		assert(a_actor);
+		if (Settings::bDisableScale) {
+			return;
+		} else if (!transformInterface) {
+			logger::error("Missing interface, scaling disabled");
+			Settings::bDisableScale = true;
+			return;
+		}
+
 		const auto base = a_actor->GetActorBase();
 		const auto female = base ? base->GetSex() == RE::SEXES::kFemale : false;
 		transformInterface->RemoveNodeTransformScale(a_actor, false, female, basenode, namekey);
