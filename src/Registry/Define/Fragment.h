@@ -41,7 +41,7 @@ namespace Registry
 	PositionFragment RaceKeyAsFragment(RaceKey a_racekey);
 
 	PositionFragment MakeFragmentFromActor(RE::Actor* a_actor, bool a_submissive);
-	std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> MakeFragmentPair(std::vector<RE::Actor*> a_actors, std::vector<RE::Actor*> a_submissives);
+	std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> MakeFragmentPair(const std::vector<RE::Actor*>& a_actors, const std::vector<RE::Actor*>& a_submissives);
 	FragmentHash CombineFragments(const std::vector<PositionFragment>& a_fragments);
 
 } // namespace Registry

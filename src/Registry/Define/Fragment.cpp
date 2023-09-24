@@ -1,33 +1,31 @@
 #include "Fragment.h"
 
+#include "Registry/Define/Sex.h"
+
 namespace Registry
 {
 	PositionFragment MakeFragmentFromActor(RE::Actor* a_actor, bool a_submissive)
-	{		
-		auto base = a_actor->GetActorBase();
-		if (!base) {
-			logger::error("Invalid Actor {:X} (0): Missing base object", a_actor->formID);
-			return { PositionFragment::None };
-		}
-
-		auto sex = base ? base->GetSex() : RE::SEXES::kNone;
+	{
 		stl::enumeration<PositionFragment> ret{};
-		switch (sex) {
-		case RE::SEXES::kFemale:
-			ret.set(Registry::IsFuta(a_actor) ? PositionFragment::Futa : PositionFragment::Female);
+		switch (GetSex(a_actor)) {
+		case Sex::Female:
+			ret.set(PositionFragment::Female);
 			break;
-		case RE::SEXES::kMale:
+		case Sex::Male:
 			ret.set(PositionFragment::Male);
 			break;
+		case Sex::Futa:
+			ret.set(PositionFragment::Futa);
+			break;
 		default:
-			logger::error("Invalid Actor {:X} ({:X}): Missing sex", a_actor->formID, (base ? base->formID : 0));
+			logger::error("Cannt build fragment from Actor {:X}: Invalid Sex", a_actor->formID);
 			return { PositionFragment::None };
 		}
 
 		const auto racekey = RaceHandler::GetRaceKey(a_actor);
 		switch (racekey) {
 		case RaceKey::None:
-			logger::error("Invalid Actor {:X} ({:X}): Missing Racekey", a_actor->formID, base->formID);
+			logger::error("Cannt build fragment from Actor {:X}: Invalid RaceKey", a_actor->formID);
 			break;
 		case RaceKey::Human:
 			{
@@ -93,7 +91,7 @@ namespace Registry
 		return PositionFragment(static_cast<underlying>(a_racekey) << 3);
 	}
 
-	std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> MakeFragmentPair(std::vector<RE::Actor*> a_actors, std::vector<RE::Actor*> a_submissives)
+	std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> MakeFragmentPair(const std::vector<RE::Actor*>& a_actors, const std::vector<RE::Actor*>& a_submissives)
 	{
 		std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> ret{};
 		for (auto&& actor : a_actors) {
