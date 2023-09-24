@@ -193,6 +193,12 @@ namespace Registry
 
 	void Stage::Save(YAML::Node& a_node) const
 	{
+		bool skip = std::find_if(positions.begin(), positions.end(), [](auto& position) { 
+			return position.offset.HasChanges(); 
+		}) == positions.end();
+		if (skip)
+			return;
+
 		for (size_t i = 0; i < positions.size(); i++) {
 			auto node = a_node[i];
 			positions[i].Save(node);

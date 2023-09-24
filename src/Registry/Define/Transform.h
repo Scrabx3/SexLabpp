@@ -22,6 +22,7 @@ namespace Registry
 
 	public:
 		void Apply(std::array<float, 4>& a_coordinate) const;
+		bool HasChanges() const;
 
 		const std::array<float, Offset::Total>& GetRawOffset() const;
 		const std::array<float, Offset::Total>& GetOffset() const;

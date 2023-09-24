@@ -70,4 +70,9 @@ namespace Registry
 		}
 	}
 
+	bool Transform::HasChanges() const
+	{
+		return _offset != _raw;
+	}
+
 }
