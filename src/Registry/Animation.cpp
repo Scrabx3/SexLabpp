@@ -255,27 +255,28 @@ namespace Registry
 
 		if (fragment.all(PositionFragment::Unconscious) != this->extra.all(Extra::Unconscious))
 			return false;
-		else if (fragment.all(PositionFragment::Submissive) != this->extra.all(Extra::Submissive))
+		if (fragment.all(PositionFragment::Submissive) != this->extra.all(Extra::Submissive))
 			return false;
 
 		if (fragment.all(PositionFragment::Human)) {
 			if (this->extra.all(Extra::Vamprie) && !fragment.all(PositionFragment::Vampire))
 				return false;
 			if (fragment.all(PositionFragment::HandShackle)) {
-				if (!extra.any(Extra::HandShackle))
+				if (!extra.all(Extra::HandShackle))
 					return false;
 			} else {
-				if (extra.any(Extra::Armbinder) != fragment.all(PositionFragment::Arminder))
+				if (extra.all(Extra::Armbinder) != fragment.all(PositionFragment::Arminder))
 					return false;
-				if (extra.any(Extra::Yoke) != fragment.all(PositionFragment::Yoke))
+				if (extra.all(Extra::Yoke) != fragment.all(PositionFragment::Yoke))
 					return false;
 			}
 			if (extra.any(Extra::Legbinder) != fragment.all(PositionFragment::LegsBound))
 				return false;
 		} else {
-			const auto thisrace = static_cast<uint64_t>(race);
-			if ((fragment.underlying() & thisrace) != thisrace)
+			const auto race_frag = RaceKeyAsFragment(race);
+			if (!fragment.all(race_frag)) {
 				return false;
+			}
 		}
 		return true;
 	}
