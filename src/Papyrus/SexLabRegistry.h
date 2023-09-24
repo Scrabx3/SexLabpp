@@ -37,8 +37,14 @@ namespace Papyrus::SexLabRegistry
 	std::vector<RE::BSFixedString> ValidateScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives);
 
-	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::reference_array<RE::Actor*> a_positions, std::string a_sceneid, bool a_allowfallback);
-	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::reference_array<RE::Actor*> a_positions, std::vector<std::string> a_sceneids, bool a_allowfallback);
+	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		RE::reference_array<RE::Actor*> a_positions, RE::Actor* a_victim, std::string a_sceneid, bool a_allowfallback);
+	bool SortBySceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		RE::reference_array<RE::Actor*> a_positions, std::vector<RE::Actor*> a_victims, std::string _sceneid, bool a_allowfallback);
+	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		RE::reference_array<RE::Actor*> a_positions, RE::Actor* a_victim, std::vector<std::string> a_sceneids, bool a_allowfallback);
+	int32_t SortBySceneExA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		RE::reference_array<RE::Actor*> a_positions, std::vector<RE::Actor*> a_victims, std::vector<std::string> a_sceneids, bool a_allowfallback);
 
 	bool SceneExists(RE::StaticFunctionTag*, RE::BSFixedString a_sceneid);
 	std::vector<RE::BSFixedString> SceneExistA(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_sceneids);
@@ -113,7 +119,9 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(ValidateScenesA, "SexLabRegistry", true);
 
 		REGISTERFUNC(SortByScene, "SexLabRegistry", true);
+		REGISTERFUNC(SortBySceneA, "SexLabRegistry", true);
 		REGISTERFUNC(SortBySceneEx, "SexLabRegistry", true);
+		REGISTERFUNC(SortBySceneExA, "SexLabRegistry", true);
 
 		REGISTERFUNC(SceneExists, "SexLabRegistry", true);
 		REGISTERFUNC(SceneExistA, "SexLabRegistry", true);

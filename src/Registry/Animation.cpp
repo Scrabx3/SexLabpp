@@ -549,26 +549,27 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<RE::Actor*>& a_positions, bool a_withfallback) const
-	{
-		if (a_positions.size() != this->positions.size())
-			return std::nullopt;
+	// std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<RE::Actor*>& a_positions, bool a_withfallback) const
+	// {
+	// 	if (a_positions.size() != this->positions.size())
+	// 		return std::nullopt;
 
-		size_t submissives = CountSubmissives();
-		std::vector<std::pair<RE::Actor*, PositionFragment>> argActor{};
-		for (size_t i = 0; i < a_positions.size(); i++) {
-			argActor.emplace_back(
-				a_positions[i],
-				MakeFragmentFromActor(a_positions[i], submissives-- > 0));
-		}
-		return a_withfallback ? SortActors(argActor) : SortActorsFB(argActor);
-	}
+	// 	size_t submissives = CountSubmissives();
+	// 	std::vector<std::pair<RE::Actor*, PositionFragment>> argActor{};
+	// 	for (size_t i = 0; i < a_positions.size(); i++) {
+	// 		argActor.emplace_back(
+	// 			a_positions[i],
+	// 			MakeFragmentFromActor(a_positions[i], submissives-- > 0));
+	// 	}
+	// 	return a_withfallback ? SortActors(argActor) : SortActorsFallback(argActor);
+	// }
 
 	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions) const
 	{
 		if (a_positions.size() != this->positions.size())
 			return std::nullopt;
 		// Mark every position that every actor can be placed in
+		logger::info("Sorting actors for scene {}", this->name);
 		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
 		compatibles.resize(a_positions.size());
 		for (size_t i = 0; i < a_positions.size(); i++) {
@@ -604,10 +605,9 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<std::vector<RE::Actor*>> Scene::SortActorsFB(std::vector<std::pair<RE::Actor*, PositionFragment>> a_positions) const
+	std::optional<std::vector<RE::Actor*>> Scene::SortActorsFallback(std::vector<std::pair<RE::Actor*, PositionFragment>> a_positions) const
 	{
-		auto ret = SortActors(a_positions);
-		if (ret)
+		if (auto ret = SortActors(a_positions))
 			return ret;
 
 		for (auto&& [actor, fragment] : a_positions) {
@@ -617,8 +617,7 @@ namespace Registry
 				e.set(PositionFragment::Male);
 			}
 			fragment = e.get();
-			ret = SortActors(a_positions);
-			if (ret)
+			if (auto ret = SortActors(a_positions))
 				return ret;
 		}
 		return std::nullopt;

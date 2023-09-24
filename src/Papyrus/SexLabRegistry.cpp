@@ -268,14 +268,19 @@ namespace Papyrus::SexLabRegistry
 			}
 			if (!scene->IsCompatibleTags(tagdetail))
 				continue;
-			if (!scene->SortActorsFB(fragments))
+			if (!scene->SortActorsFallback(fragments))
 				continue;
 			ret.push_back(sceneid);
 		}
+		logger::info("Validated Scenes, return {}/{} Scenes", a_sceneids.size(), ret.size());
 		return ret;
 	}
 
-	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::reference_array<RE::Actor*> a_positions, std::string a_sceneid, bool a_allowfallback)
+	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		RE::reference_array<RE::Actor*> a_positions,
+		RE::Actor* a_victim,
+		std::string a_sceneid,
+		bool a_allowfallback)
 	{
 		const auto lib = Registry::Library::GetSingleton();
 		const auto scene = lib->GetSceneByID(a_sceneid);
@@ -284,7 +289,8 @@ namespace Papyrus::SexLabRegistry
 			return false;
 		}
 		std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
-		const auto ret = scene->SortActors(positions, a_allowfallback);
+		const auto fragments = Registry::MakeFragmentPair(positions, { a_victim });
+		const auto ret = a_allowfallback ? scene->SortActorsFallback(fragments) : scene->SortActors(fragments);
 		if (!ret)
 			return false;
 
@@ -294,7 +300,35 @@ namespace Papyrus::SexLabRegistry
 		return true;
 	}
 
-	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::reference_array<RE::Actor*> a_positions, std::vector<std::string> a_sceneids, bool a_allowfallback)
+	bool SortBySceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		RE::reference_array<RE::Actor*> a_positions,
+		std::vector<RE::Actor*> a_victims,
+		std::string a_sceneid,
+		bool a_allowfallback)
+	{
+		const auto lib = Registry::Library::GetSingleton();
+		const auto scene = lib->GetSceneByID(a_sceneid);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id ", a_stackID);
+			return false;
+		}
+		std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
+		const auto fragments = Registry::MakeFragmentPair(positions, a_victims);
+		const auto ret = a_allowfallback ? scene->SortActorsFallback(fragments) : scene->SortActors(fragments);
+		if (!ret)
+			return false;
+
+		for (size_t i = 0; i < ret->size(); i++) {
+			a_positions[i] = ret->at(i);
+		}
+		return true;
+	}
+
+	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		RE::reference_array<RE::Actor*> a_positions,
+		RE::Actor* a_victim,
+		std::vector<std::string> a_sceneids,
+		bool a_allowfallback)
 	{
 		const auto lib = Registry::Library::GetSingleton();
 		for (size_t i = 0; i < a_sceneids.size(); i++) {
@@ -304,7 +338,34 @@ namespace Papyrus::SexLabRegistry
 				break;
 			}
 			std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
-			const auto result = scene->SortActors(positions, a_allowfallback);
+			const auto fragments = Registry::MakeFragmentPair(positions, { a_victim });
+			const auto result = a_allowfallback ? scene->SortActorsFallback(fragments) : scene->SortActors(fragments);
+			if (result) {
+				for (size_t n = 0; n < result->size(); n++) {
+					a_positions[n] = result->at(n);
+				}
+				return static_cast<int32_t>(i);
+			}
+		}
+		return -1;
+	}
+
+	int32_t SortBySceneExA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
+		RE::reference_array<RE::Actor*> a_positions,
+		std::vector<RE::Actor*> a_victims,
+		std::vector<std::string> a_sceneids,
+		bool a_allowfallback)
+	{
+		const auto lib = Registry::Library::GetSingleton();
+		for (size_t i = 0; i < a_sceneids.size(); i++) {
+			const auto scene = lib->GetSceneByID(a_sceneids[i]);
+			if (!scene) {
+				a_vm->TraceStack("Invalid scene id ", a_stackID);
+				break;
+			}
+			std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
+			const auto fragments = Registry::MakeFragmentPair(positions, a_victims);
+			const auto result = a_allowfallback ? scene->SortActorsFallback(fragments) : scene->SortActors(fragments);
 			if (result) {
 				for (size_t n = 0; n < result->size(); n++) {
 					a_positions[n] = result->at(n);

@@ -134,9 +134,9 @@ namespace Registry
 		_NODISCARD uint32_t CountSubmissives() const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<RE::Actor*>& a_positions, bool a_withfallback) const;
+		// _NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<RE::Actor*>& a_positions, bool a_withfallback) const;
 		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFB(std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> a_positions) const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFallback(std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> a_positions) const;
 
 		_NODISCARD Stage* GetStageByKey_Mutable(const RE::BSFixedString& a_stage);
 		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_stage) const;

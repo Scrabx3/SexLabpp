@@ -249,7 +249,7 @@ namespace Papyrus::ThreadLibrary
 					actor,
 					submissive));
 		}
-		auto ret = scene->SortActorsFB(argFrag);
+		auto ret = scene->SortActorsFallback(argFrag);
 		return ret ? *ret : a_positions;
 	}
 
