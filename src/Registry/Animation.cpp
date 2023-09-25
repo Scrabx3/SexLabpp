@@ -652,8 +652,6 @@ namespace Registry
 
 	RE::BSFixedString Scene::GetNthAnimationEvent(const Stage* a_stage, size_t n) const
 	{
-		if (n < 0 || n >= a_stage->positions.size())
-			return "";
 		std::string ret{ hash };
 		return ret + a_stage->positions[n].event.data();
 	}

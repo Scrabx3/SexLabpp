@@ -476,6 +476,10 @@ namespace Papyrus::SexLabRegistry
 	{
 		SCENE({});
 		STAGE({});
+		if (n < 0 || n >= stage->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return "";
+		}
 		return scene->GetNthAnimationEvent(stage, n);
 	}
 
