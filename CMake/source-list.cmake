@@ -9,8 +9,6 @@ set(CXX_FILES
 
 	src/IPluginInterface.h
 
-	src/UserData/ConfigData.h
-	src/UserData/ConfigData.cpp
 	src/UserData/Settings.h
 	src/UserData/Settings.cpp
 	src/UserData/StripData.h
