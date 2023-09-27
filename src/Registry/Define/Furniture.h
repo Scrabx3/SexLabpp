@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Transform.h"
+
 namespace Registry
 {
 	enum class FurnitureType : uint32_t
@@ -47,6 +49,36 @@ namespace Registry
 		// Unused = 1 << 29,
 		// Unused = 1 << 30,
 		// Unused = 1 << 31,
+	};
+
+	class FurnitureDetails
+	{
+	public:
+		/// @brief Find the closest (in bound) location for each furniture type associated with this model
+		/// @param a_ref The reference to find the locations from
+		/// @param a_center Some reference to derive distance from
+		/// @return A list of pairs stating the furniture type and its associated closest in-bounds point
+		std::vector<std::pair<FurnitureType, Coordinate>> GetClosestCoordinateInBound(RE::TESObjectREFR* a_ref, const RE::TESObjectREFR* a_center) const;
+
+		template <typename T>
+		bool HasType(T a_container) const
+		{
+			return HasType(T, std::identity);
+		}
+		template <typename T, typename S>
+		bool HasType(T a_container, S a_projection) const
+		{
+			for (auto&& it : a_container) {
+				FurnitureType type = a_projection(it);
+				if (std::ranges::find_if(_data, [&](const auto& arg) { return arg.first == type; }) != _data.end())
+					return true;
+			}
+			return false;
+		}
+
+	private:
+		RE::BSFixedString _modelpath;
+		std::vector<std::pair<FurnitureType, std::vector<Transform>>> _data;
 	};
 
 	struct BedHandler

@@ -1,5 +1,8 @@
 #include "Furniture.h"
 
+#include "Registry/Util/RayCast.h"
+#include "Registry/Util/RayCast/ObjectBound.h"
+
 namespace Registry
 {
 	std::vector<RE::TESObjectREFR*> BedHandler::GetBedsInArea(RE::TESObjectREFR* a_center, float a_radius, float a_radiusz)
@@ -56,8 +59,8 @@ namespace Registry
 		const auto root = a_reference->Get3D();
 		const auto extra = root ? root->GetExtraData("FRN") : nullptr;
 		const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
-    if (!node)
-      return BedType::None;
+		if (!node)
+			return BedType::None;
 
 		size_t sleepmarkers = 0;
 		for (auto&& marker : node->markers) {
@@ -67,7 +70,7 @@ namespace Registry
 		}
 		switch (sleepmarkers) {
 		case 0:
-      return BedType::None;
+			return BedType::None;
 		case 1:
 			return BedType::Single;
 		default:
@@ -76,7 +79,7 @@ namespace Registry
 	}
 
 	bool BedHandler::IsBed(const RE::TESObjectREFR* a_reference)
-  {
+	{
 		return GetBedType(a_reference) != BedType::None;
 	}
 
@@ -91,9 +94,9 @@ namespace Registry
 			return FurnitureType::None;
 
 		switch (base->formID) {
-		case 0x0005'2FF5:	// WallLeanmarker
+		case 0x0005'2FF5:	 // WallLeanmarker
 			return FurnitureType::Wall;
-		case 0x0007'0EA1:	// RailLeanMarker
+		case 0x0007'0EA1:	 // RailLeanMarker
 			return FurnitureType::Railing;
 		case 0x00016'B691:
 			return FurnitureType::ChairNoble;
@@ -103,11 +106,11 @@ namespace Registry
 			return FurnitureType::ChairWood;
 		case 0x0000'CA02:
 			return FurnitureType::BenchNoble;
-		case 0x0002'67D3:	// Nordic Throne
-		case 0x0009'85C2: // Katariah Ship
+		case 0x0002'67D3:	 // Nordic Throne
+		case 0x0009'85C2:	 // Katariah Ship
 			return FurnitureType::ThroneNordic;
-		case 0x000F'507A:	// CounterBarLeanMarker
-		case 0x0006'CF36:	// CounterLeanMarker
+		case 0x000F'507A:	 // CounterBarLeanMarker
+		case 0x0006'CF36:	 // CounterLeanMarker
 			return FurnitureType::TableCounter;
 		case 0x000C'4EF1:
 			return FurnitureType::Table;
@@ -194,4 +197,61 @@ namespace Registry
 		return FurnitureType::None;
 	}
 
-} // namespace Registry
+	std::vector<std::pair<FurnitureType, Coordinate>> FurnitureDetails::GetClosestCoordinateInBound(RE::TESObjectREFR* a_ref, const RE::TESObjectREFR* a_center) const
+	{
+		const auto niobj = a_ref->Get3D();
+		const auto ninode = niobj ? niobj->AsNode() : nullptr;
+		if (!ninode)
+			return {};
+		const auto boundingbox = MakeBoundingBox(ninode);
+		if (!boundingbox)
+			return {};
+		auto centerstart = boundingbox->GetCenterWorld();
+		centerstart.z = boundingbox->worldBoundMax.z;
+
+		const glm::vec4 tracestart{
+			centerstart.x,
+			centerstart.y,
+			centerstart.z,
+			0.0f
+		};
+		const auto basecoords = Coordinate(a_ref);
+		const auto centercoords = Coordinate(a_center);
+
+		std::vector<std::pair<FurnitureType, Coordinate>> ret{};
+		for (auto&& [type, offsetlist] : _data) {
+			float distance = std::numeric_limits<float>::max();
+			Coordinate distance_coords;
+
+			for (auto&& offset : offsetlist) {
+				// Get location for current coordinates
+				// Add some units height to it so we hover above ground to avoid hitting a rug or gold coin
+				auto coords = basecoords;
+				offset.Apply(coords);
+				coords.location.z += 16.0f;
+				const glm::vec4 traceend_A{ coords.location, 0.0f };
+				// Check if path to offset is free, if not we likely hit some static, like a wall, or some actor
+				const auto resA = Raycast::hkpCastRay(tracestart, traceend_A, { a_ref, a_center });
+				if (glm::distance(resA.hitPos, traceend_A) > 16.0) {
+					continue;
+				}
+				// 2nd cast to see if there is no ceiling above either
+				auto traceend_B = traceend_A;
+				traceend_B.z += 128.0f;
+				const auto resB = Raycast::hkpCastRay(traceend_A, traceend_B, { a_ref, a_center });
+				if (resB.hit) {
+					continue;
+				}
+				if (const auto d = glm::distance(coords.location, centercoords.location); d < distance) {
+					distance_coords = coords;
+					distance = d;
+				}
+			}
+			if (distance != std::numeric_limits<float>::max()) {
+				ret.emplace_back(type, distance_coords);
+			}
+		}
+		return ret;
+	}
+
+}	 // namespace Registry

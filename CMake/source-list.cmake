@@ -14,11 +14,19 @@ set(CXX_FILES
 	src/UserData/StripData.h
 	src/UserData/StripData.cpp
 
-	src/Hooks/Hooks.h
-	src/Hooks/Hooks.cpp
+	# src/Hooks/Hooks.h
+	# src/Hooks/Hooks.cpp
+	src/Registry/Util/RayCast/bhkLinearCastCollector.h
+	src/Registry/Util/RayCast/bhkRigidBodyT.h
+	src/Registry/Util/RayCast/Math.h
+	src/Registry/Util/RayCast/ObjectBound.h
+	src/Registry/Util/RayCast/ObjectBound.cpp
+	src/Registry/Util/RayCast/RayCast.cpp
+	src/Registry/Util/RayCast/Offsets.h
 
 	src/Registry/Util/CellCrawler.h
 	src/Registry/Util/Combinatorics.h
+	src/Registry/Util/RayCast.h
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp
 
