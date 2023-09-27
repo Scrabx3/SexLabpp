@@ -15,5 +15,4 @@ struct ObjectBound
 	glm::vec3 worldBoundMax{ glm::vec3() };
 	glm::vec3 rotation{ glm::vec3() };
 };
-inline std::optional<ObjectBound> MakeBoundingBox(RE::NiNode* a_niobj);
-inline RE::NiPoint3 AsNiPoint3(const glm::vec3& a_vec);
+std::optional<ObjectBound> MakeBoundingBox(RE::NiNode* a_niobj);
