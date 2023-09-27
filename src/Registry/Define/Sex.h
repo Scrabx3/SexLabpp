@@ -25,4 +25,6 @@ namespace Registry
 	Sex GetSex(RE::Actor* a_actor);
 	Sex GetSex(RE::Actor* a_actor, bool a_skipfactions);
 
+	bool IsFuta(RE::Actor* a_actor);	// Assumes female base sex
+
 } // namespace Registry

@@ -2,38 +2,27 @@
 
 namespace Registry
 {
-
-	bool IsFuta(RE::Actor* a_actor)
+	inline constexpr size_t MAX_RECURSE = 10;
+	RE::NiPointer<RE::NiCollisionObject> GetCollisionNodeRecurse(RE::NiNode* a_node, size_t a_recurse)
 	{
-		static const auto sosfaction = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESFaction>(0x00AFF8, "Schlongs of Skyrim.esp");
-		if (!sosfaction)
-			return false;
-
-		bool ret = false;
-		a_actor->VisitFactions([&ret](RE::TESFaction* a_faction, int8_t a_rank) -> bool {
-			if (!a_faction || a_rank < 0)	
-				return false;
-			
-			if (a_faction == sosfaction) {
-				ret = true;
-				return false;
-			}
-			const auto& excl = Settings::SOS_ExcludeFactions;
-			if (std::find(excl.begin(), excl.end(), a_faction->formID) != excl.end()) {
-				ret = false;
-				return true;
-			}
-			std::string name{ a_faction->GetFullName() };
-			if (!name.empty()) {
-				ToLower(name);
-				if (name.find("pubic") != std::string::npos) {
-					ret = false;
-					return true;
+		if (a_node->collisionObject) {
+			return a_node->collisionObject;
+		}
+		if (a_recurse > MAX_RECURSE) {
+			return nullptr;
+		}
+		for (auto child : a_node->children) {
+			if (!child)
+				continue;
+			if (child->collisionObject)
+				return child->collisionObject;
+			if (auto node = child->AsNode()) {
+				if (auto rec = GetCollisionNodeRecurse(node, a_recurse + 1)) {
+					return rec;
 				}
 			}
-			return false;
-		});
-		return ret;
+		}
+		return nullptr;
 	}
 
 	bool IsNPC(const RE::Actor* a_actor)
