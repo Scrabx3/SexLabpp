@@ -7,17 +7,8 @@ namespace Registry
 		#value, value       \
 	}
 
-	struct TagCmp
-	{
-		bool operator()(const RE::BSFixedString& lhs, const RE::BSFixedString& rhs) const
-		{
-			return strcmp(lhs.data(), rhs.data()) < 0;
-		}
-	};
-
-
 	using enum Tag;
-	static inline const std::map<RE::BSFixedString, Tag, TagCmp> TagTable = {
+	static inline const std::map<RE::BSFixedString, Tag, FixedStringCompare> TagTable = {
 		MAPENTRY(SixtyNine),
 		MAPENTRY(Anal),
 		MAPENTRY(Asphyxiation),

@@ -7,6 +7,8 @@
 #pragma warning(pop)
 
 #include <atomic>
+#include <glm/glm.hpp>
+#include <ranges>
 #include <unordered_map>
 #include <yaml-cpp/yaml.h>
 
@@ -151,6 +153,17 @@ namespace Papyrus
 
 	using VM = RE::BSScript::IVirtualMachine;
 	using StackID = RE::VMStackID;
+}
+
+namespace Registry
+{
+	struct FixedStringCompare
+	{
+		bool operator()(const RE::BSFixedString& lhs, const RE::BSFixedString& rhs) const
+		{
+			return strcmp(lhs.data(), rhs.data()) < 0;
+		}
+	};
 }
 
 #define DLLEXPORT __declspec(dllexport)
