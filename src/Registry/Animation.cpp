@@ -138,10 +138,7 @@ namespace Registry
 		// --- Misc
 		a_stream.read(reinterpret_cast<char*>(&furnitures.furnitures), 4);
 		a_stream.read(reinterpret_cast<char*>(&furnitures.allowbed), 1);
-		Decode::Read(a_stream, furnitures.offset[Offset::X]);
-		Decode::Read(a_stream, furnitures.offset[Offset::Y]);
-		Decode::Read(a_stream, furnitures.offset[Offset::Z]);
-		Decode::Read(a_stream, furnitures.offset[Offset::R]);
+		furnitures.offset = Coordinate(a_stream);
 		a_stream.read(reinterpret_cast<char*>(&is_private), 1);
 	}
 

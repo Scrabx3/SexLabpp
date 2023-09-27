@@ -113,7 +113,7 @@ namespace Registry
 		{
 			stl::enumeration<FurnitureType> furnitures{ FurnitureType::None };
 			bool allowbed{ false };
-			std::array<float, Offset::Total> offset{ 0, 0, 0, 0 };
+			Coordinate offset{};
 		};
 
 	public:

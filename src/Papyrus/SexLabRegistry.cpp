@@ -671,7 +671,7 @@ namespace Papyrus::SexLabRegistry
 			return argRet;
 		}
 		const auto ret = stage->positions[n].offset.GetOffset();
-		return { ret.begin(), ret.end() };
+		return { ret.location.x, ret.location.y, ret.location.z, ret.rotation };
 	}
 
 	std::vector<float> GetOffsetRaw(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
@@ -684,10 +684,10 @@ namespace Papyrus::SexLabRegistry
 			return argRet;
 		}
 		const auto ret = stage->positions[n].offset.GetRawOffset();
-		return { ret.begin(), ret.end() };
+		return { ret.location.x, ret.location.y, ret.location.z, ret.rotation };
 	}
 
-	void UpdateOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::Offset a_idx)
+	void UpdateOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::CoordinateType a_idx)
 	{
 		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
 		if (!scene) {
@@ -703,7 +703,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid position idx", a_stackID);
 			return;
 		}
-		if (a_idx < Registry::Offset::X || a_idx >= Registry::Offset::Total) {
+		if (a_idx < Registry::CoordinateType::X || a_idx >= Registry::CoordinateType::Total) {
 			a_vm->TraceStack("Invalid offset idx", a_stackID);
 			return;
 		}
@@ -726,16 +726,15 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid position idx", a_stackID);
 			return;
 		}
-		if (a_newoffset.size() < Registry::Offset::Total) {
+		if (a_newoffset.size() < Registry::CoordinateType::Total) {
 			a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
 			return;
 		}
-		stage->positions[n].offset.UpdateOffset({
-			a_newoffset[Registry::Offset::X],
-			a_newoffset[Registry::Offset::Y],
-			a_newoffset[Registry::Offset::Z],
-			a_newoffset[Registry::Offset::R],
-		});
+		stage->positions[n].offset.UpdateOffset(
+			a_newoffset[Registry::CoordinateType::X],
+			a_newoffset[Registry::CoordinateType::Y],
+			a_newoffset[Registry::CoordinateType::Z],
+			a_newoffset[Registry::CoordinateType::R]);
 	}
 
 	void ResetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
