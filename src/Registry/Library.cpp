@@ -78,6 +78,8 @@ namespace Registry
 		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
 
 		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms_double.count());
+
+		// TODO: Parse furniture info file
 	}
 
 	const Scene* Library::GetSceneByID(const std::string& a_id) const
@@ -114,7 +116,7 @@ namespace Registry
 			}
 			std::stable_sort(fragments.begin(), fragments.end());
 			hash = CombineFragments(fragments);
-		} };
+		} };	// Thread this because building details can be quite expensive
 		TagDetails tags{ a_tags };
 		_hashbuilder.join();
 
@@ -198,7 +200,7 @@ namespace Registry
 		for (auto&& thread : threads) {
 			thread.join();
 		}
-		logger::info("Finished saving scene settings");
+		logger::info("Finished saving registry settings");
 	}
 
 	void Library::Load()
@@ -225,6 +227,24 @@ namespace Registry
 				logger::error("Error while loading scene settings from file {}: {}", filename, e.what());
 			}
 		}
-		logger::info("Finished loading scene settings");
+		logger::info("Finished loading registry settings");
 	}
+	
+	const FurnitureDetails* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const
+	{
+		if (a_ref->Is(RE::FormType::ActorCharacter)) {
+			return nullptr;
+		}
+		const auto model = a_ref->As<RE::TESModel>();
+		return model ? GetFurnitureDetails(model) : nullptr;
+	}
+
+	const FurnitureDetails* Library::GetFurnitureDetails(const RE::TESModel* a_model) const
+	{
+		std::shared_lock lock{ read_write_lock };
+		const auto where = furnitures.find(a_model->model);
+		return where == furnitures.end() ? nullptr : &where->second;
+	}
+
+
 }

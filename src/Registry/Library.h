@@ -1,8 +1,10 @@
 #pragma once
 
+#include <shared_mutex>
+
 #include "Animation.h"
 #include "Define/Fragment.h"
-#include <shared_mutex>
+#include "Define/Furniture.h"
 
 namespace Registry
 {
@@ -19,14 +21,20 @@ namespace Registry
 		_NODISCARD Scene* GetSceneByID_Mutable(const RE::BSFixedString& a_id) const;
 		_NODISCARD size_t GetSceneCount() const;
 
-	public:
 		void ForEachScene(std::function<bool(const Scene*)> a_visitor) const;
 
+	public:
+		_NODISCARD const FurnitureDetails* GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const;
+		_NODISCARD const FurnitureDetails* GetFurnitureDetails(const RE::TESModel* a_model) const;
+
+	public:
 		void Save();
 		void Load();
 
 	private:
 		mutable std::shared_mutex read_write_lock{};
+
+		std::map<RE::BSFixedString, FurnitureDetails, FixedStringCompare> furnitures;
 
 		std::map<std::string_view, Scene*> scene_map;									 // Mapping every scene to their respective id for quick lookup
 		std::vector<std::unique_ptr<AnimPackage>> packages;						 // All registered packages, containing all available scenes
