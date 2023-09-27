@@ -1,40 +1,65 @@
 #include "Transform.h"
 
+#include <glm/gtx/transform.hpp>
 #include <numbers>
 
 namespace Registry
 {
-	Transform::Transform(const std::array<float, Offset::Total>& a_rawoffset) :
+	Transform::Transform(const Coordinate& a_rawoffset) :
 		_raw(a_rawoffset), _offset(a_rawoffset) {}
 
 	Transform::Transform(std::ifstream& a_binarystream)
 	{
-		Decode::Read(a_binarystream, _raw[Offset::X]);
-		Decode::Read(a_binarystream, _raw[Offset::Y]);
-		Decode::Read(a_binarystream, _raw[Offset::Z]);
-		Decode::Read(a_binarystream, _raw[Offset::R]);
+		Decode::Read(a_binarystream, _raw.location.x);
+		Decode::Read(a_binarystream, _raw.location.y);
+		Decode::Read(a_binarystream, _raw.location.z);
 
-    _offset = _raw;
+		float rotation;
+		Decode::Read(a_binarystream, rotation);
+		_raw.rotation = glm::radians(rotation);
+
+		_offset = _raw;
 	}
 
-	const std::array<float, Offset::Total>& Transform::GetRawOffset() const
+	const Coordinate& Transform::GetRawOffset() const
   {
     return _raw;
   }
 
-	const std::array<float, Offset::Total>& Transform::GetOffset() const
+	const Coordinate& Transform::GetOffset() const
   {
     return _offset;
   }
 
-	void Transform::UpdateOffset(const std::array<float, Offset::Total>& a_newoffset)
+	void Transform::UpdateOffset(const Coordinate& a_newoffset)
 	{
 		_offset = a_newoffset;
 	}
 
-	void Transform::UpdateOffset(float a_value, Offset a_where)
+	void Transform::UpdateOffset(float x, float y, float z, float rot)
 	{
-		_offset[a_where] += a_value;
+		_offset.location = {
+			x, y, z
+		};
+		_offset.rotation = glm::radians(rot);
+	}
+
+	void Transform::UpdateOffset(float a_value, CoordinateType a_type)
+	{
+		switch (a_type) {
+		case CoordinateType::X:
+			_offset.location.x += a_value;
+			break;
+		case CoordinateType::Y:
+			_offset.location.y += a_value;
+			break;
+		case CoordinateType::Z:
+			_offset.location.z += a_value;
+			break;
+		case CoordinateType::R:
+			_offset.rotation += glm::radians(a_value);
+			break;
+		}
 	}
 
 	void Transform::ResetOffset()
@@ -42,31 +67,37 @@ namespace Registry
 		_offset = _raw;
 	}
 
-	void Transform::Apply(std::array<float, 4>& a_coordinate) const
+	void Transform::Apply(Coordinate& a_coordinate) const
 	{
-		const auto cos_theta = std::cosf(a_coordinate[3]);
-		const auto sin_theta = std::sinf(a_coordinate[3]);
+		const auto rotation = glm::rotate(glm::mat4(1.0f), a_coordinate.rotation, glm::vec3(0, 0, 1));
+		const auto transform = glm::translate(rotation, _offset.location);
+		const auto result = transform * glm::vec4(a_coordinate.location, 0.0f);
+		a_coordinate.location = result;
 
-		a_coordinate[0] += (_offset[0] * cos_theta) - (_offset[1] * sin_theta);
-		a_coordinate[1] += (_offset[0] * sin_theta) + (_offset[1] * cos_theta);
-		a_coordinate[2] += _offset[2];
-		if (_offset[3]) {
-			a_coordinate[3] += _offset[3] * (std::numbers::pi_v<float> / 180.0f);
+		if (_offset.rotation) {
+			a_coordinate.rotation += _offset.rotation;
 		}
 	}
 
 	void Transform::Save(YAML::Node& a_node) const
 	{
-		a_node = _offset;
+		auto loc = a_node["Location"];
+		loc[0] = _offset.location.x;
+		loc[1] = _offset.location.y;
+		loc[2] = _offset.location.z;
+
+		a_node["Rotation"] = _offset.rotation;
 	}
 
 	void Transform::Load(const YAML::Node& a_node)
 	{
-		const auto offset = a_node.as<std::vector<float>>();
-		for (size_t i = 0; i < Offset::Total; i++) {
-			if (offset.size() >= i)
-				break;
-			_offset[i] = offset[i];
+		if (auto loc = a_node["Location"]; loc.IsDefined() && loc.size() == 3) {
+			_offset.location.x = loc[0].as<float>();
+			_offset.location.y = loc[1].as<float>();
+			_offset.location.z = loc[2].as<float>();
+		}
+		if (auto rot = a_node["Rotation"]; rot.IsDefined()) {
+			_offset.rotation = rot.as<float>();
 		}
 	}
 
