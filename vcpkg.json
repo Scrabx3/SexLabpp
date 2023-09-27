@@ -7,7 +7,8 @@
     "rsm-binary-io",
     "spdlog",
     "simpleini",
-    "yaml-cpp"
+    "yaml-cpp",
+    "glm"
   ],
   "builtin-baseline": "c06dfc0ac2649834da8b9f3092b907fb037accab",
   "overrides": [
