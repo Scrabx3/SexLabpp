@@ -55,12 +55,13 @@ namespace Papyrus::ThreadModel
 			return nullptr;
 		}
 		const auto [center, actor] = GetAliasRefs(a_qst);
-		if (!center && !actor) {
+		if (!actor) {
 			a_vm->TraceStack("Quest must have some actor positions filled", a_stackID);
 			return nullptr;
 		}
 		const auto library = Registry::Library::GetSingleton();
 		std::unordered_map<Registry::FurnitureType, std::vector<const Registry::Scene*>> scene_map{};
+		stl::enumeration<Registry::FurnitureType> filled_types;
 		for (auto&& sceneid : a_scenes) {
 			const auto scene = library->GetSceneByID(sceneid);
 			if (!scene) {
@@ -86,9 +87,13 @@ namespace Papyrus::ThreadModel
 					}
 				}
 			}
-			auto& it = scene_map[scene->furnitures.furnitures.get()];
-			if (std::ranges::find(it, scene) == it.end()) {
-				it.push_back(scene);
+			filled_types.set(scene->furnitures.furnitures.get());
+			const auto types = Registry::FlagToComponents(scene->furnitures.furnitures.get());
+			for (auto&& flag : types) {
+				auto& it = scene_map[flag];
+				if (std::ranges::find(it, scene) == it.end()) {
+					it.push_back(scene);
+				}
 			}
 		}
 		assert(!scene_map.empty() && std::ranges::find_if(scene_map, [](auto& vec) { return vec.empty() } == scene_map.end()));
@@ -111,10 +116,7 @@ namespace Papyrus::ThreadModel
 				Registry::Coordinate coord{ center };
 				return ReturnData(Registry::FurnitureType::None, coord) ? center : nullptr;
 			}
-			if (!details->HasType(scene_map, [](auto& it) { return it.first; })) {
-				return nullptr;
-			}
-			const auto coords = details->GetClosestCoordinateInBound(center, actor);
+			const auto coords = details->GetClosestCoordinateInBound(center, actor, filled_types);
 			if (coords.empty()) {
 				return nullptr;
 			}
@@ -138,7 +140,7 @@ namespace Papyrus::ThreadModel
 		});
 		std::vector<std::tuple<Registry::FurnitureType, Registry::Coordinate, RE::TESObjectREFR*>> coords{};
 		for (auto&& [ref, details] : found_objects) {
-			const auto res = details->GetClosestCoordinateInBound(ref, actor);
+			const auto res = details->GetClosestCoordinateInBound(ref, actor, filled_types);
 			for (auto&& pair : res) {
 				coords.push_back(std::make_tuple(pair.first, pair.second, ref));
 			}
@@ -154,104 +156,141 @@ namespace Papyrus::ThreadModel
 		return ReturnData(Registry::FurnitureType::None, coord) ? actor : nullptr;
 	}
 
-	std::vector<float> GetBaseCoordinates(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::BSFixedString a_scene)
+	bool UpdateBaseCoordinates(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::BSFixedString a_sceneid, RE::reference_array<float> a_out)
 	{
-		using FT = Registry::FurnitureType;
 		const auto [center, actor] = GetAliasRefs(a_qst);
-		if (!center) {
-			a_vm->TraceStack("Cannot get base coordinates from a none center", a_stackID);
-			return { 0, 0, 0, 0 };
+		if (!actor || !center) {
+			a_vm->TraceStack("Invalid aliases", a_stackID);
+			return false;
 		}
-
-		std::vector<float> ret{
-			center->GetPositionX(),
-			center->GetPositionY(),
-			center->GetPositionZ(),
-			center->GetAngleZ()
-		};
-
-		// const auto model = skyrim_cast<RE::TESModelTextureSwap*>(center);
-		// const auto transform = model ? UserData::FurnitureData::GetSingleton()->GetFurnitureTransform(model) : nullptr;
-		// if (transform) {
-
-
-		// 	return ret;
-		// }
-
-		// TODO: This here is a complete mess and nukes performance, w/e I was trying to do here aint worth it
-		switch (Registry::FurnitureHandler::GetFurnitureType(center)) {
-		case FT::None:
-			break;
-		case FT::BedDouble:
-		case FT::BedSingle:
-			// ret[Registry::CoordinateType::Z] = 37.0
-			ret[Registry::CoordinateType::Z] += 45;
-			break;
-		case FT::BedRoll:
-			ret[Registry::CoordinateType::Z] += 7.5;
-			ret[Registry::CoordinateType::R] += static_cast<float>(std::_Pi / 2);
-			break;
-			// default:
-			// 	const auto obj = center->Get3D();
-			// 	const auto extra = obj ? obj->GetExtraData("FRN") : nullptr;
-			// 	const auto markernode = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
-			// 	if (!markernode || markernode->markers.size() <= 1)
-			// 		break;
-
-			// 	const auto actorpos = actor->GetPosition();
-			// 	const RE::BSFurnitureMarker* closest = nullptr;
-			// 	float closest_distance = 0;
-			// 	for (const auto& marker : markernode->markers) {
-			// 		const auto d = (marker.offset + RE::NiPoint3{ ret[0], ret[1], ret[2] }).GetDistance(actorpos);
-			// 		if (d <= closest_distance) {
-			// 			closest_distance = d;
-			// 			closest = &marker;
-			// 		}
-			// 	}
-			// 	assert(closest);
-			// 	// getting middle marker from marker-set closest to the player
-			// 	std::vector<decltype(closest)> neighbours{ closest };
-			// 	for (const auto& marker : markernode->markers) {
-			// 		if (&marker != closest && std::abs(marker.heading - closest->heading) <= 3) {
-			// 			neighbours.push_back(&marker);
-			// 		}
-			// 	}
-
-			// 	RE::NiPoint3 tmp{};
-			// 	for (auto&& neighbour : neighbours) {
-			// 		tmp.x += neighbour->offset.x;
-			// 		tmp.y += neighbour->offset.y;
-			// 		tmp.z += neighbour->offset.z;
-			// 	}
-			// 	tmp.x /= 3;
-			// 	tmp.y /= 3;
-			// 	tmp.z /= 3;
-
-			// 	std::sort(neighbours.begin(), neighbours.end(), [&](auto a, auto b) {
-			// 		return a->offset.GetDistance(tmp) < b->offset.GetDistance(tmp);
-			// 	});
-			// 	ret[Registry::CoordinateType::X] += neighbours[0]->offset[Registry::CoordinateType::X];
-			// 	ret[Registry::CoordinateType::Y] += neighbours[0]->offset[Registry::CoordinateType::Y];
-			// 	ret[Registry::CoordinateType::Z] += neighbours[0]->offset[Registry::CoordinateType::Z];
-			// 	ret[Registry::CoordinateType::R] += neighbours[0]->heading;
-
-			// 	if (neighbours[0]->entryProperties.all(RE::BSFurnitureMarker::EntryProperties::kBehind)) {
-			// 		ret[Registry::CoordinateType::R] += static_cast<float>(std::_Pi / 2);
-			// 	}
+		const auto library = Registry::Library::GetSingleton();
+		const auto scene = library->GetSceneByID(a_sceneid);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return false;
 		}
-
-		// const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
-		// if (!scene) {
-		// 	a_vm->TraceStack("Invalid scene id. Scene specific offset will NOT be applied", a_stackID);
-		// } else {
-		// 	ret[Registry::CoordinateType::X] += scene->furnitures.offset[Registry::CoordinateType::X];
-		// 	ret[Registry::CoordinateType::Y] += scene->furnitures.offset[Registry::CoordinateType::Y];
-		// 	ret[Registry::CoordinateType::Z] += scene->furnitures.offset[Registry::CoordinateType::Z];
-		// 	ret[Registry::CoordinateType::R] += scene->furnitures.offset[Registry::CoordinateType::R];
-		// }
-
-		return ret;
+		const auto details = library->GetFurnitureDetails(center);
+		auto res = details->GetClosestCoordinateInBound(center, actor, scene->furnitures.furnitures);
+		if (res.empty())
+			return false;
+		scene->furnitures.offset.Apply(res[0].second);
+		res[0].second.ToContainer(a_out);
+		return true;
 	}
+
+	void ApplySceneOffset(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_sceneid, RE::reference_array<float> a_out)
+	{
+		const auto library = Registry::Library::GetSingleton();
+		const auto scene = library->GetSceneByID(a_sceneid);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		Registry::Coordinate ret{ a_out };
+		scene->furnitures.offset.Apply(ret);
+		ret.ToContainer(a_out);
+	}
+
+	// std::vector<float> GetBaseCoordinates(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::BSFixedString a_scene)
+	// {
+	// 	using FT = Registry::FurnitureType;
+	// 	const auto [center, actor] = GetAliasRefs(a_qst);
+	// 	if (!center) {
+	// 		a_vm->TraceStack("Cannot get base coordinates from a none center", a_stackID);
+	// 		return { 0, 0, 0, 0 };
+	// 	}
+
+	// 	std::vector<float> ret{
+	// 		center->GetPositionX(),
+	// 		center->GetPositionY(),
+	// 		center->GetPositionZ(),
+	// 		center->GetAngleZ()
+	// 	};
+
+
+
+	// 	// const auto model = skyrim_cast<RE::TESModelTextureSwap*>(center);
+	// 	// const auto transform = model ? UserData::FurnitureData::GetSingleton()->GetFurnitureTransform(model) : nullptr;
+	// 	// if (transform) {
+
+
+	// 	// 	return ret;
+	// 	// }
+
+	// 	// TODO: This here is a complete mess and nukes performance, w/e I was trying to do here aint worth it
+	// 	switch (Registry::FurnitureHandler::GetFurnitureType(center)) {
+	// 	case FT::None:
+	// 		break;
+	// 	case FT::BedDouble:
+	// 	case FT::BedSingle:
+	// 		// ret[Registry::CoordinateType::Z] = 37.0
+	// 		ret[Registry::CoordinateType::Z] += 45;
+	// 		break;
+	// 	case FT::BedRoll:
+	// 		ret[Registry::CoordinateType::Z] += 7.5;
+	// 		ret[Registry::CoordinateType::R] += static_cast<float>(std::_Pi / 2);
+	// 		break;
+	// 		// default:
+	// 		// 	const auto obj = center->Get3D();
+	// 		// 	const auto extra = obj ? obj->GetExtraData("FRN") : nullptr;
+	// 		// 	const auto markernode = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
+	// 		// 	if (!markernode || markernode->markers.size() <= 1)
+	// 		// 		break;
+
+	// 		// 	const auto actorpos = actor->GetPosition();
+	// 		// 	const RE::BSFurnitureMarker* closest = nullptr;
+	// 		// 	float closest_distance = 0;
+	// 		// 	for (const auto& marker : markernode->markers) {
+	// 		// 		const auto d = (marker.offset + RE::NiPoint3{ ret[0], ret[1], ret[2] }).GetDistance(actorpos);
+	// 		// 		if (d <= closest_distance) {
+	// 		// 			closest_distance = d;
+	// 		// 			closest = &marker;
+	// 		// 		}
+	// 		// 	}
+	// 		// 	assert(closest);
+	// 		// 	// getting middle marker from marker-set closest to the player
+	// 		// 	std::vector<decltype(closest)> neighbours{ closest };
+	// 		// 	for (const auto& marker : markernode->markers) {
+	// 		// 		if (&marker != closest && std::abs(marker.heading - closest->heading) <= 3) {
+	// 		// 			neighbours.push_back(&marker);
+	// 		// 		}
+	// 		// 	}
+
+	// 		// 	RE::NiPoint3 tmp{};
+	// 		// 	for (auto&& neighbour : neighbours) {
+	// 		// 		tmp.x += neighbour->offset.x;
+	// 		// 		tmp.y += neighbour->offset.y;
+	// 		// 		tmp.z += neighbour->offset.z;
+	// 		// 	}
+	// 		// 	tmp.x /= 3;
+	// 		// 	tmp.y /= 3;
+	// 		// 	tmp.z /= 3;
+
+	// 		// 	std::sort(neighbours.begin(), neighbours.end(), [&](auto a, auto b) {
+	// 		// 		return a->offset.GetDistance(tmp) < b->offset.GetDistance(tmp);
+	// 		// 	});
+	// 		// 	ret[Registry::CoordinateType::X] += neighbours[0]->offset[Registry::CoordinateType::X];
+	// 		// 	ret[Registry::CoordinateType::Y] += neighbours[0]->offset[Registry::CoordinateType::Y];
+	// 		// 	ret[Registry::CoordinateType::Z] += neighbours[0]->offset[Registry::CoordinateType::Z];
+	// 		// 	ret[Registry::CoordinateType::R] += neighbours[0]->heading;
+
+	// 		// 	if (neighbours[0]->entryProperties.all(RE::BSFurnitureMarker::EntryProperties::kBehind)) {
+	// 		// 		ret[Registry::CoordinateType::R] += static_cast<float>(std::_Pi / 2);
+	// 		// 	}
+	// 	}
+
+	// 	// const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
+	// 	// if (!scene) {
+	// 	// 	a_vm->TraceStack("Invalid scene id. Scene specific offset will NOT be applied", a_stackID);
+	// 	// } else {
+	// 	// 	ret[Registry::CoordinateType::X] += scene->furnitures.offset[Registry::CoordinateType::X];
+	// 	// 	ret[Registry::CoordinateType::Y] += scene->furnitures.offset[Registry::CoordinateType::Y];
+	// 	// 	ret[Registry::CoordinateType::Z] += scene->furnitures.offset[Registry::CoordinateType::Z];
+	// 	// 	ret[Registry::CoordinateType::R] += scene->furnitures.offset[Registry::CoordinateType::R];
+	// 	// }
+
+	// 	return ret;
+	// }
 
 	RE::BSFixedString PlaceAndPlay(VM* a_vm, StackID a_stackID, RE::TESQuest*,
 		std::vector<RE::Actor*> a_positions,
