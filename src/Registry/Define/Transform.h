@@ -35,6 +35,8 @@ namespace Registry
 			location(glm::vec3{}), rotation(0.0f) {}
 		~Coordinate() = default;
 
+		void Apply(Coordinate& a_coordinate) const;
+
 		template <typename T>
 		void ToContainer(T& a_out) const
 		{
@@ -64,7 +66,7 @@ namespace Registry
 		~Transform() = default;
 
 	public:
-		void Apply(Coordinate& a_coordinate) const;
+		void Apply(Coordinate& a_coordinate) const { _offset.Apply(a_coordinate); }
 		Coordinate ApplyCopy(const Coordinate& a_coordinate) const;
 		bool HasChanges() const;
 

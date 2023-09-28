@@ -5,6 +5,18 @@
 
 namespace Registry
 {
+	void Coordinate::Apply(Coordinate& a_coordinate) const
+	{
+		const auto rotationmatrix = glm::rotate(glm::mat4(1.0f), a_coordinate.rotation, glm::vec3(0, 0, 1));
+		const auto transform = glm::translate(rotationmatrix, location);
+		const auto result = transform * glm::vec4(a_coordinate.location, 0.0f);
+		a_coordinate.location = result;
+
+		if (this->rotation) {
+			a_coordinate.rotation += this->rotation;
+		}
+	}
+
 	Transform::Transform(const Coordinate& a_rawoffset) :
 		_raw(a_rawoffset), _offset(a_rawoffset) {}
 
@@ -67,16 +79,11 @@ namespace Registry
 		_offset = _raw;
 	}
 
-	void Transform::Apply(Coordinate& a_coordinate) const
+	Coordinate Transform::ApplyCopy(const Coordinate& a_coordinate) const
 	{
-		const auto rotation = glm::rotate(glm::mat4(1.0f), a_coordinate.rotation, glm::vec3(0, 0, 1));
-		const auto transform = glm::translate(rotation, _offset.location);
-		const auto result = transform * glm::vec4(a_coordinate.location, 0.0f);
-		a_coordinate.location = result;
-
-		if (_offset.rotation) {
-			a_coordinate.rotation += _offset.rotation;
-		}
+		Coordinate ret{ a_coordinate };
+		Apply(ret);
+		return ret;
 	}
 
 	void Transform::Save(YAML::Node& a_node) const
