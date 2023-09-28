@@ -54,11 +54,8 @@ namespace Registry
 	class FurnitureDetails
 	{
 	public:
-		/// @brief Find the closest (in bound) location for each furniture type associated with this model
-		/// @param a_ref The reference to find the locations from
-		/// @param a_center Some reference to derive distance from
-		/// @return A list of pairs stating the furniture type and its associated closest in-bounds point
-		std::vector<std::pair<FurnitureType, Coordinate>> GetClosestCoordinateInBound(RE::TESObjectREFR* a_ref, const RE::TESObjectREFR* a_center) const;
+		std::vector<std::pair<FurnitureType, Coordinate>> GetClosestCoordinateInBound(
+			RE::TESObjectREFR* a_ref, const RE::TESObjectREFR* a_center, stl::enumeration<FurnitureType> a_filtertypes) const;
 
 		template <typename T>
 		bool HasType(T a_container) const
@@ -70,10 +67,15 @@ namespace Registry
 		{
 			for (auto&& it : a_container) {
 				FurnitureType type = a_projection(it);
-				if (std::ranges::find_if(_data, [&](const auto& arg) { return arg.first == type; }) != _data.end())
+				if (HasType(type))
 					return true;
 			}
 			return false;
+		}
+		bool HasType(FurnitureType a_type) const
+		{
+			stl::enumeration types = a_type;
+			return std::ranges::find_if(_data, [&](const auto& it) { return types.any(it.first); }) != _data.end();
 		}
 
 	private:

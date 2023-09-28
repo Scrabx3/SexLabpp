@@ -197,7 +197,10 @@ namespace Registry
 		return FurnitureType::None;
 	}
 
-	std::vector<std::pair<FurnitureType, Coordinate>> FurnitureDetails::GetClosestCoordinateInBound(RE::TESObjectREFR* a_ref, const RE::TESObjectREFR* a_center) const
+	std::vector<std::pair<FurnitureType, Coordinate>> FurnitureDetails::GetClosestCoordinateInBound(
+		RE::TESObjectREFR* a_ref,
+		const RE::TESObjectREFR* a_center,
+		stl::enumeration<FurnitureType> a_filtertypes) const
 	{
 		const auto niobj = a_ref->Get3D();
 		const auto ninode = niobj ? niobj->AsNode() : nullptr;
@@ -220,6 +223,10 @@ namespace Registry
 
 		std::vector<std::pair<FurnitureType, Coordinate>> ret{};
 		for (auto&& [type, offsetlist] : _data) {
+			if (!a_filtertypes.any(type)) {
+				continue;
+			}
+
 			float distance = std::numeric_limits<float>::max();
 			Coordinate distance_coords;
 
