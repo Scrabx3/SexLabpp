@@ -54,14 +54,15 @@ namespace Registry
 	class FurnitureDetails
 	{
 	public:
-		std::vector<std::pair<FurnitureType, Coordinate>> GetClosestCoordinateInBound(
-			RE::TESObjectREFR* a_ref, const RE::TESObjectREFR* a_center, stl::enumeration<FurnitureType> a_filtertypes) const;
+		FurnitureDetails(const YAML::Node& a_node);
+		FurnitureDetails(FurnitureType a_type, Coordinate a_coordinate) :
+			_data({ std::make_pair(a_type, std::vector{ a_coordinate }) }) {}
+		~FurnitureDetails() = default;
 
-		template <typename T>
-		bool HasType(T a_container) const
-		{
-			return HasType(T, std::identity);
-		}
+		std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> GetCoordinatesInBound(RE::TESObjectREFR* a_ref, stl::enumeration<FurnitureType> a_filter) const;
+		std::vector<std::pair<FurnitureType, Coordinate>> GetClosestCoordinateInBound(
+			RE::TESObjectREFR* a_ref, stl::enumeration<FurnitureType> a_filter, const RE::TESObjectREFR* a_center) const;
+
 		template <typename T, typename S>
 		bool HasType(T a_container, S a_projection) const
 		{
@@ -79,28 +80,18 @@ namespace Registry
 		}
 
 	private:
-		RE::BSFixedString _modelpath;
-		std::vector<std::pair<FurnitureType, std::vector<Transform>>> _data;
+		std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> _data;
 	};
 
 	struct BedHandler
   {
-		enum class BedType
-		{
-			None = 0,
-			BedRoll = 1,
-			Single = 2,
-			Double = 3,
-		};
+		/// @brief Get the reference's bed-furnituretype
+		/// @param a_reference The reference to get the type from
+		/// @return FurnitureType, the bed type of this object, or None if the reference is not a bed
+		_NODISCARD static FurnitureType GetBedType(const RE::TESObjectREFR* a_reference);
 
-		_NODISCARD static std::vector<RE::TESObjectREFR*> GetBedsInArea(RE::TESObjectREFR* a_center, float a_radius, float a_radiusz);
-		_NODISCARD static BedType GetBedType(const RE::TESObjectREFR* a_reference);
 		_NODISCARD static bool IsBed(const RE::TESObjectREFR* a_reference);
-	};
-
-	struct FurnitureHandler
-	{
-		_NODISCARD static FurnitureType GetFurnitureType(RE::TESObjectREFR* a_ref);
+		_NODISCARD static std::vector<RE::TESObjectREFR*> GetBedsInArea(RE::TESObjectREFR* a_center, float a_radius, float a_radiusz);
 	};
 
 } // namespace Registry

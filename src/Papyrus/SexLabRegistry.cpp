@@ -184,32 +184,34 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Cannot lookup animations without actors", a_stackID);
 			return {};
 		}
+		const auto lib = Registry::Library::GetSingleton();
 		const auto tags = Registry::StringSplit(a_tags, ',');
-		auto scenes = Registry::Library::GetSingleton()->LookupScenes(a_positions, tags, a_submissives);
-		const auto pretrim = scenes.size();
-		logger::info("Found {} Scenes, trimming by furniture preference and center...", pretrim);
-		if (a_center) {
-			const auto type = Registry::FurnitureHandler::GetFurnitureType(a_center);
-			if (type != Registry::FurnitureType::None) {
+		auto scenes = lib->LookupScenes(a_positions, tags, a_submissives);
+		if (const auto pretrim = scenes.size()) {
+			logger::info("Lookup found {} Scenes. Validating by center preference...", pretrim);
+			if (a_center) {
+				const auto details = lib->GetFurnitureDetails(a_center);
+				if (details) {
+					std::erase_if(scenes, [&](Registry::Scene* a_scene) {
+						return !a_scene->IsCompatibleFurniture(details);
+					});
+				}
+			} else if (a_furniturepref == FurniturePreference::Prefer) {
+				const auto where = std::remove_if(scenes.begin(), scenes.end(), [&](Registry::Scene* a_scene) {
+					return !a_scene->UsesFurniture();
+				});
+				if (where != scenes.begin()) {
+					scenes.erase(where, scenes.end());
+				} else {
+					logger::info("Validating Center; Prefering furnitures but no furniture animations in set");
+				}
+			} else if (a_furniturepref == FurniturePreference::Disallow) {
 				std::erase_if(scenes, [&](Registry::Scene* a_scene) {
-					return !a_scene->IsCompatibleFurniture(type);
+					return a_scene->UsesFurniture();
 				});
 			}
-		} else if (a_furniturepref == FurniturePreference::Prefer) {
-			const auto where = std::remove_if(scenes.begin(), scenes.end(), [&](Registry::Scene* a_scene) {
-				return !a_scene->UsesFurniture();
-			});
-			if (where != scenes.begin()) {
-				scenes.erase(where, scenes.end());
-			} else {
-				logger::info("Furniture preferred but no furniture animations found, ignoring filter");
-			}
-		} else if (a_furniturepref == FurniturePreference::Disallow) {
-			std::erase_if(scenes, [&](Registry::Scene* a_scene) {
-				return a_scene->UsesFurniture();
-			});
+			logger::info("Validated Center; Returning {}/{} scenes", scenes.size(), pretrim);
 		}
-		logger::info("Finished trimming, returning {}/{} scenes", scenes.size(), pretrim);
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(scenes.size());
 		for (auto&& scene : scenes)

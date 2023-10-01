@@ -5,6 +5,194 @@
 
 namespace Registry
 {
+
+#define MAPENTRY(value) \
+	{                     \
+		#value, value       \
+	}
+
+	using enum FurnitureType;
+	static inline const std::map<RE::BSFixedString, FurnitureType, FixedStringCompare> FurniTable = {
+		MAPENTRY(BedRoll),
+		MAPENTRY(BedSingle),
+		MAPENTRY(BedDouble),
+		MAPENTRY(Wall),
+		MAPENTRY(Railing),
+		MAPENTRY(CraftCookingPot),
+		MAPENTRY(CraftAlchemy),
+		MAPENTRY(CraftEnchanting),
+		MAPENTRY(CraftSmithing),
+		MAPENTRY(CraftAnvil),
+		MAPENTRY(CraftWorkbench),
+		MAPENTRY(CraftGrindstone),
+		MAPENTRY(Table),
+		MAPENTRY(TableCounter),
+		MAPENTRY(Chair),
+		MAPENTRY(ChairCommon),
+		MAPENTRY(ChairWood),
+		MAPENTRY(ChairBar),
+		MAPENTRY(ChairNoble),
+		MAPENTRY(ChairMisc),
+		MAPENTRY(Bench),
+		MAPENTRY(BenchNoble),
+		MAPENTRY(BenchMisc),
+		MAPENTRY(Throne),
+		MAPENTRY(ThroneRiften),
+		MAPENTRY(ThroneNordic),
+		MAPENTRY(XCross),
+		MAPENTRY(Pillory),
+	};
+
+	FurnitureDetails::FurnitureDetails(const YAML::Node& a_node)
+	{
+		for (auto&& it : a_node) {
+			const auto typestr = it.as<std::string>();
+			const auto where = FurniTable.find(typestr);
+			if (where == FurniTable.end()) {
+				logger::error("Unrecognized Furniture: '{}'", typestr);
+				continue;
+			}
+			const auto offsetnode = it["Offset"];
+			if (offsetnode.IsDefined() || !offsetnode.IsSequence()) {
+				logger::error("Missing 'Offset' node for type '{}'", typestr);
+				continue;
+			}
+			std::vector<Coordinate> offsets{};
+			const auto push = [&](const YAML::Node& node) {
+				const auto vec = node.as<std::vector<float>>();
+				if (vec.size() != 4) {
+					logger::error("Invalid offset size. Expected 4 but got {}", vec.size());
+					return;
+				}
+				Coordinate coords(vec);
+				offsets.push_back(coords);
+			};
+			if (offsetnode[0].IsSequence()) {
+				offsets.reserve(offsetnode.size());
+				for (auto&& offset : offsetnode) {
+					push(offset);
+				}
+			} else {
+				push(offsetnode);
+			}
+			if (offsets.empty()) {
+				logger::error("Type '{}' is defined but has no valid offsets", typestr);
+				continue;
+			}
+			_data.emplace_back(where->second, std::move(offsets));
+		}
+	}
+
+	std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> FurnitureDetails::GetCoordinatesInBound(
+		RE::TESObjectREFR* a_ref,
+		stl::enumeration<FurnitureType> a_filter) const
+	{
+		const auto niobj = a_ref->Get3D();
+		const auto ninode = niobj ? niobj->AsNode() : nullptr;
+		if (!ninode)
+			return {};
+		const auto boundingbox = MakeBoundingBox(ninode);
+		if (!boundingbox)
+			return {};
+		auto centerstart = boundingbox->GetCenterWorld();
+		centerstart.z = boundingbox->worldBoundMax.z;
+
+		const glm::vec4 tracestart{
+			centerstart.x,
+			centerstart.y,
+			centerstart.z,
+			0.0f
+		};
+		const auto basecoords = Coordinate(a_ref);
+		std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> ret{};
+		for (auto&& [type, offsetlist] : _data) {
+			if (!a_filter.any(type)) {
+				continue;
+			}
+			std::vector<Coordinate> vec;
+			for (auto&& offset : offsetlist)
+			{
+				// Get location for current coordinates
+				// Add some units height to it so we hover above ground to avoid hitting a rug or gold coin
+				auto coords = basecoords;
+				offset.Apply(coords);
+				coords.location.z += 16.0f;
+				const glm::vec4 traceend_A{ coords.location, 0.0f };
+				// Check if path to offset is free, if not we likely hit some static, like a wall, or some actor
+				const auto resA = Raycast::hkpCastRay(tracestart, traceend_A, { a_ref });
+				if (glm::distance(resA.hitPos, traceend_A) > 16.0) {
+					continue;
+				}
+				// 2nd cast to see if there is no ceiling above either
+				auto traceend_B = traceend_A;
+				traceend_B.z += 128.0f;
+				const auto resB = Raycast::hkpCastRay(traceend_A, traceend_B, { a_ref });
+				if (resB.hit) {
+					continue;
+				}
+				vec.push_back(coords);
+			}
+			ret.emplace_back(type, vec);
+		}
+		return ret;
+	}
+
+	std::vector<std::pair<FurnitureType, Coordinate>> FurnitureDetails::GetClosestCoordinateInBound(
+		RE::TESObjectREFR* a_ref,
+		stl::enumeration<FurnitureType> a_filter,
+		const RE::TESObjectREFR* a_center) const
+	{
+		const auto centercoordinates = Coordinate(a_center);
+		const auto valids = GetCoordinatesInBound(a_ref, a_filter);
+		std::vector<std::pair<FurnitureType, Coordinate>> ret{};
+		for (auto&& [type, coordinates] : valids) {
+			float distance = std::numeric_limits<float>::max();
+			Coordinate distance_coords;
+
+			for (auto&& coords : coordinates) {
+				const auto d = glm::distance(coords.location, centercoordinates.location);
+				if (d < distance) {
+					distance_coords = coords;
+					distance = d;
+				}
+			}
+			if (distance != std::numeric_limits<float>::max()) {
+				ret.emplace_back(type, distance_coords);
+			}
+		}
+		return ret;
+	}
+
+	FurnitureType BedHandler::GetBedType(const RE::TESObjectREFR* a_reference)
+	{
+		if (a_reference->HasKeyword(GameForms::FurnitureBedRoll)) {
+			return FurnitureType::BedRoll;
+		}
+		if (std::string name{ a_reference->GetName() }; name.empty() || AsLower(name).find("bed") == std::string::npos)
+			return FurnitureType::None;
+		const auto root = a_reference->Get3D();
+		const auto extra = root ? root->GetExtraData("FRN") : nullptr;
+		const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
+		if (!node) {
+			return FurnitureType::None;
+		}
+
+		size_t sleepmarkers = 0;
+		for (auto&& marker : node->markers) {
+			if (marker.animationType.all(RE::BSFurnitureMarker::AnimationType::kSleep)) {
+				sleepmarkers += 1;
+			}
+		}
+		switch (sleepmarkers) {
+		case 0:
+			return FurnitureType::None;
+		case 1:
+			return FurnitureType::BedSingle;
+		default:
+			return FurnitureType::BedDouble;
+		}
+	}
+
 	std::vector<RE::TESObjectREFR*> BedHandler::GetBedsInArea(RE::TESObjectREFR* a_center, float a_radius, float a_radiusz)
 	{
 		const auto center = a_center->GetPosition();
@@ -49,216 +237,9 @@ namespace Registry
 		return ret;
 	}
 
-	BedHandler::BedType BedHandler::GetBedType(const RE::TESObjectREFR* a_reference)
-	{
-		if (a_reference->HasKeyword(GameForms::FurnitureBedRoll)) {
-			return BedType::BedRoll;
-		}
-		if (std::string name{ a_reference->GetName() }; name.empty() || AsLower(name).find("bed") == std::string::npos)
-			return BedType::None;
-		const auto root = a_reference->Get3D();
-		const auto extra = root ? root->GetExtraData("FRN") : nullptr;
-		const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
-		if (!node)
-			return BedType::None;
-
-		size_t sleepmarkers = 0;
-		for (auto&& marker : node->markers) {
-			if (marker.animationType.all(RE::BSFurnitureMarker::AnimationType::kSleep)) {
-				sleepmarkers += 1;
-			}
-		}
-		switch (sleepmarkers) {
-		case 0:
-			return BedType::None;
-		case 1:
-			return BedType::Single;
-		default:
-			return BedType::Double;
-		}
-	}
-
 	bool BedHandler::IsBed(const RE::TESObjectREFR* a_reference)
 	{
-		return GetBedType(a_reference) != BedType::None;
-	}
-
-	FurnitureType FurnitureHandler::GetFurnitureType(RE::TESObjectREFR* a_ref)
-	{
-		using BenchType = RE::TESFurniture::WorkBenchData::BenchType;
-		if (!a_ref->HasCollision()) {
-			return FurnitureType::None;
-		}
-		const auto base = a_ref->GetBaseObject();
-		if (!base)
-			return FurnitureType::None;
-
-		switch (base->formID) {
-		case 0x0005'2FF5:	 // WallLeanmarker
-			return FurnitureType::Wall;
-		case 0x0007'0EA1:	 // RailLeanMarker
-			return FurnitureType::Railing;
-		case 0x00016'B691:
-			return FurnitureType::ChairNoble;
-		case 0x0007'4EC6:
-			return FurnitureType::ChairBar;
-		case 0x0003'6340:
-			return FurnitureType::ChairWood;
-		case 0x0000'CA02:
-			return FurnitureType::BenchNoble;
-		case 0x0002'67D3:	 // Nordic Throne
-		case 0x0009'85C2:	 // Katariah Ship
-			return FurnitureType::ThroneNordic;
-		case 0x000F'507A:	 // CounterBarLeanMarker
-		case 0x0006'CF36:	 // CounterLeanMarker
-			return FurnitureType::TableCounter;
-		case 0x000C'4EF1:
-			return FurnitureType::Table;
-		}
-
-		switch (BedHandler::GetBedType(a_ref)) {
-		case BedHandler::BedType::BedRoll:
-			return FurnitureType::BedRoll;
-		case BedHandler::BedType::Double:
-			return FurnitureType::BedDouble;
-		case BedHandler::BedType::Single:
-			return FurnitureType::BedSingle;
-		}
-
-		const auto name = AsLower<std::string>({ a_ref->GetName() });
-		const auto furniture = base->As<RE::TESFurniture>();
-		if (furniture) {
-			if (name.find("chair") != std::string::npos) {
-				const auto model = AsLower<std::string>({ furniture->model.c_str() });
-				if (model.find("dlc2darkelfchair01") != std::string::npos ||
-						model.find("dwefurniturechair01") != std::string::npos ||
-						model.find("dwefurniturehighchair01") != std::string::npos ||
-						model.find("hhfurniturechair02.nif") != std::string::npos) {
-					return FurnitureType::Chair;
-				}
-				if (model.find("commonchair") != std::string::npos ||
-						model.find("upperchair01") != std::string::npos ||
-						model.find("orcchair01") != std::string::npos) {
-					return FurnitureType::ChairCommon;
-				}
-				FurnitureType::ChairMisc;
-			}
-
-			if (name.find("throne")) {
-				const auto model = AsLower<std::string>({ furniture->model.c_str() });
-				if (model.find("throneriften")) {
-					return FurnitureType::ThroneRiften;
-				}
-				return FurnitureType::Throne;
-			}
-
-			if (name.find("bench") != std::string::npos) {
-				const auto root = a_ref->Get3D();
-				const auto extra = root ? root->GetExtraData("FRN") : nullptr;
-				const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
-				if (node) {
-					size_t count = 0;
-					for (auto&& marker : node->markers) {
-						if (marker.animationType.all(RE::BSFurnitureMarker::AnimationType::kSit)) {
-							if (count++) {
-								return FurnitureType::Bench;
-							}
-						}
-					}
-				}
-				// A bench with only 1 sit node or no 3d (fallback to unspecified chair)
-				return FurnitureType::ChairMisc;
-			}
-
-			switch (furniture->workBenchData.benchType.get()) {
-			case BenchType::kSmithingWeapon:
-				return FurnitureType::CraftGrindstone;
-			case BenchType::kSmithingArmor:
-				return FurnitureType::CraftWorkbench;
-			case BenchType::kAlchemy:
-				return FurnitureType::CraftAlchemy;
-			case BenchType::kEnchanting:
-				return FurnitureType::CraftEnchanting;
-			case BenchType::kCreateObject:
-				if (name.find("cooking") != std::string::npos) {
-					return FurnitureType::CraftCookingPot;
-				} else if (name.find("forge") != std::string::npos) {
-					return FurnitureType::CraftSmithing;
-				} else if (name.find("anvil") != std::string::npos) {
-					return FurnitureType::CraftAnvil;
-				}
-				break;
-			}
-		}
-
-		// TODO: consider static tables and chairs
-		// TODO: BDSM furniture
-
-		return FurnitureType::None;
-	}
-
-	std::vector<std::pair<FurnitureType, Coordinate>> FurnitureDetails::GetClosestCoordinateInBound(
-		RE::TESObjectREFR* a_ref,
-		const RE::TESObjectREFR* a_center,
-		stl::enumeration<FurnitureType> a_filtertypes) const
-	{
-		const auto niobj = a_ref->Get3D();
-		const auto ninode = niobj ? niobj->AsNode() : nullptr;
-		if (!ninode)
-			return {};
-		const auto boundingbox = MakeBoundingBox(ninode);
-		if (!boundingbox)
-			return {};
-		auto centerstart = boundingbox->GetCenterWorld();
-		centerstart.z = boundingbox->worldBoundMax.z;
-
-		const glm::vec4 tracestart{
-			centerstart.x,
-			centerstart.y,
-			centerstart.z,
-			0.0f
-		};
-		const auto basecoords = Coordinate(a_ref);
-		const auto centercoords = Coordinate(a_center);
-
-		std::vector<std::pair<FurnitureType, Coordinate>> ret{};
-		for (auto&& [type, offsetlist] : _data) {
-			if (!a_filtertypes.any(type)) {
-				continue;
-			}
-
-			float distance = std::numeric_limits<float>::max();
-			Coordinate distance_coords;
-
-			for (auto&& offset : offsetlist) {
-				// Get location for current coordinates
-				// Add some units height to it so we hover above ground to avoid hitting a rug or gold coin
-				auto coords = basecoords;
-				offset.Apply(coords);
-				coords.location.z += 16.0f;
-				const glm::vec4 traceend_A{ coords.location, 0.0f };
-				// Check if path to offset is free, if not we likely hit some static, like a wall, or some actor
-				const auto resA = Raycast::hkpCastRay(tracestart, traceend_A, { a_ref, a_center });
-				if (glm::distance(resA.hitPos, traceend_A) > 16.0) {
-					continue;
-				}
-				// 2nd cast to see if there is no ceiling above either
-				auto traceend_B = traceend_A;
-				traceend_B.z += 128.0f;
-				const auto resB = Raycast::hkpCastRay(traceend_A, traceend_B, { a_ref, a_center });
-				if (resB.hit) {
-					continue;
-				}
-				if (const auto d = glm::distance(coords.location, centercoords.location); d < distance) {
-					distance_coords = coords;
-					distance = d;
-				}
-			}
-			if (distance != std::numeric_limits<float>::max()) {
-				ret.emplace_back(type, distance_coords);
-			}
-		}
-		return ret;
+		return GetBedType(a_reference) != FurnitureType::None;
 	}
 
 }	 // namespace Registry

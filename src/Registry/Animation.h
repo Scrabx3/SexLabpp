@@ -114,6 +114,9 @@ namespace Registry
 			stl::enumeration<FurnitureType> furnitures{ FurnitureType::None };
 			bool allowbed{ false };
 			Coordinate offset{};
+
+		public:
+			stl::enumeration<FurnitureType> GetCompatibleFurnitures() const;
 		};
 
 	public:
@@ -128,7 +131,8 @@ namespace Registry
 		_NODISCARD bool IsCompatibleTags(const TagData& a_tags) const;
 		_NODISCARD bool IsCompatibleTags(const TagDetails& a_details) const;
 		_NODISCARD bool IsCompatibleFurniture(FurnitureType a_furniture) const;
-		_NODISCARD bool IsCompatibleFurniture(RE::TESObjectREFR* a_reference) const;
+		_NODISCARD bool IsCompatibleFurniture(const FurnitureDetails* a_details) const;
+		_NODISCARD bool IsCompatibleFurniture(const RE::TESObjectREFR* a_reference) const;
 
 		_NODISCARD uint32_t CountPositions() const;
 		_NODISCARD uint32_t CountSubmissives() const;

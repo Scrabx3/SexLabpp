@@ -10,11 +10,11 @@ namespace Registry
 		logger::info("Loading files..");
 		const auto t1 = std::chrono::high_resolution_clock::now();
 
-		const auto path = fs::path{ CONFIGPATH("Registry") };
+		const auto scenepath = fs::path{ CONFIGPATH("Registry") };
 		std::error_code ec{};
-		if (!fs::exists(path, ec) || fs::is_empty(path, ec)) {
-			const auto msg = ec ? fmt::format("An error occured while initializing SexLab animations.\nError: {}", ec.message()) :
-														fmt::format("Unable to load SexLab animations. Folder path {} is empty or does not exist.", path.string());
+		if (!fs::exists(scenepath, ec) || fs::is_empty(scenepath, ec)) {
+			const auto msg = ec ? fmt::format("An error occured while initializing SexLab animations: {}", ec.message()) :
+														fmt::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", scenepath.string());
 			logger::critical("{}", msg);
 			if (SKSE::WinAPI::MessageBox(nullptr, fmt::format("{}\n\nExit game now?", msg).c_str(), "SexLab p+ Registry", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
@@ -22,7 +22,7 @@ namespace Registry
 		}
 
 		std::vector<std::thread> threads;
-		for (auto& file : fs::directory_iterator{ path }) {
+		for (auto& file : fs::directory_iterator{ scenepath }) {
 			if (file.path().extension() != ".slr") {
 				continue;
 			}
@@ -74,12 +74,38 @@ namespace Registry
 			thread.join();
 		}
 		const auto t2 = std::chrono::high_resolution_clock::now();
-		// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-
 		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms_double.count());
 
-		// TODO: Parse furniture info file
+		const auto furniturepath = fs::path{ CONFIGPATH("Furniture") };
+		if (!fs::exists(scenepath, ec) || fs::is_empty(scenepath, ec)) {
+			const auto msg = ec ? fmt::format("An error occured while attempting to read furniture info: {}", ec.message()) :
+														fmt::format("Unable to load furnitures. Folder {} is empty or does not exist.", scenepath.string());
+			logger::critical("{}", msg);
+		} else {
+			const std::unique_lock lock{ read_write_lock };
+			for (auto& file : fs::directory_iterator{ scenepath }) {
+				if (auto ext = file.path().extension(); ext != ".yml" && ext != ".yaml") {
+					continue;
+				}
+				const auto filename = file.path().filename().string();
+				try {
+					YAML::Node root = YAML::LoadFile(file.path().string());
+					for (auto&& it : root) {
+						furnitures.emplace(
+							RE::BSFixedString(it.first.as<std::string>()),
+							std::make_unique<FurnitureDetails>(it.second));
+					}
+					logger::info("Finished parsing file {}", filename);
+				} catch (const std::exception& e) {
+					logger::error("Unable to load furnitures in file {}; Error: {}", filename, e.what());
+				}
+			}
+		}
+		const auto t3 = std::chrono::high_resolution_clock::now();
+		ms_double = t3 - t2;
+		logger::info("Loaded {} Furnitures in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms_double.count());
+		logger::info("Initialized Data");
 	}
 
 	const Scene* Library::GetSceneByID(const std::string& a_id) const
@@ -236,15 +262,23 @@ namespace Registry
 			return nullptr;
 		}
 		const auto model = a_ref->As<RE::TESModel>();
-		return model ? GetFurnitureDetails(model) : nullptr;
-	}
-
-	const FurnitureDetails* Library::GetFurnitureDetails(const RE::TESModel* a_model) const
-	{
+		if (!model) {
+			return nullptr;
+		}
 		std::shared_lock lock{ read_write_lock };
-		const auto where = furnitures.find(a_model->model);
-		return where == furnitures.end() ? nullptr : &where->second;
+		const auto where = furnitures.find(model->model);
+		if (where != furnitures.end()) {
+			return where->second.get();
+		}
+		switch (BedHandler::GetBedType(a_ref)) {
+		case FurnitureType::BedSingle:
+			return &offset_bedsingle;
+		case FurnitureType::BedDouble:
+			return &offset_beddouble;
+		case FurnitureType::BedRoll:
+			return &offset_bedroll;
+		}
+		return nullptr;
 	}
-
 
 }

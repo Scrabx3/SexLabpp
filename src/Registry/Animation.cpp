@@ -2,6 +2,7 @@
 
 #include "Registry/Define/RaceKey.h"
 #include "Util/Combinatorics.h"
+#include "Library.h"
 
 namespace Registry
 {
@@ -391,6 +392,18 @@ namespace Registry
 		}
 	}
 
+	stl::enumeration<FurnitureType> Scene::FurnitureData::GetCompatibleFurnitures() const
+	{
+		auto ret = furnitures;
+		if (allowbed) {
+			ret.set(
+				FurnitureType::BedDouble,
+				FurnitureType::BedSingle,
+				FurnitureType::BedRoll);
+		}
+		return ret;
+	}
+
 	Stage* Scene::GetStageByKey_Mutable(const RE::BSFixedString& a_key)
 	{
 		if (a_key.empty()) {
@@ -470,24 +483,28 @@ namespace Registry
 		return this->furnitures.furnitures != FurnitureType::None;
 	}
 
-	bool Scene::IsCompatibleFurniture(RE::TESObjectREFR* a_reference) const
+	bool Scene::IsCompatibleFurniture(const RE::TESObjectREFR* a_reference) const
 	{
-		const auto type = FurnitureHandler::GetFurnitureType(a_reference);
-		return IsCompatibleFurniture(type);
+		const auto details = Library::GetSingleton()->GetFurnitureDetails(a_reference);
+		return IsCompatibleFurniture(details);
+	}
+
+	bool Scene::IsCompatibleFurniture(const FurnitureDetails* a_details) const
+	{
+		if (!a_details) {
+			return !UsesFurniture();
+		}
+		const auto types = furnitures.GetCompatibleFurnitures();
+		return a_details->HasType(types.get());
 	}
 
 	bool Scene::IsCompatibleFurniture(FurnitureType a_furniture) const
 	{
-		switch (a_furniture) {
-		case FurnitureType::None:
+		if (a_furniture == FurnitureType::None) {
 			return !UsesFurniture();
-		case FurnitureType::BedDouble:
-		case FurnitureType::BedSingle:
-			if (this->furnitures.allowbed)
-				return true;
-			break;
 		}
-		return this->furnitures.furnitures.any(a_furniture);
+		const auto types = furnitures.GetCompatibleFurnitures();
+		return types.any(a_furniture);
 	}
 
 	bool Scene::Legacy_IsCompatibleSexCount(int32_t a_males, int32_t a_females) const
