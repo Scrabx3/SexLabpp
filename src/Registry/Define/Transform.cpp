@@ -5,6 +5,24 @@
 
 namespace Registry
 {
+	Coordinate::Coordinate(const RE::TESObjectREFR* a_ref) :
+		location(a_ref->data.location.x, a_ref->data.location.y, a_ref->data.location.z), rotation(a_ref->data.angle.z) {}
+	Coordinate::Coordinate(const std::vector<float>& a_coordinates) :
+		location(glm::vec3{ a_coordinates[0], a_coordinates[1], a_coordinates[2] }), rotation(a_coordinates[3]) {}
+	Coordinate::Coordinate(std::ifstream& a_stream) :
+		location([&]() {
+			glm::vec3 ret{};
+			Decode::Read(a_stream, ret.x);
+			Decode::Read(a_stream, ret.y);
+			Decode::Read(a_stream, ret.z);
+			return ret;
+		}()),
+		rotation([&]() {
+			float ret;
+			Decode::Read(a_stream, ret);
+			return ret;
+		}()) {}
+
 	void Coordinate::Apply(Coordinate& a_coordinate) const
 	{
 		const auto rotationmatrix = glm::rotate(glm::mat4(1.0f), a_coordinate.rotation, glm::vec3(0, 0, 1));
@@ -20,18 +38,8 @@ namespace Registry
 	Transform::Transform(const Coordinate& a_rawoffset) :
 		_raw(a_rawoffset), _offset(a_rawoffset) {}
 
-	Transform::Transform(std::ifstream& a_binarystream)
-	{
-		Decode::Read(a_binarystream, _raw.location.x);
-		Decode::Read(a_binarystream, _raw.location.y);
-		Decode::Read(a_binarystream, _raw.location.z);
-
-		float rotation;
-		Decode::Read(a_binarystream, rotation);
-		_raw.rotation = glm::radians(rotation);
-
-		_offset = _raw;
-	}
+	Transform::Transform(std::ifstream& a_binarystream) :
+		_raw(a_binarystream), _offset(_raw) {}
 
 	const Coordinate& Transform::GetRawOffset() const
   {

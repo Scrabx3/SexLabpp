@@ -14,25 +14,10 @@ namespace Registry
 
 	struct Coordinate
 	{
-		Coordinate(const RE::TESObjectREFR* a_ref) :
-			location(a_ref->data.location.x, a_ref->data.location.y, a_ref->data.location.z), rotation(a_ref->data.angle.z) {}
-		Coordinate(const std::vector<float>& a_coordinates) :
-			location(glm::vec3{ a_coordinates[0], a_coordinates[1], a_coordinates[2] }), rotation(a_coordinates[3]) {}
-		Coordinate(std::ifstream& a_stream) :
-			location([&]() {
-				glm::vec3 ret{};
-				Decode::Read(a_stream, ret.x);
-				Decode::Read(a_stream, ret.y);
-				Decode::Read(a_stream, ret.z);
-				return ret;
-			}()),
-			rotation([&]() {
-				float ret;
-				Decode::Read(a_stream, ret);
-				return ret;
-			}()) {}
-		Coordinate() :
-			location(glm::vec3{}), rotation(0.0f) {}
+		Coordinate(const RE::TESObjectREFR* a_ref);
+		Coordinate(const std::vector<float>& a_coordinates);
+		Coordinate(std::ifstream& a_stream);
+		Coordinate() = default;
 		~Coordinate() = default;
 
 		void Apply(Coordinate& a_coordinate) const;
