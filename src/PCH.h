@@ -170,7 +170,7 @@ namespace Registry
 	{
 		using underlying = std::underlying_type<E>::type;
 		constexpr auto iterations = 1ULL << sizeof(underlying) * 8;
-		constexpr auto number = static_cast<underlying>(a_enum);
+		auto number = static_cast<underlying>(a_enum);
 		std::vector<E> ret{};
 		for (size_t i = 1; i < iterations; i *= 2) {
 			if (number & i) {

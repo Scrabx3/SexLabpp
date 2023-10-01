@@ -96,7 +96,7 @@ namespace Papyrus::ThreadModel
 				}
 			}
 		}
-		assert(!scene_map.empty() && std::ranges::find_if(scene_map, [](auto& vec) { return vec.empty() } == scene_map.end()));
+		assert(!scene_map.empty() && std::ranges::find_if(scene_map, [](auto& typevec) { return typevec.second.empty(); }) == scene_map.end());
 		const auto ReturnData = [&](Registry::FurnitureType a_where, const Registry::Coordinate& a_coordinate) -> bool {
 			if (!scene_map.contains(a_where)) {
 				return false;
