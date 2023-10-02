@@ -16,7 +16,6 @@ namespace Registry
 		_NODISCARD std::vector<Scene*> LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& tags, const std::vector<RE::Actor*>& a_submissives) const;
 		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
 
-		_NODISCARD const Scene* GetSceneByID(const std::string& a_id) const;
 		_NODISCARD const Scene* GetSceneByID(const RE::BSFixedString& a_id) const;
 		_NODISCARD Scene* GetSceneByID_Mutable(const RE::BSFixedString& a_id) const;
 		_NODISCARD size_t GetSceneCount() const;
@@ -38,8 +37,8 @@ namespace Registry
 		FurnitureDetails offset_beddouble{ FurnitureType::BedDouble, Coordinate(std::vector{ 0.0f, -31.0f, 38.0f, 0.0f }) };
 		std::map<RE::BSFixedString, std::unique_ptr<FurnitureDetails>, FixedStringCompare> furnitures;	// custom furniture details
 
-		std::map<std::string_view, Scene*> scene_map;									 // Mapping every scene to their respective id for quick lookup
-		std::vector<std::unique_ptr<AnimPackage>> packages;						 // All registered packages, containing all available scenes
-		std::unordered_map<FragmentHash, std::vector<Scene*>> scenes;	 // The main lookup table using LibraryKeys
+		std::map<RE::BSFixedString, Scene*, FixedStringCompare> scene_map;	// Mapping every scene to their respective id for quick lookup
+		std::vector<std::unique_ptr<AnimPackage>> packages;									// All registered packages, containing all available scenes
+		std::unordered_map<FragmentHash, std::vector<Scene*>> scenes;				// The main lookup table using LibraryKeys
 	};
 }

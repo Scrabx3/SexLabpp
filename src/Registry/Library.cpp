@@ -108,17 +108,10 @@ namespace Registry
 		logger::info("Initialized Data");
 	}
 
-	const Scene* Library::GetSceneByID(const std::string& a_id) const
+	const Scene* Library::GetSceneByID(const RE::BSFixedString& a_id) const
 	{
 		const auto where = scene_map.find(a_id);
 		return where != scene_map.end() ? where->second : nullptr;
-	}
-
-	const Scene* Library::GetSceneByID(const RE::BSFixedString& a_id) const
-	{
-		std::string id{ a_id.data() };
-		Registry::ToLower(id);
-		return GetSceneByID(id);
 	}
 
 	Scene* Library::GetSceneByID_Mutable(const RE::BSFixedString& a_id) const
