@@ -261,14 +261,13 @@ namespace Registry
 		if (a_ref->Is(RE::FormType::ActorCharacter)) {
 			return nullptr;
 		}
-		const auto model = a_ref->As<RE::TESModel>();
-		if (!model) {
-			return nullptr;
-		}
-		std::shared_lock lock{ read_write_lock };
-		const auto where = furnitures.find(model->model);
-		if (where != furnitures.end()) {
-			return where->second.get();
+		const auto ref = a_ref->GetObjectReference();
+		if (const auto tesmodel = ref ? ref->As<RE::TESModel>() : nullptr) {
+			std::shared_lock lock{ read_write_lock };
+			const auto where = furnitures.find(tesmodel->model);
+			if (where != furnitures.end()) {
+				return where->second.get();
+			}
 		}
 		switch (BedHandler::GetBedType(a_ref)) {
 		case FurnitureType::BedSingle:
