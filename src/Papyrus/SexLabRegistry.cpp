@@ -672,7 +672,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid position idx", a_stackID);
 			return argRet;
 		}
-		const auto ret = stage->positions[n].offset.GetOffset();
+		const auto& ret = stage->positions[n].offset.GetOffset();
 		return { ret.location.x, ret.location.y, ret.location.z, ret.rotation };
 	}
 
@@ -685,7 +685,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid position idx", a_stackID);
 			return argRet;
 		}
-		const auto ret = stage->positions[n].offset.GetRawOffset();
+		const auto& ret = stage->positions[n].offset.GetRawOffset();
 		return { ret.location.x, ret.location.y, ret.location.z, ret.rotation };
 	}
 
