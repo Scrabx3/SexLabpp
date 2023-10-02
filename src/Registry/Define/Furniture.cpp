@@ -110,8 +110,7 @@ namespace Registry
 				continue;
 			}
 			std::vector<Coordinate> vec;
-			for (auto&& offset : offsetlist)
-			{
+			for (auto&& offset : offsetlist) {
 				// Get location for current coordinates
 				// Add some units height to it so we hover above ground to avoid hitting a rug or gold coin
 				auto coords = basecoords;
@@ -120,7 +119,7 @@ namespace Registry
 				const glm::vec4 traceend_A{ coords.location, 0.0f };
 				// Check if path to offset is free, if not we likely hit some static, like a wall, or some actor
 				const auto resA = Raycast::hkpCastRay(tracestart, traceend_A, { a_ref });
-				if (glm::distance(resA.hitPos, traceend_A) > 16.0) {
+				if (resA.hit && glm::distance(resA.hitPos, traceend_A) > 16.0) {
 					continue;
 				}
 				// 2nd cast to see if there is no ceiling above either
