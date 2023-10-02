@@ -82,6 +82,7 @@ namespace Papyrus::ThreadModel
 					for (auto&& type : bedtypes) {
 						auto& it = scene_map[type];
 						if (std::ranges::find(it, scene) == it.end()) {
+							filled_types.set(type);
 							it.push_back(scene);
 						}
 					}
