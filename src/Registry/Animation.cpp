@@ -755,6 +755,17 @@ namespace Registry
 		return BFS(a_src);
 	}
 
+	std::vector<const Stage*> Scene::GetEndingStages() const
+	{
+		std::vector<const Stage*> ret{};
+		for (auto&& [vert, edges] : graph) {
+			if (edges.empty()) {
+				ret.push_back(vert);
+			}
+		}
+		return ret;
+	}
+
 	std::vector<const Stage*> Scene::GetClimaxStages() const
 	{
 		std::vector<const Stage*> ret{};

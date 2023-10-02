@@ -597,6 +597,17 @@ namespace Papyrus::SexLabRegistry
 		return ret;
 	}
 
+	std::vector<RE::BSFixedString> GetEndingStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE({});
+		const auto stages = scene->GetEndingStages();
+		std::vector<RE::BSFixedString> ret{};
+		for (auto&& stage : stages) {
+			ret.push_back(stage->id);
+		}
+		return ret;
+	}
+
 	int32_t GetPositionSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n)
 	{
 		SCENE(0);

@@ -148,6 +148,7 @@ namespace Registry
 		_NODISCARD std::vector<const Stage*> GetShortestPath(const Stage* a_src) const;
 
 		_NODISCARD NodeType GetStageNodeType(const Stage* a_stage) const;
+		_NODISCARD std::vector<const Stage*> GetEndingStages() const;
 		_NODISCARD std::vector<const Stage*> GetClimaxStages() const;
 		_NODISCARD std::vector<const Stage*> GetFixedLengthStages() const;
 		_NODISCARD size_t GetNumLinkedStages(const Stage* a_stage) const;
