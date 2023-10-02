@@ -34,9 +34,9 @@ namespace Registry
 		mutable std::shared_mutex read_write_lock{};
 
 		FurnitureDetails offset_bedroll{ FurnitureType::BedRoll, Coordinate(std::vector{ 0.0f, 0.0f, 7.5f, 180.0f }) };
-		FurnitureDetails offset_bedsingle{ FurnitureType::BedSingle, Coordinate(std::vector{ 0.0f, 0.0f, 40.0f, 0.0f }) };
-		FurnitureDetails offset_beddouble{ FurnitureType::BedDouble, Coordinate(std::vector{ 0.0f, 0.0f, 40.0f, 0.0f }) };
-		std::map<RE::BSFixedString, std::unique_ptr<FurnitureDetails>, FixedStringCompare> furnitures;	// cstom furniture details
+		FurnitureDetails offset_bedsingle{ FurnitureType::BedSingle, Coordinate(std::vector{ 0.0f, -31.0f, 38.0f, 0.0f }) };
+		FurnitureDetails offset_beddouble{ FurnitureType::BedDouble, Coordinate(std::vector{ 0.0f, -31.0f, 38.0f, 0.0f }) };
+		std::map<RE::BSFixedString, std::unique_ptr<FurnitureDetails>, FixedStringCompare> furnitures;	// custom furniture details
 
 		std::map<std::string_view, Scene*> scene_map;									 // Mapping every scene to their respective id for quick lookup
 		std::vector<std::unique_ptr<AnimPackage>> packages;						 // All registered packages, containing all available scenes

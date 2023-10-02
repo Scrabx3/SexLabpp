@@ -103,7 +103,7 @@ namespace Registry
 			centerstart.z,
 			0.0f
 		};
-		const auto basecoords = Coordinate(a_ref);
+		const auto ref_coords = Coordinate(a_ref);
 		std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> ret{};
 		for (auto&& [type, offsetlist] : _data) {
 			if (!a_filter.any(type)) {
@@ -111,27 +111,37 @@ namespace Registry
 			}
 			std::vector<Coordinate> vec;
 			for (auto&& offset : offsetlist) {
-				// Get location for current coordinates
-				// Add some units height to it so we hover above ground to avoid hitting a rug or gold coin
-				auto coords = basecoords;
-				offset.Apply(coords);
-				coords.location.z += 16.0f;
-				const glm::vec4 traceend_A{ coords.location, 0.0f };
-				// Check if path to offset is free, if not we likely hit some static, like a wall, or some actor
-				const auto resA = Raycast::hkpCastRay(tracestart, traceend_A, { a_ref });
-				if (resA.hit && glm::distance(resA.hitPos, traceend_A) > 16.0) {
-					continue;
+				auto coordinates = ref_coords;
+				offset.Apply(coordinates);
+				// check the place surrounding the center to see if there is anything occupying it (walls, actors, etc)
+				// add some height to the base coordinate to avoid failing from hitting a rug or gold coin. 128 is roughly a NPC height in units
+				constexpr auto radius = 32.0f;
+				constexpr auto step = 8.0f;
+				const auto& center = coordinates.location;
+				const glm::vec4 traceend_base{ center.x, center.y, center.z + 16.0f, 0.0f };
+				const glm::vec4 traceend_up{ center.x, center.y, center.z + 128.0f, 0.0f };
+				for (float x = traceend_base.x - radius; x <= traceend_base.x + radius; x += step) {
+					for (float y = traceend_base.y - radius; y <= traceend_base.y + radius; y += step) {
+						glm::vec4 point(x, y, traceend_base.z, 0.0f);
+						if (glm::distance(point, traceend_base) > radius)
+							continue;
+						const auto resA = Raycast::hkpCastRay(tracestart, point, { a_ref });
+						if (resA.hit && glm::distance(resA.hitPos, point) > 8.0) {
+							goto __L_NEXT;
+						}
+						const auto resB = Raycast::hkpCastRay(point, traceend_up, { a_ref });
+						if (resB.hit) {
+							goto __L_NEXT;
+						}
+					}
 				}
-				// 2nd cast to see if there is no ceiling above either
-				auto traceend_B = traceend_A;
-				traceend_B.z += 128.0f;
-				const auto resB = Raycast::hkpCastRay(traceend_A, traceend_B, { a_ref });
-				if (resB.hit) {
-					continue;
-				}
-				vec.push_back(coords);
+				// if we got here then the area around coordinates, incl a cone upwards is free of obstacles
+				vec.push_back(coordinates);
+__L_NEXT:;
 			}
-			ret.emplace_back(type, vec);
+			if (!vec.empty()) {
+				ret.emplace_back(type, vec);
+			}
 		}
 		return ret;
 	}
