@@ -48,6 +48,7 @@ namespace Papyrus::SexLabRegistry
 
 	bool SceneExists(RE::StaticFunctionTag*, RE::BSFixedString a_sceneid);
 	std::vector<RE::BSFixedString> SceneExistA(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_sceneids);
+	bool StageExists(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_sceneid, RE::BSFixedString a_stage);
 	bool IsSceneEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_sceneid);
 	void SetSceneEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_sceneid, bool a_enabled);
 	RE::BSFixedString GetSceneName(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_sceneid);
@@ -126,6 +127,7 @@ namespace Papyrus::SexLabRegistry
 
 		REGISTERFUNC(SceneExists, "SexLabRegistry", true);
 		REGISTERFUNC(SceneExistA, "SexLabRegistry", true);
+		REGISTERFUNC(StageExists, "SexLabRegistry", true);
 		REGISTERFUNC(IsSceneEnabled, "SexLabRegistry", true);
 		REGISTERFUNC(SetSceneEnabled, "SexLabRegistry", true);
 		REGISTERFUNC(GetSceneName, "SexLabRegistry", true);
@@ -153,6 +155,7 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(IsSimilarPosition, "SexLabRegistry", true);
 		REGISTERFUNC(CanFillPosition, "SexLabRegistry", true);
 
+		REGISTERFUNC(GetEndingStages, "SexLabRegistry", true);
 		REGISTERFUNC(GetFixedLengthStages, "SexLabRegistry", true);
 		REGISTERFUNC(GetFixedLength, "SexLabRegistry", true);
 		REGISTERFUNC(GetClimaxStages, "SexLabRegistry", true);

@@ -396,6 +396,12 @@ namespace Papyrus::SexLabRegistry
 		return ret;
 	}
 
+	bool StageExists(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE(false);
+		return scene->GetStageByKey(a_stage) != nullptr;
+	}
+
 	bool IsSceneEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 	{
 		SCENE(false);
