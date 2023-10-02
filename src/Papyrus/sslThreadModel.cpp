@@ -72,8 +72,16 @@ namespace Papyrus::ThreadModel
 				if (a_status == FurniStatus::Disallow) {
 					continue;
 				}
-			} else if (a_status != FurniStatus::Disallow) {
-				if (scene->furnitures.allowbed) {
+				filled_types.set(scene->furnitures.furnitures.get());
+				const auto types = Registry::FlagToComponents(scene->furnitures.furnitures.get());
+				for (auto&& flag : types) {
+					auto& it = scene_map[flag];
+					if (std::ranges::find(it, scene) == it.end()) {
+						it.push_back(scene);
+					}
+				}
+			} else {
+				if (scene->furnitures.allowbed && a_status != FurniStatus::Disallow) {
 					std::array bedtypes{
 						Registry::FurnitureType::BedSingle,
 						Registry::FurnitureType::BedDouble,
@@ -87,11 +95,7 @@ namespace Papyrus::ThreadModel
 						}
 					}
 				}
-			}
-			filled_types.set(scene->furnitures.furnitures.get());
-			const auto types = Registry::FlagToComponents(scene->furnitures.furnitures.get());
-			for (auto&& flag : types) {
-				auto& it = scene_map[flag];
+				auto& it = scene_map[Registry::FurnitureType::None];
 				if (std::ranges::find(it, scene) == it.end()) {
 					it.push_back(scene);
 				}
@@ -124,10 +128,14 @@ namespace Papyrus::ThreadModel
 			const auto i = Random::draw<size_t>(0, coords.size() - 1);
 			return ReturnData(coords[i].first, coords[i].second) ? center : nullptr;
 		}
-		if (a_status == FurniStatus::Disallow || (a_status != FurniStatus::Prefer && !Random::draw<int>(0, Settings::iFurniturePrefWeight))) {
-			// no need to look for furniture if furnitures are disallowed or 1/PrefWight rng decides we dont use furniture
+		if (a_status == FurniStatus::Disallow) {
 			Registry::Coordinate coord{ actor };
 			return ReturnData(Registry::FurnitureType::None, coord) ? actor : nullptr;
+		} else if (a_status != FurniStatus::Prefer && !Random::draw<int>(0, Settings::iFurniturePrefWeight)) {
+			Registry::Coordinate coord{ actor };
+			if (ReturnData(Registry::FurnitureType::None, coord)) {
+				return actor;
+			}
 		}
 
 		std::vector<std::pair<RE::TESObjectREFR*, const Registry::FurnitureDetails*>> found_objects;
@@ -151,7 +159,9 @@ namespace Papyrus::ThreadModel
 				return std::get<1>(a).GetDistance(actor) < std::get<1>(b).GetDistance(actor);
 			});
 			const auto& res = coords[0];
-			return ReturnData(std::get<0>(res), std::get<1>(res)) ? std::get<2>(res) : nullptr;
+			if (ReturnData(std::get<0>(res), std::get<1>(res))) {
+				return std::get<2>(res);
+			}
 		}
 		Registry::Coordinate coord{ actor };
 		return ReturnData(Registry::FurnitureType::None, coord) ? actor : nullptr;
