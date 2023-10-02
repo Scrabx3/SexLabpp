@@ -17,11 +17,7 @@ namespace Registry
 			Decode::Read(a_stream, ret.z);
 			return ret;
 		}()),
-		rotation([&]() {
-			float ret;
-			Decode::Read(a_stream, ret);
-			return ret;
-		}()) {}
+		rotation(Decode::Read<float>(a_stream)) {}
 
 	void Coordinate::Apply(Coordinate& a_coordinate) const
 	{

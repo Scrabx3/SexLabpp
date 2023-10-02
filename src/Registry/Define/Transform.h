@@ -66,8 +66,8 @@ namespace Registry
 		void Load(const YAML::Node& a_node);
 
 	private:
-		Coordinate _offset;
 		Coordinate _raw;
+		Coordinate _offset;
 	};
 
 }	 // namespace Registry
