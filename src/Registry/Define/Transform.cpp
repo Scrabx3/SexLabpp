@@ -25,10 +25,9 @@ namespace Registry
 
 	void Coordinate::Apply(Coordinate& a_coordinate) const
 	{
-		const auto rotationmatrix = glm::rotate(glm::mat4(1.0f), a_coordinate.rotation, glm::vec3(0, 0, 1));
-		const auto transform = glm::translate(rotationmatrix, location);
-		const auto result = transform * glm::vec4(a_coordinate.location, 0.0f);
-		a_coordinate.location = result;
+		const auto rotate = glm::rotate(glm::mat4(1.0f), a_coordinate.rotation, glm::vec3(0, 0, 1));
+		const auto transform = glm::mat3{ rotate } * location;
+		a_coordinate.location += transform;
 
 		if (this->rotation) {
 			a_coordinate.rotation += this->rotation;
