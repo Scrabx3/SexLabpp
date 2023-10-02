@@ -14,12 +14,20 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
 	switch (message->type) {
 	case SKSE::MessagingInterface::kPostLoad:
+#ifdef NDEBUG
 		Registry::Library::GetSingleton()->Initialize();
 		UserData::StripData::GetSingleton()->Load();
 		Registry::Library::GetSingleton()->Load();
 		Settings::Initialize();
+#endif
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
+#ifndef NDEBUG
+		Registry::Library::GetSingleton()->Initialize();
+		UserData::StripData::GetSingleton()->Load();
+		Registry::Library::GetSingleton()->Load();
+		Settings::Initialize();
+#endif
 		if (!GameForms::LoadData()) {
 			logger::critical("Unable to load esp objects");
 			if (SKSE::WinAPI::MessageBox(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
