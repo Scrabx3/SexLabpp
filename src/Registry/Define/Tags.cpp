@@ -64,7 +64,8 @@ namespace Registry
 		MAPENTRY(Magic),
 
 		MAPENTRY(Ryona),
-		MAPENTRY(Gore)
+		MAPENTRY(Gore),
+		MAPENTRY(Oviposition)
 	};
 
 #undef MAPENTRY

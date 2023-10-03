@@ -60,6 +60,7 @@ namespace Registry
 
 		Ryona = 1ULL << 52,
 		Gore = 1ULL << 53,
+		Oviposition = 1ULL << 54,
 	};
 
 	class TagData
