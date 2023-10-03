@@ -12,7 +12,7 @@ namespace Registry
 		BreastSucking = 1ULL << 5,
 		Buttjob = 1ULL << 6,
 		Cowgirl = 1ULL << 7,
-		Cunnilingius = 1ULL << 8,
+		Cunnilingus = 1ULL << 8,
 		Deepthroat = 1ULL << 9,
 		Doggy = 1ULL << 10,
 		Dominant = 1ULL << 11,

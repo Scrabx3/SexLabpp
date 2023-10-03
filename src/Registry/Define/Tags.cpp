@@ -17,7 +17,7 @@ namespace Registry
 		MAPENTRY(BreastSucking),
 		MAPENTRY(Buttjob),
 		MAPENTRY(Cowgirl),
-		MAPENTRY(Cunnilingius),
+		MAPENTRY(Cunnilingus),
 		MAPENTRY(Deepthroat),
 		MAPENTRY(Doggy),
 		MAPENTRY(Dominant),
