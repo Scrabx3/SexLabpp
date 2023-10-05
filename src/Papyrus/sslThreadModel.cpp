@@ -138,8 +138,23 @@ namespace Papyrus::ThreadModel
 			}
 		}
 
+		std::vector<RE::TESObjectREFR*> used_furnitures{};
+		const auto processlist = RE::ProcessLists::GetSingleton();
+		for (auto&& ithandle : processlist->highActorHandles) {
+			const auto it = ithandle.get();
+			if (!it || it.get() == actor || it.get() == center)
+				continue;
+			const auto furni = it->GetOccupiedFurniture().get();
+			if (!furni)
+				continue;
+			used_furnitures.push_back(furni.get());
+		}
+
 		std::vector<std::pair<RE::TESObjectREFR*, const Registry::FurnitureDetails*>> found_objects;
 		CellCrawler::ForEachObjectInRange(actor, Settings::fScanRadius, [&](RE::TESObjectREFR& a_ref) {
+			if (std::ranges::find(used_furnitures, &a_ref) != used_furnitures.end()) {
+				return RE::BSContainer::ForEachResult::kContinue;
+			}
 			const auto details = library->GetFurnitureDetails(&a_ref);
 			if (!details || !details->HasType(scene_map, [](auto& it) { return it.first; })) {
 				return RE::BSContainer::ForEachResult::kContinue;
@@ -240,10 +255,10 @@ namespace Papyrus::ThreadModel
 			actor->SetPosition(coordinate.AsNiPoint(), true);
 			Registry::Scale::GetSingleton()->SetScale(actor, scene->positions[i].scale);
 
-			// SKSE::GetTaskInterface()->AddTask([=]() {
 			const auto event = scene->GetNthAnimationEvent(stage, i);
 			actor->NotifyAnimationGraph(event);
-			// });
+			const auto schlong = fmt::format("SOSBend{}", stage->positions[i].schlong);
+			actor->NotifyAnimationGraph(schlong);
 		}
 
 		return stage->id;
