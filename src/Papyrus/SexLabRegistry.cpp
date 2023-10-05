@@ -498,6 +498,31 @@ namespace Papyrus::SexLabRegistry
 		return scene->GetAnimationEvents(stage);
 	}
 
+	RE::BSFixedString GetStartAnimation(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE("");
+		const auto start = scene->GetStageByKey("");
+		return start ? start->id : "";
+	}
+
+	int32_t GetNumStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE(-1);
+		return static_cast<int32_t>(scene->GetNumStages());
+	}
+
+	std::vector<RE::BSFixedString> GetAllstages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		SCENE({});
+		const auto stages = scene->GetAllStages();
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(stages.size());
+		for (auto&& stage : stages) {
+			ret.push_back(stage->id);
+		}
+		return ret;
+	}
+
 	RE::BSFixedString BranchTo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
 	{
 		SCENE("");

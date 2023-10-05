@@ -681,6 +681,21 @@ namespace Registry
 		return ret;
 	}
 
+	size_t Scene::GetNumStages() const
+	{
+		return stages.size();
+	}
+
+	const std::vector<const Stage*> Scene::GetAllStages() const
+	{
+		std::vector<const Stage*> ret{};
+		ret.reserve(stages.size());
+		for (auto&& stage : stages) {
+			ret.push_back(stage.get());
+		}
+		return ret;
+	}
+
 	Scene::NodeType Scene::GetStageNodeType(const Stage* a_stage) const
 	{
 		if (a_stage == start_animation)

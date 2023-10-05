@@ -64,6 +64,9 @@ namespace Papyrus::SexLabRegistry
 	RE::BSFixedString GetAnimationEvent(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	std::vector<RE::BSFixedString> GetAnimationEventA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 
+	RE::BSFixedString GetStartAnimation(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+	int32_t GetNumStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+	std::vector<RE::BSFixedString> GetAllstages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
 	RE::BSFixedString BranchTo(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	int32_t GetNumBranches(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 	int32_t GetNodeType(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
@@ -143,6 +146,9 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(GetAnimationEvent, "SexLabRegistry", true);
 		REGISTERFUNC(GetAnimationEventA, "SexLabRegistry", true);
 
+		REGISTERFUNC(GetStartAnimation, "SexLabRegistry", true);
+		REGISTERFUNC(GetNumStages, "SexLabRegistry", true);
+		REGISTERFUNC(GetAllstages, "SexLabRegistry", true);
 		REGISTERFUNC(BranchTo, "SexLabRegistry", true);
 		REGISTERFUNC(GetNumBranches, "SexLabRegistry", true);
 		REGISTERFUNC(GetNodeType, "SexLabRegistry", true);

@@ -138,7 +138,6 @@ namespace Registry
 		_NODISCARD uint32_t CountSubmissives() const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
-		// _NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<RE::Actor*>& a_positions, bool a_withfallback) const;
 		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const;
 		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFallback(std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> a_positions) const;
 
@@ -147,6 +146,8 @@ namespace Registry
 		_NODISCARD std::vector<const Stage*> GetLongestPath(const Stage* a_src) const;
 		_NODISCARD std::vector<const Stage*> GetShortestPath(const Stage* a_src) const;
 
+		_NODISCARD size_t GetNumStages() const;
+		_NODISCARD const std::vector<const Stage*> GetAllStages() const;
 		_NODISCARD NodeType GetStageNodeType(const Stage* a_stage) const;
 		_NODISCARD std::vector<const Stage*> GetEndingStages() const;
 		_NODISCARD std::vector<const Stage*> GetClimaxStages() const;
