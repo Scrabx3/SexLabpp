@@ -171,21 +171,26 @@ namespace Registry
 	Position::Position(std::ifstream& a_stream) :
 		event(Decode::Read<decltype(event)>(a_stream)),
 		climax(Decode::Read<uint8_t>(a_stream) > 0),
-		offset(Transform(a_stream))
-	{
-		a_stream.read(reinterpret_cast<char*>(&strips), 1);
-	}
+		offset(Transform(a_stream)),
+		strips(decltype(strips)::enum_type(Decode::Read<uint8_t>(a_stream))),
+		schlong(0) {}
 
 	void Position::Save(YAML::Node& a_node) const
 	{
 		auto transform = a_node["transform"];
 		offset.Save(transform);
+		if (schlong != 0) {
+			a_node["schlong"] = static_cast<int32_t>(schlong);
+		}
 	}
 
 	void Position::Load(const YAML::Node& a_node)
 	{
 		if (auto transform = a_node["transform"]; transform.IsDefined()) {
 			offset.Load(transform);
+		}
+		if (auto schlongnode = a_node["schlong"]; schlongnode.IsDefined()) {
+			schlong = static_cast<uint8_t>(schlongnode.as<int32_t>());
 		}
 	}
 

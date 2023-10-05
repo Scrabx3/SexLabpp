@@ -617,13 +617,31 @@ namespace Papyrus::SexLabRegistry
 		return stage->fixedlength;
 	}
 
-	std::vector<RE::BSFixedString> GetClimaxStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	std::vector<RE::BSFixedString> GetClimaxStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int32_t n)
 	{
 		SCENE({});
+		if (n >= scene->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return {};
+		}
 		const auto stages = scene->GetClimaxStages();
 		std::vector<RE::BSFixedString> ret{};
 		for (auto&& stage : stages) {
-			ret.push_back(stage->id);
+			if (n == -1 || stage->positions[n].climax)
+				ret.push_back(stage->id);
+		}
+		return ret;
+	}
+
+	std::vector<int32_t> GetClimaxingActors(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		SCENE({});
+		STAGE({});
+		std::vector<int32_t> ret{};
+		for (int32_t i = 0; i < stage->positions.size(); i++) {
+			if (stage->positions[i].climax) {
+				ret.push_back(i);
+			}
 		}
 		return ret;
 	}

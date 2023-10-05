@@ -79,10 +79,11 @@ namespace Papyrus::SexLabRegistry
 	bool IsSimilarPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, int m);
 	bool CanFillPosition(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, RE::Actor* a_actor);
 
+	std::vector<RE::BSFixedString> GetEndingStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
 	std::vector<RE::BSFixedString> GetFixedLengthStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
 	float GetFixedLength(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
-	std::vector<RE::BSFixedString> GetClimaxStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
-	std::vector<RE::BSFixedString> GetEndingStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+	std::vector<RE::BSFixedString> GetClimaxStages(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int32_t n);
+	std::vector<int32_t> GetClimaxingActors(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 
 	int32_t GetPositionSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n);
 	std::vector<int32_t> GetPositionSexA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
@@ -165,6 +166,7 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(GetFixedLengthStages, "SexLabRegistry", true);
 		REGISTERFUNC(GetFixedLength, "SexLabRegistry", true);
 		REGISTERFUNC(GetClimaxStages, "SexLabRegistry", true);
+		REGISTERFUNC(GetClimaxingActors, "SexLabRegistry", true);
 
 		REGISTERFUNC(GetPositionSex, "SexLabRegistry", true);
 		REGISTERFUNC(GetPositionSexA, "SexLabRegistry", true);

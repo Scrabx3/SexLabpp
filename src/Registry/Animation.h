@@ -38,7 +38,8 @@ namespace Registry
 
 		bool climax;
 		Transform offset;
-		stl::enumeration<StripData, uint8_t> strips;
+		stl::enumeration<StripData> strips;
+		uint8_t schlong;
 	};
 
 	struct Stage
