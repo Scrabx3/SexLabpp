@@ -756,12 +756,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey_Mutable(a_stage);
-		if (!stage) {
-			a_vm->TraceStack("Invalid stage id", a_stackID);
-			return;
-		}
-		if (n < 0 || n >= stage->positions.size()) {
+		if (n < 0 || n >= scene->positions.size()) {
 			a_vm->TraceStack("Invalid position idx", a_stackID);
 			return;
 		}
@@ -769,7 +764,19 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid offset idx", a_stackID);
 			return;
 		}
-		stage->positions[n].offset.UpdateOffset(a_value, a_idx);
+		if (a_stage.empty()) {
+			scene->ForEachStage([&](Registry::Stage* a_stage) {
+				a_stage->positions[n].offset.UpdateOffset(a_value, a_idx);
+				return false;
+			});
+		} else {
+			const auto stage = scene->GetStageByKey_Mutable(a_stage);
+			if (!stage) {
+				a_vm->TraceStack("Invalid stage id", a_stackID);
+				return;
+			}
+			stage->positions[n].offset.UpdateOffset(a_value, a_idx);
+		}
 	}
 
 	void UpdateOffsetA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset)
@@ -779,12 +786,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey_Mutable(a_stage);
-		if (!stage) {
-			a_vm->TraceStack("Invalid stage id", a_stackID);
-			return;
-		}
-		if (n < 0 || n >= stage->positions.size()) {
+		if (n < 0 || n >= scene->positions.size()) {
 			a_vm->TraceStack("Invalid position idx", a_stackID);
 			return;
 		}
@@ -792,11 +794,20 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
 			return;
 		}
-		stage->positions[n].offset.UpdateOffset(
-			a_newoffset[Registry::CoordinateType::X],
-			a_newoffset[Registry::CoordinateType::Y],
-			a_newoffset[Registry::CoordinateType::Z],
-			a_newoffset[Registry::CoordinateType::R]);
+		const Registry::Coordinate coordinate{ a_newoffset };
+		if (a_stage.empty()) {
+			scene->ForEachStage([&](Registry::Stage* a_stage) {
+				a_stage->positions[n].offset.UpdateOffset(coordinate);
+				return false;
+			});
+		} else {
+			const auto stage = scene->GetStageByKey_Mutable(a_stage);
+			if (!stage) {
+				a_vm->TraceStack("Invalid stage id", a_stackID);
+				return;
+			}
+			stage->positions[n].offset.UpdateOffset(coordinate);
+		}
 	}
 
 	void ResetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
@@ -833,6 +844,47 @@ namespace Papyrus::SexLabRegistry
 		}
 		for (auto&& pos : stage->positions) {
 			pos.offset.ResetOffset();
+		}
+	}
+
+	int32_t GetSchlongAngle(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	{
+		SCENE(0);
+		STAGE(0);
+		if (n < 0 || n >= stage->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return 0;
+		}
+		return stage->positions[n].schlong;
+	}
+
+	void SetSchlongAngle(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, int a_value)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+		if (n < 0 || n >= scene->positions.size()) {
+			a_vm->TraceStack("Invalid position idx", a_stackID);
+			return;
+		}
+		if (a_value < 9 || a_value > 9) {
+			a_vm->TraceStack("Invalid schlong angle", a_stackID);
+			return;
+		}
+		if (a_stage.empty()) {
+			scene->ForEachStage([&](Registry::Stage* a_stage) {
+				a_stage->positions[n].schlong = static_cast<int8_t>(a_value);
+				return false;
+			});
+		} else {
+			const auto stage = scene->GetStageByKey_Mutable(a_stage);
+			if (!stage) {
+				a_vm->TraceStack("Invalid stage id", a_stackID);
+				return;
+			}
+			stage->positions[n].schlong = static_cast<int8_t>(a_value);
 		}
 	}
 

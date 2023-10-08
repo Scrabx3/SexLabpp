@@ -190,7 +190,7 @@ namespace Registry
 			offset.Load(transform);
 		}
 		if (auto schlongnode = a_node["schlong"]; schlongnode.IsDefined()) {
-			schlong = static_cast<uint8_t>(schlongnode.as<int32_t>());
+			schlong = static_cast<int8_t>(schlongnode.as<int32_t>());
 		}
 	}
 
@@ -773,6 +773,15 @@ namespace Registry
 			return { src };
 		};
 		return BFS(a_src);
+	}
+
+	void Scene::ForEachStage(std::function<bool(Stage*)> a_visitor)
+	{
+		for (auto&& stage : stages) {
+			if (a_visitor(stage.get())) {
+				return;
+			}
+		}
 	}
 
 	std::vector<const Stage*> Scene::GetEndingStages() const
