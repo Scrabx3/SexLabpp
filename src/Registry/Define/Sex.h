@@ -21,9 +21,8 @@ namespace Registry
 		Female = 1 << 1,
 		Futa = 1 << 2,
 	};
-
-	Sex GetSex(RE::Actor* a_actor);
-	Sex GetSex(RE::Actor* a_actor, bool a_skipfactions);
+	/// @brief Get (1 dimensional) sex for this actor
+	Sex GetSex(RE::Actor* a_actor, bool a_skipfactions = false);
 
 	bool IsFuta(RE::Actor* a_actor);	// Assumes female base sex
 

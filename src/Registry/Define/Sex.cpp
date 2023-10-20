@@ -48,11 +48,6 @@ namespace Registry
 		}
 	}
 
-  Sex GetSex(RE::Actor* a_actor)
-  {
-    return GetSex(a_actor, false);
-  }
-
 	bool IsFuta(RE::Actor* a_actor)
 	{
 		static const auto sosfaction = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESFaction>(0x00AFF8, "Schlongs of Skyrim.esp");

@@ -143,6 +143,16 @@ struct Settings
 	static inline bool bWispmother{ true };
 	static inline bool bWolf{ true };
 
+	// --- Distances
+	static inline float fDistanceHead{ 9.3f };	 // distance from head node to lips
+	static inline float fDistanceFoot{ 13.0f };	 // ~7.2 distance to foot middle
+	static inline float fDistanceHand{ 8.0f };	 // ~2.2 distance to surface
+	static inline float fDistanceCrotchFront{ 9.0f };
+	static inline float fDistanceCrotchBack{ 14.0f };
+	static inline float fDistanceCrotchBonus{ 10.0f };	// Additional distance if the measures are taken from
+	static inline float fAnglePenetration{ 20.0f };			// Angle relative to crotch area below which the schlong is no longer considered penetrating
+	static inline float fAngleMouth{ 30.0f };						// Angle of the cone from headnode to schlong that interprets the schlong in front of mouth
+
 	// --- Misc
 	static inline std::vector<RE::FormID> SOS_ExcludeFactions{};
 

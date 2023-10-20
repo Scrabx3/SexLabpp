@@ -15,6 +15,7 @@ namespace Registry
 	struct Coordinate
 	{
 		Coordinate(const RE::TESObjectREFR* a_ref);
+		Coordinate(const RE::NiPoint3& a_point, float a_rotation);
 		Coordinate(const std::vector<float>& a_coordinates);
 		Coordinate(std::ifstream& a_stream);
 		Coordinate() = default;
