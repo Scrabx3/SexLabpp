@@ -27,7 +27,7 @@ namespace Papyrus
 		_registered.erase(where);
 	}
 
-	Sound::Type Sound::GetSoundType(RE::FormID a_id) const
+	std::pair<Sound::Type, float> Sound::GetSoundType(RE::FormID a_id) const
 	{
 		const auto where = std::ranges::find_if(_registered, [&](auto& it) { return it.first == a_id; });
 		if (where == _registered.end()) {
@@ -43,7 +43,7 @@ namespace Papyrus
 			actors.emplace_back(position);
 		}
 		for (size_t i = 0; i < actors.size(); i++) {
-			for (size_t n = i + 1; n < actors.size(); n++) {
+			for (size_t n = i; n < actors.size(); n++) {
 				Data d(actors[i], actors[n]);
 				data.push_back(d);
 			}
@@ -72,15 +72,17 @@ namespace Papyrus
 		}
 	}
 
-	Sound::Type Sound::SoundProcess::GetSoundType() const
+	std::pair<Sound::Type, float> Sound::SoundProcess::GetSoundType() const
 	{
 		Type besttype = Type::None;
+		float velocity = 0.0f;
 		for (auto&& d : data) {
 			if (d.type > besttype) {
 				besttype = d.type;
+				velocity = d._velocity;
 			}
 		}
-		return besttype;
+		return { besttype, velocity };
 	}
 
 	void Sound::Data::Update(float a_delta)
@@ -88,10 +90,9 @@ namespace Papyrus
 		const auto& [a1, a2] = this->participants;
 		float delta_distance = std::numeric_limits<float>::max();
 		float velocity = std::numeric_limits<float>::max();
-		for (size_t i = 0; i < 4; i++) {
-			// (a1, a2) -> (a2, a1) -> (a1, a1) -> (a2, a2)
-			const auto active = i % 2 ? a2 : a1;
-			const auto passive = i < 2 ? i % 2 ? a1 : a2 : active;
+		for (size_t i = 0; i < 2; i++) {
+			const auto active = i == 0 ? a2 : a1;
+			const auto passive = i == 0 ? a1 : a2;
 			auto [c_type, c_distance] = GetCurrentTypeAndDistance(active, passive);
 			if (c_type != Type::None) {
 				if (type == c_type && a_delta != 0.0f) {

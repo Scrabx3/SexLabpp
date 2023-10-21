@@ -127,7 +127,7 @@ namespace Papyrus
 			std::vector<Data> data;
 
 		public:
-			Type GetSoundType() const;
+			std::pair<Sound::Type, float> GetSoundType() const;
 
 		private:
 			void Process();
@@ -137,7 +137,7 @@ namespace Papyrus
 		};
 
 	public:
-		Type GetSoundType(RE::FormID a_id) const;
+		std::pair<Sound::Type, float> GetSoundType(RE::FormID a_id) const;
 
 		bool RegisterProcessing(RE::FormID a_id, std::vector<RE::Actor*> a_positions);
 		void UnregisterProcessing(RE::FormID a_id);

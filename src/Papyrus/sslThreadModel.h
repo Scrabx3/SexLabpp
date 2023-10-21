@@ -21,6 +21,10 @@ namespace Papyrus::ThreadModel
 
 	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext);
 
+	bool RegisterSFX(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions);
+	void UnregisterSFX(RE::TESQuest* a_qst);
+	bool GetSFXTypeAndVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::reference_array<float> a_out);
+
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(FindCenter, "sslThreadModel", true);
@@ -31,6 +35,10 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(RePlace, "sslThreadModel", false);
 
 		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
+
+		REGISTERFUNC(RegisterSFX, "sslThreadModel", true);
+		REGISTERFUNC(UnregisterSFX, "sslThreadModel", true);
+		REGISTERFUNC(GetSFXTypeAndVelocity, "sslThreadModel", true);
 
 		return true;
 	}

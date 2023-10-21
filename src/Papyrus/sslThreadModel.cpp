@@ -1,5 +1,6 @@
 #include "sslThreadModel.h"
 
+#include "Papyrus/Sound.h"
 #include "Registry/Animation.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
@@ -321,6 +322,32 @@ namespace Papyrus::ThreadModel
 			a_oldcontext.push_back(context_);
 		}
 		return a_oldcontext;
+	}
+	
+	bool RegisterSFX(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions)
+	{
+		if (a_positions.empty()) {
+			a_vm->TraceStack("Actor array cannot be empty", a_stackID);
+			return false;
+		}
+		return Sound::GetSingleton()->RegisterProcessing(a_qst->formID, a_positions);
+	}
+
+	void UnregisterSFX(RE::TESQuest* a_qst)
+	{
+		Sound::GetSingleton()->UnregisterProcessing(a_qst->formID);
+	}
+
+	bool GetSFXTypeAndVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::reference_array<float> a_out)
+	{
+		if (a_out.size() < 2) {
+			a_vm->TraceStack("out array should have at least size 2", a_stackID);
+			return false;
+		}
+		const auto ret = Sound::GetSingleton()->GetSoundType(a_qst->formID);
+		a_out[0] = static_cast<float>(ret.first);
+		a_out[1] = ret.second;
+		return true;
 	}
 
 }	 // namespace Papyrus::ThreadModel
