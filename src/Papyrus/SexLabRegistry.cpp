@@ -858,6 +858,18 @@ namespace Papyrus::SexLabRegistry
 		return stage->positions[n].schlong;
 	}
 
+	std::vector<int32_t> GetSchlongAngleA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		std::vector<int32_t> ret{};
+		SCENE(ret);
+		STAGE(ret);
+		ret.reserve(stage->positions.size());
+		for (auto&& p : stage->positions) {
+			ret.push_back(p.schlong);
+		}
+		return ret;
+	}
+
 	void SetSchlongAngle(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, int a_value)
 	{
 		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);

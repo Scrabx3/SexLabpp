@@ -73,10 +73,9 @@ namespace Papyrus
 			represent(a_actor), sex(Registry::GetSex(a_actor)), nodes(a_actor) {}
 		~SoundActor() = default;
 
-		// Wrappers if a sos schlong is missing but expected
-		// Points are calculated by applying an offset to pelvis node
+		[[nodiscard]] constexpr bool operator==(const SoundActor& a_rhs) const noexcept { return represent == a_rhs.represent; }
 
-	public :
+	public:
 		RE::Actor* represent;
 		Registry::Sex sex;
 		Nodes nodes;
@@ -89,8 +88,8 @@ namespace Papyrus
 		{
 			None,
 
-			Hand,
 			Foot,
+			Hand,
 			FingeringA,
 			FingeringV,
 			Tribadism,
@@ -104,10 +103,10 @@ namespace Papyrus
 		struct Data
 		{
 			Data(SoundActor& a, SoundActor& b) :
-				type(Type::None), participants(a, b), _distance(0), _velocity(0) {}
+				_type(Type::None), participants(a, b), _distance(0), _velocity(0) {}
 			~Data() = default;
 
-			Type type;
+			Type _type;
 			std::pair<SoundActor&, SoundActor&> participants;
 			float _distance;
 			float _velocity;

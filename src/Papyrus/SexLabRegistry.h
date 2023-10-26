@@ -99,6 +99,7 @@ namespace Papyrus::SexLabRegistry
 	void ResetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	void ResetOffsetA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 	int32_t GetSchlongAngle(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	std::vector<int32_t> GetSchlongAngleA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 	void SetSchlongAngle(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, int a_value);
 
 	int32_t GetStripData(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
@@ -184,6 +185,7 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(ResetOffset, "SexLabRegistry", true);
 		REGISTERFUNC(ResetOffsetA, "SexLabRegistry", true);
 		REGISTERFUNC(GetSchlongAngle, "SexLabRegistry", true);
+		REGISTERFUNC(GetSchlongAngleA, "SexLabRegistry", true);
 		REGISTERFUNC(SetSchlongAngle, "SexLabRegistry", true);
 
 		REGISTERFUNC(GetStripData, "SexLabRegistry", true);

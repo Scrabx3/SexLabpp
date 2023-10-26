@@ -258,8 +258,9 @@ namespace Papyrus::ThreadModel
 
 			const auto event = scene->GetNthAnimationEvent(stage, i);
 			actor->NotifyAnimationGraph(event);
-			const auto schlong = fmt::format("SOSBend{}", stage->positions[i].schlong);
-			actor->NotifyAnimationGraph(schlong);
+			// NOTE: This does not work because SOS is too slow to equip the schlong
+			// const auto schlong = fmt::format("SOSBend{}", static_cast<int32_t>(stage->positions[i].schlong));
+			// actor->NotifyAnimationGraph(schlong);
 		}
 
 		return stage->id;
