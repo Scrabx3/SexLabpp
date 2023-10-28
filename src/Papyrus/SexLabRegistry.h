@@ -105,6 +105,10 @@ namespace Papyrus::SexLabRegistry
 	int32_t GetStripData(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	std::vector<int32_t> GetStripDataA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 
+	bool HasExtraCustom(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n, RE::BSFixedString a_extra);
+	std::vector<RE::BSFixedString> GetExtraCustom(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int n);
+	std::vector<RE::BSFixedString> GetExtraCustomA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
+
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(GetRaceID, "SexLabRegistry", true);

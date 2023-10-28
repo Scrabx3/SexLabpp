@@ -90,10 +90,14 @@ namespace Registry
 		_NODISCARD bool CanFillPosition(PositionFragment a_fragment) const;
 		_NODISCARD std::vector<PositionFragment> MakeFragments() const;
 
+		_NODISCARD bool HasExtraCstm(const RE::BSFixedString& a_extra) const;
+		_NODISCARD std::string ConcatExtraCstm() const;
+
 	public:
 		RaceKey race;
 		stl::enumeration<Sex> sex;
 		stl::enumeration<Extra> extra;
+		std::vector<RE::BSFixedString> custom;
 
 		float scale;
 	};

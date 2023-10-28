@@ -149,6 +149,15 @@ namespace Registry
 		a_stream.read(reinterpret_cast<char*>(&sex), 1);
 		Decode::Read(a_stream, scale);
 		a_stream.read(reinterpret_cast<char*>(&extra), 1);
+
+		uint64_t extra_custom;
+		Decode::Read(a_stream, extra_custom);
+		custom.reserve(extra_custom);
+		for (size_t j = 0; j < extra_custom; j++) {
+			RE::BSFixedString tag;
+			Decode::Read(a_stream, tag);
+			custom.push_back(tag);
+		}
 	}
 
 	Stage::Stage(std::ifstream& a_stream)
@@ -379,6 +388,20 @@ namespace Registry
 		for (auto&& it : fragments)
 			ret.push_back(it.get());
 
+		return ret;
+	}
+
+	bool PositionInfo::HasExtraCstm(const RE::BSFixedString& a_extra) const
+	{
+		return std::ranges::find(custom, a_extra) != custom.end();
+	}
+
+	std::string PositionInfo::ConcatExtraCstm() const
+	{
+		std::string ret{};
+		for (auto&& it : custom) {
+			ret += it.c_str();
+		}
 		return ret;
 	}
 
