@@ -10,10 +10,6 @@ namespace Papyrus::CreatureAnimationSlots
 		RE::BSFixedString a_racekey, 
 		std::vector<std::string_view> a_tags)
 	{
-		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
-			return {};
-		}
     const auto racekey = Registry::RaceHandler::GetRaceKey(a_racekey);
 		if (racekey == Registry::RaceKey::None) {
 			a_vm->TraceStack("Invalid racekey", a_stackID);
@@ -25,7 +21,7 @@ namespace Papyrus::CreatureAnimationSlots
 		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
 			if (!a_scene->IsEnabled() || a_scene->IsPrivate())
 				return false;
-			if (a_scene->positions.size() != a_actorcount)
+			if (a_actorcount > -1 && a_scene->positions.size() != a_actorcount)
 				return false;
 			if (!a_scene->IsCompatibleTags(tagdetails))
 				return false;
