@@ -30,7 +30,7 @@ namespace Registry
 				scenes.reserve(scene_count);
 				for (size_t i = 0; i < scene_count; i++) {
 					scenes.push_back(
-						std::make_unique<Scene>(stream, hash));
+						std::make_unique<Scene>(stream, hash, version));
 				}
 			}
 			break;
@@ -39,7 +39,7 @@ namespace Registry
 		}
 	}
 
-	Scene::Scene(std::ifstream& a_stream, std::string_view a_hash) :
+	Scene::Scene(std::ifstream& a_stream, std::string_view a_hash, uint8_t a_version) :
 		hash(a_hash), enabled(true)
 	{
 		id.resize(Decode::ID_SIZE);
@@ -50,7 +50,7 @@ namespace Registry
 		Decode::Read(a_stream, info_count);
 		positions.reserve(info_count);
 		for (size_t i = 0; i < info_count; i++) {
-			positions.emplace_back(a_stream);
+			positions.emplace_back(a_stream, a_version);
 		}
 
 		enum legacySex : char
@@ -143,20 +143,24 @@ namespace Registry
 		a_stream.read(reinterpret_cast<char*>(&is_private), 1);
 	}
 
-	PositionInfo::PositionInfo(std::ifstream& a_stream)
+	PositionInfo::PositionInfo(std::ifstream& a_stream, uint8_t a_version)
 	{
 		a_stream.read(reinterpret_cast<char*>(&race), 1);
 		a_stream.read(reinterpret_cast<char*>(&sex), 1);
 		Decode::Read(a_stream, scale);
 		a_stream.read(reinterpret_cast<char*>(&extra), 1);
 
-		uint64_t extra_custom;
-		Decode::Read(a_stream, extra_custom);
-		custom.reserve(extra_custom);
-		for (size_t j = 0; j < extra_custom; j++) {
-			RE::BSFixedString tag;
-			Decode::Read(a_stream, tag);
-			custom.push_back(tag);
+		if (a_version > 1) {
+			uint64_t extra_custom;
+			Decode::Read(a_stream, extra_custom);
+			custom.reserve(extra_custom);
+			for (size_t j = 0; j < extra_custom; j++) {
+				RE::BSFixedString tag;
+				Decode::Read(a_stream, tag);
+				custom.push_back(tag);
+			}
+		} else {
+			custom = {};
 		}
 	}
 

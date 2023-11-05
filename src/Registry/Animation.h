@@ -74,7 +74,7 @@ namespace Registry
 		};
 
 	public:
-		PositionInfo(std::ifstream& a_stream);
+		PositionInfo(std::ifstream& a_stream, uint8_t a_version);
 		~PositionInfo() = default;
 
 		_NODISCARD bool IsHuman() const { return race == RaceKey::Human; }
@@ -125,7 +125,7 @@ namespace Registry
 		};
 
 	public:
-		Scene(std::ifstream& a_stream, std::string_view a_hash);
+		Scene(std::ifstream& a_stream, std::string_view a_hash, uint8_t a_version);
 		~Scene() = default;
 
 		_NODISCARD bool IsEnabled() const;
