@@ -16,7 +16,6 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	case SKSE::MessagingInterface::kPostLoad:
 #ifdef NDEBUG
 		Registry::Library::GetSingleton()->Initialize();
-		UserData::StripData::GetSingleton()->Load();
 		Registry::Library::GetSingleton()->Load();
 		Settings::Initialize();
 #endif
@@ -24,7 +23,6 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	case SKSE::MessagingInterface::kDataLoaded:
 #ifndef NDEBUG
 		Registry::Library::GetSingleton()->Initialize();
-		UserData::StripData::GetSingleton()->Load();
 		Registry::Library::GetSingleton()->Load();
 		Settings::Initialize();
 #endif
@@ -34,6 +32,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
+		UserData::StripData::GetSingleton()->Load();
 		Settings::InitializeData();
 		break;
 	case SKSE::MessagingInterface::kSaveGame:
