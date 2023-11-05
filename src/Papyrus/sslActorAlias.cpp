@@ -27,6 +27,7 @@ namespace Papyrus::ActorAlias
 		actor->PauseCurrentDialogue();
 		actor->InterruptCast(false);
 		actor->StopInteractingQuick(true);
+		actor->SetCollision(false);
 
 		if (const auto process = actor->currentProcess) {
 			process->ClearMuzzleFlashes();
@@ -50,6 +51,7 @@ namespace Papyrus::ActorAlias
 		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(false);
 		}
+		actor->SetCollision(true);
 	}
 
 	std::vector<RE::TESForm*> StripByData(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias,
@@ -93,6 +95,19 @@ namespace Papyrus::ActorAlias
 		if (a_stripdata == Strip::None) {
 			return a_mergewith;
 		}
+		const auto join = [&]() {
+			std::string ret{ "[" };
+			for (size_t i = 0;; i++) {
+				ret += a_mergewith[i]->formID;
+				if (i == a_mergewith.size()) {
+					ret += "]";
+					break;
+				}
+				ret += ", ";
+			}
+			return ret;
+		};
+		logger::info("Stripping By Data {}, Initial Equipment: {}", a_mergewith.size(), join());
 		uint32_t slots;
 		bool weapon;
 		if (a_overwrite.size() >= 2 && a_overwrite[0] != 0) {
@@ -169,6 +184,7 @@ namespace Papyrus::ActorAlias
 			}
 			manager->UnequipObject(actor, form);
 		}
+		logger::info("Stripping By Data {}, Returning Equipment: {}", a_mergewith.size(), join());
 		actor->Update3DModel();
 		return a_mergewith;
 	}

@@ -11,7 +11,7 @@ namespace Papyrus::CreatureAnimationSlots
 		std::vector<std::string_view> a_tags)
 	{
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack(fmt::format("Actorcount should be between 0 and {}", Registry::MAX_ACTOR_COUNT).c_str(), a_stackID);
+			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
 			return {};
 		}
     const auto racekey = Registry::RaceHandler::GetRaceKey(a_racekey);
@@ -44,7 +44,7 @@ namespace Papyrus::CreatureAnimationSlots
 		int32_t a_actorcount, std::vector<RE::Actor*> a_creatures, std::vector<std::string_view> a_tags)
 	{
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack(fmt::format("Actorcount should be between 0 and {}", Registry::MAX_ACTOR_COUNT).c_str(), a_stackID);
+			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
 			return {};
 		}
 		if (a_creatures.empty() || std::find(a_creatures.begin(), a_creatures.end(), nullptr) != a_creatures.end()) {
@@ -107,7 +107,7 @@ namespace Papyrus::CreatureAnimationSlots
 		std::vector<std::string_view> a_tags)
 	{
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack(fmt::format("Actorcount should be between 0 and {}", Registry::MAX_ACTOR_COUNT).c_str(), a_stackID);
+			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
 			return {};
 		}
 		if (a_malecrt + a_femalecrt > a_actorcount) {

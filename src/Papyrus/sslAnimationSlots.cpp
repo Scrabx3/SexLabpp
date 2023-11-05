@@ -22,8 +22,8 @@ namespace Papyrus::AnimationSlots
 			return {};
 		}
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack("Actor count should be between 0 and 5", a_stackID);
-      return {};
+			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
+			return {};
 		}
 		const auto lib = Registry::Library::GetSingleton();
     const auto scenes = lib->GetByTags(a_actorcount, a_tags);
@@ -38,7 +38,7 @@ namespace Papyrus::AnimationSlots
 			return {};
 		}
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack("Actor count should be between 0 and 5", a_stackID);
+			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
 			return {};
 		}
 		const auto lib = Registry::Library::GetSingleton();
