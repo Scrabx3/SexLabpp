@@ -98,12 +98,15 @@ namespace Papyrus::ActorAlias
 		const auto join = [&]() {
 			std::string ret{ "[" };
 			for (size_t i = 0;; i++) {
-				ret += a_mergewith[i]->formID;
-				if (i == a_mergewith.size()) {
+				if (a_mergewith[i]) {
+					ret += std::to_string(a_mergewith[i]->formID);
+				}
+				if (i == a_mergewith.size() - 1) {
 					ret += "]";
 					break;
+				} else {
+					ret += ", ";
 				}
-				ret += ", ";
 			}
 			return ret;
 		};
