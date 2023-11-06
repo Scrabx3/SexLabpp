@@ -327,8 +327,8 @@ namespace Papyrus::ThreadModel
 	
 	bool RegisterSFX(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions)
 	{
-		if (a_positions.empty()) {
-			a_vm->TraceStack("Actor array cannot be empty", a_stackID);
+		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
+			a_vm->TraceStack("Array is empty or contains none", a_stackID);
 			return false;
 		}
 		return Sound::GetSingleton()->RegisterProcessing(a_qst->formID, a_positions);

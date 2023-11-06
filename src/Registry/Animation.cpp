@@ -601,21 +601,6 @@ namespace Registry
 		return ret;
 	}
 
-	// std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<RE::Actor*>& a_positions, bool a_withfallback) const
-	// {
-	// 	if (a_positions.size() != this->positions.size())
-	// 		return std::nullopt;
-
-	// 	size_t submissives = CountSubmissives();
-	// 	std::vector<std::pair<RE::Actor*, PositionFragment>> argActor{};
-	// 	for (size_t i = 0; i < a_positions.size(); i++) {
-	// 		argActor.emplace_back(
-	// 			a_positions[i],
-	// 			MakeFragmentFromActor(a_positions[i], submissives-- > 0));
-	// 	}
-	// 	return a_withfallback ? SortActors(argActor) : SortActorsFallback(argActor);
-	// }
-
 	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions) const
 	{
 		if (a_positions.size() != this->positions.size())

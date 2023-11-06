@@ -230,6 +230,14 @@ namespace Papyrus::ThreadLibrary
 	std::vector<RE::Actor*> SortActorsByAnimationImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
 		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::vector<RE::Actor*> a_submissives)
 	{
+		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
+			a_vm->TraceStack("Array is empty or contains none", a_stackID);
+			return {};
+		}
+		if (std::ranges::find(a_submissives, nullptr) != a_submissives.end()) {
+			a_vm->TraceStack("Array is empty or contains none", a_stackID);
+			return {};
+		}
 		const auto library = Registry::Library::GetSingleton();
 		const auto scene = library->GetSceneByID(a_sceneid);
 		if (!scene) {

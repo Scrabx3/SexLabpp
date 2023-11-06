@@ -186,8 +186,13 @@ namespace Papyrus::SexLabRegistry
 	std::vector<RE::BSFixedString> LookupScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, FurniturePreference a_furniturepref, RE::TESObjectREFR* a_center)
 	{
-		if (a_positions.empty()) {
+		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Cannot lookup animations without actors", a_stackID);
+			return {};
+		}
+		if (std::ranges::find(a_submissives, nullptr) != a_submissives.end())
+		{
+			a_vm->TraceStack("None actor in submissives", a_stackID);
 			return {};
 		}
 		const auto lib = Registry::Library::GetSingleton();
@@ -290,6 +295,10 @@ namespace Papyrus::SexLabRegistry
 		std::string a_sceneid,
 		bool a_allowfallback)
 	{
+		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
+			a_vm->TraceStack("Array is empty or contains none", a_stackID);
+			return false;
+		}
 		const auto lib = Registry::Library::GetSingleton();
 		const auto scene = lib->GetSceneByID(a_sceneid);
 		if (!scene) {
@@ -314,6 +323,14 @@ namespace Papyrus::SexLabRegistry
 		std::string a_sceneid,
 		bool a_allowfallback)
 	{
+		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
+			a_vm->TraceStack("Position Array is empty or contains none", a_stackID);
+			return false;
+		}
+		if (std::ranges::find(a_victims, nullptr) != a_victims.end()) {
+			a_vm->TraceStack("Victim Array contains none", a_stackID);
+			return false;
+		}
 		const auto lib = Registry::Library::GetSingleton();
 		const auto scene = lib->GetSceneByID(a_sceneid);
 		if (!scene) {
@@ -338,6 +355,10 @@ namespace Papyrus::SexLabRegistry
 		std::vector<std::string> a_sceneids,
 		bool a_allowfallback)
 	{
+		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
+			a_vm->TraceStack("Array is empty or contains none", a_stackID);
+			return -1;
+		}
 		const auto lib = Registry::Library::GetSingleton();
 		for (size_t i = 0; i < a_sceneids.size(); i++) {
 			const auto scene = lib->GetSceneByID(a_sceneids[i]);
@@ -364,6 +385,14 @@ namespace Papyrus::SexLabRegistry
 		std::vector<std::string> a_sceneids,
 		bool a_allowfallback)
 	{
+		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
+			a_vm->TraceStack("Array is empty or contains none", a_stackID);
+			return -1;
+		}
+		if (std::ranges::find(a_victims, nullptr) != a_victims.end()) {
+			a_vm->TraceStack("Array is empty or contains none", a_stackID);
+			return -1;
+		}
 		const auto lib = Registry::Library::GetSingleton();
 		for (size_t i = 0; i < a_sceneids.size(); i++) {
 			const auto scene = lib->GetSceneByID(a_sceneids[i]);
