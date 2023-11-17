@@ -205,10 +205,8 @@ namespace Papyrus
 		head = RE::NiPointer{ obj->GetObjectByName(HEAD) };
 		pelvis = RE::NiPointer{ obj->GetObjectByName(PELVIS) };
 		spine_lower = RE::NiPointer{ obj->GetObjectByName(SPINELOWER) };
-		tigh_right = RE::NiPointer{ obj->GetObjectByName(TIGHRIGHT) };
-		tigh_left = RE::NiPointer{ obj->GetObjectByName(THIGHLEFT) };
 
-		if (!head || !pelvis || !spine_lower || !tigh_right || !tigh_left)
+		if (!head || !pelvis || !spine_lower)
 			throw std::exception("Missing mandatory 3d object (body)");
 
 		hand_left = RE::NiPointer{ obj->GetObjectByName(HANDLEFT) };
