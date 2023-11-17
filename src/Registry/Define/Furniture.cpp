@@ -109,7 +109,7 @@ namespace Registry
 			if (!a_filter.any(type)) {
 				continue;
 			}
-			std::vector<Coordinate> vec;
+			std::vector<Coordinate> vec{};
 			for (auto&& offset : offsetlist) {
 				auto coordinates = ref_coords;
 				offset.Apply(coordinates);

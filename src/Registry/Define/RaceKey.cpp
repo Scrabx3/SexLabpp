@@ -186,7 +186,7 @@ namespace Registry
 
 		const auto where = behaviorfiles.find(root);
 		if (where == behaviorfiles.end()) {
-			logger::error("Unrecognized Race: {:X}", a_race->GetFormID());
+			logger::error("Unrecognized Behavior: {} (Used by Race {:X})", root, a_race->GetFormID());
 			return RaceKey::None;
 		}
 		switch (where->second) {
