@@ -28,7 +28,7 @@ namespace Papyrus::ThreadModel
 				if (!aliasref)
 					continue;
 				const auto ref = aliasref->GetReference();
-				if (!ret.second || ref->IsPlayerRef()) {
+				if (ref && (!ret.second || ref->IsPlayerRef())) {
 					ret.second = ref;
 				}
 			}
@@ -197,6 +197,8 @@ namespace Papyrus::ThreadModel
 			return false;
 		}
 		const auto details = library->GetFurnitureDetails(center);
+		if (!details)	 // nothing to do
+			return true;
 		auto res = details->GetClosestCoordinateInBound(center, scene->furnitures.furnitures, actor);
 		if (res.empty())
 			return false;
