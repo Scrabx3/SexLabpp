@@ -24,7 +24,8 @@ namespace Papyrus::ActorAlias
 		}
 
 		actor->StopCombat();
-		actor->PauseCurrentDialogue();
+		// actor->PauseCurrentDialogue();
+		actor->EndDialogue();
 		actor->InterruptCast(false);
 		actor->StopInteractingQuick(true);
 		actor->SetCollision(false);
