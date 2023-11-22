@@ -43,8 +43,8 @@ void Settings::Initialize()
 				{
 					auto s = std::get<std::vector<int>*>(w->second);
 					const auto value = node.second.as<std::vector<int>>();
-          if (value.size() != s->size())
-            logger::error("Invalid array length for setting {}, expected {} but got {}", keyname, s->size(), value.size());
+					if (value.size() != s->size())
+						logger::error("Invalid array length for setting {}, expected {} but got {}", keyname, s->size(), value.size());
 					*s = value;
 				}
 				break;
@@ -65,6 +65,101 @@ void Settings::Initialize()
 	} catch (const std::exception& e) {
 		logger::error("Unable to laod settings, error: {}", e.what());
 	}
+
+	CSimpleIniA extra{};
+	const auto ec = extra.LoadFile("Data\\SKSE\\Plugins\\SexLab.ini");
+	if (ec < 0) {
+		logger::error("Failed to read .ini Settings, Error: {}", ec);
+		return;
+	}
+
+	const auto ReadIni = [&extra]<typename T>(const char* a_section, const char* a_option, T& a_out) {
+		if (!extra.GetValue(a_section, a_option))
+			return;
+
+		if constexpr (std::is_same<T, int>::value || std::is_same<T, uint32_t>::value) {
+			a_out = static_cast<T>(extra.GetLongValue(a_section, a_option));
+		} else if (std::is_same<T, float>::value) {
+			a_out = static_cast<T>(extra.GetDoubleValue(a_section, a_option));
+		} else if (std::is_same<T, bool>::value) {
+			a_out = static_cast<T>(extra.GetBoolValue(a_section, a_option));
+		}
+	};
+#define READINI(section, out) ReadIni(section, #out, out);
+
+	// Animation
+	READINI("Animation", iFurniturePrefWeight);
+	READINI("Animation", fScanRadius);
+	READINI("Animation", fMinScale);
+	READINI("Animation", bAllowDead);
+
+	// Creature
+	READINI("Creature", bAshHopper)
+	READINI("Creature", bBear)
+	READINI("Creature", bBoar)
+	READINI("Creature", bBoarMounted)
+	READINI("Creature", bBoarSingle)
+	READINI("Creature", bCanine)
+	READINI("Creature", bChaurus)
+	READINI("Creature", bChaurusHunter)
+	READINI("Creature", bChaurusReaper)
+	READINI("Creature", bChicken)
+	READINI("Creature", bCow)
+	READINI("Creature", bDeer)
+	READINI("Creature", bDog)
+	READINI("Creature", bDragon)
+	READINI("Creature", bDragonPriest)
+	READINI("Creature", bDraugr)
+	READINI("Creature", bDwarvenBallista)
+	READINI("Creature", bDwarvenCenturion)
+	READINI("Creature", bDwarvenSphere)
+	READINI("Creature", bDwarvenSpider)
+	READINI("Creature", bFalmer)
+	READINI("Creature", bFlameAtronach)
+	READINI("Creature", bFox)
+	READINI("Creature", bFrostAtronach)
+	READINI("Creature", bGargoyle)
+	READINI("Creature", bGiant)
+	READINI("Creature", bGiantSpider)
+	READINI("Creature", bGoat)
+	READINI("Creature", bHagraven)
+	READINI("Creature", bHare)
+	READINI("Creature", bHorker)
+	READINI("Creature", bHorse)
+	READINI("Creature", bIceWraith)
+	READINI("Creature", bLargeSpider)
+	READINI("Creature", bLurker)
+	READINI("Creature", bMammoth)
+	READINI("Creature", bMudcrab)
+	READINI("Creature", bNetch)
+	READINI("Creature", bRiekling)
+	READINI("Creature", bSabrecat)
+	READINI("Creature", bSeeker)
+	READINI("Creature", bSkeever)
+	READINI("Creature", bSlaughterfish)
+	READINI("Creature", bSpider)
+	READINI("Creature", bSpriggan)
+	READINI("Creature", bStormAtronach)
+	READINI("Creature", bTroll)
+	READINI("Creature", bVampireLord)
+	READINI("Creature", bWerewolf)
+	READINI("Creature", bWisp)
+	READINI("Creature", bWispmother)
+	READINI("Creature", bWolf)
+
+	// Distance
+	READINI("Distance", fDistanceHead);
+	READINI("Distance", fDistanceFoot);
+	READINI("Distance", fDistanceHand);
+	READINI("Distance", fDistanceCrotchFront);
+	READINI("Distance", fDistanceCrotchBack);
+	READINI("Distance", fDistanceCrotchBonus);
+	READINI("Distance", fAnglePenetration);
+	READINI("Distance", fAngleMouth);
+
+#undef READINI
+
+	logger::info("Finished loading .ini settings");
 }
 
 void Settings::InitializeData()
