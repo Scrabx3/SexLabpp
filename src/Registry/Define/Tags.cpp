@@ -225,13 +225,13 @@ namespace Registry
 			case '!':	 // Scene Meta for Papyrus, ignore
 				continue;
 			case '~':
-				_tags[TagType::Optional].AddTag(tag.substr(1));
+				_tags[TagType::Optional].AddTag(std::string(tag.substr(1)));
 				break;
 			case '-':
-				_tags[TagType::Disallow].AddTag(tag.substr(1));
+				_tags[TagType::Disallow].AddTag(std::string(tag.substr(1)));
 				break;
 			default:
-				_tags[TagType::Disallow].AddTag(tag);
+				_tags[TagType::Required].AddTag(std::string(tag));
 				break;
 			}
 		}
