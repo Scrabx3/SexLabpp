@@ -108,41 +108,82 @@ namespace Papyrus
 
 	std::pair<Sound::Type, float> Sound::Data::GetCurrentTypeAndDistance(const SoundActor& a_active, const SoundActor& a_passive)
 	{
-		const auto getCrotchFront = [&](const SoundActor::Nodes& a_nodes) -> std::pair<RE::NiPoint3, float> {
-			if (a_nodes.vagina_right && a_passive.nodes.vagina_left)
-				return { (a_nodes.vagina_right->world.translate + a_nodes.vagina_left->world.translate) / 2, 0.0f };
-			if (a_nodes.sos_base)
-				return { a_nodes.sos_base->world.translate, 0.0f };
-			return { a_nodes.pelvis->world.translate, Settings::fDistanceCrotchBonus };
+		const auto getHand = [&](const RE::NiPoint3& a_reference, float a_distancederiv = 0.0f) -> std::optional<std::pair<Sound::Type, float>> {
+			if (!a_passive.nodes.hand_left || !a_passive.nodes.hand_right)
+				return std::nullopt;
+			const auto dist_max = Settings::fDistanceHand + a_distancederiv;
+			float dhandleft = a_passive.nodes.hand_left->world.translate.GetDistance(a_reference);
+			float dhandright = a_passive.nodes.hand_right->world.translate.GetDistance(a_reference);
+			if (dhandleft <= dist_max || dhandright <= dist_max) {
+				return std::pair{ Type::Hand, std::min(dhandleft, dhandright) };
+			}
+			return std::nullopt;
 		};
-		const auto [p_crotchfront, pcf_distance] = getCrotchFront(a_passive.nodes);
-		const auto [p_crotchback, pcb_distance] = [&]() -> std::pair<RE::NiPoint3, float> {
-			if (a_passive.nodes.anal_left && a_passive.nodes.anal_right)
-				return { (a_passive.nodes.anal_left->world.translate + a_passive.nodes.anal_right->world.translate) / 2, 0.0f };
-			return { a_passive.nodes.spine_lower->world.translate, Settings::fDistanceCrotchBonus };
-		}();
+		const auto getFoot = [&](const RE::NiPoint3& a_reference, float a_distancederiv = 0.0f) -> std::optional<std::pair<Sound::Type, float>> {
+			if (!a_passive.nodes.foot_left || !a_passive.nodes.foot_rigt)
+				return std::nullopt;
+			const auto dist_max = Settings::fDistanceFoot + a_distancederiv;
+			float dfootleft = a_passive.nodes.foot_left->world.translate.GetDistance(a_reference);
+			float dfootright = a_passive.nodes.foot_rigt->world.translate.GetDistance(a_reference);
+			if (dfootleft <= dist_max || dfootright <= dist_max) {
+				return std::pair{ Type::Foot, std::min(dfootleft, dfootright) };
+			}
+			return std::nullopt;
+		};
+		const auto getHead = [&](const RE::NiPoint3& a_reference, float a_distancederiv = 0.0f) -> std::optional<std::pair<Sound::Type, float>> {
+			if (!a_passive.nodes.head)
+				return std::nullopt;
+			const auto d = a_reference.GetDistance(a_passive.nodes.head->world.translate);
+			if (d > Settings::fDistanceHead + a_distancederiv)
+				return std::nullopt;
+			const auto& headworld = a_passive.nodes.head->world;
+			auto vheading = a_reference - headworld.translate;
+			auto vforward = RE::NiPoint3{ headworld.rotate.entry[0][0], headworld.rotate.entry[0][1], headworld.rotate.entry[0][2] };
+			vheading.Unitize();
+			vforward.Unitize();
+			const auto radians = std::acos(vheading.Dot(vforward) / (vheading.Length() * vforward.Length()));
+			if (radians < glm::radians(Settings::fAngleMouth)) {
+				return std::pair{ Type::Oral, d };
+			}
+			return std::nullopt;
+		};
 
-		if (a_active.sex != Registry::Sex::Female) {	// schlong interactions
-			const auto& schlongglance = a_active.nodes.sos_glance ? a_active.nodes.sos_glance->world.translate : a_active.nodes.ApproximateGlance();
+		if (a_active.sex != Registry::Sex::Female) {
 			const auto& schlongmid = a_active.nodes.sos_mid ? a_active.nodes.sos_mid->world.translate : a_active.nodes.ApproximateMid();
 			if (a_active != a_passive) {
-				// crotch?
+				// crotch
+				const auto [p_crotchfront, pcf_distance] = [&]() -> std::pair<RE::NiPoint3, float> {
+					if (a_passive.nodes.vagina_right && a_passive.nodes.vagina_left)
+						return { (a_passive.nodes.vagina_right->world.translate + a_passive.nodes.vagina_left->world.translate) / 2, 0.0f };
+					return { a_passive.nodes.pelvis->world.translate, Settings::fDistanceCrotchBonus };
+				}();
+				const auto [p_crotchback, pcb_distance] = [&]() -> std::pair<RE::NiPoint3, float> {
+					if (a_passive.nodes.anal_left && a_passive.nodes.anal_right)
+						return { (a_passive.nodes.anal_left->world.translate + a_passive.nodes.anal_right->world.translate) / 2, 0.0f };
+					return { a_passive.nodes.spine_lower->world.translate, Settings::fDistanceCrotchBonus };
+				}();
 				const float dcrotchfront = p_crotchfront.GetDistance(schlongmid);
 				const float dcrotchback = p_crotchback.GetDistance(schlongmid);
 				if (dcrotchfront < pcf_distance + Settings::fDistanceCrotchFront || dcrotchback < pcb_distance + Settings::fDistanceCrotchBack) {
-					RE::NiPoint3 vschlong = schlongmid - schlongglance;
+					// find some point to create a vector from to represent direction of schlong
+					RE::NiPoint3 vschlong = schlongmid - [&]() -> RE::NiPoint3 {
+						if (a_active.nodes.sos_front)
+							return a_active.nodes.sos_front->world.translate;
+						if (a_active.nodes.sos_base)
+							return a_active.nodes.sos_base->world.translate;
+						return a_active.nodes.ApproximateTip();
+					}();
 					RE::NiPoint3 vcrotch = p_crotchfront - p_crotchback;
 					vschlong.Unitize();
 					vcrotch.Unitize();
-					// how steep is the angle into the body? If approx parallel, assume no penetration
+					// angle of penetration
 					const auto radians = std::acos(vschlong.Dot(vcrotch) / (vcrotch.Length() * vschlong.Length()));
 					if (radians < glm::radians(Settings::fAnglePenetration) || radians > glm::radians(180.0f - Settings::fAnglePenetration)) {
 						return { Type::Grinding, dcrotchfront };
 					}
-					// otherwise penetration..
 					if (a_passive.nodes.anal_deep && a_passive.nodes.vagina_deep) {
-						const auto da = a_passive.nodes.anal_deep->world.translate.GetDistance(schlongglance);
-						const auto dv = a_passive.nodes.vagina_deep->world.translate.GetDistance(schlongglance);
+						const auto da = a_passive.nodes.anal_deep->world.translate.GetDistance(schlongmid);
+						const auto dv = a_passive.nodes.vagina_deep->world.translate.GetDistance(schlongmid);
 						if (dv < da) {
 							return { Type::Vaginal, dv };
 						} else {
@@ -150,48 +191,43 @@ namespace Papyrus
 						}
 					}
 					return { Type::Anal, dcrotchback };
-				} else if (const auto d = schlongglance.GetDistance(a_passive.nodes.head->world.translate); d < Settings::fDistanceHead) {	// oral
-					const auto& headworld = a_passive.nodes.head->world;
-					auto vheading = schlongglance - headworld.translate;
-					auto vforward = RE::NiPoint3{ headworld.rotate.entry[0][0], headworld.rotate.entry[0][1], headworld.rotate.entry[0][2] };
-					vheading.Unitize();
-					vforward.Unitize();
-					const auto radians = std::acos(vheading.Dot(vforward) / (vheading.Length() * vforward.Length()));
-					if (radians < glm::radians(Settings::fAngleMouth)) {
-						return { Type::Oral, d };
-					}
+				}
+				if (const auto tmp = getHead(schlongmid)) {
+					return *tmp;
+				}
+				if (const auto tmp = getFoot(schlongmid)) {
+					return *tmp;
 				}
 			}
-			// hand?
-			float dhandleft = a_passive.nodes.hand_left->world.translate.GetDistance(schlongmid);
-			float dhandright = a_passive.nodes.hand_right->world.translate.GetDistance(schlongmid);
-			if (dhandleft < Settings::fDistanceHand || dhandright < Settings::fDistanceHand) {
-				return { Type::Hand, std::min(dhandleft, dhandright) };
+			if (const auto tmp = getHand(schlongmid)) {
+				return *tmp;
 			}
-			// foot?
-			float dfootleft = a_passive.nodes.foot_left->world.translate.GetDistance(schlongmid);
-			float dfootright = a_passive.nodes.foot_rigt->world.translate.GetDistance(schlongmid);
-			if (dfootleft < Settings::fDistanceFoot || dfootright < Settings::fDistanceFoot) {
-				return { Type::Foot, std::min(dfootleft, dfootright) };
+		}
+		if (a_active.sex != Registry::Sex::Male) {
+			const auto [cl, cl_d] = [&]() -> std::pair<RE::NiPoint3, float> {
+				if (a_active.nodes.clitoris)
+					return { a_active.nodes.clitoris->world.translate, 0.0f };
+				return { a_active.nodes.pelvis->world.translate, Settings::fDistanceCrotchBonus };
+			}();
+			if (a_active != a_passive) {	// partner-only actions
+				if (a_passive.sex != Registry::Sex::Male && a_passive.nodes.clitoris) {
+					// tribadism
+					const auto& c2 = a_active.nodes.clitoris->world.translate;
+					const auto d = c2.GetDistance(cl);
+					if (d < Settings::fDistanceCrotchFront) {
+						return { Type::Tribadism, d };
+					}
+				}
+				if (const auto tmp = getHead(cl, cl_d)) {
+					return *tmp;
+				}
+				if (const auto tmp = getFoot(cl, cl_d)) {
+					return *tmp;
+				}
 			}
-		} else if (a_active != a_passive && a_active.sex != Registry::Sex::Male && a_passive.sex != Registry::Sex::Male) {
-			const auto [active_crotchfront, acf_distance] = getCrotchFront(a_active.nodes);
-			const auto c_distance = p_crotchfront.GetDistance(active_crotchfront);
-			if (c_distance < Settings::fDistanceCrotchFront + acf_distance + pcf_distance) {
-				return { Type::Tribadism, c_distance };
+			if (const auto tmp = getHand(cl, cl_d)) {
+				return *tmp;
 			}
-		}	 
-		// finger
-		const auto& alhand = a_active.nodes.hand_left->world.translate;
-		const auto& arhand = a_active.nodes.hand_right->world.translate;
-		const auto& da = std::min(alhand.GetDistance(p_crotchback), arhand.GetDistance(p_crotchback));
-		if (a_passive.sex == Registry::Sex::Female) {
-			const auto& dv = std::min(alhand.GetDistance(p_crotchfront), arhand.GetDistance(p_crotchfront));
-			if (dv < Settings::fDistanceCrotchFront || da < Settings::fDistanceCrotchBack) {
-				return dv < da ? std::pair{ Type::FingeringV, dv } : std::pair{ Type::FingeringA, da };
-			}
-		} else if (da < Settings::fDistanceCrotchBack) {
-			return { Type::FingeringA, da };
 		}
 		return { Type::None, 0.0f };
 	}
@@ -200,32 +236,36 @@ namespace Papyrus
 	{
 		const auto obj = a_actor->Get3D();
 		if (!obj) {
-			throw std::exception("Unable to retrieve 3D of actor {:X}", a_actor->GetFormID());
+			const auto msg = fmt::format("Unable to retrieve 3D of actor {:X}", a_actor->GetFormID());
+			throw std::exception(msg.c_str());
 		}
+
 		head = RE::NiPointer{ obj->GetObjectByName(HEAD) };
+		if (!head) {
+			logger::info("Actor {:X} is missing head node (This may be expected for creature actors)", a_actor->formID);
+		}
 		pelvis = RE::NiPointer{ obj->GetObjectByName(PELVIS) };
 		spine_lower = RE::NiPointer{ obj->GetObjectByName(SPINELOWER) };
-
-		if (!head || !pelvis || !spine_lower)
+		if (!pelvis || !spine_lower) {
 			throw std::exception("Missing mandatory 3d object (body)");
+		}
 
 		hand_left = RE::NiPointer{ obj->GetObjectByName(HANDLEFT) };
 		hand_right = RE::NiPointer{ obj->GetObjectByName(HANDRIGHT) };
 		foot_left = RE::NiPointer{ obj->GetObjectByName(FOOTLEFT) };
 		foot_rigt = RE::NiPointer{ obj->GetObjectByName(FOOTRIGHT) };
-
-		if (!hand_left || !hand_right || !foot_left || !foot_rigt)
-			throw std::exception("Missing mandatory 3d object (limbs)");
+		if (!hand_left || !hand_right || !foot_left || !foot_rigt) {
+			logger::info("Actor {:X} is missing limb nodes (This may be expected for creature actors)", a_actor->formID);
+			// throw std::exception("Missing mandatory 3d object (limbs)");
+		}
 
 		clitoris = RE::NiPointer{ obj->GetObjectByName(CLITORIS) };
 		vagina_deep = RE::NiPointer{ obj->GetObjectByName(VAGINA) };
 		vagina_left = RE::NiPointer{ obj->GetObjectByName(VAGINALLEFT) };
 		vagina_right = RE::NiPointer{ obj->GetObjectByName(VAGINALRIGHT) };
 		sos_base = RE::NiPointer{ obj->GetObjectByName(SOSSTART) };
-		sos_start = RE::NiPointer{ obj->GetObjectByName(SOSBASE) };
 		sos_mid = RE::NiPointer{ obj->GetObjectByName(SOSMID) };
-		sos_glance = RE::NiPointer{ obj->GetObjectByName(SOSGLANCE) };
-		sos_scrotum = RE::NiPointer{ obj->GetObjectByName(SOSSCROTUM) };
+		sos_front = RE::NiPointer{ obj->GetObjectByName(SOSGLANCE) };
 		anal_deep = RE::NiPointer{ obj->GetObjectByName(ANAL) };
 		anal_left = RE::NiPointer{ obj->GetObjectByName(ANALLEFT) };
 		anal_right = RE::NiPointer{ obj->GetObjectByName(ANALRIGHT) };
@@ -241,7 +281,7 @@ namespace Papyrus
 		return ret.AsNiPoint();
 	}
 
-	RE::NiPoint3 SoundActor::Nodes::ApproximateGlance() const
+	RE::NiPoint3 SoundActor::Nodes::ApproximateTip() const
 	{
 		constexpr float forward = 20.0f;
 		constexpr float upward = -4.0f;

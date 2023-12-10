@@ -5,10 +5,8 @@
 namespace Papyrus
 {
 	static constexpr std::string_view HEAD{ "NPC Head [Head]"sv };					// Back of throat
-	static constexpr std::string_view PELVIS{ "NPC Pelvis [Pelv]"sv };			// closest to groin area
-	static constexpr std::string_view SPINELOWER{ "NPC Spine [Spn0]"sv };		// closest to butt (center)
-	static constexpr std::string_view THIGHLEFT{ "NPC L Thigh [LThg]"sv };	// roughly same height as pelvis
-	static constexpr std::string_view TIGHRIGHT{ "NPC R Thigh [RThg]"sv };
+	static constexpr std::string_view PELVIS{ "NPC Pelvis [Pelv]"sv };			// bottom mid (front)
+	static constexpr std::string_view SPINELOWER{ "NPC Spine [Spn0]"sv };		// bottom mid (back)
 
 	static constexpr std::string_view HANDLEFT{ "NPC L Finger20 [LF20]"sv };	// Base of middle finger
 	static constexpr std::string_view HANDRIGHT{ "NPC R Finger20 [RF20]"sv };
@@ -38,8 +36,6 @@ namespace Papyrus
 			RE::NiPointer<RE::NiAVObject> head;
 			RE::NiPointer<RE::NiAVObject> pelvis;
 			RE::NiPointer<RE::NiAVObject> spine_lower;
-			RE::NiPointer<RE::NiAVObject> tigh_right;
-			RE::NiPointer<RE::NiAVObject> tigh_left;
 
 			RE::NiPointer<RE::NiAVObject> hand_left;
 			RE::NiPointer<RE::NiAVObject> hand_right;
@@ -51,16 +47,14 @@ namespace Papyrus
 			RE::NiPointer<RE::NiAVObject> vagina_left;
 			RE::NiPointer<RE::NiAVObject> vagina_right;
 			RE::NiPointer<RE::NiAVObject> sos_base;
-			RE::NiPointer<RE::NiAVObject> sos_start;
 			RE::NiPointer<RE::NiAVObject> sos_mid;
-			RE::NiPointer<RE::NiAVObject> sos_glance;
-			RE::NiPointer<RE::NiAVObject> sos_scrotum;
+			RE::NiPointer<RE::NiAVObject> sos_front;
 			RE::NiPointer<RE::NiAVObject> anal_deep;
 			RE::NiPointer<RE::NiAVObject> anal_left;
 			RE::NiPointer<RE::NiAVObject> anal_right;
 
 		public:
-			RE::NiPoint3 ApproximateGlance() const;
+			RE::NiPoint3 ApproximateTip() const;
 			RE::NiPoint3 ApproximateMid() const;
 			RE::NiPoint3 ApproximateBase() const;
 
@@ -73,6 +67,7 @@ namespace Papyrus
 			represent(a_actor), sex(Registry::GetSex(a_actor)), nodes(a_actor) {}
 		~SoundActor() = default;
 
+	public:
 		[[nodiscard]] constexpr bool operator==(const SoundActor& a_rhs) const noexcept { return represent == a_rhs.represent; }
 
 	public:
@@ -90,8 +85,6 @@ namespace Papyrus
 
 			Foot,
 			Hand,
-			FingeringA,
-			FingeringV,
 			Tribadism,
 			Grinding,
 
