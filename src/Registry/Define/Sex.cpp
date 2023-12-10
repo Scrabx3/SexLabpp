@@ -40,10 +40,16 @@ namespace Registry
 		case RE::SEXES::kMale:
 			return Sex::Male;
 		case RE::SEXES::kFemale:
-			if (!IsNPC(a_actor))
-				return Settings::bCreatureGender ? Sex::Female : Sex::Male;
-			else if (IsFuta(a_actor))
-				return Sex::Futa;
+			if (!IsNPC(a_actor)) {
+				return Settings::bCreatureGender ?
+								 Sex::Female :
+								 Sex::Male;
+			} else {
+				const auto obj = a_actor->Get3D();
+				if (obj && obj->GetObjectByName("NPC GenitalsBase [GenBase]")) {
+					return Sex::Futa;
+				}
+			}
 			return Sex::Female;
 		}
 	}
