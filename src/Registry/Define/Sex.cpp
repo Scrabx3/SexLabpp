@@ -46,7 +46,7 @@ namespace Registry
 								 Sex::Male;
 			} else {
 				const auto obj = a_actor->Get3D();
-				if (obj && obj->GetObjectByName("NPC GenitalsBase [GenBase]")) {
+				if (obj && obj->GetObjectByName("NPC GenitalsBase [GenBase]") && IsFuta(a_actor)) {
 					return Sex::Futa;
 				}
 			}
