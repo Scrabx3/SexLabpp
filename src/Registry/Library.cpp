@@ -175,7 +175,7 @@ namespace Registry
 
 	std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
 	{
-		TagData tags{ a_tags };
+		TagDetails tags{ a_tags };
 		std::vector<Scene*> ret{};
 		ret.reserve(scene_map.size() >> 5);
 		const std::shared_lock lock{ read_write_lock };

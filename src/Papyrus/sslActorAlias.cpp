@@ -18,6 +18,21 @@ namespace Papyrus::ActorAlias
 		}
 		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(true);
+
+			if (const auto queue = RE::UIMessageQueue::GetSingleton()) {
+				// force hide dialogue menu
+				queue->AddMessage(RE::DialogueMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kForceHide, nullptr);
+
+				// hide crosshair and activate prompt
+				auto msg = queue->CreateUIMessageData(RE::InterfaceStrings::GetSingleton()->hudData);
+				if (const auto data = static_cast<RE::HUDData*>(msg)) {
+					data->text = "";
+					data->type = RE::HUDData::Type::kActivateNoLabel;
+					queue->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kUpdate, data);
+
+				}
+			}
+
 			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
 		} else {
 			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;

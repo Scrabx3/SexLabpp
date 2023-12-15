@@ -43,12 +43,12 @@ namespace Papyrus::AnimationSlots
 		}
 		const auto lib = Registry::Library::GetSingleton();
 		auto scenes = lib->GetByTags(a_actorcount, a_tags);
+		const auto size = scenes.size();
 		const auto end = std::remove_if(scenes.begin(), scenes.end(), [&](Registry::Scene* a_scene) {
 			return !a_scene->Legacy_IsCompatibleSexCount(a_males, a_females);
 		});
-		const auto size = scenes.size();
 		scenes.erase(end, scenes.end());
-		logger::info("Get by tags found {} scenes; {}/{} match sex arguments", size, scenes.size(), size);
+		logger::info("Get by type found {} scenes; {}/{} match sex arguments", size, scenes.size(), size);
 		return ScenesToString(scenes);
 	}
 
