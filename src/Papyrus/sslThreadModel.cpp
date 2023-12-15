@@ -316,13 +316,13 @@ namespace Papyrus::ThreadModel
 	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext)
 	{
 		const auto list = Registry::StringSplit(a_newcontext, ',');
-		for (auto&& context : list) {
-			if (!context.starts_with('!'))
+		for (auto&& tag : list) {
+			if (!tag.starts_with('!'))
 				continue;
-			const auto context_ = context.substr(1);
-			if (std::find(a_oldcontext.begin(), a_oldcontext.end(), context_) != a_oldcontext.end())
+			const auto context = std::string(tag.substr(1));
+			if (std::find(a_oldcontext.begin(), a_oldcontext.end(), context) != a_oldcontext.end())
 				continue;
-			a_oldcontext.push_back(context_);
+			a_oldcontext.push_back(context);
 		}
 		return a_oldcontext;
 	}
