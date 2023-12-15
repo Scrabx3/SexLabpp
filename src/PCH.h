@@ -168,11 +168,12 @@ namespace Registry
 	template <typename E>
 	constexpr std::vector<E> FlagToComponents(E a_enum)
 	{
-		using underlying = std::underlying_type<E>::type;
-		constexpr auto iterations = 1ULL << sizeof(underlying) * 8;
+		using underlying = typename std::underlying_type<E>::type;
+		constexpr auto iterations = sizeof(underlying) * 8;
 		auto number = static_cast<underlying>(a_enum);
 		std::vector<E> ret{};
-		for (size_t i = 1; i < iterations; i *= 2) {
+		for (size_t n = 0; n < iterations; n++) {
+			size_t i = 1ULL << n;
 			if (number & i) {
 				ret.push_back(E(i));
 			}
