@@ -180,6 +180,21 @@ namespace Registry
 		}
 		return ret;
 	}
+
+	template <typename E>
+	constexpr size_t FlagIndex(E a_enum)
+	{
+		using underlying = typename std::underlying_type<E>::type;
+		constexpr auto iterations = sizeof(underlying) * 8;
+		auto number = static_cast<underlying>(a_enum);
+		for (size_t n = 0; n < iterations; n++) {
+			size_t i = 1ULL << n;
+			if (number & i) {
+				return n;
+			}
+		}
+		return 0;
+	}
 }
 
 #define DLLEXPORT __declspec(dllexport)
