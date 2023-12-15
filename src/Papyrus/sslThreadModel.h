@@ -23,7 +23,7 @@ namespace Papyrus::ThreadModel
 
 	bool RegisterSFX(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions);
 	void UnregisterSFX(RE::TESQuest* a_qst);
-	bool GetSFXTypeAndVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::reference_array<float> a_out);
+	uint32_t GetSFXType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst);
 
 	inline bool Register(VM* a_vm)
 	{
@@ -38,7 +38,7 @@ namespace Papyrus::ThreadModel
 
 		REGISTERFUNC(RegisterSFX, "sslThreadModel", true);
 		REGISTERFUNC(UnregisterSFX, "sslThreadModel", true);
-		REGISTERFUNC(GetSFXTypeAndVelocity, "sslThreadModel", true);
+		REGISTERFUNC(GetSFXType, "sslThreadModel", true);
 
 		return true;
 	}

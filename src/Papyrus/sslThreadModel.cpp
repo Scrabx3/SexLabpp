@@ -341,16 +341,13 @@ namespace Papyrus::ThreadModel
 		Sound::GetSingleton()->UnregisterProcessing(a_qst->formID);
 	}
 
-	bool GetSFXTypeAndVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::reference_array<float> a_out)
+	uint32_t GetSFXType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst)
 	{
-		if (a_out.size() < 2) {
-			a_vm->TraceStack("out array should have at least size 2", a_stackID);
-			return false;
+		if (!a_qst) {
+			a_vm->TraceStack("Cannot call 'GetSFXType' on a none object", a_stackID);
+			return 0;
 		}
-		const auto ret = Sound::GetSingleton()->GetSoundType(a_qst->formID);
-		a_out[0] = static_cast<float>(ret.first);
-		a_out[1] = ret.second;
-		return true;
+		return Sound::GetSingleton()->GetSoundType(a_qst->formID).underlying();
 	}
 
 }	 // namespace Papyrus::ThreadModel
