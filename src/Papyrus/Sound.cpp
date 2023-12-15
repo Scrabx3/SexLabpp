@@ -27,12 +27,12 @@ namespace Papyrus
 		_registered.erase(where);
 	}
 
-	std::pair<Sound::Type, float> Sound::GetSoundType(RE::FormID a_id) const
+	stl::enumeration<Sound::Type> Sound::GetSoundType(RE::FormID a_id) const
 	{
 		const auto where = std::ranges::find_if(_registered, [&](auto& it) { return it.first == a_id; });
 		if (where == _registered.end()) {
 			logger::error("Invalid Sound ID, Object not registered {:X}", a_id);
-			return { Type::None, 0.0f };
+			return { Type::None };
 		}
 		return where->second->GetSoundType();
 	}
@@ -73,40 +73,37 @@ namespace Papyrus
 		}
 	}
 
-	std::pair<Sound::Type, float> Sound::SoundProcess::GetSoundType() const
+	stl::enumeration<Sound::Type> Sound::SoundProcess::GetSoundType() const
 	{
-		Type besttype = Type::None;
-		float velocity = 0.0f;
+		stl::enumeration<Type> ret{};
 		for (auto&& d : data) {
-			if (d._type > besttype) {
-				besttype = d._type;
-				velocity = d._velocity;
-			}
+			ret.set(d._types.get());
 		}
-		return { besttype, velocity };
+		return ret;
 	}
 
 	void Sound::Data::Update(float a_delta)
 	{
+		assert(a_delta != 0.0f);
 		const auto& [a1, a2] = this->participants;
+		_types = Type::None;
 		auto [c_type, c_distance] = GetCurrentTypeAndDistance(a1, a2);
-		if (a1 != a2) {
-			auto [alt_type, alt_distance] = GetCurrentTypeAndDistance(a2, a1);
-			if (alt_type > c_type) {
-				c_type = alt_type;
-				c_distance = alt_distance;
+		auto [alt_type, alt_distance] = a1 == a2 ? std::pair{ stl::enumeration{ Type::None }, std::array<float, TYPEBITS>{} } : GetCurrentTypeAndDistance(a2, a1);
+		_types.set(c_type.get(), alt_type.get());
+		for (size_t i = 0; i < TYPEBITS; i++) {
+			const auto type = Type(1 << i);
+			if (_types.none(type)) {
+				_distance[i] = _velocity[i] = 0.0f;
+				continue;
 			}
+			const float new_dist = c_type.all(type) ? c_distance[i] : alt_distance[i];
+			const float delta_dist = new_dist - _distance[i];
+			_velocity[i] = (_velocity[i] + (delta_dist / a_delta)) / 2;
+			_distance[i] = new_dist;
 		}
-		if (c_distance != 0.0f && _type == c_type && a_delta != 0.0f) {
-			float delta_dist = c_distance - _distance;
-			_velocity = (_velocity + (delta_dist / a_delta)) / 2;
-		} else {
-			_velocity = 0.0f;
-		}
-		_type = c_type;
 	}
 
-	std::pair<Sound::Type, float> Sound::Data::GetCurrentTypeAndDistance(const SoundActor& a_active, const SoundActor& a_passive)
+	std::pair<stl::enumeration<Sound::Type>, std::array<float, Sound::TYPEBITS>> Sound::Data::GetCurrentTypeAndDistance(const SoundActor& a_active, const SoundActor& a_passive)
 	{
 		const auto getHand = [&](const RE::NiPoint3& a_reference, float a_distancederiv = 0.0f) -> std::optional<std::pair<Sound::Type, float>> {
 			if (!a_passive.nodes.hand_left || !a_passive.nodes.hand_right)
@@ -148,7 +145,10 @@ namespace Papyrus
 			return std::nullopt;
 		};
 
-		if (a_active.sex != Registry::Sex::Female) {
+		stl::enumeration<Type> typeret{ Type::None };
+		std::array<float, TYPEBITS> distret{};
+		if (a_active.sex != Registry::Sex::Female)
+		{
 			const auto& schlongmid = a_active.nodes.sos_mid ? a_active.nodes.sos_mid->world.translate : a_active.nodes.ApproximateMid();
 			if (a_active != a_passive) {
 				// crotch
@@ -179,28 +179,35 @@ namespace Papyrus
 					// angle of penetration
 					const auto radians = std::acos(vschlong.Dot(vcrotch) / (vcrotch.Length() * vschlong.Length()));
 					if (radians < glm::radians(Settings::fAnglePenetration) || radians > glm::radians(180.0f - Settings::fAnglePenetration)) {
-						return { Type::Grinding, dcrotchfront };
-					}
-					if (a_passive.nodes.anal_deep && a_passive.nodes.vagina_deep) {
+						typeret.set(Type::Grinding);
+						distret[Registry::FlagIndex(Type::Grinding)]  = dcrotchback;
+					} else if (a_passive.nodes.anal_deep && a_passive.nodes.vagina_deep) {
 						const auto da = a_passive.nodes.anal_deep->world.translate.GetDistance(schlongmid);
 						const auto dv = a_passive.nodes.vagina_deep->world.translate.GetDistance(schlongmid);
 						if (dv < da) {
-							return { Type::Vaginal, dv };
+							typeret.set(Type::Vaginal);
+							distret[Registry::FlagIndex(Type::Vaginal)]  = dv;
 						} else {
-							return { Type::Anal, da };
+							typeret.set(Type::Anal);
+							distret[Registry::FlagIndex(Type::Anal)]  = da;
 						}
+					} else {
+						typeret.set(Type::Anal);
+						distret[Registry::FlagIndex(Type::Anal)] = dcrotchback;
 					}
-					return { Type::Anal, dcrotchback };
 				}
 				if (const auto tmp = getHead(schlongmid)) {
-					return *tmp;
+					typeret.set(tmp->first);
+					distret[Registry::FlagIndex(tmp->first)] = tmp->second;
 				}
 				if (const auto tmp = getFoot(schlongmid)) {
-					return *tmp;
+					typeret.set(tmp->first);
+					distret[Registry::FlagIndex(tmp->first)] = tmp->second;
 				}
 			}
 			if (const auto tmp = getHand(schlongmid)) {
-				return *tmp;
+				typeret.set(tmp->first);
+				distret[Registry::FlagIndex(tmp->first)] = tmp->second;
 			}
 		}
 		if (a_active.sex != Registry::Sex::Male) {
@@ -215,21 +222,25 @@ namespace Papyrus
 					const auto& c2 = a_active.nodes.clitoris->world.translate;
 					const auto d = c2.GetDistance(cl);
 					if (d < Settings::fDistanceCrotchFront) {
-						return { Type::Tribadism, d };
+						typeret.set(Type::Tribadism);
+						distret[Registry::FlagIndex(Type::Tribadism)] = d;
 					}
 				}
 				if (const auto tmp = getHead(cl, cl_d)) {
-					return *tmp;
+					typeret.set(tmp->first);
+					distret[Registry::FlagIndex(tmp->first)] = tmp->second;
 				}
 				if (const auto tmp = getFoot(cl, cl_d)) {
-					return *tmp;
+					typeret.set(tmp->first);
+					distret[Registry::FlagIndex(tmp->first)] = tmp->second;
 				}
 			}
 			if (const auto tmp = getHand(cl, cl_d)) {
-				return *tmp;
+				typeret.set(tmp->first);
+				distret[Registry::FlagIndex(tmp->first)] = tmp->second;
 			}
 		}
-		return { Type::None, 0.0f };
+		return { typeret, distret };
 	}
 
 	SoundActor::Nodes::Nodes(const RE::Actor* a_actor)

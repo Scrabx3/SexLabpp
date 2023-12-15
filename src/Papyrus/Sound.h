@@ -81,33 +81,34 @@ namespace Papyrus
 	{
 		enum class Type
 		{
-			None,
-
-			Foot,
-			Hand,
-			Tribadism,
-			Grinding,
-
-			Oral,
-			Anal,
-			Vaginal,
+			None = 0,
+			Foot = 1 << 0,
+			Hand = 1 << 1,
+			Tribadism = 1 << 2,
+			Grinding = 1 << 3,
+			Oral = 1 << 4,
+			Anal = 1 << 5,
+			Vaginal = 1 << 6,
 		};
+		static constexpr size_t TYPEBITS = 7;
 
 		struct Data
 		{
 			Data(SoundActor& a, SoundActor& b) :
-				_type(Type::None), participants(a, b), _distance(0), _velocity(0) {}
+				_types(Type::None), participants(a, b), _distance({}), _velocity({}) {}
 			~Data() = default;
-
-			Type _type;
-			std::pair<SoundActor&, SoundActor&> participants;
-			float _distance;
-			float _velocity;
 
 			void Update(float a_delta);
 
+		public:
+			std::pair<SoundActor&, SoundActor&> participants;
+			stl::enumeration<Type> _types;
+			std::array<float, TYPEBITS> _distance;
+			std::array<float, TYPEBITS> _velocity;
+
 		private:
-			static std::pair<Type, float> GetCurrentTypeAndDistance(const SoundActor& a_passive, const SoundActor& a_active);
+			static std::pair<stl::enumeration<Type>, std::array<float, TYPEBITS>> GetCurrentTypeAndDistance(const SoundActor& a_active, const SoundActor& a_passive);
+			// static std::pair<Type, float> GetCurrentTypeAndDistance(const SoundActor& a_passive, const SoundActor& a_active);
 		};
 
 		struct SoundProcess
@@ -119,7 +120,7 @@ namespace Papyrus
 			std::vector<Data> data;
 
 		public:
-			std::pair<Sound::Type, float> GetSoundType() const;
+			stl::enumeration<Type> GetSoundType() const;
 
 		private:
 			void Process();
@@ -129,7 +130,7 @@ namespace Papyrus
 		};
 
 	public:
-		std::pair<Sound::Type, float> GetSoundType(RE::FormID a_id) const;
+		stl::enumeration<Sound::Type> GetSoundType(RE::FormID a_id) const;
 
 		bool RegisterProcessing(RE::FormID a_id, std::vector<RE::Actor*> a_positions);
 		void UnregisterProcessing(RE::FormID a_id);
