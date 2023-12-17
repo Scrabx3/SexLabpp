@@ -1,5 +1,6 @@
 #include "Sound.h"
 
+#include "Registry/Define/RaceKey.h"
 #include "Registry/Define/Sex.h"
 #include "Registry/Define/Transform.h"
 
@@ -41,7 +42,17 @@ namespace Papyrus
 		_running(true)
 	{
 		for (auto&& position : a_positions) {
-			actors.emplace_back(position);
+			switch (Registry::RaceHandler::GetRaceKey(position)) {
+			case Registry::RaceKey::StormAtronach:
+				actors.emplace_back(position, true);
+				break;
+			case Registry::RaceKey::BoarMounted:
+				actors.emplace_back(position, true);
+				__fallthrough;
+			default:
+				actors.emplace_back(position);
+				break;
+			}
 		}
 		for (size_t i = 0; i < actors.size(); i++) {
 			for (size_t n = i; n < actors.size(); n++) {
@@ -243,7 +254,7 @@ namespace Papyrus
 		return { typeret, distret };
 	}
 
-	SoundActor::Nodes::Nodes(const RE::Actor* a_actor)
+	SoundActor::Nodes::Nodes(const RE::Actor* a_actor, bool a_alternatenodes)
 	{
 		const auto obj = a_actor->Get3D();
 		if (!obj) {
@@ -274,12 +285,26 @@ namespace Papyrus
 		vagina_deep = RE::NiPointer{ obj->GetObjectByName(VAGINA) };
 		vagina_left = RE::NiPointer{ obj->GetObjectByName(VAGINALLEFT) };
 		vagina_right = RE::NiPointer{ obj->GetObjectByName(VAGINALRIGHT) };
-		sos_base = RE::NiPointer{ obj->GetObjectByName(SOSSTART) };
-		sos_mid = RE::NiPointer{ obj->GetObjectByName(SOSMID) };
-		sos_front = RE::NiPointer{ obj->GetObjectByName(SOSGLANCE) };
 		anal_deep = RE::NiPointer{ obj->GetObjectByName(ANAL) };
 		anal_left = RE::NiPointer{ obj->GetObjectByName(ANALLEFT) };
 		anal_right = RE::NiPointer{ obj->GetObjectByName(ANALRIGHT) };
+
+		const auto findschlong = [&]<typename T>(const T& a_list) -> RE::NiAVObject* {
+			for (auto&& it : a_list) {
+				if (const auto ret = obj->GetObjectByName(it))
+					return ret;
+			}
+			return nullptr;
+		};
+		if (a_alternatenodes) {
+			sos_base = RE::NiPointer{ findschlong(SOSSTART_ALT) };
+			sos_mid = RE::NiPointer{ findschlong(SOSMID_ALT) };
+			sos_front = RE::NiPointer{ findschlong(SOSTIP_ALT) };
+		} else {
+			sos_base = RE::NiPointer{ findschlong(SOSSTART) };
+			sos_mid = RE::NiPointer{ findschlong(SOSMID) };
+			sos_front = RE::NiPointer{ findschlong(SOSTIP) };
+		}
 	}
 
 	RE::NiPoint3 SoundActor::Nodes::ApproximateNode(float a_forward, float a_upward) const
