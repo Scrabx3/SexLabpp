@@ -319,7 +319,7 @@ namespace Papyrus::ThreadModel
 		for (auto&& tag : list) {
 			if (!tag.starts_with('!'))
 				continue;
-			const auto context = std::string(tag.substr(1));
+			const auto context = RE::BSFixedString(std::string(tag.substr(1)));
 			if (std::find(a_oldcontext.begin(), a_oldcontext.end(), context) != a_oldcontext.end())
 				continue;
 			a_oldcontext.push_back(context);
