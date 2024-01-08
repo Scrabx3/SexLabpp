@@ -297,7 +297,20 @@ namespace Registry
 		} else {
 			const auto race_frag = RaceKeyAsFragment(race);
 			if (!fragment.all(race_frag)) {
-				return false;
+				if (race == RaceKey::Canine) {
+					if (!fragment.all(RaceKeyAsFragment(RaceKey::Dog)) && 
+						!fragment.all(RaceKeyAsFragment(RaceKey::Wolf)) && 
+						!fragment.all(RaceKeyAsFragment(RaceKey::Fox)))
+						return false;
+				}
+				else if (race == RaceKey::Boar) {
+					if (!fragment.all(RaceKeyAsFragment(RaceKey::BoarMounted)) &&
+						!fragment.all(RaceKeyAsFragment(RaceKey::BoarSingle)))
+						return false;
+				}
+				else {
+					return false;
+				}
 			}
 		}
 		return true;
