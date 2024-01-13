@@ -54,12 +54,6 @@
       "hidden": true
     },
     {
-      "cacheVariables": {
-        "SKYRIM_SUPPORT_AE": {
-          "type": "BOOL",
-          "value": "OFF"
-        }
-      },
       "binaryDir": "${sourceDir}/build/vs2022-SE",
       "inherits": [
         "vs2022-windows-vcpkg"
@@ -68,10 +62,8 @@
     },
     {
       "cacheVariables": {
-        "SKYRIM_SUPPORT_AE": {
-          "type": "BOOL",
-          "value": "ON"
-        }
+        "SKYRIM_SUPPORT_AE": true,
+        "SKYRIM_AE": true
       },
       "binaryDir": "${sourceDir}/build/vs2022-AE",
       "inherits": [

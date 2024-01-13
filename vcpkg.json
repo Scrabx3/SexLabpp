@@ -10,11 +10,11 @@
     "yaml-cpp",
     "glm"
   ],
-  "builtin-baseline": "c06dfc0ac2649834da8b9f3092b907fb037accab",
   "overrides": [
     {
       "name": "fmt",
-      "version": "8.0.1"
+      "version": "9.1.0"
     }
-  ]
+  ],
+  "builtin-baseline": "b7dba7f9aad09a56900f21cd78cfda1258e54e38"
 }

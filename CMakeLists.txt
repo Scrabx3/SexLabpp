@@ -41,12 +41,17 @@ macro(set_from_environment VARIABLE)
     endif()
 endmacro()
 
-set_from_environment(Skyrim64Path)
+set_from_environment(VCPKG_ROOT)
 
-# set_from_environment(CommonLibSSEPath)
+if(DEFINED VCPKG_ROOT)
+    set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+    set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")
+else()
+    message(WARNING "Variable VCPKG_ROOT is not set. Continuing without vcpkg.")
+endif()
 
 # ---- Dependencies ----
-add_subdirectory("./lib" CommonLibSSE)
+add_subdirectory("./lib/CommonLibSSE" CommonLibSSE)
 
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
