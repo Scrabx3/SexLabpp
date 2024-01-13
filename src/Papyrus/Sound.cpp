@@ -230,7 +230,7 @@ namespace Papyrus
 			if (a_active != a_passive) {	// partner-only actions
 				if (a_passive.sex != Registry::Sex::Male && a_passive.nodes.clitoris) {
 					// tribadism
-					const auto& c2 = a_active.nodes.clitoris->world.translate;
+					const auto& c2 = a_passive.nodes.clitoris->world.translate;
 					const auto d = c2.GetDistance(cl);
 					if (d < Settings::fDistanceCrotchFront) {
 						typeret.set(Type::Tribadism);

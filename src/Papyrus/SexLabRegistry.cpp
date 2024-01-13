@@ -285,7 +285,7 @@ namespace Papyrus::SexLabRegistry
 				continue;
 			ret.push_back(sceneid);
 		}
-		logger::info("Validated Scenes, return {}/{} Scenes", a_sceneids.size(), ret.size());
+		logger::info("Validated Scenes, return {}/{} Scenes", ret.size(), a_sceneids.size());
 		return ret;
 	}
 
