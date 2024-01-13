@@ -1,3 +1,0 @@
-[submodule "lib"]
-	path = lib
-	url = https://github.com/powerof3/CommonLibSSE.git
