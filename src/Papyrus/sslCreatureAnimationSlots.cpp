@@ -145,4 +145,9 @@ namespace Papyrus::CreatureAnimationSlots
 		return ret;
 	}
 
+	RE::TESRace* GetRaceByEditorID(RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		return RE::TESForm::LookupByEditorID<RE::TESRace>(a_id);
+	}
+
 } // namespace Papyrus::CreatureAnimationSlots

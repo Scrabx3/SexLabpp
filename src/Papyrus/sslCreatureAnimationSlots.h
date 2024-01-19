@@ -9,11 +9,14 @@ namespace Papyrus::CreatureAnimationSlots
 	std::vector<RE::BSFixedString> GetByRaceGendersTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
 		int32_t a_actorcount, RE::BSFixedString a_racekey, int32_t a_malecrt, int32_t a_femalecrt, std::vector<std::string_view> a_tags);
 
-	inline bool Register(VM* a_vm)
+	RE::TESRace* GetRaceByEditorID(RE::StaticFunctionTag*, RE::BSFixedString a_id);
+
+		inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(GetByRaceKeyTagsImpl, "sslCreatureAnimationSlots", true);
 		REGISTERFUNC(GetByCreatureActorsTagsImpl, "sslCreatureAnimationSlots", true);
 		REGISTERFUNC(GetByRaceGendersTagsImpl, "sslCreatureAnimationSlots", true);
+		REGISTERFUNC(GetRaceByEditorID, "sslCreatureAnimationSlots", true);
 
 		return true;
 	}
