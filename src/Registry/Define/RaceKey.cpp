@@ -159,7 +159,7 @@ namespace Registry
 			{ "ScribBehavior.hkx", RaceKey::AshHopper },
 			{ "DragonBehavior.hkx", RaceKey::Dragon },
 			{ "Dragon_Priest.hkx", RaceKey::DragonPriest },
-			{ "DraugrBehavior", RaceKey::Draugr },
+			{ "DraugrBehavior.hkx", RaceKey::Draugr },
 			{ "SCBehavior.hkx", RaceKey::DwarvenSphere },
 			{ "DwarvenSpiderBehavior.hkx", RaceKey::DwarvenSpider },
 			{ "SteamBehavior.hkx", RaceKey::DwarvenCenturion },
