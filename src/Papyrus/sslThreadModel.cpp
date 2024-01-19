@@ -152,15 +152,15 @@ namespace Papyrus::ThreadModel
 		}
 
 		std::vector<std::pair<RE::TESObjectREFR*, const Registry::FurnitureDetails*>> found_objects;
-		CellCrawler::ForEachObjectInRange(actor, Settings::fScanRadius, [&](RE::TESObjectREFR& a_ref) {
-			if (std::ranges::find(used_furnitures, &a_ref) != used_furnitures.end()) {
+		CellCrawler::ForEachObjectInRange(actor, Settings::fScanRadius, [&](RE::TESObjectREFR* a_ref) {
+			if (!a_ref || std::ranges::find(used_furnitures, a_ref) != used_furnitures.end()) {
 				return RE::BSContainer::ForEachResult::kContinue;
 			}
-			const auto details = library->GetFurnitureDetails(&a_ref);
+			const auto details = library->GetFurnitureDetails(a_ref);
 			if (!details || !details->HasType(scene_map, [](auto& it) { return it.first; })) {
 				return RE::BSContainer::ForEachResult::kContinue;
 			}
-			found_objects.push_back(std::make_pair(&a_ref, details));
+			found_objects.push_back(std::make_pair(a_ref, details));
 			return RE::BSContainer::ForEachResult::kContinue;
 		});
 		std::vector<std::tuple<Registry::FurnitureType, Registry::Coordinate, RE::TESObjectREFR*>> coords{};

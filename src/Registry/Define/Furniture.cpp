@@ -206,10 +206,10 @@ __L_NEXT:;
 	{
 		const auto center = a_center->GetPosition();
 		std::vector<RE::TESObjectREFR*> ret{};
-		const auto add = [&](RE::TESObjectREFR& ref) {
-			if (!ref.GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusz > 0.0f ? (std::fabs(center.z - ref.GetPosition().z) <= a_radiusz) : true)
-				if (Registry::BedHandler::IsBed(&ref))
-					ret.push_back(&ref);
+		const auto add = [&](RE::TESObjectREFR* ref) {
+			if (!ref || !ref->GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusz > 0.0f ? (std::fabs(center.z - ref->GetPosition().z) <= a_radiusz) : true)
+				if (Registry::BedHandler::IsBed(ref))
+					ret.push_back(ref);
 			return RE::BSContainer::ForEachResult::kContinue;
 		};
 		const auto TES = RE::TES::GetSingleton();
