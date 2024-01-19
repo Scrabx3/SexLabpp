@@ -18,6 +18,7 @@ namespace Registry
 		stream.read(reinterpret_cast<char*>(&version), 1);
 		switch (version) {
 		case 1:
+		case 2:
 			{
 				Decode::Read(stream, name);
 				Decode::Read(stream, author);
