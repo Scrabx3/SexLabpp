@@ -88,9 +88,9 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 #endif
 		spdlog::set_default_logger(std::move(log));
 #ifndef NDEBUG
-		spdlog::set_pattern("%s(%#): [%^%l%$] %v"s);
+		spdlog::set_pattern("%s(%#): [%T] [%^%l%$] %v"s);
 #else
-		spdlog::set_pattern("[%^%l%$] %v"s);
+		spdlog::set_pattern("[%T] [%^%l%$] %v"s);
 #endif
 
 		logger::info("{} v{}"sv, Plugin::NAME, Plugin::VERSION.string());
