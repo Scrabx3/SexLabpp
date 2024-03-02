@@ -25,6 +25,9 @@ struct Settings
 	static inline bool bDisableTeleport{ true };
 	static inline bool bDisableScale{ false };
 	static inline bool bUndressAnimation{ false };
+	static inline bool bSubmissivePlayer{ false };
+	static inline bool bSubmissiveTarget{ false };
+	static inline bool bBenchmark{ false };
 
 	// Integers
 	static inline int32_t iAskBed{ 1 };
@@ -65,6 +68,11 @@ struct Settings
 	static inline float fVoiceVolume{ 1.0 };
 	static inline float fSFXDelay{ 3.0 };
 	static inline float fSFXVolume{ 1.0 };
+
+	// Strings
+	static inline std::string sRequiredTags{ ""s };
+	static inline std::string sExcludedTags{ ""s };
+	static inline std::string sOptionalTags{ ""s };
 
 	// Int Array
 	static inline std::vector<int> iStripForms{ 1032555423, 1, 1032555423, 1, 4719365, 1, 16901, 1, 3952148, 0, 83952148, 0, 352389654, 1, 352389654, 1 };
@@ -238,6 +246,12 @@ struct Settings
 		ENTRY(LipsMaxValue),
 		ENTRY(LipsSoundTime),
 		ENTRY(fLipsMoveTime),
-		ENTRY(iClimaxType)
+		ENTRY(iClimaxType),
+		ENTRY(bSubmissivePlayer),
+		ENTRY(bSubmissiveTarget),
+		ENTRY(bBenchmark),
+		ENTRY(sRequiredTags),
+		ENTRY(sExcludedTags),
+		ENTRY(sOptionalTags),
 	};
 };
