@@ -164,7 +164,7 @@ namespace Registry
 			{ "DwarvenSpiderBehavior.hkx", RaceKey::DwarvenSpider },
 			{ "SteamBehavior.hkx", RaceKey::DwarvenCenturion },
 			{ "FalmerBehavior.hkx", RaceKey::Falmer },
-			{ "FrostBiteSpiderBehavior.hkx", RaceKey::Spider },
+			{ "FrostbiteSpiderBehavior.hkx", RaceKey::Spider },
 			{ "GiantBehavior.hkx", RaceKey::Giant },
 			{ "GoatBehavior.hkx", RaceKey::Goat },
 			{ "HavgravenBehavior.hkx", RaceKey::Hagraven },
