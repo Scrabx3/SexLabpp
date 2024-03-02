@@ -39,6 +39,12 @@ void Settings::Initialize()
 					*s = node.second.as<bool>();
 				}
 				break;
+			case VariantType::STRING:
+				{
+					auto s = std::get<std::string*>(w->second);
+					*s = node.second.as<std::string>();
+				}
+				break;
 			case VariantType::INTARRAY:
 				{
 					auto s = std::get<std::vector<int>*>(w->second);
@@ -208,6 +214,11 @@ void Settings::Save()
 		case VariantType::BOOL:
 			{
 				settings[s.first] = *std::get<bool*>(s.second);
+			}
+			break;
+		case VariantType::STRING:
+			{
+				settings[s.first] = *std::get<std::string*>(s.second);
 			}
 			break;
 		case VariantType::INTARRAY:
