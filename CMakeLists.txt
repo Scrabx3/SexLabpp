@@ -84,7 +84,7 @@ add_library(
 target_compile_features(
     "${PROJECT_NAME}"
     PRIVATE
-    cxx_std_20
+    cxx_std_23
 )
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
