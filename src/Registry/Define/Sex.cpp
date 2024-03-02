@@ -26,8 +26,9 @@ namespace Registry
 				}
 				return false;
 			});
-			if (ret != Sex::None)
+			if (ret != Sex::None) {
 				return ret;
+			}
 		}
 
 		const auto base = a_actor->GetActorBase();
@@ -41,50 +42,47 @@ namespace Registry
 			return Sex::Male;
 		case RE::SEXES::kFemale:
 			if (!IsNPC(a_actor)) {
-				return Settings::bCreatureGender ?
-								 Sex::Female :
-								 Sex::Male;
-			} else {
-				const auto obj = a_actor->Get3D();
-				if (obj && obj->GetObjectByName("NPC GenitalsBase [GenBase]") && IsFuta(a_actor)) {
-					return Sex::Futa;
-				}
+				return Settings::bCreatureGender ? Sex::Female : Sex::Male;
 			}
-			return Sex::Female;
+			return IsFuta(a_actor) ? Sex::Futa : Sex::Female;
 		}
 	}
 
 	bool IsFuta(RE::Actor* a_actor)
 	{
-		static const auto sosfaction = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESFaction>(0x00AFF8, "Schlongs of Skyrim.esp");
-		if (!sosfaction)
-			return false;
-
-		bool ret = false;
-		a_actor->VisitFactions([&ret](RE::TESFaction* a_faction, int8_t a_rank) -> bool {
-			if (!a_faction || a_rank < 0)
-				return false;
-
-			if (a_faction == sosfaction) {
-				ret = true;
-				return false;
-			}
-			const auto& excl = Settings::SOS_ExcludeFactions;
-			if (std::find(excl.begin(), excl.end(), a_faction->formID) != excl.end()) {
-				ret = false;
+		static const auto tngkeyword = RE::TESForm::LookupByEditorID<RE::BGSKeyword>("TNG_SkinWithPenis");
+		if (tngkeyword) {
+			if (auto skin = a_actor->GetSkin(); skin && skin->HasKeyword(tngkeyword)) {
 				return true;
 			}
-			std::string name{ a_faction->GetFullName() };
-			if (!name.empty()) {
-				ToLower(name);
-				if (name.find("pubic") != std::string::npos) {
+		}
+
+		static const auto sosfaction = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESFaction>(0x00AFF8, "Schlongs of Skyrim.esp");
+		if (sosfaction) {
+			bool ret = false;
+			a_actor->VisitFactions([&ret](RE::TESFaction* a_faction, int8_t a_rank) -> bool {
+				if (!a_faction || a_rank < 0)
+					return false;
+
+				if (a_faction == sosfaction) {
+					ret = true;
+					return false;
+				} else if (std::ranges::contains(Settings::SOS_ExcludeFactions, a_faction->formID)) {
 					ret = false;
 					return true;
+				} else if (std::string name{ a_faction->GetFullName() }; !name.empty()) {
+					ToLower(name);
+					if (name.find("pubic") != std::string::npos) {
+						ret = false;
+						return true;
+					}
 				}
-			}
-			return false;
-		});
-		return ret;
+				return false;
+			});
+			return ret;
+		}
+		return false;
+
 	}
 
 } // namespace Registry
