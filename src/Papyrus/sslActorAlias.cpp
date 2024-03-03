@@ -168,7 +168,6 @@ namespace Papyrus::ActorAlias
 			if (form->IsNot(RE::FormType::Armor) || !data.second->IsWorn()) {
 				continue;
 			}
-
 			switch (stripconfig->CheckStrip(form)) {
 			case UserData::Strip::NoStrip:
 				continue;
@@ -177,25 +176,6 @@ namespace Papyrus::ActorAlias
 					const auto biped_slots = static_cast<uint32_t>(biped->GetSlotMask());
 					if ((biped_slots & slots) == 0) {
 						continue;
-						// } else if (slots & static_cast<uint32_t>(SlotMask::kFeet)) {
-						// 	const auto hdtspell = [&]() -> RE::SpellItem* {
-						// 		static const auto* const heeleffect = RE::TESDataHandler::GetSingleton()->LookupForm<RE::EffectSetting>(0x800, "hdtHighHeel.esm"sv);
-						// 		if (!heeleffect)
-						// 			return nullptr;
-						// 		for (const auto& spell : actor->addedSpells) {
-						// 			if (!spell || spell->effects.empty())
-						// 				continue;
-						// 			for (const auto& effect : spell->effects) {
-						// 				if (effect && effect->baseEffect == heeleffect)
-						// 					return spell;
-						// 			}
-						// 		}
-						// 		return nullptr;
-						// 	}();
-						// 	if (hdtspell) {
-						// 		actor->RemoveSpell(hdtspell);
-						// 		a_mergewith[Spell] = hdtspell;
-						// 	}
 					}
 				}
 				break;
@@ -209,32 +189,5 @@ namespace Papyrus::ActorAlias
 		actor->Update3DModel();
 		return a_mergewith;
 	}
-
-	// NOTE: Stuff below isnt implemented (yet) wanna see if its actually needed
-	// ; ActorRef.QueueNiNodeUpdate()
-	// ; ; NiOverride High Heels
-	// ; If(Config.RemoveHeelEffect)
-	// ; 	If(ActorRef.GetWornForm(0x80))
-	// ; 		if Config.HasNiOverride
-	// ; 			bool UpdateNiOPosition = NiOverride.RemoveNodeTransformPosition(ActorRef, false, vanilla_sex == 1, "NPC", "SexLab.esm")
-	// ; 			if NiOverride.HasNodeTransformPosition(ActorRef, false, vanilla_sex == 1, "NPC", "internal")
-	// ; 				float[] pos = NiOverride.GetNodeTransformPosition(ActorRef, false, vanilla_sex == 1, "NPC", "internal")
-	// ; 				Log(pos, "RemoveHeelEffect (NiOverride)")
-	// ; 				pos[0] = -pos[0]
-	// ; 				pos[1] = -pos[1]
-	// ; 				pos[2] = -pos[2]
-	// ; 				NiOverride.AddNodeTransformPosition(ActorRef, false, vanilla_sex == 1, "NPC", "SexLab.esm", pos)
-	// ; 				NiOverride.UpdateNodeTransform(ActorRef, false, vanilla_sex == 1, "NPC")
-	// ; 			elseIf UpdateNiOPosition
-	// ; 				NiOverride.UpdateNodeTransform(ActorRef, false, vanilla_sex == 1, "NPC")
-	// ; 			endIf
-	// ; 		endIf
-	// ; 	EndIf
-	// ; 	HDTHeelSpell = sslpp.GetHDTHeelSpell(ActorRef)
-	// ; 	If(HDTHeelSpell)
-	// ; 		Log("Removing HDT Heel Effect: " + HDTHeelSpell)
-	// ; 		ActorRef.RemoveSpell(HDTHeelSpell)
-	// ; 	EndIf
-	// ; EndIf
 
 }	 // namespace Papyrus::ActorAlias
