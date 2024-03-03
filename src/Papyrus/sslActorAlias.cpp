@@ -133,7 +133,7 @@ namespace Papyrus::ActorAlias
 			slots = a_overwrite[0];
 			weapon = a_overwrite[1];
 		} else {
-			stl::enumeration<Strip, std::underlying_type<Strip>::type> stripnum(a_stripdata);
+			stl::enumeration<Strip> stripnum(a_stripdata);
 			if (stripnum.all(Strip::All)) {
 				slots = static_cast<uint32_t>(-1);
 				weapon = true;
@@ -197,10 +197,12 @@ namespace Papyrus::ActorAlias
 						// 		a_mergewith[Spell] = hdtspell;
 						// 	}
 					}
-					a_mergewith.push_back(form);
 				}
 				break;
+			case UserData::Strip::Always:
+				break;
 			}
+			a_mergewith.push_back(form);
 			manager->UnequipObject(actor, form);
 		}
 		logger::info("Stripping By Data {}, Returning Equipment: {}", a_mergewith.size(), join());
