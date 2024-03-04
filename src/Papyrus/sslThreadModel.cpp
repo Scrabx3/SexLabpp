@@ -326,7 +326,29 @@ namespace Papyrus::ThreadModel
 		}
 		return a_oldcontext;
 	}
-	
+
+	void ShuffleScenes(RE::TESQuest*, RE::reference_array<RE::BSFixedString> a_scenes, RE::BSFixedString a_tofront)
+	{
+		if (a_scenes.empty()) {
+			return;
+		}
+		auto start = a_scenes.begin();
+		if (!a_tofront.empty() && Registry::Library::GetSingleton()->GetSceneByID(a_tofront)) {
+			auto where = std::ranges::find(a_scenes, a_tofront);
+			if (where == a_scenes.end()) {
+				a_scenes[0] = a_tofront;
+			} else {
+				auto tmp = a_scenes[0];
+				a_scenes[0] = a_tofront;
+				*where = tmp;
+			}
+			start++;
+		}
+		std::random_device rd;
+		std::mt19937 gen{ rd() };
+		std::ranges::shuffle(start, a_scenes.end(), gen);
+	}
+
 	bool RegisterSFX(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
