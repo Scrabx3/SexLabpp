@@ -37,6 +37,12 @@ namespace Papyrus::SystemConfig
 		return ret ? *ret : 0;
   }
 
+	std::string GetSettingStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
+	{
+		auto ret = GetSetting<std::string*>(a_vm, a_stackID, a_setting);
+		return ret ? *ret : ""s;
+	}
+
 	int GetSettingIntA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, size_t n)
 	{
 		auto ret = GetSetting<std::vector<int>*>(a_vm, a_stackID, a_setting);
@@ -82,6 +88,15 @@ namespace Papyrus::SystemConfig
 	void SetSettingBool(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, bool a_value)
 	{
 		auto s = GetSetting<bool*>(a_vm, a_stackID, a_setting);
+		if (!s)
+			return;
+
+		*s = a_value;
+	}
+
+	void SetSettingStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, std::string a_value)
+	{
+		auto s = GetSetting<std::string*>(a_vm, a_stackID, a_setting);
 		if (!s)
 			return;
 
