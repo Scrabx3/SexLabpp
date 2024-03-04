@@ -2,7 +2,12 @@
 
 struct Settings
 {
+	static constexpr const char* YAMLPATH{ "Data\\SKSE\\SexLab\\Settings.yaml" };
+	static constexpr const char* INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
+
 	static void Initialize();			// Pre LoadData
+	static void InitializeYAML();
+	static void InitializeINI();
 	static void InitializeData();	// Post LoadData
 	static void Save();
 

@@ -2,16 +2,21 @@
 
 #include <SimpleIni.h>
 
-// TODO: Read ini settings
-
 void Settings::Initialize()
 {
-	const auto& path = CONFIGPATH("Settings.yaml");
-	if (!fs::exists(path))
+	InitializeYAML();
+	InitializeINI();
+}
+
+void Settings::InitializeYAML()
+{
+	if (!fs::exists(YAMLPATH)) {
+		logger::error("No Settings file (yaml) in {}", YAMLPATH);
 		return;
+	}
 
 	try {
-		const auto yaml = YAML::LoadFile(path);
+		const auto yaml = YAML::LoadFile(YAMLPATH);
 		for (auto&& node : yaml) {
 			auto keyname = node.first.as<std::string>();
 			auto w = table.find(keyname);
@@ -67,28 +72,37 @@ void Settings::Initialize()
 				break;
 			}
 		}
-		logger::info("Finished loading user settings");
+		logger::info("Finished loading yaml settings");
 	} catch (const std::exception& e) {
 		logger::error("Unable to laod settings, error: {}", e.what());
 	}
+}
 
-	CSimpleIniA extra{};
-	const auto ec = extra.LoadFile("Data\\SKSE\\Plugins\\SexLab.ini");
+void Settings::InitializeINI()
+{
+	if (!fs::exists(INIPATH)) {
+		logger::error("No Settings file (ini) in {}", INIPATH);
+		return;
+	}
+
+	CSimpleIniA inifile{};
+	inifile.SetUnicode();
+	const auto ec = inifile.LoadFile(INIPATH);
 	if (ec < 0) {
 		logger::error("Failed to read .ini Settings, Error: {}", ec);
 		return;
 	}
 
-	const auto ReadIni = [&extra]<typename T>(const char* a_section, const char* a_option, T& a_out) {
-		if (!extra.GetValue(a_section, a_option))
+	const auto ReadIni = [&inifile]<typename T>(const char* a_section, const char* a_option, T& a_out) {
+		if (!inifile.GetValue(a_section, a_option))
 			return;
 
 		if constexpr (std::is_same<T, int>::value || std::is_same<T, uint32_t>::value) {
-			a_out = static_cast<T>(extra.GetLongValue(a_section, a_option));
+			a_out = static_cast<T>(inifile.GetLongValue(a_section, a_option));
 		} else if (std::is_same<T, float>::value) {
-			a_out = static_cast<T>(extra.GetDoubleValue(a_section, a_option));
+			a_out = static_cast<T>(inifile.GetDoubleValue(a_section, a_option));
 		} else if (std::is_same<T, bool>::value) {
-			a_out = static_cast<T>(extra.GetBoolValue(a_section, a_option));
+			a_out = static_cast<T>(inifile.GetBoolValue(a_section, a_option));
 		}
 	};
 #define READINI(section, out) ReadIni(section, #out, out);

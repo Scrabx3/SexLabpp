@@ -142,7 +142,7 @@ namespace Registry
 		const std::shared_lock lock{ read_write_lock };
 		const auto where = this->scenes.find(hash);
 		if (where == this->scenes.end()) {
-			logger::info("Invalid query: [{} | {} <{}>]; No animations for given actors", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size());
+			logger::info("Invalid query: [{} | {} <{}>]; No animations for given actors", a_actors.size(), fmt::join(a_tags, ", "), a_tags.size());
 			return {};
 		}
 		const auto& rawScenes = where->second;
@@ -153,13 +153,13 @@ namespace Registry
 			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
 		});
 		if (ret.empty()) {
-			logger::info("Invalid query: [{} | {} <{}>]; 0/{} animations use given tags", a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size(), where->second.size());
+			logger::info("Invalid query: [{} | {} <{}>]; 0/{} animations use given tags", a_actors.size(), fmt::join(a_tags, ", "), a_tags.size(), where->second.size());
 			return {};
 		}
 		const auto t2 = std::chrono::high_resolution_clock::now();
 		// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-		logger::info("Found {} scenes for query [{} | {} <{}>] actors in {}ms", ret.size(), a_actors.size(), fmt::join(a_tags, ", "sv), a_tags.size(), ms_double.count());
+		logger::info("Found {} scenes for query [{} | {} <{}>] actors in {}ms", ret.size(), a_actors.size(), fmt::join(a_tags, ", "), a_tags.size(), ms_double.count());
 		return ret;
 	}
 
