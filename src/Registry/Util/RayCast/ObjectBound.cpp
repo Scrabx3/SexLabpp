@@ -2,9 +2,33 @@
 #include "bhkRigidBodyT.h"
 #include "Math.h"
 
-std::optional<ObjectBound> MakeBoundingBox(RE::NiNode* a_niobj)
+RE::NiPointer<RE::NiCollisionObject> ObjectBound::GetCollisionNodeRecurse(RE::NiNode* a_node, size_t a_recurse)
 {
-	const auto collision = Registry::GetCollisionNodeRecurse(a_niobj, 0);
+	static constexpr size_t MAX_RECURSE = 10;
+
+	if (a_node->collisionObject) {
+		return a_node->collisionObject;
+	}
+	if (a_recurse > MAX_RECURSE) {
+		return nullptr;
+	}
+	for (auto child : a_node->children) {
+		if (!child)
+			continue;
+		if (child->collisionObject)
+			return child->collisionObject;
+		if (auto node = child->AsNode()) {
+			if (auto rec = GetCollisionNodeRecurse(node, a_recurse + 1)) {
+				return rec;
+			}
+		}
+	}
+	return nullptr;
+}
+
+std::optional<ObjectBound> ObjectBound::MakeBoundingBox(RE::NiNode* a_niobj)
+{
+	const auto collision = GetCollisionNodeRecurse(a_niobj, 0);
 	if (!collision) {
 		return std::nullopt;
 	}

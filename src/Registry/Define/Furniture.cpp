@@ -91,7 +91,7 @@ namespace Registry
 		const auto ninode = niobj ? niobj->AsNode() : nullptr;
 		if (!ninode)
 			return {};
-		const auto boundingbox = MakeBoundingBox(ninode);
+		const auto boundingbox = ObjectBound::MakeBoundingBox(ninode);
 		if (!boundingbox)
 			return {};
 		auto centerstart = boundingbox->GetCenterWorld();

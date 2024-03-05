@@ -11,8 +11,6 @@ namespace Registry
 		RE::ConsoleLog::GetSingleton()->Print(msg.data());
 	}
 
-	RE::NiPointer<RE::NiCollisionObject> GetCollisionNodeRecurse(RE::NiNode* a_node, size_t a_recurse);
-
 	bool IsNPC(const RE::Actor* a_actor);
 	bool IsVampire(const RE::Actor* a_actor);
 	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor);
@@ -25,7 +23,7 @@ namespace Registry
 	template <class T>
 	constexpr T AsLower(T str)
 	{
-		std::transform(str.cbegin(), str.cend(), str.begin(), [](unsigned char c) { return static_cast<unsigned char>(std::tolower(c)); });
+		ToLower(str);
 		return str;
 	}
 	template <class T, class U>
@@ -34,6 +32,5 @@ namespace Registry
 		return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
 			[](char lhs, char rhs) { return tolower(lhs) == tolower(rhs); });
 	}
-
 	std::vector<std::string_view> StringSplit(const std::string_view a_view, const char a_delim = ',');
 }
