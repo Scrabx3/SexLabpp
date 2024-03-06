@@ -1,4 +1,4 @@
-# SexLab pp
+# SexLab P+
 
 A high performance and stability patch for SexLab for Skyrim SE.
 
