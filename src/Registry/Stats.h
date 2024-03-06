@@ -31,6 +31,8 @@ namespace Registry::Statistics
 
 			Total
 		};
+		ActorStats() :
+			_stats(StatisticID::Total) {}
 		ActorStats(RE::Actor* owner);
 		~ActorStats() = default;
 
@@ -42,6 +44,9 @@ namespace Registry::Statistics
 		RE::BSFixedString GetCustomStr(const RE::BSFixedString& key, const RE::BSFixedString& retfail) const;
 		void SetCustomFlt(const RE::BSFixedString& key, float value);
 		void SetCustomStr(const RE::BSFixedString& key, RE::BSFixedString value);
+
+		void Save(SKSE::SerializationInterface* a_intfc);
+		void Load(SKSE::SerializationInterface* a_intfc);
 
 	private:
 		template <class T>
@@ -63,12 +68,12 @@ namespace Registry::Statistics
 		public Singleton<StatisticsData>
 	{
 	public:
-		ActorStats& GetStatistics(RE::FormID key);
-		void DeleteStatistics(RE::FormID key);
+		ActorStats& GetStatistics(RE::Actor* a_key);
+		void DeleteStatistics(RE::FormID a_key);
 
-		void Save(SKSE::SerializationInterface intfc);
-		void Load(SKSE::SerializationInterface intfc);
-		void Revert(SKSE::SerializationInterface intfc);
+		void Save(SKSE::SerializationInterface* a_intfc);
+		void Load(SKSE::SerializationInterface* a_intfc);
+		void Revert(SKSE::SerializationInterface* a_intfc);
 
 	private:
 		std::map<RE::FormID, ActorStats> _data;

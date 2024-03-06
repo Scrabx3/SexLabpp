@@ -9,6 +9,7 @@
 #include "Papyrus/sslThreadModel.h"
 #include "Registry/Library.h"
 #include "UserData/StripData.h"
+#include "Serialization.h"
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
@@ -129,6 +130,13 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	papyrus->Register(Papyrus::SystemConfig::Register);
 
 	// Hooks::Install();
+
+	const auto serialization = SKSE::GetSerializationInterface();
+	serialization->SetUniqueID('slpp');
+	serialization->SetSaveCallback(Serialization::Serialize::SaveCallback);
+	serialization->SetLoadCallback(Serialization::Serialize::LoadCallback);
+	serialization->SetRevertCallback(Serialization::Serialize::RevertCallback);
+	serialization->SetFormDeleteCallback(Serialization::Serialize::FormDeleteCallback);
 
 	logger::info("Initialization complete");
 

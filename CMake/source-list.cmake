@@ -1,6 +1,7 @@
 set(CXX_FILES
 	src/PCH.h
 	src/main.cpp
+	src/Serialization.h
 
 	src/Random.h
 	src/Singleton.h

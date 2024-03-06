@@ -1,6 +1,6 @@
 #include "Stats.h"
 
-#include "Define/Sex.h"
+#include "Registry/Define/Sex.h"
 
 namespace Registry::Statistics
 {
@@ -99,5 +99,121 @@ namespace Registry::Statistics
 	{
 		return _custom.contains(key);
 	}
+
+	void ActorStats::Save(SKSE::SerializationInterface* a_intfc)
+	{
+		for (auto&& stat : _stats) {
+			if (!a_intfc->WriteRecordData(stat)) {
+				logger::error("Failed to save statistic");
+				continue;
+			}
+		}
+		if (!a_intfc->WriteRecordData(_custom.size())) {
+			logger::error("Failed to save number of custom statistics ({})", _custom.size());
+			return;
+		}
+		for (auto&& [id, stat] : _custom) {
+			if (!stl::write_string(a_intfc, id)) {
+				logger::error("Failed to save custom statistic {}", id);
+				continue;
+			}
+			if (std::holds_alternative<float>(stat)) {
+				a_intfc->WriteRecordData(0);
+				if (!a_intfc->WriteRecordData(stat)) {
+					logger::error("Failed to save custom statistic {}", id);
+					continue;
+				}
+			} else {
+				a_intfc->WriteRecordData(1);
+				auto save = std::get<RE::BSFixedString>(stat);
+				if (!stl::write_string(a_intfc, save)) {
+					logger::error("Failed to save custom statistic {}", id);
+					continue;
+				}
+			}
+		}
+	}
+
+	void ActorStats::Load(SKSE::SerializationInterface* a_intfc)
+	{
+		for (size_t i = 0; i < StatisticID::Total; i++) {
+			a_intfc->ReadRecordData(_stats[i]);
+		}
+		size_t numRegs;
+		a_intfc->ReadRecordData(numRegs);
+
+		_custom.clear();
+		std::string key;
+		size_t alternative;
+		for (size_t i = 0; i < numRegs; i++) {
+			stl::read_string(a_intfc, key);
+			a_intfc->ReadRecordData(alternative);
+			if (alternative == 0) {
+				float obj;
+				a_intfc->ReadRecordData(obj);
+				_custom[key] = obj;
+			} else {
+				std::string obj;
+				stl::read_string(a_intfc, obj);
+				_custom[key] = obj;
+			}
+		}
+	}
+
+	ActorStats& StatisticsData::GetStatistics(RE::Actor* a_key)
+	{
+		auto where = _data.find(a_key->GetFormID());
+		if (where == _data.end()) {
+			return _data[a_key->GetFormID()] = ActorStats(a_key);
+		}
+		return where->second;
+	}
+
+	void StatisticsData::DeleteStatistics(RE::FormID a_key)
+	{
+		_data.erase(a_key);
+	}
+
+	void StatisticsData::Save(SKSE::SerializationInterface* a_intfc)
+	{
+		if (!a_intfc->WriteRecordData(_data.size())) {
+			logger::error("Failed to save number of saved statistics ({})", _data.size());
+			return;
+		}
+		for (auto&& [id, data] : _data) {
+			if (!a_intfc->WriteRecordData(id)) {
+				logger::error("Failed to save reg ({:X})", id);
+				continue;
+			}
+			data.Save(a_intfc);
+		}
+		logger::info("Saved {} statistics", _data.size());
+	}
+
+	void StatisticsData::Load(SKSE::SerializationInterface* a_intfc)
+	{
+		_data.clear();
+		std::size_t numRegs;
+		a_intfc->ReadRecordData(numRegs);
+
+		RE::FormID formID;
+		for (size_t i = 0; i < numRegs; i++) {
+			a_intfc->ReadRecordData(formID);
+			if (!a_intfc->ResolveFormID(formID, formID)) {
+				logger::warn("Error reading formID ({:X})", formID);
+				continue;
+			}
+			ActorStats stats{};
+			stats.Load(a_intfc);
+			_data[formID] = stats;
+		}
+		logger::info("Loaded {} statistics", _data.size());
+	}
+
+	void StatisticsData::Revert(SKSE::SerializationInterface*)
+	{
+		_data.clear();
+	}
+
 
 }	 // namespace Registry::Statistics
