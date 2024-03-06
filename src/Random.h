@@ -6,7 +6,7 @@ namespace Random
 	template <class T>
 	T draw(T a_min, T a_max)
 	{
-		if (a_min == a_max)
+		if (a_min >= a_max)
 			return a_min;
 
 		static std::mt19937 eng{ std::random_device{}() };

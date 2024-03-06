@@ -167,6 +167,10 @@ void Settings::InitializeINI()
 	READINI("Creature", bWispmother)
 	READINI("Creature", bWolf)
 
+	// Statistics
+	READINI("Statistics", iPercentageHetero)
+	READINI("Statistics", iPercentageHomo)
+
 	// Distance
 	READINI("Distance", fDistanceHead);
 	READINI("Distance", fDistanceFoot);

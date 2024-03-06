@@ -156,6 +156,10 @@ struct Settings
 	static inline bool bWispmother{ true };
 	static inline bool bWolf{ true };
 
+	// --- Statistics
+	static inline int32_t iPercentageHetero{ 80 };
+	static inline int32_t iPercentageHomo{ 8 };
+
 	// --- Distances
 	static inline float fDistanceHead{ 14.7f };	 // distance from head node to lips = 9.3
 	static inline float fDistanceFoot{ 13.3f };	 // ~7.2 distance to foot middle
