@@ -5,13 +5,13 @@
 namespace Registry::Statistics
 {
 	ActorStats::ActorStats(RE::Actor* owner) :
-    _stats(StatisticID::Total)
-  {
-    const auto base = owner->GetActorBase();
+		_stats(StatisticID::Total)
+	{
+		const auto base = owner->GetActorBase();
 		if (const auto relations = base ? base->relationships : nullptr) {
-      Registry::Sexuality s = Sexuality::None;
+			Registry::Sexuality s = Sexuality::None;
 			for (auto&& rs : *relations) {
-        if (!rs)
+				if (!rs)
 					continue;
 				if (!rs->level.all(RE::BGSRelationship::RELATIONSHIP_LEVEL::kLover))
 					continue;
@@ -25,7 +25,7 @@ namespace Registry::Statistics
 						s = Sexuality::Bi;
 						break;
 					}
-					continue; // Next iteration
+					continue;	 // Next iteration
 				case Sexuality::Homo:
 					if (!samesex) {
 						s = Sexuality::Bi;
@@ -58,27 +58,27 @@ namespace Registry::Statistics
 				break;
 			default:
 				_stats[StatisticID::Sexuality] = Random::draw<int32_t>(1, 100);
-        break;
+				break;
 			}
 		} else {
-      _stats[StatisticID::Sexuality] = Random::draw<int32_t>(1, 100);      
-    }
+			_stats[StatisticID::Sexuality] = Random::draw<int32_t>(1, 100);
+		}
 	}
 
 	void ActorStats::SetStatistic(StatisticID key, int32_t value)
-  {
-    _stats[key] = value;
-  }
+	{
+		_stats[key] = value;
+	}
 
 	int32_t ActorStats::GetStatistic(StatisticID key) const
-  {
-    return _stats[key];
-  }
+	{
+		return _stats[key];
+	}
 
 	float ActorStats::GetCustomFlt(const RE::BSFixedString& key, float retfail) const
-  {
-    return GetCustom(key, retfail);
-  }
+	{
+		return GetCustom(key, retfail);
+	}
 
 	RE::BSFixedString ActorStats::GetCustomStr(const RE::BSFixedString& key, const RE::BSFixedString& retfail) const
 	{
@@ -86,18 +86,18 @@ namespace Registry::Statistics
 	}
 
 	void ActorStats::SetCustomFlt(const RE::BSFixedString& key, float value)
-  {
-    _custom[key] = value;
-  }
-  
+	{
+		_custom[key] = value;
+	}
+
 	void ActorStats::SetCustomStr(const RE::BSFixedString& key, RE::BSFixedString value)
-  {
-    _custom[key] = value;
-  }
+	{
+		_custom[key] = value;
+	}
 
 	bool ActorStats::HasCustom(const RE::BSFixedString& key) const
-  {
-    return _custom.contains(key);
-  }
+	{
+		return _custom.contains(key);
+	}
 
 }	 // namespace Registry::Statistics
