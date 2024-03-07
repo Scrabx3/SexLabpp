@@ -75,14 +75,14 @@ namespace Registry::Statistics
 		return _stats[key];
 	}
 
-	float ActorStats::GetCustomFlt(const RE::BSFixedString& key, float retfail) const
+	std::optional<float> ActorStats::GetCustomFlt(const RE::BSFixedString& key) const
 	{
-		return GetCustom(key, retfail);
+		return GetCustom<float>(key);
 	}
 
-	RE::BSFixedString ActorStats::GetCustomStr(const RE::BSFixedString& key, const RE::BSFixedString& retfail) const
+	std::optional<RE::BSFixedString> ActorStats::GetCustomStr(const RE::BSFixedString& key) const
 	{
-		return GetCustom(key, retfail);
+		return GetCustom<RE::BSFixedString>(key);
 	}
 
 	void ActorStats::SetCustomFlt(const RE::BSFixedString& key, float value)

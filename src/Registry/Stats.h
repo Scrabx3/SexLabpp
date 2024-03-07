@@ -40,8 +40,8 @@ namespace Registry::Statistics
 		int32_t GetStatistic(StatisticID key) const;
 
 		bool HasCustom(const RE::BSFixedString& key) const;
-		float GetCustomFlt(const RE::BSFixedString& key, float retfail) const;
-		RE::BSFixedString GetCustomStr(const RE::BSFixedString& key, const RE::BSFixedString& retfail) const;
+		std::optional<float> GetCustomFlt(const RE::BSFixedString& key) const;
+		std::optional<RE::BSFixedString> GetCustomStr(const RE::BSFixedString& key) const;
 		void SetCustomFlt(const RE::BSFixedString& key, float value);
 		void SetCustomStr(const RE::BSFixedString& key, RE::BSFixedString value);
 
@@ -50,14 +50,14 @@ namespace Registry::Statistics
 
 	private:
 		template <class T>
-		T GetCustom(const RE::BSFixedString& key, T retfail) const
+		std::optional<T> GetCustom(const RE::BSFixedString& key) const
 		{
 			const auto it = _custom.find(key);
 			if (it == _custom.end())
-				return retfail;
+				return std::nullopt;
 
 			auto& ret = it->second;
-			return std::holds_alternative<T>(ret) ? std::get<T>(ret) : retfail;
+			return std::holds_alternative<T>(ret) ? std::get<T>(ret) : std::nullopt;
 		}
 
 		std::vector<int32_t> _stats{};
