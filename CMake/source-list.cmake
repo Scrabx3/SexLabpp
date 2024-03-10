@@ -66,6 +66,8 @@ set(CXX_FILES
 	src/Papyrus/sslActorAlias.cpp
 	src/Papyrus/sslActorLibrary.h
 	src/Papyrus/sslActorLibrary.cpp
+	src/Papyrus/sslActorStats.h
+	src/Papyrus/sslActorStats.cpp
 	src/Papyrus/sslAnimationSlots.h
 	src/Papyrus/sslAnimationSlots.cpp
 	src/Papyrus/sslCreatureAnimationSlots.h

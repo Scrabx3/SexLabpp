@@ -2,14 +2,15 @@
 #include "Papyrus/SexLabRegistry.h"
 #include "Papyrus/sslActorAlias.h"
 #include "Papyrus/sslActorLibrary.h"
+#include "Papyrus/sslActorStats.h"
 #include "Papyrus/sslAnimationSlots.h"
 #include "Papyrus/sslCreatureAnimationSlots.h"
 #include "Papyrus/sslSystemConfig.h"
 #include "Papyrus/sslThreadLibrary.h"
 #include "Papyrus/sslThreadModel.h"
 #include "Registry/Library.h"
-#include "UserData/StripData.h"
 #include "Serialization.h"
+#include "UserData/StripData.h"
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
@@ -128,6 +129,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	papyrus->Register(Papyrus::ThreadLibrary::Register);
 	papyrus->Register(Papyrus::ThreadModel::Register);
 	papyrus->Register(Papyrus::SystemConfig::Register);
+	papyrus->Register(Papyrus::ActorStats::Register);
 
 	// Hooks::Install();
 
