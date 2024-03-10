@@ -1,5 +1,6 @@
 #include "Stats.h"
 
+#include "Registry/Define/RaceKey.h"
 #include "Registry/Define/Sex.h"
 
 namespace Registry::Statistics
@@ -48,31 +49,63 @@ namespace Registry::Statistics
 			}
 			switch (s) {
 			case Sexuality::Bi:
-				_stats[StatisticID::Sexuality] = Random::draw(Settings::iPercentageHomo, Settings::iPercentageHetero);
+				_stats[StatisticID::Sexuality] = static_cast<float>(Random::draw(Settings::iPercentageHomo, Settings::iPercentageHetero));
 				break;
 			case Sexuality::Hetero:
-				_stats[StatisticID::Sexuality] = Random::draw(Settings::iPercentageHetero, 100);
+				_stats[StatisticID::Sexuality] = static_cast<float>(Random::draw(Settings::iPercentageHetero, 100));
 				break;
 			case Sexuality::Homo:
-				_stats[StatisticID::Sexuality] = Random::draw(1, Settings::iPercentageHomo);
+				_stats[StatisticID::Sexuality] = static_cast<float>(Random::draw(1, Settings::iPercentageHomo));
 				break;
 			default:
-				_stats[StatisticID::Sexuality] = Random::draw<int32_t>(1, 100);
+				_stats[StatisticID::Sexuality] = Random::draw<float>(1.0f, 100.0f);
 				break;
 			}
 		} else {
-			_stats[StatisticID::Sexuality] = Random::draw<int32_t>(1, 100);
+			_stats[StatisticID::Sexuality] = owner->IsPlayerRef() ? 75.0f : Random::draw<float>(1.0f, 100.0f);
 		}
 	}
 
-	void ActorStats::SetStatistic(StatisticID key, int32_t value)
+	ActorStats::ActorStats(SKSE::SerializationInterface* a_intfc) :
+		_stats(StatisticID::Total), _custom({})
+	{
+		for (size_t i = 0; i < StatisticID::Total; i++) {
+			a_intfc->ReadRecordData(_stats[i]);
+		}
+		size_t numRegs;
+		a_intfc->ReadRecordData(numRegs);
+
+		std::string key;
+		size_t alternative;
+		for (size_t i = 0; i < numRegs; i++) {
+			stl::read_string(a_intfc, key);
+			a_intfc->ReadRecordData(alternative);
+			if (alternative == 0) {
+				float obj;
+				a_intfc->ReadRecordData(obj);
+				_custom[key] = obj;
+			} else {
+				std::string obj;
+				stl::read_string(a_intfc, obj);
+				_custom[key] = obj;
+			}
+		}
+	}
+
+	void ActorStats::SetStatistic(StatisticID key, float value)
 	{
 		_stats[key] = value;
 	}
 
-	int32_t ActorStats::GetStatistic(StatisticID key) const
+	float ActorStats::GetStatistic(StatisticID key) const
 	{
 		return _stats[key];
+	}
+
+	std::vector<RE::BSFixedString> ActorStats::GetEveryCustomID() const
+	{
+		const auto v = std::views::keys(_custom);
+		return std::vector<RE::BSFixedString>{ v.begin(), v.end() };
 	}
 
 	std::optional<float> ActorStats::GetCustomFlt(const RE::BSFixedString& key) const
@@ -134,44 +167,132 @@ namespace Registry::Statistics
 		}
 	}
 
-	void ActorStats::Load(SKSE::SerializationInterface* a_intfc)
-	{
-		for (size_t i = 0; i < StatisticID::Total; i++) {
-			a_intfc->ReadRecordData(_stats[i]);
-		}
-		size_t numRegs;
-		a_intfc->ReadRecordData(numRegs);
+	ActorEncounter::EncounterObj::EncounterObj(RE::Actor* obj) :
+		id(obj->GetFormID()), sex(Registry::GetSex(obj)) {}
 
-		_custom.clear();
-		std::string key;
-		size_t alternative;
-		for (size_t i = 0; i < numRegs; i++) {
-			stl::read_string(a_intfc, key);
-			a_intfc->ReadRecordData(alternative);
-			if (alternative == 0) {
-				float obj;
-				a_intfc->ReadRecordData(obj);
-				_custom[key] = obj;
-			} else {
-				std::string obj;
-				stl::read_string(a_intfc, obj);
-				_custom[key] = obj;
-			}
+	ActorEncounter::EncounterObj::EncounterObj(SKSE::SerializationInterface* a_intfc)
+	{
+		a_intfc->ReadRecordData(id);
+		a_intfc->ReadRecordData(race);
+		a_intfc->ReadRecordData(sex);
+	}
+
+	void ActorEncounter::EncounterObj::Save(SKSE::SerializationInterface* a_intfc)
+	{
+		a_intfc->WriteRecordData(id);
+		a_intfc->WriteRecordData(race);
+		a_intfc->WriteRecordData(sex);
+	}
+
+	ActorEncounter::ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type) :
+		npc1(fst), npc2(snd), _lastmet(0), _timesmet(0), _timesaggressor(0), _timesvictim(0)
+	{
+		Update(a_type);
+	}
+
+	ActorEncounter::ActorEncounter(SKSE::SerializationInterface* a_intfc) :
+		npc1(a_intfc), npc2(a_intfc)
+	{
+		if (!a_intfc->ResolveFormID(npc1.id, npc1.id) || !a_intfc->ResolveFormID(npc2.id, npc2.id)) {
+			throw std::exception("Unable to update encounter formid");
+		}
+		a_intfc->ReadRecordData(_lastmet);
+		a_intfc->ReadRecordData(_timesmet);
+		a_intfc->ReadRecordData(_timesaggressor);
+		a_intfc->ReadRecordData(_timesvictim);
+	}
+
+	const ActorEncounter::EncounterObj* ActorEncounter::GetPartner(RE::Actor* a_actor) const
+	{
+		if (a_actor->formID == npc1.id)
+			return &npc1;
+		if (a_actor->formID == npc2.id)
+			return &npc2;
+		return nullptr;
+	}
+
+	void ActorEncounter::Update(EncounterType a_type)
+	{
+		_lastmet = RE::Calendar::GetSingleton()->GetCurrentGameTime();
+		_timesmet++;
+		switch (a_type) {
+		case EncounterType::Aggressor:
+			_timesaggressor++;
+			break;
+		case EncounterType::Victim:
+			_timesvictim++;
+		default:
+			break;
 		}
 	}
+
+	void ActorEncounter::Save(SKSE::SerializationInterface* a_intfc)
+	{
+		npc1.Save(a_intfc);
+		npc2.Save(a_intfc);
+		a_intfc->WriteRecordData(_lastmet);
+		a_intfc->WriteRecordData(_timesmet);
+		a_intfc->WriteRecordData(_timesaggressor);
+		a_intfc->WriteRecordData(_timesvictim);
+	}
+
 
 	ActorStats& StatisticsData::GetStatistics(RE::Actor* a_key)
 	{
 		auto where = _data.find(a_key->GetFormID());
 		if (where == _data.end()) {
-			return _data[a_key->GetFormID()] = ActorStats(a_key);
+			_data.insert(std::make_pair(a_key->GetFormID(), ActorStats{ a_key }));
+			return _data.at(a_key->GetFormID());
 		}
 		return where->second;
+	}
+
+	bool StatisticsData::ForEachStatistic(std::function<bool(ActorStats&)> a_func)
+	{
+		for (auto&& [_, statistic] : _data) {
+			if (a_func(statistic))
+				return true;
+		}
+		return false;
 	}
 
 	void StatisticsData::DeleteStatistics(RE::FormID a_key)
 	{
 		_data.erase(a_key);
+	}
+
+	int StatisticsData::GetNumberEncounters(RE::Actor* a_actor)
+	{
+		return GetNumberEncounters(a_actor, ActorEncounter::EncounterType::Any, [](auto&) { return true; });
+	}
+	int StatisticsData::GetNumberEncounters(RE::Actor* a_actor, ActorEncounter::EncounterType a_type)
+	{
+		return GetNumberEncounters(a_actor, a_type, [](auto&) { return true; });
+	}
+	int StatisticsData::GetNumberEncounters(RE::Actor* a_actor, std::function<bool(const ActorEncounter::EncounterObj&)> a_pred)
+	{
+		return GetNumberEncounters(a_actor, ActorEncounter::EncounterType::Any, a_pred);
+	}
+	int StatisticsData::GetNumberEncounters(RE::Actor* a_actor, ActorEncounter::EncounterType a_type, std::function<bool(const ActorEncounter::EncounterObj&)> a_pred)
+	{
+		int ret = 0;
+		for (auto&& encounter : _encounters) {
+			const auto partner = encounter.GetPartner(a_actor);
+			if (!partner || !a_pred(*partner))
+				continue;
+			switch (a_type) {
+			case ActorEncounter::EncounterType::Any:
+				ret += encounter.GetNumEncounter();
+				break;
+			case ActorEncounter::EncounterType::Victim:
+				ret += encounter.GetNumVicEncounter();
+				break;
+			case ActorEncounter::EncounterType::Aggressor:
+				ret += encounter.GetNumAggrEncounter();
+				break;
+			}
+		}
+		return ret;
 	}
 
 	void StatisticsData::Save(SKSE::SerializationInterface* a_intfc)
@@ -185,7 +306,11 @@ namespace Registry::Statistics
 				logger::error("Failed to save reg ({:X})", id);
 				continue;
 			}
-			data.Save(a_intfc);
+			try {
+				data.Save(a_intfc);
+			} catch (const std::exception& e) {
+				logger::error("{}", e.what());
+			}
 		}
 		logger::info("Saved {} statistics", _data.size());
 	}
@@ -203,9 +328,7 @@ namespace Registry::Statistics
 				logger::warn("Error reading formID ({:X})", formID);
 				continue;
 			}
-			ActorStats stats{};
-			stats.Load(a_intfc);
-			_data[formID] = stats;
+			_data.insert(std::make_pair(formID, ActorStats{ a_intfc }));
 		}
 		logger::info("Loaded {} statistics", _data.size());
 	}

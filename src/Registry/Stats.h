@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Registry/Define/Sex.h"
+#include "Registry/Define/RaceKey.h"
+
 namespace Registry::Statistics
 {
 	struct ActorStats
@@ -31,13 +34,13 @@ namespace Registry::Statistics
 
 			Total
 		};
-		ActorStats() :
-			_stats(StatisticID::Total) {}
+		ActorStats(SKSE::SerializationInterface* a_intfc);
 		ActorStats(RE::Actor* owner);
 		~ActorStats() = default;
 
-		void SetStatistic(StatisticID key, int32_t value);
-		int32_t GetStatistic(StatisticID key) const;
+		void SetStatistic(StatisticID key, float value);
+		float GetStatistic(StatisticID key) const;
+		std::vector<RE::BSFixedString> GetEveryCustomID() const;
 
 		bool HasCustom(const RE::BSFixedString& key) const;
 		std::optional<float> GetCustomFlt(const RE::BSFixedString& key) const;
@@ -46,7 +49,6 @@ namespace Registry::Statistics
 		void SetCustomStr(const RE::BSFixedString& key, RE::BSFixedString value);
 
 		void Save(SKSE::SerializationInterface* a_intfc);
-		void Load(SKSE::SerializationInterface* a_intfc);
 
 	private:
 		template <class T>
@@ -57,11 +59,62 @@ namespace Registry::Statistics
 				return std::nullopt;
 
 			auto& ret = it->second;
-			return std::holds_alternative<T>(ret) ? std::get<T>(ret) : std::nullopt;
+			if (!std::holds_alternative<T>(ret))
+				return std::nullopt;
+
+			return std::get<T>(ret);
 		}
 
-		std::vector<int32_t> _stats{};
+		std::vector<float> _stats{};
 		std::map<RE::BSFixedString, std::variant<float, RE::BSFixedString>, FixedStringCompare> _custom{};
+	};
+
+	struct ActorEncounter
+	{
+		/// Types goes id1 -> id2. E.g. if Victim, then id1 = Victim => id2 = aggressor
+		enum class EncounterType
+		{
+			Any = 0,
+			Victim = 1,
+			Aggressor = 2
+		};
+
+		struct EncounterObj
+		{
+			EncounterObj(RE::Actor* obj);
+			EncounterObj(SKSE::SerializationInterface* a_intfc);
+
+			void Save(SKSE::SerializationInterface* a_intfc);
+
+			RE::FormID id;
+			RaceKey race;
+			Sex sex;
+		};
+
+	public:
+		ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type);
+		ActorEncounter(SKSE::SerializationInterface* a_intfc);
+		~ActorEncounter() = default;
+
+		void Update(EncounterType a_type);
+
+		std::pair<const EncounterObj&, const EncounterObj&> GetParticipants() const { return { npc1, npc2 }; }
+		const ActorEncounter::EncounterObj* GetPartner(RE::Actor* a_actor) const;
+		float GetLastEncounter() const { return _lastmet; }
+		uint8_t GetNumEncounter() const { return _timesmet; }
+		uint8_t GetNumVicEncounter() const { return _timesvictim; }
+		uint8_t GetNumAggrEncounter() const { return _timesaggressor; }
+
+		void Save(SKSE::SerializationInterface* a_intfc);
+
+	private:
+		EncounterObj npc1;
+		EncounterObj npc2;
+
+		float _lastmet;
+		uint8_t _timesmet;
+		uint8_t _timesvictim;
+		uint8_t _timesaggressor;
 	};
 
 	class StatisticsData :
@@ -69,13 +122,20 @@ namespace Registry::Statistics
 	{
 	public:
 		ActorStats& GetStatistics(RE::Actor* a_key);
+		bool ForEachStatistic(std::function<bool(ActorStats&)> a_func);
 		void DeleteStatistics(RE::FormID a_key);
+
+		int GetNumberEncounters(RE::Actor* a_actor);
+		int GetNumberEncounters(RE::Actor* a_actor, ActorEncounter::EncounterType a_type);
+		int GetNumberEncounters(RE::Actor* a_actor, std::function<bool(const ActorEncounter::EncounterObj&)> a_pred);
+		int GetNumberEncounters(RE::Actor* a_actor, ActorEncounter::EncounterType a_type, std::function<bool(const ActorEncounter::EncounterObj&)> a_pred);
 
 		void Save(SKSE::SerializationInterface* a_intfc);
 		void Load(SKSE::SerializationInterface* a_intfc);
 		void Revert(SKSE::SerializationInterface* a_intfc);
 
 	private:
+		std::vector<ActorEncounter> _encounters;
 		std::map<RE::FormID, ActorStats> _data;
 	};
 
