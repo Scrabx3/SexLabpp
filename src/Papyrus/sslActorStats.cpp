@@ -291,20 +291,43 @@ namespace Papyrus::ActorStats
 		case LegacyStatistics::Times_Males:
 		case LegacyStatistics::Times_Females:
 		case LegacyStatistics::Times_Creatures:
+			// Encounter Statistics
+			break;
 		case LegacyStatistics::Times_Masturbation:
+			stats.SetStatistic(stats.TimesMasturbated, a_value);
+			break;
 		case LegacyStatistics::Times_Aggressor:
+			stats.SetStatistic(stats.TimesDominant, a_value);
+			break;
 		case LegacyStatistics::Times_Victim:
+			stats.SetStatistic(stats.TimesSubmissive, a_value);
+			break;
 		case LegacyStatistics::SexCount:
+			stats.SetStatistic(stats.TimesTotal, a_value);
+			break;
 		case LegacyStatistics::PlayerSex:
+			// Encounter Statistic
 			break;
 		case LegacyStatistics::Sexuality:
 			stats.SetStatistic(stats.Sexuality, a_value);
+			break;
 		case LegacyStatistics::TimeSpent:
+			stats.SetStatistic(stats.SecondsInScene, a_value);
+			break;
 		case LegacyStatistics::LastSex_RealTime:
+			// Only supporting GameTime setter
+			break;
 		case LegacyStatistics::LastSex_GameTime:
+			stats.SetStatistic(stats.LastUpdate_GameTime, a_value);
+			break;
 		case LegacyStatistics::Times_VaginalCount:
+			stats.SetStatistic(stats.TimesVaginal, a_value);
+			break;
 		case LegacyStatistics::Times_AnalCount:
+			stats.SetStatistic(stats.TimesAnal, a_value);
+			break;
 		case LegacyStatistics::Times_OralCount:
+			stats.SetStatistic(stats.TimesOral, a_value);
 			break;
 		default:
 			a_vm->TraceStack(fmt::format("Invalid id {}", id).c_str(), a_stackID);
