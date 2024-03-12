@@ -255,6 +255,18 @@ namespace Registry::Statistics
 		a_intfc->WriteRecordData(_timesvictim);
 	}
 
+	std::vector<RE::Actor*> StatisticsData::GetTrackedActors() const
+	{
+		std::vector<RE::Actor*> ret{};
+		ret.reserve(_data.size());
+		for (auto&& [id, _] : _data) {
+			const auto act = RE::TESForm::LookupByID<RE::Actor>(id);
+			if (!act)
+				continue;
+			ret.push_back(act);
+		}
+		return ret;
+	}
 
 	ActorStats& StatisticsData::GetStatistics(RE::Actor* a_key)
 	{

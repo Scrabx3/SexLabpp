@@ -6,6 +6,39 @@
 
 namespace Papyrus::ActorStats
 {
+	std::vector<RE::Actor*> GetAllTrackedActors(RE::StaticFunctionTag*)
+	{
+		return Registry::Statistics::StatisticsData::GetSingleton()->GetTrackedActors();
+	}
+
+	void SetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id, float a_value)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return;
+		}
+		using StatID = Registry::Statistics::ActorStats::StatisticID;
+		if (id < 0 || id >= StatID::Total) {
+			a_vm->TraceStack("Invalid Stat ID", a_stackID);
+			return;
+		}
+		Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).SetStatistic(StatID(id), a_value);
+	}
+
+	float GetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0;
+		}
+		using StatID = Registry::Statistics::ActorStats::StatisticID;
+		if (id < 0 || id >= StatID::Total) {
+			a_vm->TraceStack("Invalid Stat ID", a_stackID);
+			return 0;
+		}
+		return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).GetStatistic(StatID(id));
+	}
+
 	std::vector<RE::BSFixedString> GetAllCustomStatIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
 	{
 		if (!a_actor) {

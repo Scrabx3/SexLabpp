@@ -122,6 +122,7 @@ namespace Registry::Statistics
 		public Singleton<StatisticsData>
 	{
 	public:
+		std::vector<RE::Actor*> GetTrackedActors() const;
 		ActorStats& GetStatistics(RE::Actor* a_key);
 		ActorEncounter* GetEncounter(RE::Actor* fst, RE::Actor* snd);
 		void DeleteStatistics(RE::FormID a_key);

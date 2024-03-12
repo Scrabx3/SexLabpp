@@ -35,7 +35,11 @@ namespace Papyrus::ActorStats
 		Total
 	};
 
-	std::vector<RE::BSFixedString> GetAllCustomStatIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
+	std::vector<RE::Actor*> GetAllTrackedActors(RE::StaticFunctionTag*);
+	void SetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id, float a_value);
+	float GetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id);
+
+		std::vector<RE::BSFixedString> GetAllCustomStatIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 	bool HasCustomStat(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat);
 	void SetCustomStatFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, float a_value);
 	void SetCustomStatStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, RE::BSFixedString a_value);
@@ -63,6 +67,10 @@ namespace Papyrus::ActorStats
 
 	inline bool Register(VM* a_vm)
 	{
+		REGISTERFUNC(GetAllTrackedActors, "sslActorStats", true);
+		REGISTERFUNC(SetStatistic, "sslActorStats", true);
+		REGISTERFUNC(GetStatistic, "sslActorStats", true);
+
 		REGISTERFUNC(GetAllCustomStatIDs, "sslActorStats", true);
 		REGISTERFUNC(HasCustomStat, "sslActorStats", true);
 		REGISTERFUNC(SetCustomStatFlt, "sslActorStats", true);
