@@ -211,6 +211,20 @@ namespace Registry::Statistics
 		return nullptr;
 	}
 
+	uint8_t ActorEncounter::GetTimesVictim(RE::FormID a_id) const
+	{
+		return a_id == npc1.id ? _timesvictim :
+					 a_id == npc2.id ? _timesaggressor :
+														 0;
+	}
+
+	uint8_t ActorEncounter::GetTimesAssailant(RE::FormID a_id) const
+	{
+		return a_id == npc1.id ? _timesaggressor :
+					 a_id == npc2.id ? _timesvictim :
+														 0;
+	}
+
 	void ActorEncounter::Update(EncounterType a_type)
 	{
 		_lastmet = RE::Calendar::GetSingleton()->GetCurrentGameTime();
@@ -247,6 +261,24 @@ namespace Registry::Statistics
 		return where->second;
 	}
 
+	ActorEncounter* StatisticsData::GetEncounter(RE::Actor* fst, RE::Actor* snd)
+	{
+		const auto where = std::ranges::find_if(_encounters, [&](const ActorEncounter& enc) {
+			const auto& [a, b] = enc.GetParticipants();
+			return a.id == fst->formID && b.id == snd->formID || b.id == fst->formID && a.id == snd->formID;
+		});
+		return where == _encounters.end() ? nullptr : &(*where);
+	}
+
+	void StatisticsData::DeleteStatistics(RE::FormID a_key)
+	{
+		_data.erase(a_key);
+		std::erase_if(_encounters, [&](auto& encounter) {
+			const auto [fst, snd] = encounter.GetParticipants();
+			return fst.id == a_key || snd.id == a_key;
+		});
+	}
+
 	bool StatisticsData::ForEachStatistic(std::function<bool(ActorStats&)> a_func)
 	{
 		for (auto&& [_, statistic] : _data) {
@@ -256,9 +288,60 @@ namespace Registry::Statistics
 		return false;
 	}
 
-	void StatisticsData::DeleteStatistics(RE::FormID a_key)
+	bool StatisticsData::ForEachEncounter(std::function<bool(ActorEncounter&)> a_func)
 	{
-		_data.erase(a_key);
+		for (auto&& encounter : _encounters) {
+			if (a_func(encounter))
+				return true;
+		}
+		return false;
+	}
+
+	void StatisticsData::AddEncounter(RE::Actor* fst, RE::Actor* snd, ActorEncounter::EncounterType a_type)
+	{
+		if (auto enc = GetEncounter(fst, snd)) {
+			if (enc->GetParticipants().first.id == snd->formID) {
+				switch (a_type) {
+				case ActorEncounter::EncounterType::Aggressor:
+					a_type = ActorEncounter::EncounterType::Victim;
+					break;
+				case ActorEncounter::EncounterType::Victim:
+					a_type = ActorEncounter::EncounterType::Aggressor;
+					break;
+				default:
+					a_type = ActorEncounter::EncounterType::Any;
+					break;
+				}
+			}
+			enc->Update(a_type);
+			return;
+		}
+		_encounters.emplace_back(fst, snd, a_type);
+	}
+
+	RE::Actor* StatisticsData::GetMostRecentEncounter(RE::Actor* a_actor, ActorEncounter::EncounterType a_type)
+	{
+		for (size_t i = _encounters.size() - 1; i >= 0; i--) {
+			const auto partnerobj = _encounters[i].GetPartner(a_actor);
+			const auto partner = partnerobj ? RE::TESForm::LookupByID<RE::Actor>(partnerobj->id) : nullptr;
+			if (!partner)
+				continue;
+			switch (a_type) {
+			case ActorEncounter::EncounterType::Any:
+				return partner;
+			case ActorEncounter::EncounterType::Victim:
+				if (_encounters[i].GetTimesVictim(a_actor->formID) > 0) {
+					return partner;
+				}
+				break;
+			case ActorEncounter::EncounterType::Aggressor:
+				if (_encounters[i].GetTimesAssailant(a_actor->formID) > 0) {
+					return partner;
+				}
+				break;
+			}
+		}
+		return nullptr;
 	}
 
 	int StatisticsData::GetNumberEncounters(RE::Actor* a_actor)
@@ -282,13 +365,13 @@ namespace Registry::Statistics
 				continue;
 			switch (a_type) {
 			case ActorEncounter::EncounterType::Any:
-				ret += encounter.GetNumEncounter();
+				ret += encounter.GetTimesMet();
 				break;
 			case ActorEncounter::EncounterType::Victim:
-				ret += encounter.GetNumVicEncounter();
+				ret += encounter.GetTimesVictim(a_actor->formID);
 				break;
 			case ActorEncounter::EncounterType::Aggressor:
-				ret += encounter.GetNumAggrEncounter();
+				ret += encounter.GetTimesAssailant(a_actor->formID);
 				break;
 			}
 		}

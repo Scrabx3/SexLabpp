@@ -100,10 +100,10 @@ namespace Registry::Statistics
 
 		std::pair<const EncounterObj&, const EncounterObj&> GetParticipants() const { return { npc1, npc2 }; }
 		const ActorEncounter::EncounterObj* GetPartner(RE::Actor* a_actor) const;
-		float GetLastEncounter() const { return _lastmet; }
-		uint8_t GetNumEncounter() const { return _timesmet; }
-		uint8_t GetNumVicEncounter() const { return _timesvictim; }
-		uint8_t GetNumAggrEncounter() const { return _timesaggressor; }
+		float GetLastTimeMet() const { return _lastmet; }
+		uint8_t GetTimesMet() const { return _timesmet; }
+		uint8_t GetTimesVictim(RE::FormID a_id) const;
+		uint8_t GetTimesAssailant(RE::FormID a_id) const;
 
 		void Save(SKSE::SerializationInterface* a_intfc);
 
@@ -122,8 +122,14 @@ namespace Registry::Statistics
 	{
 	public:
 		ActorStats& GetStatistics(RE::Actor* a_key);
-		bool ForEachStatistic(std::function<bool(ActorStats&)> a_func);
+		ActorEncounter* GetEncounter(RE::Actor* fst, RE::Actor* snd);
 		void DeleteStatistics(RE::FormID a_key);
+
+		bool ForEachStatistic(std::function<bool(ActorStats&)> a_func);
+		bool ForEachEncounter(std::function<bool(ActorEncounter&)> a_func);
+
+		void AddEncounter(RE::Actor* fst, RE::Actor* snd, ActorEncounter::EncounterType a_type);
+		RE::Actor* GetMostRecentEncounter(RE::Actor* a_actor, ActorEncounter::EncounterType a_type);
 
 		int GetNumberEncounters(RE::Actor* a_actor);
 		int GetNumberEncounters(RE::Actor* a_actor, ActorEncounter::EncounterType a_type);

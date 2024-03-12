@@ -6,36 +6,148 @@
 
 namespace Papyrus::ActorStats
 {
-	static inline constexpr auto Purity{ "SSLLEGACY_Purity" };
-	static inline constexpr auto Lewdness{ "SSLLEGACY_Lewd" };
-	static inline constexpr auto Foreplay{ "SSLLEGACY_Foreplay" };
-
-	enum class LegacyStatistics
+	std::vector<RE::Actor*> GetAllEncounters(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
 	{
-		L_Foreplay,
-		XP_Vaginal,
-		XP_Anal,
-		XP_Oral,
-		L_Pure,
-		L_Lewd,
-		Times_Males,
-		Times_Females,
-		Times_Creatures,
-		Times_Masturbation,
-		Times_Aggressor,
-		Times_Victim,
-		SexCount,   // how often the actor had intercourse in general
-		PlayerSex,  // how often the actor had intercourse with the player
-		Sexuality,
-		TimeSpent,  // time spent in scenes, there is no reference in what scale this is measured
-		LastSex_RealTime,
-		LastSex_GameTime,
-		Times_VaginalCount,
-		Times_AnalCount,
-		Times_OralCount,
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+		}
+		std::vector<RE::Actor*> ret{};
+		Registry::Statistics::StatisticsData::GetSingleton()->ForEachEncounter([&](Registry::Statistics::ActorEncounter& enc) {
+			const auto partner = enc.GetPartner(a_actor);
+			if (!partner)
+				return false;
+			const auto actor = RE::TESForm::LookupByID<RE::Actor>(partner->id);
+			if (!actor)
+				return false;
+			ret.push_back(actor);
+			return false;
+		});
+		return ret;
+	}
 
-		Total
-	};
+	std::vector<RE::Actor*> GetAllEncounteredVictims(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+		}
+		std::vector<RE::Actor*> ret{};
+		Registry::Statistics::StatisticsData::GetSingleton()->ForEachEncounter([&](Registry::Statistics::ActorEncounter& enc) {
+			const auto partner = enc.GetPartner(a_actor);
+			if (!partner || enc.GetTimesVictim(partner->id) <= 0)
+				return false;
+			if (const auto actor = RE::TESForm::LookupByID<RE::Actor>(partner->id))
+				ret.push_back(actor);
+			return false;
+		});
+		return ret;
+	}
+
+	std::vector<RE::Actor*> GetAllEncounteredAssailants(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+		}
+		std::vector<RE::Actor*> ret{};
+		Registry::Statistics::StatisticsData::GetSingleton()->ForEachEncounter([&](Registry::Statistics::ActorEncounter& enc) {
+			const auto partner = enc.GetPartner(a_actor);
+			if (!partner || enc.GetTimesAssailant(partner->id) <= 0)
+				return false;
+			if (const auto actor = RE::TESForm::LookupByID<RE::Actor>(partner->id))
+				ret.push_back(actor);
+			return false;
+		});
+		return ret;
+	}
+
+	RE::Actor* GetMostRecentEncounter(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int a_encountertype)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return nullptr;
+		}
+		return Registry::Statistics::StatisticsData::GetSingleton()->GetMostRecentEncounter(a_actor, Registry::Statistics::ActorEncounter::EncounterType(a_encountertype));
+	}
+
+	void AddEncounter(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner, int a_encountertype)
+	{
+		if (!a_actor || !a_partner) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return;
+		}
+		const auto type = Registry::Statistics::ActorEncounter::EncounterType(a_encountertype);
+		Registry::Statistics::StatisticsData::GetSingleton()->AddEncounter(a_actor, a_partner, type);
+	}
+
+	float GetLastEncounterTime(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner)
+	{
+		if (!a_actor || !a_partner) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0;
+		}
+		const auto enc = Registry::Statistics::StatisticsData::GetSingleton()->GetEncounter(a_actor, a_partner);
+		if (!enc)
+			return 0.0;
+		return enc->GetLastTimeMet();
+	}
+
+	int GetTimesMet(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner)
+	{
+		if (!a_actor || !a_partner) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0;
+		}
+		const auto enc = Registry::Statistics::StatisticsData::GetSingleton()->GetEncounter(a_actor, a_partner);
+		return enc ? enc->GetTimesMet() : 0;
+	}
+
+	int GetTimesVictimzed(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_assailant)
+	{
+		if (!a_actor || !a_assailant) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0;
+		}
+		const auto enc = Registry::Statistics::StatisticsData::GetSingleton()->GetEncounter(a_actor, a_assailant);
+		return enc ? enc->GetTimesVictim(a_actor->formID) : 0;
+	}
+
+	int GetTimesAssaulted(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_victim)
+	{
+		if (!a_actor || !a_victim) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0;
+		}
+		const auto enc = Registry::Statistics::StatisticsData::GetSingleton()->GetEncounter(a_actor, a_victim);
+		return enc ? enc->GetTimesAssailant(a_actor->formID) : 0;
+	}
+
+	std::vector<int> GetEncounterTypesCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner)
+	{
+		if (!a_actor || !a_partner) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return { 0, 0, 0 };
+		}
+		const auto enc = Registry::Statistics::StatisticsData::GetSingleton()->GetEncounter(a_actor, a_partner);
+		if (!enc) {
+			return { 0, 0, 0 };
+		}
+		return {
+			enc->GetTimesMet(),
+			enc->GetTimesVictim(a_actor->formID),
+			enc->GetTimesAssailant(a_actor->formID),
+		};
+	}
+
+	void ResetStatistics(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return;
+		}
+		Registry::Statistics::StatisticsData::GetSingleton()->DeleteStatistics(a_actor->GetFormID());
+	}
 
 	std::vector<RE::BSFixedString> GetEveryStatisticID(RE::StaticFunctionTag*)
 	{
