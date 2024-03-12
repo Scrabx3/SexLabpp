@@ -47,6 +47,7 @@ namespace Registry::Statistics
 		std::optional<RE::BSFixedString> GetCustomStr(const RE::BSFixedString& key) const;
 		void SetCustomFlt(const RE::BSFixedString& key, float value);
 		void SetCustomStr(const RE::BSFixedString& key, RE::BSFixedString value);
+		void RemoveCustomStat(const RE::BSFixedString& key);
 
 		void Save(SKSE::SerializationInterface* a_intfc);
 

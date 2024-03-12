@@ -6,6 +6,71 @@
 
 namespace Papyrus::ActorStats
 {
+	std::vector<RE::BSFixedString> GetAllCustomStatIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+		}
+		return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).GetEveryCustomID();
+	}
+
+	bool HasCustomStat(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return false;
+		}
+		return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).HasCustom(a_stat);
+	}
+
+	void SetCustomStatFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, float a_value)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return;
+		}
+		Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).SetCustomFlt(a_stat, a_value);
+	}
+
+	void SetCustomStatStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, RE::BSFixedString a_value)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return;
+		}
+		Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).SetCustomStr(a_stat, a_value);
+	}
+
+	float GetCustomStatFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, float a_default)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return a_default;
+		}
+		const auto ret = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).GetCustomFlt(a_stat);
+		return ret ? *ret : a_default;
+	}
+
+	RE::BSFixedString GetCustomStatStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, RE::BSFixedString a_default)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return a_default;
+		}
+		const auto ret = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).GetCustomStr(a_stat);
+		return ret ? *ret : a_default;
+	}
+
+	void DeleteCustomStat(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return;
+		}
+		Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).RemoveCustomStat(a_stat);
+	}
+
 	std::vector<RE::Actor*> GetAllEncounters(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
 	{
 		if (!a_actor) {

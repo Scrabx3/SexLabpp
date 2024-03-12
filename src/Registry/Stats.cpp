@@ -133,6 +133,11 @@ namespace Registry::Statistics
 		return _custom.contains(key);
 	}
 
+	void ActorStats::RemoveCustomStat(const RE::BSFixedString& key)
+	{
+		_custom.erase(key);
+	}
+
 	void ActorStats::Save(SKSE::SerializationInterface* a_intfc)
 	{
 		for (auto&& stat : _stats) {

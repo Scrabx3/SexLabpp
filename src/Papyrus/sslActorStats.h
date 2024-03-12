@@ -35,6 +35,14 @@ namespace Papyrus::ActorStats
 		Total
 	};
 
+	std::vector<RE::BSFixedString> GetAllCustomStatIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
+	bool HasCustomStat(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat);
+	void SetCustomStatFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, float a_value);
+	void SetCustomStatStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, RE::BSFixedString a_value);
+	float GetCustomStatFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, float a_default);
+	RE::BSFixedString GetCustomStatStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, RE::BSFixedString a_default);
+	void DeleteCustomStat(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat);
+
 	std::vector<RE::Actor*> GetAllEncounters(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 	std::vector<RE::Actor*> GetAllEncounteredVictims(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 	std::vector<RE::Actor*> GetAllEncounteredAssailants(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
@@ -55,21 +63,29 @@ namespace Papyrus::ActorStats
 
 	inline bool Register(VM* a_vm)
 	{
-		REGISTERFUNC(GetAllEncounters, "sslActorAlias", true);
-		REGISTERFUNC(GetAllEncounteredVictims, "sslActorAlias", true);
-		REGISTERFUNC(GetAllEncounteredAssailants, "sslActorAlias", true);
-		REGISTERFUNC(GetMostRecentEncounter, "sslActorAlias", true);
-		REGISTERFUNC(AddEncounter, "sslActorAlias", true);
-		REGISTERFUNC(GetLastEncounterTime, "sslActorAlias", true);
-		REGISTERFUNC(GetTimesMet, "sslActorAlias", true);
-		REGISTERFUNC(GetTimesVictimzed, "sslActorAlias", true);
-		REGISTERFUNC(GetTimesAssaulted, "sslActorAlias", true);
-		REGISTERFUNC(GetEncounterTypesCount, "sslActorAlias", true);
+		REGISTERFUNC(GetAllCustomStatIDs, "sslActorStats", true);
+		REGISTERFUNC(HasCustomStat, "sslActorStats", true);
+		REGISTERFUNC(SetCustomStatFlt, "sslActorStats", true);
+		REGISTERFUNC(SetCustomStatStr, "sslActorStats", true);
+		REGISTERFUNC(GetCustomStatFlt, "sslActorStats", true);
+		REGISTERFUNC(GetCustomStatStr, "sslActorStats", true);
+		REGISTERFUNC(DeleteCustomStat, "sslActorStats", true);
 
-		REGISTERFUNC(GetEveryStatisticID, "sslActorAlias", true);
-		REGISTERFUNC(GetLegacyStatistic, "sslActorAlias", true);
-		REGISTERFUNC(GetAllLegycSkills, "sslActorAlias", true);
-		REGISTERFUNC(SetLegacyStatistic, "sslActorAlias", true);
+		REGISTERFUNC(GetAllEncounters, "sslActorStats", true);
+		REGISTERFUNC(GetAllEncounteredVictims, "sslActorStats", true);
+		REGISTERFUNC(GetAllEncounteredAssailants, "sslActorStats", true);
+		REGISTERFUNC(GetMostRecentEncounter, "sslActorStats", true);
+		REGISTERFUNC(AddEncounter, "sslActorStats", true);
+		REGISTERFUNC(GetLastEncounterTime, "sslActorStats", true);
+		REGISTERFUNC(GetTimesMet, "sslActorStats", true);
+		REGISTERFUNC(GetTimesVictimzed, "sslActorStats", true);
+		REGISTERFUNC(GetTimesAssaulted, "sslActorStats", true);
+		REGISTERFUNC(GetEncounterTypesCount, "sslActorStats", true);
+
+		REGISTERFUNC(GetEveryStatisticID, "sslActorStats", true);
+		REGISTERFUNC(GetLegacyStatistic, "sslActorStats", true);
+		REGISTERFUNC(GetAllLegycSkills, "sslActorStats", true);
+		REGISTERFUNC(SetLegacyStatistic, "sslActorStats", true);
 
 		return true;
 	}
