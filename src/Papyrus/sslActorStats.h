@@ -56,7 +56,6 @@ namespace Papyrus::ActorStats
 	int GetTimesMet(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner);
 	int GetTimesVictimzed(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_assailant);
 	int GetTimesAssaulted(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_victim);
-	std::vector<int> GetEncounterTypesCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner);
 
 	void ResetStatistics(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 
@@ -88,7 +87,6 @@ namespace Papyrus::ActorStats
 		REGISTERFUNC(GetTimesMet, "sslActorStats", true);
 		REGISTERFUNC(GetTimesVictimzed, "sslActorStats", true);
 		REGISTERFUNC(GetTimesAssaulted, "sslActorStats", true);
-		REGISTERFUNC(GetEncounterTypesCount, "sslActorStats", true);
 
 		REGISTERFUNC(GetEveryStatisticID, "sslActorStats", true);
 		REGISTERFUNC(GetLegacyStatistic, "sslActorStats", true);

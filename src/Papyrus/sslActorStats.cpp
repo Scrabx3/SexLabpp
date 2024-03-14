@@ -221,23 +221,6 @@ namespace Papyrus::ActorStats
 		return enc ? enc->GetTimesAssailant(a_actor->formID) : 0;
 	}
 
-	std::vector<int> GetEncounterTypesCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner)
-	{
-		if (!a_actor || !a_partner) {
-			a_vm->TraceStack("Actor is none", a_stackID);
-			return { 0, 0, 0 };
-		}
-		const auto enc = Registry::Statistics::StatisticsData::GetSingleton()->GetEncounter(a_actor, a_partner);
-		if (!enc) {
-			return { 0, 0, 0 };
-		}
-		return {
-			enc->GetTimesMet(),
-			enc->GetTimesVictim(a_actor->formID),
-			enc->GetTimesAssailant(a_actor->formID),
-		};
-	}
-
 	void ResetStatistics(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
 	{
 		if (!a_actor) {
@@ -320,7 +303,24 @@ namespace Papyrus::ActorStats
 				return it.id == 0x14;
 			}));
 		case LegacyStatistics::Sexuality:
-			return stats.GetStatistic(stats.Sexuality);
+			{
+				const auto sex = stats.GetStatistic(stats.Sexuality);
+				const auto retF = [&sex](float start, float range, float range_legacy) {
+					const auto perc = (sex - start) / static_cast<float>(range);
+					return start + perc * range_legacy;
+				};
+				constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
+				static_assert(rHomo + rBi + rHetero == 100.0f);
+				if (sex < Settings::iPercentageHomo) {
+					return retF(0, Settings::iPercentageHomo, rHomo);
+				}
+				const auto threshBi = 1 - Settings::iPercentageHetero;
+				if (sex < threshBi) {
+					const auto rangeBi = 1 - Settings::iPercentageHetero - Settings::iPercentageHomo;
+					return retF(Settings::iPercentageHomo, rangeBi, rBi);
+				}
+				return retF(threshBi, Settings::iPercentageHetero, rHetero);
+			}
 		case LegacyStatistics::TimeSpent:
 			return stats.GetStatistic(stats.SecondsInScene);
 		case LegacyStatistics::LastSex_RealTime:
@@ -407,13 +407,33 @@ namespace Papyrus::ActorStats
 			// Encounter Statistic
 			break;
 		case LegacyStatistics::Sexuality:
-			stats.SetStatistic(stats.Sexuality, a_value);
+			{
+				constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
+				auto setF = [&](float start, float range, float range_legacy) mutable {
+					float perc = (a_value - start) / range_legacy;
+					const auto value = start + perc * range;
+					stats.SetStatistic(stats.Sexuality, value);
+				};
+				if (a_value < rHomo) {
+					setF(0, Settings::iPercentageHomo, rHomo);
+				}
+				const auto threshBi = 1 - Settings::iPercentageHetero;
+				if (a_value < rHomo + rBi) {
+					setF(Settings::iPercentageHomo, threshBi, rHomo + rBi);
+				}
+				setF(threshBi, Settings::iPercentageHetero, rHetero);
+			}
 			break;
 		case LegacyStatistics::TimeSpent:
 			stats.SetStatistic(stats.SecondsInScene, a_value);
 			break;
 		case LegacyStatistics::LastSex_RealTime:
-			// Only supporting GameTime setter
+			{
+				constexpr auto seconds_in_day = 86400.0f;
+				const auto timescale = std::max(RE::Calendar::GetSingleton()->GetTimescale(), 1.0f);
+				const auto value = (a_value / seconds_in_day) * timescale;
+				stats.SetStatistic(stats.LastUpdate_GameTime, value);
+			}
 			break;
 		case LegacyStatistics::LastSex_GameTime:
 			stats.SetStatistic(stats.LastUpdate_GameTime, a_value);
