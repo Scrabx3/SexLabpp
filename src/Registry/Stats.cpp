@@ -280,11 +280,16 @@ namespace Registry::Statistics
 
 	ActorEncounter* StatisticsData::GetEncounter(RE::Actor* fst, RE::Actor* snd)
 	{
-		const auto where = std::ranges::find_if(_encounters, [&](const ActorEncounter& enc) {
+		const auto where = GetEncounterIter(fst, snd);
+		return where == _encounters.end() ? nullptr : &(*where);
+	}
+
+	std::vector<ActorEncounter>::iterator StatisticsData::GetEncounterIter(RE::Actor* fst, RE::Actor* snd)
+	{
+		return std::ranges::find_if(_encounters, [&](const ActorEncounter& enc) {
 			const auto& [a, b] = enc.GetParticipants();
 			return a.id == fst->formID && b.id == snd->formID || b.id == fst->formID && a.id == snd->formID;
 		});
-		return where == _encounters.end() ? nullptr : &(*where);
 	}
 
 	void StatisticsData::DeleteStatistics(RE::FormID a_key)
@@ -316,7 +321,7 @@ namespace Registry::Statistics
 
 	void StatisticsData::AddEncounter(RE::Actor* fst, RE::Actor* snd, ActorEncounter::EncounterType a_type)
 	{
-		if (auto enc = GetEncounter(fst, snd)) {
+		if (auto enc = GetEncounterIter(fst, snd); enc != _encounters.end()) {
 			if (enc->GetParticipants().first.id == snd->formID) {
 				switch (a_type) {
 				case ActorEncounter::EncounterType::Aggressor:
@@ -331,6 +336,7 @@ namespace Registry::Statistics
 				}
 			}
 			enc->Update(a_type);
+			std::iter_swap(enc, _encounters.end() - 1);
 			return;
 		}
 		_encounters.emplace_back(fst, snd, a_type);

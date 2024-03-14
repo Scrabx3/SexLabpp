@@ -125,6 +125,7 @@ namespace Registry::Statistics
 		std::vector<RE::Actor*> GetTrackedActors() const;
 		ActorStats& GetStatistics(RE::Actor* a_key);
 		ActorEncounter* GetEncounter(RE::Actor* fst, RE::Actor* snd);
+		std::vector<ActorEncounter>::iterator GetEncounterIter(RE::Actor* fst, RE::Actor* snd);
 		void DeleteStatistics(RE::FormID a_key);
 
 		bool ForEachStatistic(std::function<bool(ActorStats&)> a_func);
