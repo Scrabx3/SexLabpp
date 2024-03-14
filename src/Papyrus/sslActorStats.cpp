@@ -39,6 +39,32 @@ namespace Papyrus::ActorStats
 		return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).GetStatistic(StatID(id));
 	}
 
+	int GetSexuality(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0;
+		}
+		const auto stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+		const auto value = stats.GetStatistic(stats.Sexuality);
+		return MapSexuality(nullptr, value);
+	}
+
+	int MapSexuality(RE::StaticFunctionTag*, float a_sexuality)
+	{
+		enum
+		{
+			Hetero = 0,
+			Homo = 1,
+			Bi = 2
+		};
+		if (a_sexuality < Settings::iPercentageHomo)
+			return Homo;
+		if (a_sexuality < 1 - Settings::iPercentageHetero)
+			return Bi;
+		return Hetero;
+	}
+
 	std::vector<RE::BSFixedString> GetAllCustomStatIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
 	{
 		if (!a_actor) {
@@ -305,8 +331,8 @@ namespace Papyrus::ActorStats
 		case LegacyStatistics::Sexuality:
 			{
 				const auto sex = stats.GetStatistic(stats.Sexuality);
-				const auto retF = [&sex](float start, float range, float range_legacy) {
-					const auto perc = (sex - start) / static_cast<float>(range);
+				const auto retF = [&sex](int32_t start, int32_t range, float range_legacy) {
+					const auto perc = (sex - static_cast<float>(start)) / static_cast<float>(range);
 					return start + perc * range_legacy;
 				};
 				constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
@@ -409,9 +435,9 @@ namespace Papyrus::ActorStats
 		case LegacyStatistics::Sexuality:
 			{
 				constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
-				auto setF = [&](float start, float range, float range_legacy) mutable {
-					float perc = (a_value - start) / range_legacy;
-					const auto value = start + perc * range;
+				auto setF = [&](int32_t start, int32_t range, float range_legacy) mutable {
+					float perc = (a_value - static_cast<float>(start)) / range_legacy;
+					const auto value = start + perc * static_cast<float>(range);
 					stats.SetStatistic(stats.Sexuality, value);
 				};
 				if (a_value < rHomo) {

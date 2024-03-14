@@ -38,8 +38,10 @@ namespace Papyrus::ActorStats
 	std::vector<RE::Actor*> GetAllTrackedActors(RE::StaticFunctionTag*);
 	void SetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id, float a_value);
 	float GetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id);
+	int GetSexuality(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
+	int MapSexuality(RE::StaticFunctionTag*, float a_sexuality);
 
-		std::vector<RE::BSFixedString> GetAllCustomStatIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
+	std::vector<RE::BSFixedString> GetAllCustomStatIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 	bool HasCustomStat(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat);
 	void SetCustomStatFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, float a_value);
 	void SetCustomStatStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, RE::BSFixedString a_value);
@@ -66,27 +68,27 @@ namespace Papyrus::ActorStats
 
 	inline bool Register(VM* a_vm)
 	{
-		REGISTERFUNC(GetAllTrackedActors, "sslActorStats", true);
-		REGISTERFUNC(SetStatistic, "sslActorStats", true);
-		REGISTERFUNC(GetStatistic, "sslActorStats", true);
+		REGISTERFUNC(GetAllTrackedActors, "SexLabStatistics", true);
+		REGISTERFUNC(SetStatistic, "SexLabStatistics", true);
+		REGISTERFUNC(GetStatistic, "SexLabStatistics", true);
 
-		REGISTERFUNC(GetAllCustomStatIDs, "sslActorStats", true);
-		REGISTERFUNC(HasCustomStat, "sslActorStats", true);
-		REGISTERFUNC(SetCustomStatFlt, "sslActorStats", true);
-		REGISTERFUNC(SetCustomStatStr, "sslActorStats", true);
-		REGISTERFUNC(GetCustomStatFlt, "sslActorStats", true);
-		REGISTERFUNC(GetCustomStatStr, "sslActorStats", true);
-		REGISTERFUNC(DeleteCustomStat, "sslActorStats", true);
+		REGISTERFUNC(GetAllCustomStatIDs, "SexLabStatistics", true);
+		REGISTERFUNC(HasCustomStat, "SexLabStatistics", true);
+		REGISTERFUNC(SetCustomStatFlt, "SexLabStatistics", true);
+		REGISTERFUNC(SetCustomStatStr, "SexLabStatistics", true);
+		REGISTERFUNC(GetCustomStatFlt, "SexLabStatistics", true);
+		REGISTERFUNC(GetCustomStatStr, "SexLabStatistics", true);
+		REGISTERFUNC(DeleteCustomStat, "SexLabStatistics", true);
 
-		REGISTERFUNC(GetAllEncounters, "sslActorStats", true);
-		REGISTERFUNC(GetAllEncounteredVictims, "sslActorStats", true);
-		REGISTERFUNC(GetAllEncounteredAssailants, "sslActorStats", true);
-		REGISTERFUNC(GetMostRecentEncounter, "sslActorStats", true);
-		REGISTERFUNC(AddEncounter, "sslActorStats", true);
-		REGISTERFUNC(GetLastEncounterTime, "sslActorStats", true);
-		REGISTERFUNC(GetTimesMet, "sslActorStats", true);
-		REGISTERFUNC(GetTimesVictimzed, "sslActorStats", true);
-		REGISTERFUNC(GetTimesAssaulted, "sslActorStats", true);
+		REGISTERFUNC(GetAllEncounters, "SexLabStatistics", true);
+		REGISTERFUNC(GetAllEncounteredVictims, "SexLabStatistics", true);
+		REGISTERFUNC(GetAllEncounteredAssailants, "SexLabStatistics", true);
+		REGISTERFUNC(GetMostRecentEncounter, "SexLabStatistics", true);
+		REGISTERFUNC(AddEncounter, "SexLabStatistics", true);
+		REGISTERFUNC(GetLastEncounterTime, "SexLabStatistics", true);
+		REGISTERFUNC(GetTimesMet, "SexLabStatistics", true);
+		REGISTERFUNC(GetTimesVictimzed, "SexLabStatistics", true);
+		REGISTERFUNC(GetTimesAssaulted, "SexLabStatistics", true);
 
 		REGISTERFUNC(GetEveryStatisticID, "sslActorStats", true);
 		REGISTERFUNC(GetLegacyStatistic, "sslActorStats", true);
