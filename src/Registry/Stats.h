@@ -119,9 +119,15 @@ namespace Registry::Statistics
 	};
 
 	class StatisticsData :
-		public Singleton<StatisticsData>
+		public Singleton<StatisticsData>,
+		public RE::BSTEventSink<RE::TESDeathEvent>,
+		public RE::BSTEventSink<RE::TESResetEvent>
 	{
+		using EventResult = RE::BSEventNotifyControl;
+
 	public:
+		StatisticsData();
+
 		std::vector<RE::Actor*> GetTrackedActors() const;
 		ActorStats& GetStatistics(RE::Actor* a_key);
 		ActorEncounter* GetEncounter(RE::Actor* fst, RE::Actor* snd);
@@ -138,6 +144,9 @@ namespace Registry::Statistics
 		int GetNumberEncounters(RE::Actor* a_actor, ActorEncounter::EncounterType a_type);
 		int GetNumberEncounters(RE::Actor* a_actor, std::function<bool(const ActorEncounter::EncounterObj&)> a_pred);
 		int GetNumberEncounters(RE::Actor* a_actor, ActorEncounter::EncounterType a_type, std::function<bool(const ActorEncounter::EncounterObj&)> a_pred);
+
+		EventResult ProcessEvent(const RE::TESDeathEvent* a_event, RE::BSTEventSource<RE::TESDeathEvent>*) override;
+		EventResult ProcessEvent(const RE::TESResetEvent* a_event, RE::BSTEventSource<RE::TESResetEvent>*) override;
 
 		void Save(SKSE::SerializationInterface* a_intfc);
 		void Load(SKSE::SerializationInterface* a_intfc);

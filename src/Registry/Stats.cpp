@@ -255,6 +255,13 @@ namespace Registry::Statistics
 		a_intfc->WriteRecordData(_timesvictim);
 	}
 
+	StatisticsData::StatisticsData()
+	{
+		const auto script = RE::ScriptEventSourceHolder::GetSingleton();
+		script->AddEventSink<RE::TESDeathEvent>(this);
+		script->AddEventSink<RE::TESResetEvent>(this);
+	}
+
 	std::vector<RE::Actor*> StatisticsData::GetTrackedActors() const
 	{
 		std::vector<RE::Actor*> ret{};
@@ -399,6 +406,22 @@ namespace Registry::Statistics
 			}
 		}
 		return ret;
+	}
+
+	StatisticsData::EventResult StatisticsData::ProcessEvent(const RE::TESDeathEvent* a_event, RE::BSTEventSource<RE::TESDeathEvent>*)
+	{
+		if (!a_event || !a_event->actorDying)
+			return EventResult::kContinue;
+
+		DeleteStatistics(a_event->actorDying->formID);
+	}
+
+	StatisticsData::EventResult StatisticsData::ProcessEvent(const RE::TESResetEvent* a_event, RE::BSTEventSource<RE::TESResetEvent>*)
+	{
+		if (!a_event || !a_event->object || !a_event->object->IsNot(RE::FormType::ActorCharacter))
+			return EventResult::kContinue;
+
+		DeleteStatistics(a_event->object->formID);
 	}
 
 	void StatisticsData::Save(SKSE::SerializationInterface* a_intfc)
