@@ -205,6 +205,8 @@ namespace Registry::Statistics
 		a_intfc->ReadRecordData(_timesmet);
 		a_intfc->ReadRecordData(_timesaggressor);
 		a_intfc->ReadRecordData(_timesvictim);
+		a_intfc->ReadRecordData(_timesdominant);
+		a_intfc->ReadRecordData(_timessubmissive);
 	}
 
 	const ActorEncounter::EncounterObj* ActorEncounter::GetPartner(RE::Actor* a_actor) const
@@ -214,6 +216,20 @@ namespace Registry::Statistics
 		if (a_actor->formID == npc2.id)
 			return &npc2;
 		return nullptr;
+	}
+
+	uint8_t ActorEncounter::GetTimesSubmissive(RE::FormID a_id) const
+	{
+		return a_id == npc1.id ? _timessubmissive :
+					 a_id == npc2.id ? _timesdominant :
+														 0;
+	}
+
+	uint8_t ActorEncounter::GetTimesDominant(RE::FormID a_id) const
+	{
+		return a_id == npc1.id ? _timesdominant :
+					 a_id == npc2.id ? _timessubmissive :
+														 0;
 	}
 
 	uint8_t ActorEncounter::GetTimesVictim(RE::FormID a_id) const
@@ -237,10 +253,15 @@ namespace Registry::Statistics
 		switch (a_type) {
 		case EncounterType::Aggressor:
 			_timesaggressor++;
+			__fallthrough;
+		case EncounterType::Dominant:
+			_timesdominant++;
 			break;
 		case EncounterType::Victim:
 			_timesvictim++;
-		default:
+			__fallthrough;
+		case EncounterType::Submissive:
+			_timessubmissive++;
 			break;
 		}
 	}
@@ -253,6 +274,8 @@ namespace Registry::Statistics
 		a_intfc->WriteRecordData(_timesmet);
 		a_intfc->WriteRecordData(_timesaggressor);
 		a_intfc->WriteRecordData(_timesvictim);
+		a_intfc->WriteRecordData(_timesdominant);
+		a_intfc->WriteRecordData(_timessubmissive);
 	}
 
 	StatisticsData::StatisticsData()
@@ -369,6 +392,18 @@ namespace Registry::Statistics
 					return partner;
 				}
 				break;
+			case ActorEncounter::EncounterType::Submissive:
+				{
+					if (_encounters[i].GetTimesSubmissive(a_actor->formID) > 0) {
+						return partner;
+					}
+				}
+			case ActorEncounter::EncounterType::Dominant:
+				{
+					if (_encounters[i].GetTimesDominant(a_actor->formID) > 0) {
+						return partner;
+					}
+				}
 			}
 		}
 		return nullptr;
@@ -402,6 +437,12 @@ namespace Registry::Statistics
 				break;
 			case ActorEncounter::EncounterType::Aggressor:
 				ret += encounter.GetTimesAssailant(a_actor->formID);
+				break;
+			case ActorEncounter::EncounterType::Submissive:
+				ret += encounter.GetTimesSubmissive(a_actor->formID);
+				break;
+			case ActorEncounter::EncounterType::Dominant:
+				ret += encounter.GetTimesDominant(a_actor->formID);
 				break;
 			}
 		}

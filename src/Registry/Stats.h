@@ -77,7 +77,9 @@ namespace Registry::Statistics
 		{
 			Any = 0,
 			Victim = 1,
-			Aggressor = 2
+			Aggressor = 2,
+			Submissive = 3,
+			Dominant = 4
 		};
 
 		struct EncounterObj
@@ -103,6 +105,8 @@ namespace Registry::Statistics
 		const ActorEncounter::EncounterObj* GetPartner(RE::Actor* a_actor) const;
 		float GetLastTimeMet() const { return _lastmet; }
 		uint8_t GetTimesMet() const { return _timesmet; }
+		uint8_t GetTimesSubmissive(RE::FormID a_id) const;
+		uint8_t GetTimesDominant(RE::FormID a_id) const;
 		uint8_t GetTimesVictim(RE::FormID a_id) const;
 		uint8_t GetTimesAssailant(RE::FormID a_id) const;
 
@@ -114,6 +118,8 @@ namespace Registry::Statistics
 
 		float _lastmet;
 		uint8_t _timesmet;
+		uint8_t _timessubmissive;
+		uint8_t _timesdominant;
 		uint8_t _timesvictim;
 		uint8_t _timesaggressor;
 	};

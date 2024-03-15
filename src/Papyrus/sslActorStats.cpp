@@ -247,6 +247,27 @@ namespace Papyrus::ActorStats
 		return enc ? enc->GetTimesAssailant(a_actor->formID) : 0;
 	}
 
+	int GetTimesSubmissive(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner)
+	{
+		if (!a_actor || !a_partner) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0;
+		}
+		const auto enc = Registry::Statistics::StatisticsData::GetSingleton()->GetEncounter(a_actor, a_partner);
+		return enc ? enc->GetTimesSubmissive(a_actor->formID) : 0;
+	}
+
+
+	int GetTimesDominant(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner)
+	{
+		if (!a_actor || !a_partner) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0;
+		}
+		const auto enc = Registry::Statistics::StatisticsData::GetSingleton()->GetEncounter(a_actor, a_partner);
+		return enc ? enc->GetTimesDominant(a_actor->formID) : 0;
+	}
+
 	void ResetStatistics(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
 	{
 		if (!a_actor) {

@@ -58,6 +58,8 @@ namespace Papyrus::ActorStats
 	int GetTimesMet(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner);
 	int GetTimesVictimzed(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_assailant);
 	int GetTimesAssaulted(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_victim);
+		int GetTimesSubmissive(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner);
+	int GetTimesDominant(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner);
 
 	void ResetStatistics(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 
@@ -89,6 +91,8 @@ namespace Papyrus::ActorStats
 		REGISTERFUNC(GetTimesMet, "SexLabStatistics", true);
 		REGISTERFUNC(GetTimesVictimzed, "SexLabStatistics", true);
 		REGISTERFUNC(GetTimesAssaulted, "SexLabStatistics", true);
+		REGISTERFUNC(GetTimesSubmissive, "SexLabStatistics", true);
+		REGISTERFUNC(GetTimesDominant, "SexLabStatistics", true);
 
 		REGISTERFUNC(GetEveryStatisticID, "sslActorStats", true);
 		REGISTERFUNC(GetLegacyStatistic, "sslActorStats", true);
