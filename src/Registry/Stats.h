@@ -39,6 +39,7 @@ namespace Registry::Statistics
 		~ActorStats() = default;
 
 		void SetStatistic(StatisticID key, float value);
+		void AddStatistic(StatisticID key, float value);
 		float GetStatistic(StatisticID key) const;
 		std::vector<RE::BSFixedString> GetEveryCustomID() const;
 

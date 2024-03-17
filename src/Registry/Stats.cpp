@@ -97,6 +97,11 @@ namespace Registry::Statistics
 		_stats[key] = value;
 	}
 
+	void ActorStats::AddStatistic(StatisticID key, float value)
+	{
+		_stats[key] += value;
+	}
+
 	float ActorStats::GetStatistic(StatisticID key) const
 	{
 		return _stats[key];
