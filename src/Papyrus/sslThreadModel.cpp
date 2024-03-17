@@ -4,6 +4,7 @@
 #include "Registry/Animation.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
+#include "Registry/Stats.h"
 #include "Registry/Util/CellCrawler.h"
 #include "Registry/Util/Scale.h"
 
@@ -370,6 +371,126 @@ namespace Papyrus::ThreadModel
 			return 0;
 		}
 		return Sound::GetSingleton()->GetSoundType(a_qst->formID).underlying();
+	}
+
+	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions,
+		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		} else if (scene->CountPositions() != a_positions.size()) {
+			a_vm->TraceStack("Position cound does not match scene position count", a_stackID);
+			return;
+		}
+		int vaginal = 0, anal = 0, oral = 0;
+		for (auto&& it : a_playedstages) {
+			auto stage = scene->GetStageByKey(it);
+			if (!stage)
+				continue;
+
+			vaginal += stage->tags.HasTag(Registry::Tag::Vaginal);
+			anal += stage->tags.HasTag(Registry::Tag::Anal);
+			oral += stage->tags.HasTag(Registry::Tag::Oral);
+		}
+		const auto statdata = Registry::Statistics::StatisticsData::GetSingleton();
+		for (auto&& p : a_positions) {
+			if (!p)
+				continue;
+
+			auto& stats = statdata->GetStatistics(p);
+			stats.AddStatistic(stats.XP_Vaginal, vaginal * 1.25f);
+			stats.AddStatistic(stats.XP_Anal, anal * 1.25f);
+			stats.AddStatistic(stats.XP_Oral, oral * 1.25f);
+		}
+	}
+
+
+	void UpdateStatistics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions,
+		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return;
+		}
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		} else if (scene->CountPositions() != a_positions.size()) {
+			a_vm->TraceStack("Position cound does not match scene position count", a_stackID);
+			return;
+		}
+		auto& stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+		stats.SetStatistic(stats.LastUpdate_GameTime, RE::Calendar::GetSingleton()->GetCurrentGameTime());
+		stats.AddStatistic(stats.SecondsInScene, a_time);
+		stats.AddStatistic(stats.TimesTotal, 1);
+		if (scene->CountPositions() == 1) {
+			stats.AddStatistic(stats.TimesMasturbated, 1);
+			if (scene->CountSubmissives() == 1) {
+				stats.AddStatistic(stats.TimesSubmissive, 1);
+			}
+		} else {
+			int sub = 0;
+			for (size_t i = 0; i < a_positions.size(); i++) {
+				if (!a_positions[i])
+					continue;
+				if (a_positions[i] == a_actor) {
+					const auto& p = scene->GetNthPosition(i);
+					sub = p->IsSubmissive();
+					continue;
+				}
+				if (sub != 1 && scene->GetNthPosition(i)->IsSubmissive()) {
+					sub = -1;
+				}
+				if (Registry::IsNPC(a_positions[i])) {
+					switch (Registry::GetSex(a_positions[i])) {
+					case Registry::Sex::Male:
+						stats.AddStatistic(stats.PartnersMale, 1);
+						break;
+					case Registry::Sex::Female:
+						stats.AddStatistic(stats.PartnersFemale, 1);
+						break;
+					case Registry::Sex::Futa:
+						stats.AddStatistic(stats.PartnersFuta, 1);
+						break;
+					}
+				} else {
+					stats.AddStatistic(stats.PartnersCreature, 1);
+				}
+			}
+			switch (sub) {
+			case -1:
+				stats.AddStatistic(stats.TimesDominant, 1);
+				break;
+			case 1:
+				stats.AddStatistic(stats.TimesSubmissive, 1);
+				break;
+			}
+		}
+		int vaginal = 0, anal = 0, oral = 0;
+		for (auto&& it : a_playedstages) {
+			auto stage = scene->GetStageByKey(it);
+			if (!stage)
+				continue;
+
+			vaginal += stage->tags.HasTag(Registry::Tag::Vaginal);
+			anal += stage->tags.HasTag(Registry::Tag::Anal);
+			oral += stage->tags.HasTag(Registry::Tag::Oral);
+		}
+		if (vaginal) {
+			stats.AddStatistic(stats.TimesVaginal, 1);
+			stats.AddStatistic(stats.XP_Vaginal, vaginal * 1.25f);
+		}
+		if (anal) {
+			stats.AddStatistic(stats.TimesAnal, 1);
+			stats.AddStatistic(stats.XP_Anal, anal * 1.25f);
+		}
+		if (oral) {
+			stats.AddStatistic(stats.TimesOral, 1);
+			stats.AddStatistic(stats.XP_Oral, oral * 1.25f);
+		}
 	}
 
 }	 // namespace Papyrus::ThreadModel

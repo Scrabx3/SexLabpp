@@ -26,6 +26,11 @@ namespace Papyrus::ThreadModel
 	void UnregisterSFX(RE::TESQuest* a_qst);
 	uint32_t GetSFXType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst);
 
+	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions,	
+		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages);
+	void UpdateStatistics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions,
+		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time);
+
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(FindCenter, "sslThreadModel", true);
@@ -41,6 +46,9 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(RegisterSFX, "sslThreadModel", true);
 		REGISTERFUNC(UnregisterSFX, "sslThreadModel", true);
 		REGISTERFUNC(GetSFXType, "sslThreadModel", true);
+
+		REGISTERFUNC(AddExperience, "sslThreadModel", true);
+		REGISTERFUNC(UpdateStatistics, "sslThreadModel", true);
 
 		return true;
 	}
