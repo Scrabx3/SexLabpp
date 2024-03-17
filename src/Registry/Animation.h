@@ -141,6 +141,7 @@ namespace Registry
 
 		_NODISCARD uint32_t CountPositions() const;
 		_NODISCARD uint32_t CountSubmissives() const;
+		_NODISCARD const PositionInfo* GetNthPosition(size_t n) const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
 		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const;

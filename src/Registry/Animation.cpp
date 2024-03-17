@@ -489,6 +489,11 @@ namespace Registry
 		}
 		return ret;
 	}
+	
+	const PositionInfo* Scene::GetNthPosition(size_t n) const
+	{
+		return &positions[n];
+	}
 
 	uint32_t Scene::CountPositions() const
 	{
