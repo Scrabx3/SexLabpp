@@ -625,7 +625,7 @@ namespace Registry
 		if (a_positions.size() != this->positions.size())
 			return std::nullopt;
 		// Mark every position that every actor can be placed in
-		logger::info("Sorting actors for scene {}", this->name);
+		// logger::info("Sorting actors for scene {}", this->name);
 		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
 		compatibles.resize(a_positions.size());
 		for (size_t i = 0; i < a_positions.size(); i++) {
