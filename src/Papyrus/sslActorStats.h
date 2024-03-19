@@ -36,6 +36,7 @@ namespace Papyrus::ActorStats
 	};
 
 	std::vector<RE::Actor*> GetAllTrackedActors(RE::StaticFunctionTag*);
+	std::vector<RE::Actor*> GetAllTrackedUniqueActorsSorted(RE::StaticFunctionTag*);
 	void SetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id, float a_value);
 	float GetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id);
 	int GetSexuality(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);

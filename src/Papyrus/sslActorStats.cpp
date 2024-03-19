@@ -10,6 +10,24 @@ namespace Papyrus::ActorStats
 	{
 		return Registry::Statistics::StatisticsData::GetSingleton()->GetTrackedActors();
 	}
+	
+	std::vector<RE::Actor*> GetAllTrackedUniqueActorsSorted(RE::StaticFunctionTag*)
+	{
+		auto tracked =  Registry::Statistics::StatisticsData::GetSingleton()->GetTrackedActors();
+		std::erase_if(tracked, [](RE::Actor* act) {
+			const auto base = act->GetActorBase();
+			return !base || !base->IsUnique();
+		});
+		std::ranges::sort(tracked, [](RE::Actor* a, RE::Actor* b) {
+			if (a->IsPlayerRef())
+				return true;
+			if (b->IsPlayerRef())
+				return false;
+
+			return std::strcmp(a->GetDisplayFullName(), b->GetDisplayFullName()) < 0;
+		});
+		return tracked;
+	}
 
 	void SetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id, float a_value)
 	{
