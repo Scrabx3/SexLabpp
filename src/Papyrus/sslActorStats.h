@@ -40,6 +40,7 @@ namespace Papyrus::ActorStats
 	void SetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id, float a_value);
 	float GetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id);
 	int GetSexuality(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
+	void SetSexuality(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int mapping);
 	int MapSexuality(RE::StaticFunctionTag*, float a_sexuality);
 
 	std::vector<RE::BSFixedString> GetAllCustomStatIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
@@ -59,7 +60,7 @@ namespace Papyrus::ActorStats
 	int GetTimesMet(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner);
 	int GetTimesVictimzed(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_assailant);
 	int GetTimesAssaulted(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_victim);
-		int GetTimesSubmissive(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner);
+	int GetTimesSubmissive(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner);
 	int GetTimesDominant(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::Actor* a_partner);
 
 	void ResetStatistics(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
@@ -72,6 +73,7 @@ namespace Papyrus::ActorStats
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(GetAllTrackedActors, "SexLabStatistics", true);
+		REGISTERFUNC(GetAllTrackedUniqueActorsSorted, "SexLabStatistics", true);
 		REGISTERFUNC(SetStatistic, "SexLabStatistics", true);
 		REGISTERFUNC(GetStatistic, "SexLabStatistics", true);
 
@@ -94,6 +96,10 @@ namespace Papyrus::ActorStats
 		REGISTERFUNC(GetTimesAssaulted, "SexLabStatistics", true);
 		REGISTERFUNC(GetTimesSubmissive, "SexLabStatistics", true);
 		REGISTERFUNC(GetTimesDominant, "SexLabStatistics", true);
+
+		REGISTERFUNC(GetSexuality, "SexLabStatistics", true);
+		REGISTERFUNC(SetSexuality, "SexLabStatistics", true);
+		REGISTERFUNC(MapSexuality, "SexLabStatistics", true);
 
 		REGISTERFUNC(GetEveryStatisticID, "sslActorStats", true);
 		REGISTERFUNC(GetLegacyStatistic, "sslActorStats", true);

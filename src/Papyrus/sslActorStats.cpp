@@ -63,9 +63,39 @@ namespace Papyrus::ActorStats
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return 0;
 		}
-		const auto stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+		const auto& stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
 		const auto value = stats.GetStatistic(stats.Sexuality);
 		return MapSexuality(nullptr, value);
+	}
+
+	void SetSexuality(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int mapping)
+	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return;
+		}
+		auto& stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+		switch (mapping) {
+		case 0:
+			{
+				float value = static_cast<float>(100 - (Settings::iPercentageHetero / 2));
+				stats.SetStatistic(stats.Sexuality, value);
+			}
+			break;
+		case 1:
+			{
+				float value = static_cast<float>(Settings::iPercentageHomo / 2);
+				stats.SetStatistic(stats.Sexuality, value);
+			}
+			break;
+		case 2:
+			{
+				float range = 100.0f - Settings::iPercentageHetero - Settings::iPercentageHomo;
+				float value = Settings::iPercentageHomo + range / 2;
+				stats.SetStatistic(stats.Sexuality, value);
+			}
+			break;
+		}
 	}
 
 	int MapSexuality(RE::StaticFunctionTag*, float a_sexuality)
@@ -320,7 +350,7 @@ namespace Papyrus::ActorStats
 			return 0.0;
 		}
 		const auto statdata = Registry::Statistics::StatisticsData::GetSingleton();
-    const auto stats = statdata->GetStatistics(a_actor);
+    const auto& stats = statdata->GetStatistics(a_actor);
 		switch (LegacyStatistics(id)) {
 		case LegacyStatistics::L_Foreplay:
 			{
@@ -345,11 +375,11 @@ namespace Papyrus::ActorStats
 			}
 		case LegacyStatistics::Times_Males:
 			return static_cast<float>(statdata->GetNumberEncounters(a_actor, [](auto& it) {
-				return it.sex == Registry::Sex::Male && it.race == Registry::RaceKey::Human;
+				return (static_cast<int32_t>(it.sex) & static_cast<int32_t>(Registry::Sex::Male)) && it.race == Registry::RaceKey::Human;
 			}));
 		case LegacyStatistics::Times_Females:
 			return static_cast<float>(statdata->GetNumberEncounters(a_actor, [](auto& it) {
-				return it.sex == Registry::Sex::Female && it.race == Registry::RaceKey::Human;
+				return (static_cast<int32_t>(it.sex) & static_cast<int32_t>(Registry::Sex::Female)) && it.race == Registry::RaceKey::Human;
 			}));
 		case LegacyStatistics::Times_Creatures:
 			return static_cast<float>(statdata->GetNumberEncounters(a_actor, [](auto& it) {
@@ -431,7 +461,7 @@ namespace Papyrus::ActorStats
 			return;
 		}
 		const auto statdata = Registry::Statistics::StatisticsData::GetSingleton();
-		auto stats = statdata->GetStatistics(a_actor);
+		auto& stats = statdata->GetStatistics(a_actor);
 		switch (LegacyStatistics(id)) {
 		case LegacyStatistics::L_Foreplay:
 			stats.SetCustomFlt(Foreplay, a_value);
