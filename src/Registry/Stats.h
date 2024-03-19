@@ -12,8 +12,8 @@ namespace Registry::Statistics
 			LastUpdate_GameTime,
 			SecondsInScene,
 
-			XP_Anal,
 			XP_Vaginal,
+			XP_Anal,
 			XP_Oral,
 
 			PartnersMale,
@@ -28,7 +28,6 @@ namespace Registry::Statistics
 			TimesDominant,
 			TimesTotal,
 
-			SadoMasochismus,
 			Sexuality,
 			Arousal,
 
