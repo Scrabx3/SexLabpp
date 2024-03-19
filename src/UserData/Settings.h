@@ -32,7 +32,6 @@ struct Settings
 	static inline bool bUndressAnimation{ false };
 	static inline bool bSubmissivePlayer{ false };
 	static inline bool bSubmissiveTarget{ false };
-	static inline bool bBenchmark{ false };
 
 	// Integers
 	static inline int32_t iAskBed{ 1 };
@@ -258,7 +257,6 @@ struct Settings
 		ENTRY(iClimaxType),
 		ENTRY(bSubmissivePlayer),
 		ENTRY(bSubmissiveTarget),
-		ENTRY(bBenchmark),
 		ENTRY(sRequiredTags),
 		ENTRY(sExcludedTags),
 		ENTRY(sOptionalTags),
