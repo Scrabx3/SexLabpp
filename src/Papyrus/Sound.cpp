@@ -72,13 +72,13 @@ namespace Papyrus
 	void Sound::SoundProcess::Process()
 	{
 		constexpr auto interval = 64ms;
+		constexpr auto delta = static_cast<float>(interval.count());
 		for (auto&& d : data) {
-			d.Update(0.0f);
+			d.Update(delta);
 		}
 		while (_running) {
 			std::this_thread::sleep_for(interval);
 			for (auto&& d : data) {
-				const auto delta = static_cast<float>(interval.count());
 				d.Update(delta);
 			}
 		}
