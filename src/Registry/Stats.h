@@ -132,8 +132,6 @@ namespace Registry::Statistics
 		using EventResult = RE::BSEventNotifyControl;
 
 	public:
-		StatisticsData();
-
 		std::vector<RE::Actor*> GetTrackedActors() const;
 		ActorStats& GetStatistics(RE::Actor* a_key);
 		ActorEncounter* GetEncounter(RE::Actor* fst, RE::Actor* snd);
@@ -154,6 +152,7 @@ namespace Registry::Statistics
 		EventResult ProcessEvent(const RE::TESDeathEvent* a_event, RE::BSTEventSource<RE::TESDeathEvent>*) override;
 		EventResult ProcessEvent(const RE::TESResetEvent* a_event, RE::BSTEventSource<RE::TESResetEvent>*) override;
 
+		void Register();
 		void Save(SKSE::SerializationInterface* a_intfc);
 		void Load(SKSE::SerializationInterface* a_intfc);
 		void Revert(SKSE::SerializationInterface* a_intfc);

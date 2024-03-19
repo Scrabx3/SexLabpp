@@ -9,6 +9,7 @@
 #include "Papyrus/sslThreadLibrary.h"
 #include "Papyrus/sslThreadModel.h"
 #include "Registry/Library.h"
+#include "Registry/Stats.h"
 #include "Serialization.h"
 #include "UserData/StripData.h"
 
@@ -139,6 +140,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	serialization->SetLoadCallback(Serialization::Serialize::LoadCallback);
 	serialization->SetRevertCallback(Serialization::Serialize::RevertCallback);
 	serialization->SetFormDeleteCallback(Serialization::Serialize::FormDeleteCallback);
+
+	Registry::Statistics::StatisticsData::GetSingleton()->Register();
 
 	logger::info("Initialization complete");
 

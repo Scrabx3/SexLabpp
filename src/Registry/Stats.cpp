@@ -283,7 +283,7 @@ namespace Registry::Statistics
 		a_intfc->WriteRecordData(_timessubmissive);
 	}
 
-	StatisticsData::StatisticsData()
+	void StatisticsData::Register()
 	{
 		const auto script = RE::ScriptEventSourceHolder::GetSingleton();
 		script->AddEventSink<RE::TESDeathEvent>(this);
