@@ -460,6 +460,7 @@ namespace Registry::Statistics
 			return EventResult::kContinue;
 
 		DeleteStatistics(a_event->actorDying->formID);
+		return EventResult::kContinue;
 	}
 
 	StatisticsData::EventResult StatisticsData::ProcessEvent(const RE::TESResetEvent* a_event, RE::BSTEventSource<RE::TESResetEvent>*)
@@ -468,6 +469,7 @@ namespace Registry::Statistics
 			return EventResult::kContinue;
 
 		DeleteStatistics(a_event->object->formID);
+		return EventResult::kContinue;
 	}
 
 	void StatisticsData::Save(SKSE::SerializationInterface* a_intfc)

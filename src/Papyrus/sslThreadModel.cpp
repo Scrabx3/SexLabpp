@@ -373,7 +373,7 @@ namespace Papyrus::ThreadModel
 		return Sound::GetSingleton()->GetSoundType(a_qst->formID).underlying();
 	}
 
-	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions,
+	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest*, std::vector<RE::Actor*> a_positions,
 		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages)
 	{
 		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
@@ -407,7 +407,7 @@ namespace Papyrus::ThreadModel
 	}
 
 
-	void UpdateStatistics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions,
+	void UpdateStatistics(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions,
 		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time)
 	{
 		if (!a_actor) {
