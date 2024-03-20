@@ -78,20 +78,20 @@ namespace Papyrus::ActorStats
 		switch (mapping) {
 		case 0:
 			{
-				float value = static_cast<float>(100 - (Settings::iPercentageHetero / 2));
+				float value = static_cast<float>(100 - (Settings::fPercentageHetero / 2));
 				stats.SetStatistic(stats.Sexuality, value);
 			}
 			break;
 		case 1:
 			{
-				float value = static_cast<float>(Settings::iPercentageHomo / 2);
+				float value = static_cast<float>(Settings::fPercentageHomo / 2);
 				stats.SetStatistic(stats.Sexuality, value);
 			}
 			break;
 		case 2:
 			{
-				float range = 100.0f - Settings::iPercentageHetero - Settings::iPercentageHomo;
-				float value = Settings::iPercentageHomo + range / 2;
+				float range = 100.0f - Settings::fPercentageHetero - Settings::fPercentageHomo;
+				float value = Settings::fPercentageHomo + range / 2;
 				stats.SetStatistic(stats.Sexuality, value);
 			}
 			break;
@@ -106,9 +106,9 @@ namespace Papyrus::ActorStats
 			Homo = 1,
 			Bi = 2
 		};
-		if (a_sexuality < Settings::iPercentageHomo)
+		if (a_sexuality < Settings::fPercentageHomo)
 			return Homo;
-		if (a_sexuality < 1 - Settings::iPercentageHetero)
+		if (a_sexuality < 1 - Settings::fPercentageHetero)
 			return Bi;
 		return Hetero;
 	}
@@ -400,21 +400,21 @@ namespace Papyrus::ActorStats
 		case LegacyStatistics::Sexuality:
 			{
 				const auto sex = stats.GetStatistic(stats.Sexuality);
-				const auto retF = [&sex](int32_t start, int32_t range, float range_legacy) {
-					const auto perc = (sex - static_cast<float>(start)) / static_cast<float>(range);
+				const auto retF = [&sex](float start, float range, float range_legacy) {
+					const auto perc = (sex - start) / range;
 					return start + perc * range_legacy;
 				};
 				constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
 				static_assert(rHomo + rBi + rHetero == 100.0f);
-				if (sex < Settings::iPercentageHomo) {
-					return retF(0, Settings::iPercentageHomo, rHomo);
+				if (sex < Settings::fPercentageHomo) {
+					return retF(0, Settings::fPercentageHomo, rHomo);
 				}
-				const auto threshBi = 1 - Settings::iPercentageHetero;
+				const auto threshBi = 1 - Settings::fPercentageHetero;
 				if (sex < threshBi) {
-					const auto rangeBi = 1 - Settings::iPercentageHetero - Settings::iPercentageHomo;
-					return retF(Settings::iPercentageHomo, rangeBi, rBi);
+					const auto rangeBi = 1 - Settings::fPercentageHetero - Settings::fPercentageHomo;
+					return retF(Settings::fPercentageHomo, rangeBi, rBi);
 				}
-				return retF(threshBi, Settings::iPercentageHetero, rHetero);
+				return retF(threshBi, Settings::fPercentageHetero, rHetero);
 			}
 		case LegacyStatistics::TimeSpent:
 			return stats.GetStatistic(stats.SecondsInScene);
@@ -504,19 +504,21 @@ namespace Papyrus::ActorStats
 		case LegacyStatistics::Sexuality:
 			{
 				constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
-				auto setF = [&](int32_t start, int32_t range, float range_legacy) mutable {
-					float perc = (a_value - static_cast<float>(start)) / range_legacy;
-					const auto value = start + perc * static_cast<float>(range);
+				auto setF = [&](float start, float range, float range_legacy) mutable {
+					float perc = (a_value - start) / range_legacy;
+					const auto value = start + perc * range;
 					stats.SetStatistic(stats.Sexuality, value);
 				};
 				if (a_value < rHomo) {
-					setF(0, Settings::iPercentageHomo, rHomo);
+					setF(0, Settings::fPercentageHomo, rHomo);
+				} else {
+					const auto threshBi = 100 - Settings::fPercentageHetero;
+					if (a_value < rHomo + rBi) {
+						setF(Settings::fPercentageHomo, threshBi, rHomo + rBi);
+					} else {
+						setF(threshBi, Settings::fPercentageHetero, rHetero);
+					}
 				}
-				const auto threshBi = 1 - Settings::iPercentageHetero;
-				if (a_value < rHomo + rBi) {
-					setF(Settings::iPercentageHomo, threshBi, rHomo + rBi);
-				}
-				setF(threshBi, Settings::iPercentageHetero, rHetero);
 			}
 			break;
 		case LegacyStatistics::TimeSpent:

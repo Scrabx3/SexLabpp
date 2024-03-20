@@ -108,10 +108,10 @@ void Settings::InitializeINI()
 #define READINI(section, out) ReadIni(section, #out, out);
 
 	// Animation
-	READINI("Animation", iFurniturePrefWeight);
-	READINI("Animation", fScanRadius);
-	READINI("Animation", fMinScale);
-	READINI("Animation", bAllowDead);
+	READINI("Animation", iFurniturePrefWeight)
+	READINI("Animation", fScanRadius)
+	READINI("Animation", fMinScale)
+	READINI("Animation", bAllowDead)
 
 	// Creature
 	READINI("Creature", bAshHopper)
@@ -168,18 +168,24 @@ void Settings::InitializeINI()
 	READINI("Creature", bWolf)
 
 	// Statistics
-	READINI("Statistics", iPercentageHetero)
-	READINI("Statistics", iPercentageHomo)
+	READINI("Statistics", fPercentageHetero)
+	READINI("Statistics", fPercentageHomo)
+
+	if (fPercentageHetero + fPercentageHomo > 100) {
+		logger::error("Sexuality Percentage Settings must be at most 100.0");
+		fPercentageHetero = POPULATION_HETERO_DEFAULT;
+		fPercentageHomo = POPULATION_HOMO_DEFAULT;
+	}
 
 	// Distance
-	READINI("Distance", fDistanceHead);
-	READINI("Distance", fDistanceFoot);
-	READINI("Distance", fDistanceHand);
-	READINI("Distance", fDistanceCrotchFront);
-	READINI("Distance", fDistanceCrotchBack);
-	READINI("Distance", fDistanceCrotchBonus);
-	READINI("Distance", fAnglePenetration);
-	READINI("Distance", fAngleMouth);
+	READINI("Distance", fDistanceHead)
+	READINI("Distance", fDistanceFoot)
+	READINI("Distance", fDistanceHand)
+	READINI("Distance", fDistanceCrotchFront)
+	READINI("Distance", fDistanceCrotchBack)
+	READINI("Distance", fDistanceCrotchBonus)
+	READINI("Distance", fAnglePenetration)
+	READINI("Distance", fAngleMouth)
 
 #undef READINI
 

@@ -5,6 +5,9 @@ struct Settings
 	static constexpr const char* YAMLPATH{ "Data\\SKSE\\SexLab\\Settings.yaml" };
 	static constexpr const char* INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
 
+	static constexpr float POPULATION_HETERO_DEFAULT{ 80.0f };
+	static constexpr float POPULATION_HOMO_DEFAULT{ 8.0f };
+
 	static void Initialize();			// Pre LoadData
 	static void InitializeYAML();
 	static void InitializeINI();
@@ -156,8 +159,8 @@ struct Settings
 	static inline bool bWolf{ true };
 
 	// --- Statistics
-	static inline int32_t iPercentageHetero{ 80 };
-	static inline int32_t iPercentageHomo{ 8 };
+	static inline float fPercentageHetero{ POPULATION_HETERO_DEFAULT };
+	static inline float fPercentageHomo{ POPULATION_HOMO_DEFAULT };
 
 	// --- Distances
 	static inline float fDistanceHead{ 14.7f };	 // distance from head node to lips = 9.3

@@ -41,28 +41,28 @@ namespace Registry::Statistics
 			}
 			if (s != Sexuality::Bi && s != Sexuality::None) {
 				const auto chance = s == Sexuality::Hetero ?
-															Settings::iPercentageHetero + (Settings::iPercentageHomo / 2) :
-															Settings::iPercentageHomo + (Settings::iPercentageHetero / 2);
-				if (chance >= Random::draw<int32_t>(0, 99)) {
+															Settings::fPercentageHetero + (Settings::fPercentageHomo / 2) :
+															Settings::fPercentageHomo + (Settings::fPercentageHetero / 2);
+				if (chance >= Random::draw<float>(0, 99)) {
 					s = Sexuality::Bi;
 				}
 			}
 			switch (s) {
 			case Sexuality::Bi:
-				_stats[StatisticID::Sexuality] = static_cast<float>(Random::draw(Settings::iPercentageHomo, Settings::iPercentageHetero));
+				_stats[StatisticID::Sexuality] = Random::draw(Settings::fPercentageHomo, 100.0f - Settings::fPercentageHetero);
 				break;
 			case Sexuality::Hetero:
-				_stats[StatisticID::Sexuality] = static_cast<float>(Random::draw(Settings::iPercentageHetero, 100));
+				_stats[StatisticID::Sexuality] = Random::draw(100.0f - Settings::fPercentageHetero, 100.0f);
 				break;
 			case Sexuality::Homo:
-				_stats[StatisticID::Sexuality] = static_cast<float>(Random::draw(1, Settings::iPercentageHomo));
+				_stats[StatisticID::Sexuality] = Random::draw(1.0f, Settings::fPercentageHomo);
 				break;
 			default:
-				_stats[StatisticID::Sexuality] = Random::draw<float>(1.0f, 100.0f);
+				_stats[StatisticID::Sexuality] = Random::draw(1.0f, 100.0f);
 				break;
 			}
 		} else {
-			_stats[StatisticID::Sexuality] = owner->IsPlayerRef() ? 75.0f : Random::draw<float>(1.0f, 100.0f);
+			_stats[StatisticID::Sexuality] = owner->IsPlayerRef() ? 75.0f : Random::draw(1.0f, 100.0f);
 		}
 	}
 
