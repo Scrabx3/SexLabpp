@@ -49,7 +49,7 @@ namespace Registry::Statistics
 			}
 			switch (s) {
 			case Sexuality::Bi:
-				_stats[StatisticID::Sexuality] = Random::draw(Settings::fPercentageHomo, 100.0f - Settings::fPercentageHetero);
+				_stats[StatisticID::Sexuality] = owner->IsPlayerRef() ? 75.0f : Random::draw(Settings::fPercentageHomo, 100.0f - Settings::fPercentageHetero);
 				break;
 			case Sexuality::Hetero:
 				_stats[StatisticID::Sexuality] = Random::draw(100.0f - Settings::fPercentageHetero, 100.0f);

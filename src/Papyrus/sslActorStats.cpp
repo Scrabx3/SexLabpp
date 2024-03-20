@@ -10,10 +10,10 @@ namespace Papyrus::ActorStats
 	{
 		return Registry::Statistics::StatisticsData::GetSingleton()->GetTrackedActors();
 	}
-	
+
 	std::vector<RE::Actor*> GetAllTrackedUniqueActorsSorted(RE::StaticFunctionTag*)
 	{
-		auto tracked =  Registry::Statistics::StatisticsData::GetSingleton()->GetTrackedActors();
+		auto tracked = Registry::Statistics::StatisticsData::GetSingleton()->GetTrackedActors();
 		std::erase_if(tracked, [](RE::Actor* act) {
 			const auto base = act->GetActorBase();
 			return !base || !base->IsUnique();
@@ -108,7 +108,7 @@ namespace Papyrus::ActorStats
 		};
 		if (a_sexuality < Settings::fPercentageHomo)
 			return Homo;
-		if (a_sexuality < 1 - Settings::fPercentageHetero)
+		if (a_sexuality < 100.0f - Settings::fPercentageHetero)
 			return Bi;
 		return Hetero;
 	}
@@ -330,7 +330,7 @@ namespace Papyrus::ActorStats
 		const auto stats = Registry::Statistics::StatisticsData::GetSingleton();
 		std::vector<RE::BSFixedString> ret{};
 		stats->ForEachStatistic([&](Registry::Statistics::ActorStats& stats) {
-      const auto keys = stats.GetEveryCustomID();
+			const auto keys = stats.GetEveryCustomID();
 			for (auto&& key : keys) {
 				if (key == Purity || key == Lewdness || key == Foreplay)
 					continue;
@@ -350,7 +350,7 @@ namespace Papyrus::ActorStats
 			return 0.0;
 		}
 		const auto statdata = Registry::Statistics::StatisticsData::GetSingleton();
-    const auto& stats = statdata->GetStatistics(a_actor);
+		const auto& stats = statdata->GetStatistics(a_actor);
 		switch (LegacyStatistics(id)) {
 		case LegacyStatistics::L_Foreplay:
 			{
@@ -364,9 +364,9 @@ namespace Papyrus::ActorStats
 		case LegacyStatistics::XP_Oral:
 			return stats.GetStatistic(stats.XP_Oral);
 		case LegacyStatistics::L_Pure:
-      {
+			{
 				auto ret = stats.GetCustomFlt(Purity);
-        return ret ? *ret : 0;
+				return ret ? *ret : 0;
 			}
 		case LegacyStatistics::L_Lewd:
 			{
@@ -399,22 +399,23 @@ namespace Papyrus::ActorStats
 			}));
 		case LegacyStatistics::Sexuality:
 			{
-				const auto sex = stats.GetStatistic(stats.Sexuality);
-				const auto retF = [&sex](float start, float range, float range_legacy) {
-					const auto perc = (sex - start) / range;
-					return start + perc * range_legacy;
-				};
+				auto ret = stats.GetStatistic(stats.Sexuality);
 				constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
-				static_assert(rHomo + rBi + rHetero == 100.0f);
-				if (sex < Settings::fPercentageHomo) {
-					return retF(0, Settings::fPercentageHomo, rHomo);
+				const auto f = [&](float start, float range, float range_legacy) {
+					float perc = ret / range;
+					float value = start + perc * range_legacy;
+					return value;
+				};
+				if (ret < Settings::fPercentageHomo) {
+					return f(0, Settings::fPercentageHomo, rHomo);
 				}
-				const auto threshBi = 1 - Settings::fPercentageHetero;
-				if (sex < threshBi) {
-					const auto rangeBi = 1 - Settings::fPercentageHetero - Settings::fPercentageHomo;
-					return retF(Settings::fPercentageHomo, rangeBi, rBi);
+				ret -= Settings::fPercentageHomo;
+				const auto rangeBi = 100.0f - Settings::fPercentageHetero - Settings::fPercentageHomo;
+				if (ret < rBi) {
+					return f(rHomo, rangeBi, rBi);
 				}
-				return retF(threshBi, Settings::fPercentageHetero, rHetero);
+				ret -= rangeBi;
+				return f(rHomo + rBi, Settings::fPercentageHetero, rHetero);
 			}
 		case LegacyStatistics::TimeSpent:
 			return stats.GetStatistic(stats.SecondsInScene);
@@ -435,7 +436,7 @@ namespace Papyrus::ActorStats
 			return stats.GetStatistic(stats.TimesOral);
 		default:
 			a_vm->TraceStack(fmt::format("Invalid id {}", id).c_str(), a_stackID);
-      return 0.0;
+			return 0.0;
 		}
 	}
 
@@ -504,21 +505,24 @@ namespace Papyrus::ActorStats
 		case LegacyStatistics::Sexuality:
 			{
 				constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
-				auto setF = [&](float start, float range, float range_legacy) mutable {
-					float perc = (a_value - start) / range_legacy;
+				auto f = [&](float start, float range, float range_legacy) mutable {
+					float perc = a_value / range_legacy;
 					const auto value = start + perc * range;
 					stats.SetStatistic(stats.Sexuality, value);
 				};
 				if (a_value < rHomo) {
-					setF(0, Settings::fPercentageHomo, rHomo);
-				} else {
-					const auto threshBi = 100 - Settings::fPercentageHetero;
-					if (a_value < rHomo + rBi) {
-						setF(Settings::fPercentageHomo, threshBi, rHomo + rBi);
-					} else {
-						setF(threshBi, Settings::fPercentageHetero, rHetero);
-					}
+					f(0, Settings::fPercentageHomo, rHomo);
+					return;
 				}
+				a_value -= rHomo;
+				const auto rangeBi = 100.0f - Settings::fPercentageHetero - Settings::fPercentageHomo;
+				if (a_value < rBi) {
+					f(Settings::fPercentageHomo, rangeBi, rBi);
+					return;
+				}
+				a_value -= rBi;
+				const auto startHetero = Settings::fPercentageHomo + rangeBi;
+				f(startHetero, Settings::fPercentageHetero, rHetero);
 			}
 			break;
 		case LegacyStatistics::TimeSpent:
@@ -550,5 +554,4 @@ namespace Papyrus::ActorStats
 		}
 	}
 
-
-} // namespace Papyrus::ActorStats
+}	 // namespace Papyrus::ActorStats
