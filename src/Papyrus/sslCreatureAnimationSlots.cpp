@@ -150,7 +150,7 @@ namespace Papyrus::CreatureAnimationSlots
 		return RE::TESForm::LookupByEditorID<RE::TESRace>(a_id);
 	}
 
-	std::vector<RE::BSFixedString> GetAllRaceIDs(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_racekey)
+	std::vector<RE::BSFixedString> GetAllRaceIDs(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
 		const auto retVal = GetAllRaces(a_vm, a_stackID, nullptr, a_racekey);
 		std::vector<RE::BSFixedString> ret{};
@@ -160,7 +160,7 @@ namespace Papyrus::CreatureAnimationSlots
 		return ret;
 	}
 
-	std::vector<RE::TESRace*> GetAllRaces(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_racekey)
+	std::vector<RE::TESRace*> GetAllRaces(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
 		a_vm->TraceStack("Calling legacy function GetAllRaces(). It is highly recommended to no longer use this function.", a_stackID);
 		const auto matchkey = Registry::RaceHandler::GetRaceKey(a_racekey);
