@@ -1,5 +1,6 @@
 // #include "Hooks/Hooks.h"
 #include "Papyrus/SexLabRegistry.h"
+#include "Papyrus/SexLabUtil.h"
 #include "Papyrus/sslActorAlias.h"
 #include "Papyrus/sslActorLibrary.h"
 #include "Papyrus/sslActorStats.h"
@@ -131,6 +132,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	papyrus->Register(Papyrus::ThreadModel::Register);
 	papyrus->Register(Papyrus::SystemConfig::Register);
 	papyrus->Register(Papyrus::ActorStats::Register);
+	papyrus->Register(Papyrus::SexLabUtil::Register);
 
 	// Hooks::Install();
 

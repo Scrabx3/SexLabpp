@@ -50,6 +50,8 @@ set(CXX_FILES
 	src/Registry/Library.cpp
 	src/Registry/Misc.h
 	src/Registry/Misc.cpp
+	src/Registry/Physics.h
+	src/Registry/Physics.cpp
 	src/Registry/Stats.h
 	src/Registry/Stats.cpp
 	src/Registry/Validation.h
@@ -57,11 +59,12 @@ set(CXX_FILES
 
 	src/Papyrus/LegacyData.h
 	src/Papyrus/Serialize.h
+
 	src/Papyrus/Sound.h
 	src/Papyrus/Sound.cpp
-
 	src/Papyrus/SexLabRegistry.h
 	src/Papyrus/SexLabRegistry.cpp
+	src/Papyrus/SexLabUtil.h
 	src/Papyrus/sslActorAlias.h
 	src/Papyrus/sslActorAlias.cpp
 	src/Papyrus/sslActorLibrary.h

@@ -150,4 +150,35 @@ namespace Papyrus::CreatureAnimationSlots
 		return RE::TESForm::LookupByEditorID<RE::TESRace>(a_id);
 	}
 
+	std::vector<RE::BSFixedString> GetAllRaceIDs(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_racekey)
+	{
+		const auto retVal = GetAllRaces(a_vm, a_stackID, nullptr, a_racekey);
+		std::vector<RE::BSFixedString> ret{};
+		for (auto&& race : retVal) {
+			ret.push_back(race->formEditorID);
+		}
+		return ret;
+	}
+
+	std::vector<RE::TESRace*> GetAllRaces(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_racekey)
+	{
+		const auto matchkey = Registry::RaceHandler::GetRaceKey(a_racekey);
+		if (matchkey == Registry::RaceKey::None) {
+			a_vm->TraceStack(fmt::format("Invalid RaceKey: ", a_racekey.c_str()).c_str(), a_stackID);
+			return {};
+		}
+		std::vector<RE::TESRace*> ret{};
+		const auto& races = RE::TESDataHandler::GetSingleton()->GetFormArray<RE::TESRace>();
+		for (auto&& race : races) {
+			if (!race)
+				continue;
+			const auto racekey = Registry::RaceHandler::GetRaceKey(race);
+			if (!Registry::RaceHandler::IsCompatibleRaceKey(racekey, matchkey))
+				continue;
+			ret.push_back(race);
+		}
+		return ret;
+	}
+
+
 } // namespace Papyrus::CreatureAnimationSlots
