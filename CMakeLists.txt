@@ -51,7 +51,7 @@ else()
 endif()
 
 # ---- Dependencies ----
-add_subdirectory("./lib/CommonLibSSE" CommonLibSSE)
+add_subdirectory("./lib/CommonLibSSE-NG" CommonLibSSE)
 
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
