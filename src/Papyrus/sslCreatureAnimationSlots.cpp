@@ -162,6 +162,7 @@ namespace Papyrus::CreatureAnimationSlots
 
 	std::vector<RE::TESRace*> GetAllRaces(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_racekey)
 	{
+		a_vm->TraceStack("Calling legacy function GetAllRaces(). It is highly recommended to no longer use this function.", a_stackID);
 		const auto matchkey = Registry::RaceHandler::GetRaceKey(a_racekey);
 		if (matchkey == Registry::RaceKey::None) {
 			a_vm->TraceStack(fmt::format("Invalid RaceKey: ", a_racekey.c_str()).c_str(), a_stackID);
