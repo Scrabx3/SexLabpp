@@ -50,6 +50,8 @@ set(CXX_FILES
 	src/Registry/Library.cpp
 	src/Registry/Misc.h
 	src/Registry/Misc.cpp
+	src/Registry/Physics.h
+	src/Registry/Physics.cpp
 	src/Registry/Stats.h
 	src/Registry/Stats.cpp
 	src/Registry/Validation.h
