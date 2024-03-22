@@ -1,4 +1,3 @@
-// #include "Hooks/Hooks.h"
 #include "Papyrus/SexLabRegistry.h"
 #include "Papyrus/SexLabUtil.h"
 #include "Papyrus/sslActorAlias.h"
@@ -49,29 +48,10 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	}
 }
 
-#ifdef SKYRIM_SUPPORT_AE
-extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
-	SKSE::PluginVersionData v;
-	v.PluginVersion(Plugin::VERSION);
-	v.PluginName(Plugin::NAME);
-	v.AuthorName("Scrab Joséline"sv);
-	v.UsesAddressLibrary();
-	v.UsesUpdatedStructs();
-	v.CompatibleVersions({ SKSE::RUNTIME_LATEST });
-	return v;
-}();
-#else
-extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* a_info)
-{
-	a_info->infoVersion = SKSE::PluginInfo::kVersion;
-	a_info->name = Plugin::NAME.data();
-	a_info->version = Plugin::VERSION.pack();
-	return true;
-}
-#endif
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
+
 	const auto InitLogger = []() -> bool {
 #ifndef NDEBUG
 		auto sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
@@ -147,5 +127,23 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	logger::info("Initialization complete");
 
+	return true;
+}
+
+extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() noexcept {
+	SKSE::PluginVersionData v;
+	v.PluginName(Plugin::NAME.data());
+	v.PluginVersion(Plugin::VERSION);
+	v.AuthorName("Scrab Joséline"sv);
+	v.UsesAddressLibrary(true);
+	v.HasNoStructUse();
+	return v;
+}();
+
+extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* pluginInfo)
+{
+	pluginInfo->name = SKSEPlugin_Version.pluginName;
+	pluginInfo->infoVersion = SKSE::PluginInfo::kVersion;
+	pluginInfo->version = SKSEPlugin_Version.pluginVersion;
 	return true;
 }
