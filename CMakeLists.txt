@@ -6,8 +6,8 @@ set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # ---- Project ----
 project(
-    SexLab
-    VERSION 2.4.0.0
+    SexLabUtil
+    VERSION 2.5.1.0
     LANGUAGES CXX
 )
 

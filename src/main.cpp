@@ -51,7 +51,6 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
-
 	const auto InitLogger = []() -> bool {
 #ifndef NDEBUG
 		auto sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
@@ -136,7 +135,7 @@ extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() noexcept {
 	v.PluginVersion(Plugin::VERSION);
 	v.AuthorName("Scrab Joséline"sv);
 	v.UsesAddressLibrary(true);
-	v.HasNoStructUse();
+	v.UsesStructsPost629();
 	return v;
 }();
 
