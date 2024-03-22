@@ -14,11 +14,12 @@ int32_t Registry::IsValidActorImpl(RE::Actor* a_actor)
 		return -12;
 	else if (a_actor->IsDisabled())
 		return -14;
-
-	const auto lifestate = a_actor->GetLifeState();
+	
+	const auto actorState = a_actor->AsActorState();
+	const auto lifestate = actorState->GetLifeState();
 	if (!Settings::bAllowDead && (lifestate == RE::ACTOR_LIFE_STATE::kDead || lifestate == RE::ACTOR_LIFE_STATE::kDying))
 		return -13;
-	else if (a_actor->IsFlying())
+	else if (actorState->IsFlying())
 		return -15;
 	else if (a_actor->IsOnMount())
 		return -16;
