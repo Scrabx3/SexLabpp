@@ -6,8 +6,8 @@ set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # ---- Project ----
 project(
-    SexLabUtil
-    VERSION 2.5.1.0
+    SexLab
+    VERSION 2.4.0.0
     LANGUAGES CXX
 )
 
@@ -51,7 +51,7 @@ else()
 endif()
 
 # ---- Dependencies ----
-add_subdirectory("./lib/CommonLibSSE-NG" CommonLibSSE)
+add_subdirectory("./lib/CommonLibSSE" CommonLibSSE)
 
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)

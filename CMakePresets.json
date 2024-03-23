@@ -15,7 +15,7 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": {
             "type": "STRING",
-            "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            "value": "$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake"
         }
       },
       "hidden": true,
@@ -54,11 +54,6 @@
       "hidden": true
     },
     {
-      "cacheVariables": {
-        "ENABLE_SKYRIM_AE": false,
-        "ENABLE_SKYRIM_SE": true,
-        "ENABLE_SKYRIM_VR": false
-      },
       "binaryDir": "${sourceDir}/build/vs2022-SE",
       "inherits": [
         "vs2022-windows-vcpkg"
@@ -67,27 +62,14 @@
     },
     {
       "cacheVariables": {
-        "ENABLE_SKYRIM_AE": true,
-        "ENABLE_SKYRIM_SE": false,
-        "ENABLE_SKYRIM_VR": false
+        "SKYRIM_SUPPORT_AE": true,
+        "SKYRIM_AE": true
       },
       "binaryDir": "${sourceDir}/build/vs2022-AE",
       "inherits": [
         "vs2022-windows-vcpkg"
       ],
       "name": "vs2022-windows-vcpkg-ae"
-    },
-    {
-      "cacheVariables": {
-        "ENABLE_SKYRIM_AE": true,
-        "ENABLE_SKYRIM_SE": true,
-        "ENABLE_SKYRIM_VR": true
-      },
-      "binaryDir": "${sourceDir}/build/vs2022-ALL",
-      "inherits": [
-        "vs2022-windows-vcpkg"
-      ],
-      "name": "vs2022-windows-vcpkg-all"
     }
   ],
   "buildPresets": [
@@ -117,20 +99,6 @@
       "description": "",
       "displayName": "",
       "configurePreset": "vs2022-windows-vcpkg-ae",
-      "configuration": "Debug"
-    },
-    {
-      "name": "vs2022-windows-vcpkg-all-Release",
-      "description": "",
-      "displayName": "",
-      "configurePreset": "vs2022-windows-vcpkg-all",
-      "configuration": "Release"
-    },
-    {
-      "name": "vs2022-windows-vcpkg-all-Debug",
-      "description": "",
-      "displayName": "",
-      "configurePreset": "vs2022-windows-vcpkg-all",
       "configuration": "Debug"
     }
   ],

@@ -8,10 +8,7 @@
     "spdlog",
     "simpleini",
     "yaml-cpp",
-    "glm",
-    "directxtk",
-    "catch2",
-    "rapidcsv"
+    "glm"
   ],
   "overrides": [
     {

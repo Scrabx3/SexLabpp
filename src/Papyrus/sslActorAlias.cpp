@@ -16,8 +16,6 @@ namespace Papyrus::ActorAlias
 			a_vm->TraceStack("LockActorImpl requires the filled reference to be an actor", a_stackID);
 			return;
 		}
-
-		const auto actorState = actor->AsActorState();
 		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(true);
 
@@ -35,9 +33,9 @@ namespace Papyrus::ActorAlias
 				}
 			}
 
-			actorState->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
+			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
 		} else {
-			actorState->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
+			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
 		}
 
 		actor->StopCombat();
@@ -47,7 +45,7 @@ namespace Papyrus::ActorAlias
 		actor->StopInteractingQuick(true);
 		actor->SetCollision(false);
 
-		if (const auto process = actor->GetActorRuntimeData().currentProcess) {
+		if (const auto process = actor->currentProcess) {
 			process->ClearMuzzleFlashes();
 		}
 		actor->StopMoving(1.0f);
@@ -65,7 +63,7 @@ namespace Papyrus::ActorAlias
 			return;
 		}
 		Registry::Scale::GetSingleton()->RemoveScale(actor);
-		actor->AsActorState()->actorState1.lifeState = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kHealth) <= 0 ? RE::ACTOR_LIFE_STATE::kDying : RE::ACTOR_LIFE_STATE::kAlive;
+		actor->actorState1.lifeState = actor->GetActorValue(RE::ActorValue::kHealth) <= 0 ? RE::ACTOR_LIFE_STATE::kDying : RE::ACTOR_LIFE_STATE::kAlive;
 		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(false);
 		}
@@ -158,12 +156,9 @@ namespace Papyrus::ActorAlias
 				}
 			}
 		}
-
-		const auto currProcess = actor->GetActorRuntimeData().currentProcess;
-
-		if (weapon && currProcess) {
-			a_mergewith[Left] = currProcess->GetEquippedLeftHand();
-			a_mergewith[Right] = currProcess->GetEquippedRightHand();
+		if (weapon && actor->currentProcess) {
+			a_mergewith[Left] = actor->currentProcess->GetEquippedLeftHand();
+			a_mergewith[Right] = actor->currentProcess->GetEquippedRightHand();
 		}
 
 		const auto stripconfig = UserData::StripData::GetSingleton();

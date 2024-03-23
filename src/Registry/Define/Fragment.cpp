@@ -43,8 +43,8 @@ namespace Registry
 			}
 			break;
 		}
-		
-		if (a_actor->IsDead() || a_actor->AsActorState()->IsUnconscious()) {
+
+		if (a_actor->IsDead() || a_actor->IsUnconscious()) {
 			ret.set(PositionFragment::Unconscious);
 		} else if (a_submissive) {
 			ret.set(PositionFragment::Submissive);
