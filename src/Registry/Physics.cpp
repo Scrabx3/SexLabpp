@@ -2,6 +2,8 @@
 
 namespace Registry
 {
+	// using WorkingData = Physics::PhysicsData::WorkingData;
+
 	Physics::Position::Nodes::Nodes(const RE::Actor* a_actor)
 	{
 		const auto obj = a_actor->Get3D();
@@ -45,18 +47,60 @@ namespace Registry
 			return nullptr;
 		};
 		// if (a_alternatenodes) {
-		sos_base = RE::NiPointer{ findschlong(SOSSTART_ALT) };
-		sos_mid = RE::NiPointer{ findschlong(SOSMID_ALT) };
-		sos_front = RE::NiPointer{ findschlong(SOSTIP_ALT) };
+		// sos_base = RE::NiPointer{ findschlong(SOSSTART_ALT) };
+		// sos_mid = RE::NiPointer{ findschlong(SOSMID_ALT) };
+		// sos_front = RE::NiPointer{ findschlong(SOSTIP_ALT) };
 		// } else {
-		// 	sos_base = RE::NiPointer{ findschlong(SOSSTART) };
-		// 	sos_mid = RE::NiPointer{ findschlong(SOSMID) };
-		// 	sos_front = RE::NiPointer{ findschlong(SOSTIP) };
+		sos_base = RE::NiPointer{ findschlong(SOSSTART) };
+		sos_mid = RE::NiPointer{ findschlong(SOSMID) };
+		sos_front = RE::NiPointer{ findschlong(SOSTIP) };
 		// }
 	}
 
 	Physics::Position::Position(RE::Actor* a_owner) :
 		_owner(a_owner->GetFormID()), _sex(Registry::GetSex(a_owner)), _nodes(a_owner) {}
+
+	Physics::PhysicsData::WorkingData::WorkingData(Position& a_position) :
+		_position(a_position),
+		vCrotch(a_position._nodes.pelvis->world.translate - a_position._nodes.spine_lower->world.translate),
+		vSchlong([&]() {
+			const auto& nodes = a_position._nodes;
+			if (!nodes.sos_mid)
+				return RE::NiPoint3::Zero();
+			if (nodes.sos_base) {
+				return nodes.sos_mid->world.translate - nodes.sos_base->world.translate;
+			} else if (nodes.sos_front) {
+				return nodes.sos_front->world.translate - nodes.sos_mid->world.translate;
+			}
+			return RE::NiPoint3::Zero();
+		}())
+	{
+		vCrotch.Unitize();
+		vSchlong.Unitize();
+	}
+
+	std::optional<Physics::TypeData> Physics::PhysicsData::WorkingData::GetOral(const WorkingData& a_partner) const
+	{
+		const auto& headworld = a_partner._position._nodes.head->world;
+		const auto& thisref = this->vSchlong == RE::NiPoint3::Zero() ?
+			this->_position._nodes.clitoris : this->_position._nodes.sos_mid;
+		auto distance = thisref->world.translate.GetDistance(headworld.translate);
+		if (distance > Settings::fDistanceHead)
+			return std::nullopt;
+		if (this->vSchlong != RE::NiPoint3::Zero()) {
+			const auto vRot = headworld.rotate * vSchlong;
+			const auto dot = vRot.Dot(this->vSchlong);
+			const auto rad = std::acosf(dot);
+			if (RE::rad_to_deg(rad) > 15) {
+				return std::nullopt;
+			}
+		}
+		TypeData ret{};
+		ret._distance = distance;
+		ret._partner = a_partner._position._owner;
+		ret._type = TypeData::Type::Oral;
+		return ret;
+	}
 
 	Physics::PhysicsData::PhysicsData(std::vector<RE::Actor*> a_positions) :
 		_positions([&]() {
@@ -70,10 +114,10 @@ namespace Registry
 		_tactive(true), _t(&Physics::PhysicsData::Update, this) {}
 
 	Physics::PhysicsData::~PhysicsData()
-  {
-    _tactive = false;
-    _t.join();
-  }
+	{
+		_tactive = false;
+		_t.join();
+	}
 
 	void Physics::PhysicsData::Update()
 	{

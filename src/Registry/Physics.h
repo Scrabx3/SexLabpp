@@ -42,25 +42,26 @@ namespace Registry
 	class Physics :
 		public Singleton<Physics>
 	{
-		enum class Type
+		struct TypeData
 		{
-			None = 0,
-			// "passive"/receiving
-			pVaginal = 1 << 0,
-			pAnal = 1 << 1,
-			pOral = 1 << 2,
-			pFoot = 1 << 5,
-			pHand = 1 << 6,
-			pArmpit = 1 << 7,
-			pGrinding = 1 << 8,
-			// "active"/giving
-			aVaginal = 1 << 9,
-			aAnal = 1 << 12,
-			aOral = 1 << 13,
-			aFoot = 1 << 14,
-			aHand = 1 << 15,
-			aArmpit = 1 << 16,
-			aGrinding = 1 << 17,
+			enum class Type
+			{
+				Vaginal = 0,
+				Anal = 1,
+				Oral = 2,
+				Foot = 3,
+				Hand = 4,
+				Armpit = 5,
+				Grinding = 6,
+
+				Total,
+			};
+
+			RE::FormID _partner;	// actor performing type
+			Type _type;						// action type performed by partner
+
+			float _velocity;
+			float _distance;
 		};
 
 		struct Position
@@ -99,17 +100,38 @@ namespace Registry
 				RE::NiPoint3 ApproximateNode(float a_forward, float a_upward) const;
 			};
 
+			struct Snapshot
+			{
+				Snapshot(const Nodes& a_nodes);
+				~Snapshot() = default;
+			};
+
 		public:
 			Position(RE::Actor* a_owner);
 			~Position() = default;
 
+		public:
 			RE::FormID _owner;
 			Sex _sex;
 			Nodes _nodes;
+			std::vector<TypeData> _activetypes;
 		};
 
 		class PhysicsData
 		{
+			struct WorkingData
+			{
+				WorkingData(Position& a_position);
+				~WorkingData() = default;
+
+				std::optional<TypeData> GetOral(const WorkingData& a_partner) const;	// this is receiving oral from other
+
+			public:
+				Position& _position;
+				RE::NiPoint3 vCrotch;
+				RE::NiPoint3 vSchlong;
+			};
+
 		public:
 			PhysicsData(std::vector<RE::Actor*> a_positions);
 			~PhysicsData();
