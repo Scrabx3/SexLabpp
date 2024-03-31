@@ -163,14 +163,13 @@ struct Settings
 	static inline float fPercentageHomo{ POPULATION_HOMO_DEFAULT };
 
 	// --- Distances
-	static inline float fDistanceHead{ 14.7f };	 // distance from head node to lips = 9.3
-	static inline float fDistanceFoot{ 13.3f };	 // ~7.2 distance to foot middle
-	static inline float fDistanceHand{ 8.3f };	 // ~2.2 distance to surface
-	static inline float fDistanceCrotchFront{ 7.0f };
-	static inline float fDistanceCrotchBack{ 9.0f };
-	static inline float fDistanceCrotchBonus{ 10.0f };	// Additional distance if the measures are taken from
-	static inline float fAnglePenetration{ 35.0f };			// Angle relative to crotch area below which the schlong is no longer considered penetrating
-	static inline float fAngleMouth{ 30.0f };						// Angle of the cone from headnode to schlong that interprets the schlong in front of mouth
+	static inline float fDistanceHead{ 14.7f };			 // distance from head node to lips = 9.3
+	static inline float fDistanceFoot{ 13.3f };			 // ~7.2 distance to foot middle
+	static inline float fDistanceHand{ 8.3f };			 // ~2.2 distance to surface
+	static inline float fDistanceCrotch{ 18.0f };		 // Distance from Pelvis/Hip node to crotch
+	static inline float fAnglePenetration{ 35.0f };	 // Angle relative to crotch area below which the schlong is no longer considered penetrating
+	static inline float fAngleGrinding{ 30.0f };	// angle for schlong and cortch to be considered "parallel"
+	static inline float fAngleMouth{ 30.0f };	 // Angle of the cone from headnode to schlong that interprets the schlong in front of mouth
 
 	// --- Misc
 	static inline std::vector<RE::FormID> SOS_ExcludeFactions{};

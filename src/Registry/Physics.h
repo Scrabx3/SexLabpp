@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Registry/Define/Sex.h"
+#include "Registry/Animation.h"
 
 namespace Registry
 {
@@ -46,13 +47,14 @@ namespace Registry
 		{
 			enum class Type
 			{
-				Vaginal = 0,
-				Anal = 1,
-				Oral = 2,
-				Foot = 3,
-				Hand = 4,
-				Armpit = 5,
-				Grinding = 6,
+				VaginalP = 0,	 // being penetrated (passive)
+				AnalP = 1,
+				VaginalA = 2,	 // penetrating (active)
+				AnalA = 3,
+				Oral = 4,
+				Foot = 5,
+				Hand = 6,
+				Grinding = 7,
 
 				Total,
 			};
@@ -68,7 +70,7 @@ namespace Registry
 		{
 			struct Nodes
 			{
-				Nodes(const RE::Actor* a_actor);
+				Nodes(const RE::Actor* a_actor, bool a_alternatenodes);
 				~Nodes() = default;
 
 				RE::NiPointer<RE::NiAVObject> head;
@@ -81,15 +83,9 @@ namespace Registry
 				RE::NiPointer<RE::NiAVObject> foot_rigt;
 
 				RE::NiPointer<RE::NiAVObject> clitoris;
-				RE::NiPointer<RE::NiAVObject> vagina_deep;
-				RE::NiPointer<RE::NiAVObject> vagina_left;
-				RE::NiPointer<RE::NiAVObject> vagina_right;
 				RE::NiPointer<RE::NiAVObject> sos_base;
 				RE::NiPointer<RE::NiAVObject> sos_mid;
 				RE::NiPointer<RE::NiAVObject> sos_front;
-				RE::NiPointer<RE::NiAVObject> anal_deep;
-				RE::NiPointer<RE::NiAVObject> anal_left;
-				RE::NiPointer<RE::NiAVObject> anal_right;
 
 			public:
 				RE::NiPoint3 ApproximateTip() const;
@@ -100,21 +96,17 @@ namespace Registry
 				RE::NiPoint3 ApproximateNode(float a_forward, float a_upward) const;
 			};
 
-			struct Snapshot
-			{
-				Snapshot(const Nodes& a_nodes);
-				~Snapshot() = default;
-			};
-
 		public:
-			Position(RE::Actor* a_owner);
+			Position(RE::Actor* a_owner, Sex a_sex);
 			~Position() = default;
+
+			std::optional<Physics::TypeData*> GetType(TypeData& a_data);
 
 		public:
 			RE::FormID _owner;
-			Sex _sex;
+			stl::enumeration<Sex> _sex;
 			Nodes _nodes;
-			std::vector<TypeData> _activetypes;
+			std::vector<TypeData> _types;
 		};
 
 		class PhysicsData
@@ -124,16 +116,21 @@ namespace Registry
 				WorkingData(Position& a_position);
 				~WorkingData() = default;
 
-				std::optional<TypeData> GetOral(const WorkingData& a_partner) const;	// this is receiving oral from other
+				std::optional<TypeData> GetsOral(const WorkingData& a_partner) const;				 // a_partner giving oral to this
+				std::optional<TypeData> GetsHandjob(const WorkingData& a_partner) const;		 // a_partner pleasuring this with hands
+				std::optional<TypeData> GetsFootjob(const WorkingData& a_partner) const;		 //  --- "" --- feet
+				std::optional<TypeData> DoesGrinidng(const WorkingData& a_partner) const;		 // a_partner penetrating this
+				std::optional<TypeData> HasIntercourse(const WorkingData& a_partner) const;	 // a_partner penetrating this
 
 			public:
 				Position& _position;
+				RE::NiPoint3 pGenitalReference;
 				RE::NiPoint3 vCrotch;
 				RE::NiPoint3 vSchlong;
 			};
 
 		public:
-			PhysicsData(std::vector<RE::Actor*> a_positions);
+			PhysicsData(std::vector<RE::Actor*> a_positions, Scene* a_scene);
 			~PhysicsData();
 
 		private:
@@ -146,7 +143,7 @@ namespace Registry
 		};
 
 	public:
-		void Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions) noexcept;
+		void Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, Scene* a_scene) noexcept;
 		void Unregister(RE::FormID a_id) noexcept;
 
 	private:

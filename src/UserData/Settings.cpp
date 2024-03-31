@@ -181,10 +181,9 @@ void Settings::InitializeINI()
 	READINI("Distance", fDistanceHead)
 	READINI("Distance", fDistanceFoot)
 	READINI("Distance", fDistanceHand)
-	READINI("Distance", fDistanceCrotchFront)
-	READINI("Distance", fDistanceCrotchBack)
-	READINI("Distance", fDistanceCrotchBonus)
+	READINI("Distance", fDistanceCrotch)
 	READINI("Distance", fAnglePenetration)
+	READINI("Distance", fAngleGrinding)
 	READINI("Distance", fAngleMouth)
 
 #undef READINI

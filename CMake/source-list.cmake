@@ -60,8 +60,8 @@ set(CXX_FILES
 	src/Papyrus/LegacyData.h
 	src/Papyrus/Serialize.h
 
-	src/Papyrus/Sound.h
-	src/Papyrus/Sound.cpp
+	# src/Papyrus/Sound.h
+	# src/Papyrus/Sound.cpp
 	src/Papyrus/SexLabRegistry.h
 	src/Papyrus/SexLabRegistry.cpp
 	src/Papyrus/SexLabUtil.h
