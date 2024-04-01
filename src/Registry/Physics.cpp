@@ -340,6 +340,10 @@ namespace Registry
 	void Physics::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept
 	{
 		try {
+			const auto where = std::ranges::find(_data, a_id, [](auto& it) { return it.first; });
+			if (where != _data.end()) {
+				_data.erase(where);
+			}
 			auto process = std::make_unique<PhysicsData>(a_positions, a_scene);
 			_data.emplace_back(a_id, std::move(process));
 		} catch (const std::exception& e) {
