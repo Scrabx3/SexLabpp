@@ -1,9 +1,9 @@
 #include "sslThreadModel.h"
 
-#include "Papyrus/Sound.h"
 #include "Registry/Animation.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
+#include "Registry/Physics.h"
 #include "Registry/Stats.h"
 #include "Registry/Util/CellCrawler.h"
 #include "Registry/Util/Scale.h"
@@ -350,27 +350,24 @@ namespace Papyrus::ThreadModel
 		std::ranges::shuffle(start, a_scenes.end(), gen);
 	}
 
-	bool RegisterSFX(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions)
+	bool IsPhysicsRegistered(RE::TESQuest* a_qst)
 	{
-		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
-			a_vm->TraceStack("Array is empty or contains none", a_stackID);
-			return false;
-		}
-		return Sound::GetSingleton()->RegisterProcessing(a_qst->formID, a_positions);
+		return Registry::Physics::GetSingleton()->IsRegistered(a_qst->formID);
 	}
 
-	void UnregisterSFX(RE::TESQuest* a_qst)
+	void RegisterPhysics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene)
 	{
-		Sound::GetSingleton()->UnregisterProcessing(a_qst->formID);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_activescene);
+		if (!scene || scene->CountPositions() != a_positions.size()) {
+			a_vm->TraceStack("Invalid scene", a_stackID);
+			return;
+		}
+		Registry::Physics::GetSingleton()->Register(a_qst->formID, a_positions, scene);
 	}
 
-	uint32_t GetSFXType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst)
+	void UnregisterPhysics(RE::TESQuest* a_qst)
 	{
-		if (!a_qst) {
-			a_vm->TraceStack("Cannot call 'GetSFXType' on a none object", a_stackID);
-			return 0;
-		}
-		return Sound::GetSingleton()->GetSoundType(a_qst->formID).underlying();
+		Registry::Physics::GetSingleton()->Unregister(a_qst->formID);
 	}
 
 	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest*, std::vector<RE::Actor*> a_positions,

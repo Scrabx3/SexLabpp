@@ -22,9 +22,9 @@ namespace Papyrus::ThreadModel
 	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext);
 	void ShuffleScenes(RE::TESQuest*, RE::reference_array<RE::BSFixedString> a_scenes, RE::BSFixedString a_tofront);
 
-	bool RegisterSFX(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions);
-	void UnregisterSFX(RE::TESQuest* a_qst);
-	uint32_t GetSFXType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst);
+	bool IsPhysicsRegistered(RE::TESQuest* a_qst);
+	void RegisterPhysics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene);
+	void UnregisterPhysics(RE::TESQuest* a_qst);
 
 	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions,	
 		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages);
@@ -43,9 +43,9 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
 		REGISTERFUNC(ShuffleScenes, "sslThreadModel", true);
 
-		REGISTERFUNC(RegisterSFX, "sslThreadModel", true);
-		REGISTERFUNC(UnregisterSFX, "sslThreadModel", true);
-		REGISTERFUNC(GetSFXType, "sslThreadModel", true);
+		REGISTERFUNC(IsPhysicsRegistered, "sslThreadModel", true);
+		REGISTERFUNC(RegisterPhysics, "sslThreadModel", true);
+		REGISTERFUNC(UnregisterPhysics, "sslThreadModel", true);
 
 		REGISTERFUNC(AddExperience, "sslThreadModel", true);
 		REGISTERFUNC(UpdateStatistics, "sslThreadModel", true);

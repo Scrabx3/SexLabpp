@@ -264,7 +264,7 @@ namespace Registry
 		return ret;
 	}
 
-	Physics::PhysicsData::PhysicsData(std::vector<RE::Actor*> a_positions, Scene* a_scene) :
+	Physics::PhysicsData::PhysicsData(std::vector<RE::Actor*> a_positions, const Scene* a_scene) :
 		_positions([&]() {
 			std::vector<Physics::Position> v{};
 			v.reserve(a_positions.size());
@@ -337,7 +337,7 @@ namespace Registry
 		}
 	}
 
-	void Physics::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, Scene* a_scene) noexcept
+	void Physics::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept
 	{
 		try {
 			auto process = std::make_unique<PhysicsData>(a_positions, a_scene);
@@ -355,6 +355,11 @@ namespace Registry
 			return;
 		}
 		_data.erase(where);
+	}
+
+	bool Physics::IsRegistered(RE::FormID a_id) noexcept
+	{
+		return std::ranges::contains(_data, a_id, [](auto& it) { return it.first; });
 	}
 
 }	 // namespace Registry

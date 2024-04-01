@@ -130,7 +130,7 @@ namespace Registry
 			};
 
 		public:
-			PhysicsData(std::vector<RE::Actor*> a_positions, Scene* a_scene);
+			PhysicsData(std::vector<RE::Actor*> a_positions, const Scene* a_scene);
 			~PhysicsData();
 
 		private:
@@ -143,8 +143,9 @@ namespace Registry
 		};
 
 	public:
-		void Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, Scene* a_scene) noexcept;
+		void Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept;
 		void Unregister(RE::FormID a_id) noexcept;
+		bool IsRegistered(RE::FormID a_id) noexcept;
 
 	private:
 		std::vector<std::pair<RE::FormID, std::unique_ptr<PhysicsData>>> _data;
