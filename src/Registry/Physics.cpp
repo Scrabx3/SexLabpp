@@ -361,9 +361,15 @@ namespace Registry
 		_data.erase(where);
 	}
 
-	bool Physics::IsRegistered(RE::FormID a_id) noexcept
+	bool Physics::IsRegistered(RE::FormID a_id) const noexcept
 	{
 		return std::ranges::contains(_data, a_id, [](auto& it) { return it.first; });
+	}
+
+	const Physics::PhysicsData* Physics::GetData(RE::FormID a_id) const
+	{
+		const auto where = std::ranges::find(_data, a_id, [](auto& it) { return it.first; });
+		return where == _data.end() ? nullptr : where->second.get();
 	}
 
 }	 // namespace Registry

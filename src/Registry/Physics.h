@@ -133,11 +133,12 @@ namespace Registry
 			PhysicsData(std::vector<RE::Actor*> a_positions, const Scene* a_scene);
 			~PhysicsData();
 
+		public:
+			std::vector<Position> _positions;
+
 		private:
 			void Update();
 
-		private:
-			std::vector<Position> _positions;
 			std::atomic<bool> _tactive;
 			std::thread _t;
 		};
@@ -145,7 +146,8 @@ namespace Registry
 	public:
 		void Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept;
 		void Unregister(RE::FormID a_id) noexcept;
-		bool IsRegistered(RE::FormID a_id) noexcept;
+		bool IsRegistered(RE::FormID a_id) const noexcept;
+		const PhysicsData* GetData(RE::FormID a_id) const;
 
 	private:
 		std::vector<std::pair<RE::FormID, std::unique_ptr<PhysicsData>>> _data;

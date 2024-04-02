@@ -25,6 +25,11 @@ namespace Papyrus::ThreadModel
 	bool IsPhysicsRegistered(RE::TESQuest* a_qst);
 	void RegisterPhysics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene);
 	void UnregisterPhysics(RE::TESQuest* a_qst);
+	std::vector<int> GetPhysicTypes(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner);
+	bool HasPhysicType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner);
+	RE::Actor* GetPhysicPartnerByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
+	std::vector<RE::Actor*> GetPhysicPartnersByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
+	float GetPhysicVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type);
 
 	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions,	
 		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages);
@@ -46,6 +51,11 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(IsPhysicsRegistered, "sslThreadModel", true);
 		REGISTERFUNC(RegisterPhysics, "sslThreadModel", true);
 		REGISTERFUNC(UnregisterPhysics, "sslThreadModel", true);
+		REGISTERFUNC(GetPhysicTypes, "sslThreadModel", true);
+		REGISTERFUNC(HasPhysicType, "sslThreadModel", true);
+		REGISTERFUNC(GetPhysicPartnerByType, "sslThreadModel", true);
+		REGISTERFUNC(GetPhysicPartnersByType, "sslThreadModel", true);
+		REGISTERFUNC(GetPhysicVelocity, "sslThreadModel", true);
 
 		REGISTERFUNC(AddExperience, "sslThreadModel", true);
 		REGISTERFUNC(UpdateStatistics, "sslThreadModel", true);

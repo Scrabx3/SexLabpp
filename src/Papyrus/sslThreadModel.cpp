@@ -370,6 +370,129 @@ namespace Papyrus::ThreadModel
 		Registry::Physics::GetSingleton()->Unregister(a_qst->formID);
 	}
 
+	std::vector<int> GetPhysicTypes(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
+	{
+		if (!a_position){
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+	}
+			auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return {};
+		}
+		std::vector<int> ret{};
+		for (auto&& p : data->_positions) {
+			if (p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_partner && type._partner != a_partner->formID)
+					continue;
+				ret.push_back(static_cast<int>(type._type));
+			}
+		}
+		return ret;
+	}
+
+	bool HasPhysicType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner)
+	{
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return false;
+		}
+		for (auto&& p : data->_positions) {
+			if (a_position && p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_partner && type._partner != a_partner->formID)
+					continue;
+				if (a_type != -1 && a_type != static_cast<int>(type._type))
+					continue;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	RE::Actor* GetPhysicPartnerByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	{
+		if (!a_position) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return nullptr;
+		}
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return nullptr;
+		}
+		for (auto&& p : data->_positions) {
+			if (p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_type != -1 && a_type != static_cast<int>(type._type))
+					continue;
+				if (auto ret = RE::TESForm::LookupByID<RE::Actor>(type._partner))
+					return ret;
+			}
+		}
+		return nullptr;
+	}
+
+	std::vector<RE::Actor*> GetPhysicPartnersByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	{
+		if (!a_position) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+		}
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return {};
+		}
+		std::vector<RE::Actor*> ret{};
+		for (auto&& p : data->_positions) {
+			if (a_position && p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_type != -1 && a_type != static_cast<int>(type._type))
+					continue;
+				if (auto it = RE::TESForm::LookupByID<RE::Actor>(type._partner))
+					ret.push_back(it);
+			}
+		}
+		return ret;
+	}
+
+	float GetPhysicVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type)
+	{
+		if (!a_position || !a_partner) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0.0f;
+		} else if (a_type == -1) {
+			a_vm->TraceStack("Type cant be 'any' here", a_stackID);
+			return 0.0f;
+		}
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return 0.0f;
+		}
+		std::vector<RE::Actor*> ret{};
+		for (auto&& p : data->_positions) {
+			if (p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_partner->formID != type._partner)
+					continue;
+				if (a_type != static_cast<int>(type._type))
+					continue;
+				return type._velocity;
+			}
+		}
+		return 0.0f;
+	}
+
 	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest*, std::vector<RE::Actor*> a_positions,
 		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages)
 	{
