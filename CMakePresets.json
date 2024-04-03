@@ -14,8 +14,8 @@
     {
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": {
-            "type": "STRING",
-            "value": "$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake"
+          "type": "STRING",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         }
       },
       "hidden": true,
@@ -62,14 +62,23 @@
     },
     {
       "cacheVariables": {
-        "SKYRIM_SUPPORT_AE": true,
-        "SKYRIM_AE": true
+        "BUILD_SKYRIMAE": true
       },
       "binaryDir": "${sourceDir}/build/vs2022-AE",
       "inherits": [
         "vs2022-windows-vcpkg"
       ],
       "name": "vs2022-windows-vcpkg-ae"
+    },
+    {
+      "cacheVariables": {
+        "BUILD_SKYRIMVR": true
+      },
+      "binaryDir": "${sourceDir}/build/vs2022-VR",
+      "inherits": [
+        "vs2022-windows-vcpkg"
+      ],
+      "name": "vs2022-windows-vcpkg-vr"
     }
   ],
   "buildPresets": [
@@ -81,17 +90,17 @@
       "configuration": "Release"
     },
     {
-      "name": "vs2022-windows-vcpkg-se-Debug",
-      "description": "",
-      "displayName": "",
-      "configurePreset": "vs2022-windows-vcpkg-se",
-      "configuration": "Debug"
-    },
-    {
       "name": "vs2022-windows-vcpkg-ae-Release",
       "description": "",
       "displayName": "",
       "configurePreset": "vs2022-windows-vcpkg-ae",
+      "configuration": "Release"
+    },
+    {
+      "name": "vs2022-windows-vcpkg-vr-Release",
+      "description": "",
+      "displayName": "",
+      "configurePreset": "vs2022-windows-vcpkg-vr",
       "configuration": "Release"
     },
     {

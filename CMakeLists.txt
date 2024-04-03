@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.22)
 
 set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+option(BUILD_SKYRIMAE "Build for Skyrim AE" OFF)
+option(BUILD_SKYRIMVR "Build for Skyrim VR" OFF)
 
 # ---- Options ----
+option(COPY_TO_PAPYRUS "Copy finished build to Papyrus SKSE Folder" ON)
+
+# Create a path variable "MODS_FOLDER", change this to the folder of the papyrus mod
+# If option "COPY_TO_PAPYRUS", files will be copied to <Path>/PAPYRUS_FOLDER/<version_folder>
+set(PAPYRUS_ROOT "SL-Dev")
+set(PAPYRUS_SE "15")
+set(PAPYRUS_AE "SKSE/Plugins")
+set(PAPYRUS_VR "VR")
 
 # ---- Project ----
 project(
@@ -42,6 +52,7 @@ macro(set_from_environment VARIABLE)
 endmacro()
 
 set_from_environment(VCPKG_ROOT)
+set_from_environment(MODS_FOLDER)
 
 if(DEFINED VCPKG_ROOT)
     set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
@@ -51,7 +62,27 @@ else()
 endif()
 
 # ---- Dependencies ----
-add_subdirectory("./lib/CommonLibSSE" CommonLibSSE)
+if(BUILD_SKYRIMVR)
+    add_compile_definitions(SKYRIMVR)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+    add_subdirectory("./lib/CommonLibVR" CommonLibSSE)
+    set(SkyrimPath ${MODS_FOLDER}/${PAPYRUS_ROOT}/${PAPYRUS_VR})
+    set(CommonLibName "CommonLibVR")
+    message("Building Skyrim VR")
+else()
+    if(BUILD_SKYRIMAE)
+        add_compile_definitions(SKYRIM_AE)
+        add_compile_definitions(SKYRIM_SUPPORT_AE)
+        set(SkyrimPath ${MODS_FOLDER}/${PAPYRUS_ROOT}/${PAPYRUS_AE})
+        message("Building Skyrim 1.6")
+    else()
+        set(SkyrimPath ${MODS_FOLDER}/${PAPYRUS_ROOT}/${PAPYRUS_SE})
+        message("Building Skyrim 1.5")
+    endif()
+
+    set(CommonLibName "CommonLibSSE")
+    add_subdirectory("./lib/CommonLibSSE" CommonLibSSE)
+endif()
 
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
@@ -131,3 +162,20 @@ target_precompile_headers("${PROJECT_NAME}"
     PUBLIC
     "src/PCH.h"
 )
+
+# ---- Post build ----
+if(COPY_BUILD)
+    if(DEFINED MODS_FOLDER)
+        add_custom_command(
+            TARGET ${PROJECT_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${SkyrimPath}
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${PROJECT_NAME}> ${SkyrimPath}
+        )
+    else()
+        message(
+            WARNING
+            "Variable ${MODS_FOLDER} is not defined. Skipping post-build copy command."
+        )
+    endif()
+endif()
