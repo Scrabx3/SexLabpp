@@ -285,15 +285,21 @@ namespace Registry
 
 	void Physics::PhysicsData::Update()
 	{
-		const auto& interval = 128ms;
+		constexpr auto interval = 128ms;
+		const auto main = RE::Main::GetSingleton();
 		while (_tactive) {
+			if (!main->gameActive) {
+				std::this_thread::sleep_for(interval * 2);
+				continue;
+			}
 			std::vector<WorkingData> snapshots{};
 			std::vector<std::vector<TypeData>> activetypes{};
 			snapshots.reserve(_positions.size());
-			activetypes.reserve(_positions.size());
+			activetypes.resize(_positions.size());
 			for (auto&& it : _positions) {
 				snapshots.emplace_back(it);
 			}
+			assert(_positions.size() == snapshots.size() && snapshots.size() == activetypes.size());
 			for (size_t i = 0; i < snapshots.size(); i++) {
 				auto& it = snapshots[i];
 				const auto update = [&]<class T>(T a_type) {
