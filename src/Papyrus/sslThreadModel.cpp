@@ -372,18 +372,14 @@ namespace Papyrus::ThreadModel
 
 	std::vector<int> GetPhysicTypes(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
 	{
-		if (!a_position){
-			a_vm->TraceStack("Actor is none", a_stackID);
-			return {};
-	}
-			auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
 		if (!data) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
 		}
 		std::vector<int> ret{};
 		for (auto&& p : data->_positions) {
-			if (p._owner != a_position->formID)
+			if (a_position && p._owner != a_position->formID)
 				continue;
 			for (auto&& type : p._types) {
 				if (a_partner && type._partner != a_partner->formID)

@@ -47,6 +47,7 @@ namespace Registry
 		{
 			enum class Type
 			{
+				None = -1,
 				VaginalP = 0,	 // being penetrated (passive)
 				AnalP = 1,
 				VaginalA = 2,	 // penetrating (active)
@@ -59,11 +60,11 @@ namespace Registry
 				Total,
 			};
 
-			RE::FormID _partner;	// actor performing type
-			Type _type;						// action type performed by partner
+			RE::FormID _partner{ 0 };	 // actor performing type
+			Type _type{ Type::None };	 // action type performed by partner
 
-			float _velocity;
-			float _distance;
+			float _velocity{ 0.0f };
+			float _distance{ 0.0f };
 		};
 
 		struct Position
