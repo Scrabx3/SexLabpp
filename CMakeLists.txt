@@ -7,12 +7,12 @@ option(BUILD_SKYRIMVR "Build for Skyrim VR" OFF)
 # ---- Options ----
 option(COPY_TO_PAPYRUS "Copy finished build to Papyrus SKSE Folder" ON)
 
-# Create a path variable "MODS_FOLDER", change this to the folder of the papyrus mod
-# If option "COPY_TO_PAPYRUS", files will be copied to <Path>/PAPYRUS_FOLDER/<version_folder>
+# Create a path variable "MODS_FOLDER", change "PAPYRUS_ROOT" to the papyrus dev folder
+# If option "COPY_TO_PAPYRUS", files will be copied to <Path>/PAPYRUS_ROOT/<version_folder>
 set(PAPYRUS_ROOT "SL-Dev")
-set(PAPYRUS_SE "15")
+set(PAPYRUS_SE "1597")
 set(PAPYRUS_AE "SKSE/Plugins")
-set(PAPYRUS_VR "VR")
+set(PAPYRUS_VR "14vr")
 
 # ---- Project ----
 project(
@@ -153,7 +153,7 @@ target_include_directories(
 target_link_libraries(
     "${PROJECT_NAME}"
     PUBLIC
-    CommonLibSSE::CommonLibSSE
+    ${CommonLibName}::${CommonLibName}
     spdlog::spdlog
     yaml-cpp
 )
@@ -164,8 +164,8 @@ target_precompile_headers("${PROJECT_NAME}"
 )
 
 # ---- Post build ----
-if(COPY_BUILD)
-    if(DEFINED MODS_FOLDER)
+if(COPY_TO_PAPYRUS)
+    if(DEFINED SkyrimPath)
         add_custom_command(
             TARGET ${PROJECT_NAME}
             POST_BUILD
@@ -175,7 +175,7 @@ if(COPY_BUILD)
     else()
         message(
             WARNING
-            "Variable ${MODS_FOLDER} is not defined. Skipping post-build copy command."
+            "Variable ${SkyrimPath} is not defined. Skipping post-build copy command."
         )
     endif()
 endif()

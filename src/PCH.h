@@ -44,6 +44,12 @@ void ASSERTLOWERCASE(T string)
 #define ASSERTLOWERCASE(expression) ((void)0)
 #endif
 
+#ifdef SKYRIMVR
+#define MESSAGEBOX SKSE::WinAPI::MessageBox
+#else
+#define MESSAGEBOX REX::W32::MessageBoxA
+#endif
+
 #ifdef SKYRIM_SUPPORT_AE
 #define OFFSET(SE, AE) AE
 #else
