@@ -46,6 +46,8 @@ set(CXX_FILES
 
 	src/Registry/Animation.h
 	src/Registry/Animation.cpp
+	src/Registry/Expression.h
+	src/Registry/Expression.cpp
 	src/Registry/Library.h
 	src/Registry/Library.cpp
 	src/Registry/Misc.h
@@ -60,8 +62,6 @@ set(CXX_FILES
 	src/Papyrus/LegacyData.h
 	src/Papyrus/Serialize.h
 
-	# src/Papyrus/Sound.h
-	# src/Papyrus/Sound.cpp
 	src/Papyrus/SexLabRegistry.h
 	src/Papyrus/SexLabRegistry.cpp
 	src/Papyrus/SexLabUtil.h
@@ -75,6 +75,8 @@ set(CXX_FILES
 	src/Papyrus/sslAnimationSlots.cpp
 	src/Papyrus/sslCreatureAnimationSlots.h
 	src/Papyrus/sslCreatureAnimationSlots.cpp
+	src/Papyrus/sslExpressionSlots.h
+	src/Papyrus/sslExpressionSlots.cpp
 	src/Papyrus/sslSystemConfig.h
 	src/Papyrus/sslSystemConfig.cpp
 	src/Papyrus/sslThreadLibrary.h
