@@ -11,6 +11,7 @@
 #include <ranges>
 #include <unordered_map>
 #include <yaml-cpp/yaml.h>
+#include <nlohmann/json.hpp>
 
 #pragma warning(push)
 #ifdef NDEBUG

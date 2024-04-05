@@ -8,6 +8,7 @@
     "spdlog",
     "simpleini",
     "yaml-cpp",
+    "nlohmann-json",
     "glm"
   ],
   "overrides": [

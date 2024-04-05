@@ -313,9 +313,8 @@ namespace Registry
 					}
 					auto stored = it._position.GetType(type);
 					if (stored) {
-						auto stored_ = *stored;
-						const float delta_dist = type._distance - stored_->_distance;
-						type._velocity = (stored_->_velocity + (delta_dist / interval.count())) / 2;
+						const float delta_dist = type._distance - (*stored)->_distance;
+						type._velocity = ((*stored)->_velocity + (delta_dist / interval.count())) / 2;
 					} else {
 						type._velocity = 0.0f;
 					}

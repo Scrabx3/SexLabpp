@@ -9,6 +9,7 @@
 #include "Papyrus/sslSystemConfig.h"
 #include "Papyrus/sslThreadLibrary.h"
 #include "Papyrus/sslThreadModel.h"
+#include "Registry/Expression.h"
 #include "Registry/Library.h"
 #include "Registry/Stats.h"
 #include "Serialization.h"
@@ -19,6 +20,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	switch (message->type) {
 	case SKSE::MessagingInterface::kPostLoad:
 #ifdef NDEBUG
+		Registry::Expression::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Load();
 		Settings::Initialize();
@@ -26,6 +28,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
 #ifndef NDEBUG
+		Registry::Expression::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Load();
 		Settings::Initialize();
@@ -42,6 +45,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	case SKSE::MessagingInterface::kSaveGame:
 		Settings::Save();
 		Registry::Library::GetSingleton()->Save();
+		Registry::Expression::GetSingleton()->Save();
 		UserData::StripData::GetSingleton()->Save();
 		break;
 	case SKSE::MessagingInterface::kPreLoadGame:
