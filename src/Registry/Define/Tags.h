@@ -66,7 +66,12 @@ namespace Registry
 	class TagData
 	{
 	public:
-		TagData(const std::vector<std::string_view>& a_tags);
+		template <class T>
+		TagData(const std::vector<T>& a_tags)
+		{
+			for (auto&& it : a_tags)
+				AddTag(it);
+		}
 		TagData(std::ifstream& a_stream);
 		TagData() = default;
 		~TagData() = default;

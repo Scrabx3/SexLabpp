@@ -70,13 +70,6 @@ namespace Registry
 
 #undef MAPENTRY
 
-	TagData::TagData(const std::vector<std::string_view>& a_tags)
-	{
-		for (auto&& tag : a_tags) {
-			AddTag(tag);
-		}
-	}
-
 	TagData::TagData(std::ifstream& a_stream)
 	{
 		uint64_t tag_count;
