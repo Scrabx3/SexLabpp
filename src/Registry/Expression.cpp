@@ -9,7 +9,7 @@ namespace Registry
 	{
 		if (!a_src["data"].IsDefined())
 			throw std::exception("Missing data values");
-		
+
 		const auto fill = [&](RE::SEXES::SEX sex) {
 			auto& fields = a_src["data"][static_cast<uint32_t>(sex)];
 			for (auto&& arr : fields) {
@@ -95,7 +95,7 @@ namespace Registry
 			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
 			{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 },
 		};
-		ret.tags = { std::vector{ "aggressor" } };
+		ret.tags = { std::vector{ "Aggressor", "Afraid", "Scared", "Pain", "Negative" } };
 		ret.enabled = true;
 		ret.isdefault = true;
 		return ret;
@@ -115,7 +115,7 @@ namespace Registry
 			{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0.55f },
 			{ 0, 0, 0, 0.4f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.65f, 0.65f, 0, 1 },
 		};
-		ret.tags = { std::vector{ "aggressor", "victim" } };
+		ret.tags = { std::vector{ "Aggressor", "Victim", "Mad", "Angry", "Upset" } };
 		ret.enabled = true;
 		ret.isdefault = true;
 		return ret;
@@ -135,6 +135,7 @@ namespace Registry
 			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2.0f, 0.7f },
 			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.7f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2.0f, 0.8f }
 		};
+		ret.tags = { std::vector{ "Normal", "Happy", "Consensual" } };
 		ret.enabled = true;
 		ret.isdefault = true;
 		return ret;
@@ -156,7 +157,7 @@ namespace Registry
 			{ 0.1f, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0.7f, 0.7f, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.5f },
 			{ 0.6f, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0.7f, 0.7f, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.6f },
 		};
-		ret.tags = { std::vector{ "normal" } };
+		ret.tags = { std::vector{ "Normal", "Happy", "Joy", "Pleasure", "Consensual" } };
 		ret.enabled = true;
 		ret.isdefault = true;
 		return ret;
@@ -178,7 +179,7 @@ namespace Registry
 			{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
 			{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 }
 		};
-		ret.tags = { std::vector{ "victim" } };
+		ret.tags = { std::vector{ "Victim", "Afraid", "Pain", "Pained", "Negative" } };
 		ret.enabled = true;
 		ret.isdefault = true;
 		return ret;
@@ -200,7 +201,7 @@ namespace Registry
 			{ 0, 0, 0, 0, 0.35f, 0, 0, 0, 0, 0, 0.2f, 0, 0.3f, 0, 0, 0, 0.1f, 0.1f, 0.25f, 0.25f, 0, 0, 1.0f, 1.0f, 0, 0, 0, 0, 0.3f, 0.3f, 10, 1.0f },
 			{ 0.4f, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0.8f, 0, 0, 0.2f, 0.15f, 0.15f, 0.25f, 0.25f, 0.6f, 0.6f, 0, 0, 0, 0, 0, 1.0f, 0.7f, 0.6f, 12.0f, 0.6f }
 		};
-		ret.tags = { std::vector{ "normal" } };
+		ret.tags = { std::vector{ "Normal", "Happy", "Consensual", "Pleasure" } };
 		ret.enabled = true;
 		ret.isdefault = true;
 		return ret;
@@ -220,7 +221,7 @@ namespace Registry
 			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2, 0.7f },
 			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.6f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2, 0.8f },
 		};
-		ret.tags = { std::vector{ "normal", "victim" } };
+		ret.tags = { std::vector{ "Normal", "Victim", "Sad" } };
 		ret.enabled = true;
 		ret.isdefault = true;
 		return ret;
@@ -240,7 +241,7 @@ namespace Registry
 			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f },
 			{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f },
 		};
-		ret.tags = { std::vector{ "normal" } };
+		ret.tags = { std::vector{ "Normal", "Consensual", "Nervous", "Sad", "Shy" } };
 		ret.enabled = true;
 		ret.isdefault = true;
 		return ret;
