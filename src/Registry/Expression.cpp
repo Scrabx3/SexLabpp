@@ -247,6 +247,35 @@ namespace Registry
 		return ret;
 	}
 
+	const Expression::Profile* Expression::GetProfile(const RE::BSFixedString& a_id) const
+	{
+		auto where = _profiles.find(a_id);
+		if (where == _profiles.end())
+			return nullptr;
+
+		return &where->second;
+	}
+
+	Expression::Profile* Expression::GetProfile(const RE::BSFixedString& a_id)
+	{
+		auto where = _profiles.find(a_id);
+		if (where == _profiles.end())
+			return nullptr;
+
+		return &where->second;
+	}
+
+	bool Expression::RenameProfile(const RE::BSFixedString& a_id, const RE::BSFixedString& a_newid)
+	{
+		auto where = _profiles.find(a_id);
+		if (where == _profiles.end())
+			return false;
+
+		_profiles[a_newid] = where->second;
+		_profiles.erase(where);
+		return true;
+	}
+
 	void Expression::Initialize()
 	{
 		logger::info("Loading Expressions");
