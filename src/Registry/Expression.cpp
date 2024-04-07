@@ -276,6 +276,16 @@ namespace Registry
 		return true;
 	}
 
+	bool Expression::ForEachProfile(std::function<bool(Profile&)> a_func)
+	{
+		for (auto&& [id, profile] : _profiles) {
+			if (a_func(profile)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	void Expression::Initialize()
 	{
 		logger::info("Loading Expressions");
