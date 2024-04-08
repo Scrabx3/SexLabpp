@@ -90,7 +90,11 @@ namespace Papyrus::BaseExpression
 
 	void RenameExpression(RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_newid)
 	{
-		if (a_id == "" || a_newid == "") {
+		if (a_id.empty()) {
+			if (a_newid.empty()) {
+				return;
+			}
+			Registry::Expression::GetSingleton()->CreateProfile(a_newid);
 			return;
 		}
 		Registry::Expression::GetSingleton()->RenameProfile(a_id, a_newid);
@@ -114,7 +118,7 @@ namespace Papyrus::BaseExpression
 			return std::vector<float>(Registry::Expression::Profile::Total);
 		}
 		auto& ret = profile->data[a_female];
-		if (ret.size() >= a_level) {
+		if (ret.size() <= a_level) {
 			a_vm->TraceStack("Invalid level", a_stackID);
 			return std::vector<float>(Registry::Expression::Profile::Total);
 		}
@@ -133,9 +137,8 @@ namespace Papyrus::BaseExpression
 			return;
 		}
 		auto& data = profile->data[a_female];
-		if (data.size() >= a_level) {
-			a_vm->TraceStack("Invalid level", a_stackID);
-			return;
+		while (data.size() <= a_level) {
+			data.emplace_back();
 		}
 		std::copy_n(a_values.begin(), data[a_level].size(), data[a_level].begin());
 	}

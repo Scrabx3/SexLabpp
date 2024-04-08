@@ -62,6 +62,8 @@ set(CXX_FILES
 	src/Papyrus/LegacyData.h
 	src/Papyrus/Serialize.h
 
+	src/Papyrus/Papyrus.h
+	src/Papyrus/Papyrus.cpp
 	src/Papyrus/SexLabRegistry.h
 	src/Papyrus/SexLabRegistry.cpp
 	src/Papyrus/SexLabUtil.h

@@ -276,6 +276,16 @@ namespace Registry
 		return true;
 	}
 
+	bool Expression::CreateProfile(const RE::BSFixedString& a_id)
+	{
+		auto where = _profiles.find(a_id);
+		if (where != _profiles.end())
+			return false;
+
+		_profiles[a_id] = Profile{};
+		return true;
+	}
+
 	bool Expression::ForEachProfile(std::function<bool(Profile&)> a_func)
 	{
 		for (auto&& [id, profile] : _profiles) {

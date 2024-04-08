@@ -50,6 +50,7 @@ namespace Registry
 		const Profile* GetProfile(const RE::BSFixedString& a_id) const;
 		Profile* GetProfile(const RE::BSFixedString& a_id);
 		bool RenameProfile(const RE::BSFixedString& a_id, const RE::BSFixedString& a_newid);
+		bool CreateProfile(const RE::BSFixedString& a_id);
 
 		bool ForEachProfile(std::function<bool(Profile&)> a_func);
 
