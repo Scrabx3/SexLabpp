@@ -81,8 +81,7 @@ namespace Registry
 
 	Expression::Profile Expression::GetDefaultAfraid()
 	{
-		Profile ret{};
-		ret.id = "Afraid";
+		Profile ret{ RE::BSFixedString{ "Afraid" } };
 		ret.data[RE::SEXES::kMale] = {
 			{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
 			{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
@@ -103,8 +102,7 @@ namespace Registry
 
 	Expression::Profile Expression::GetDefaultAngry()
 	{
-		Profile ret{};
-		ret.id = "Angry";
+		Profile ret{ RE::BSFixedString{ "Angry" } };
 		ret.data[RE::SEXES::kMale] = {
 			{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0, 0.4f },
 			{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0.55f },
@@ -123,8 +121,7 @@ namespace Registry
 
 	Expression::Profile Expression::GetDefaultHappy()
 	{
-		Profile ret{};
-		ret.id = "Happy";
+		Profile ret{ RE::BSFixedString{ "Happy" } };
 		ret.data[RE::SEXES::kMale] = {
 			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2.0f, 0.5f },
 			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2.0f, 0.7f },
@@ -143,8 +140,7 @@ namespace Registry
 
 	Expression::Profile Expression::GetDefaultJoy()
 	{
-		Profile ret{};
-		ret.id = "Joy";
+		Profile ret{ RE::BSFixedString{ "Joy" } };
 		ret.data[RE::SEXES::kMale] = {
 			{ 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0.2f, 0, 0, 0, 0, 0, 0, 13.0f, 0.4f },
 			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4f, 0.4f, 8.0f, 0.4f },
@@ -165,8 +161,7 @@ namespace Registry
 
 	Expression::Profile Expression::GetDefaultPained()
 	{
-		Profile ret{};
-		ret.id = "Pained";
+		Profile ret{ RE::BSFixedString{ "Pained" } };
 		ret.data[RE::SEXES::kMale] = {
 			{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
 			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
@@ -187,8 +182,7 @@ namespace Registry
 
 	Expression::Profile Expression::GetDefaultPleasure()
 	{
-		Profile ret{};
-		ret.id = "Pleasure";
+		Profile ret{ RE::BSFixedString{ "Pleasure" } };
 		ret.data[RE::SEXES::kMale] = {
 			{ 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0.2f, 0, 0, 0, 0, 0, 0, 13.0f, 0.4f },
 			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4f, 0.4f, 8.0f, 0.4f },
@@ -209,8 +203,7 @@ namespace Registry
 
 	Expression::Profile Expression::GetDefaultSad()
 	{
-		Profile ret{};
-		ret.id = "Sad";
+		Profile ret{ RE::BSFixedString{ "Sad" } };
 		ret.data[RE::SEXES::kMale] = {
 			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2, 0.5f },
 			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2, 0.7f },
@@ -229,8 +222,7 @@ namespace Registry
 
 	Expression::Profile Expression::GetDefaultShy()
 	{
-		Profile ret{};
-		ret.id = "Shy";
+		Profile ret{ RE::BSFixedString{ "Shy" } };
 		ret.data[RE::SEXES::kMale] = {
 			{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 4.0f, 0.9f },
 			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f },
@@ -282,7 +274,7 @@ namespace Registry
 		if (where != _profiles.end())
 			return false;
 
-		_profiles[a_id] = Profile{};
+		_profiles[a_id] = Profile{ a_id };
 		return true;
 	}
 

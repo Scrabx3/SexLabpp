@@ -24,6 +24,8 @@ namespace Registry
 
 		public:
 			Profile() = default;
+			Profile(const RE::BSFixedString& a_id) :
+				id(a_id) { assert(!a_id.empty()); };
 			Profile(const YAML::Node& a_src);
 			Profile(const nlohmann::json& a_src);
 			~Profile() = default;
@@ -31,7 +33,7 @@ namespace Registry
 			YAML::Node AsYAML() const;
 
 		public:
-			RE::BSFixedString id{ "" };
+			RE::BSFixedString id;
 			TagData tags{};
 			std::vector<std::array<float, Total>> data[RE::SEXES::kTotal]{};
 			bool enabled{ true };
