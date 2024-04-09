@@ -315,7 +315,7 @@ namespace Registry
 			}
 			assert(_positions.size() == snapshots.size());
 			Combinatorics::for_each_permutation(snapshots.begin(), snapshots.begin() + 2, snapshots.end(), 
-				[&](auto start, auto end) {
+				[&](auto start, [[maybe_unused]] auto end) {
 					assert(std::distance(start, end) == 2);
 					auto& fst = **start;
 					auto& snd = **(start + 1);
