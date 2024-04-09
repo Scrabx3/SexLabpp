@@ -101,7 +101,7 @@ namespace Registry
 			Position(RE::Actor* a_owner, Sex a_sex);
 			~Position() = default;
 
-			std::optional<Physics::TypeData*> GetType(TypeData& a_data);
+			Physics::TypeData* GetType(TypeData& a_data);
 
 		public:
 			RE::FormID _owner;
@@ -125,9 +125,10 @@ namespace Registry
 
 			public:
 				Position& _position;
-				RE::NiPoint3 pGenitalReference;
-				RE::NiPoint3 vCrotch;
-				RE::NiPoint3 vSchlong;
+				std::vector<TypeData> types{};
+				RE::NiPoint3 pGenitalReference{};
+				RE::NiPoint3 vCrotch{};
+				RE::NiPoint3 vSchlong{};
 			};
 
 		public:

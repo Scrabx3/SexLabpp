@@ -16,6 +16,10 @@ namespace Papyrus::ExpressionSlots
   
 	std::vector<RE::BSFixedString> GetExpressionsByStatus(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int a_status)
 	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+		}
 		std::vector<RE::BSFixedString> ret{};
 		RE::BSFixedString tag;
 		switch (a_status) {
@@ -41,6 +45,10 @@ namespace Papyrus::ExpressionSlots
 
 	std::vector<RE::BSFixedString> GetExpressionsByTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, std::string_view a_tags)
 	{
+		if (!a_actor) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+		}
 		std::vector<RE::BSFixedString> ret{};
 		auto list = Registry::StringSplit(a_tags);
 		Registry::TagDetails search{ list };

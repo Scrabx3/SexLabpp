@@ -1,5 +1,7 @@
 #include "Physics.h"
 
+#include "Util/Premutation.h"
+
 namespace Registry
 {
 	Physics::Position::Nodes::Nodes(const RE::Actor* a_actor, bool a_alternatenodes)
@@ -78,12 +80,12 @@ namespace Registry
 	Physics::Position::Position(RE::Actor* a_owner, Sex a_sex) :
 		_owner(a_owner->GetFormID()), _sex(a_sex), _nodes(a_owner, false), _types({}) {}
 
-	std::optional<Physics::TypeData*> Physics::Position::GetType(TypeData& a_data){
+	Physics::TypeData* Physics::Position::GetType(TypeData& a_data){
 		auto where = std::ranges::find_if(_types, [&](auto& type) {
 			return a_data._type == type._type && a_data._partner == type._partner;
 		});
 		if (where == _types.end()) {
-			return std::nullopt;
+			return nullptr;
 		}
 		return &(*where);
 	}
@@ -292,51 +294,44 @@ namespace Registry
 				std::this_thread::sleep_for(interval * 2);
 				continue;
 			}
-			std::vector<WorkingData> snapshots{};
-			std::vector<std::vector<TypeData>> activetypes{};
+			const auto update = [&interval](WorkingData& data, std::optional<TypeData> a_type) {
+				if (!a_type)
+					return a_type;
+				auto stored = data._position.GetType(*a_type);
+				if (stored) {
+					const float delta_dist = a_type->_distance - stored->_distance;
+					a_type->_velocity = (stored->_velocity + (delta_dist / interval.count())) / 2;
+				} else {
+					a_type->_velocity = 0.0f;
+				}
+				data.types.push_back(*a_type);
+				return a_type;
+			};
+			std::vector<std::shared_ptr<WorkingData>> snapshots{};
 			snapshots.reserve(_positions.size());
-			activetypes.resize(_positions.size());
 			for (auto&& it : _positions) {
-				snapshots.emplace_back(it);
+				auto& obj = snapshots.emplace_back(std::make_shared<WorkingData>(it));
+				update(*obj, obj->GetsHandjob(*obj));
 			}
-			assert(_positions.size() == snapshots.size() && snapshots.size() == activetypes.size());
-			for (size_t i = 0; i < snapshots.size(); i++) {
-				auto& it = snapshots[i];
-				const auto update = [&]<class T>(T a_type) {
-					TypeData type;
-					if constexpr (std::is_same_v<T, std::optional<TypeData>>) {
-						if (!a_type)
-							return;
-						type = *a_type;
-					} else {
-						type = *a_type;
-					}
-					auto stored = it._position.GetType(type);
-					if (stored) {
-						const float delta_dist = type._distance - (*stored)->_distance;
-						type._velocity = ((*stored)->_velocity + (delta_dist / interval.count())) / 2;
-					} else {
-						type._velocity = 0.0f;
-					}
-					activetypes[i].push_back(type);
-				};
-				update(it.GetsHandjob(it));
-				for (size_t n = i + 1; n < snapshots.size(); n++) {
-					update(it.GetsOral(snapshots[n]));
-					update(it.GetsHandjob(snapshots[n]));
-					update(it.GetsFootjob(snapshots[n]));
-					update(it.DoesGrinidng(snapshots[n]));
-					auto type = it.HasIntercourse(snapshots[n]);
-					if (type) {
-						update(&(*type));
+			assert(_positions.size() == snapshots.size());
+			Combinatorics::for_each_permutation(snapshots.begin(), snapshots.begin() + 2, snapshots.end(), 
+				[&](auto start, auto end) {
+					assert(std::distance(start, end) == 2);
+					auto& fst = **start;
+					auto& snd = **(start + 1);
+					update(fst, fst.GetsOral(snd));
+					update(fst, fst.GetsHandjob(snd));
+					update(fst, fst.GetsFootjob(snd));
+					update(fst, fst.DoesGrinidng(snd));
+					if (auto type = update(fst, fst.HasIntercourse(snd))) {
 						TypeData mirror = *type;
 						mirror._type = type->_type == TypeData::Type::VaginalP ? TypeData::Type::VaginalA : TypeData::Type::AnalA;
-						activetypes[n].push_back(mirror);
+						snd.types.push_back(mirror);
 					}
-				}
-			}
+					return false;
+			});
 			for (size_t i = 0; i < _positions.size(); i++) {
-				_positions[i]._types = activetypes[i];
+				_positions[i]._types = std::move(snapshots[i]->types);
 			}
 			std::this_thread::sleep_for(interval);
 		}
