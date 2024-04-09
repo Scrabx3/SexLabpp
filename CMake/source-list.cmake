@@ -27,6 +27,7 @@ set(CXX_FILES
 
 	src/Registry/Util/CellCrawler.h
 	src/Registry/Util/Combinatorics.h
+	src/Registry/Util/Premutation.h
 	src/Registry/Util/RayCast.h
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp
