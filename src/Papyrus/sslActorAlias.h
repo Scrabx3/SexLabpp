@@ -4,6 +4,12 @@
 
 namespace Papyrus::ActorAlias
 {
+	enum STATUS05
+	{
+		Unconscious = -5,
+		Dying = -10,
+	};
+
 	void LockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias);
 	void UnlockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias);
 

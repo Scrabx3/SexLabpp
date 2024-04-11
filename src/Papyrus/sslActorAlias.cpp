@@ -18,7 +18,6 @@ namespace Papyrus::ActorAlias
 		}
 		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(true);
-
 			if (const auto queue = RE::UIMessageQueue::GetSingleton()) {
 				// force hide dialogue menu
 				queue->AddMessage(RE::DialogueMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kForceHide, nullptr);
@@ -29,17 +28,22 @@ namespace Papyrus::ActorAlias
 					data->text = "";
 					data->type = RE::HUDData::Type::kActivateNoLabel;
 					queue->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kUpdate, data);
-
 				}
 			}
-
 			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
 		} else {
+			switch (actor->actorState1.lifeState) {
+			case RE::ACTOR_LIFE_STATE::kUnconcious:
+				actor->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Unconscious);
+			case RE::ACTOR_LIFE_STATE::kDying:
+			case RE::ACTOR_LIFE_STATE::kDead:
+				actor->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Dying);
+				break;
+			}
 			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
 		}
 
 		actor->StopCombat();
-		// actor->PauseCurrentDialogue();
 		actor->EndDialogue();
 		actor->InterruptCast(false);
 		actor->StopInteractingQuick(true);
@@ -63,7 +67,16 @@ namespace Papyrus::ActorAlias
 			return;
 		}
 		Registry::Scale::GetSingleton()->RemoveScale(actor);
-		actor->actorState1.lifeState = actor->GetActorValue(RE::ActorValue::kHealth) <= 0 ? RE::ACTOR_LIFE_STATE::kDying : RE::ACTOR_LIFE_STATE::kAlive;
+		switch (static_cast<int32_t>(actor->GetActorValue(RE::ActorValue::kVariable05))) {
+		case STATUS05::Unconscious:
+			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kUnconcious;
+			break;
+		case STATUS05::Dying:
+			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kDying;
+			break;
+		default:
+			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
+		}
 		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(false);
 		}
@@ -111,22 +124,7 @@ namespace Papyrus::ActorAlias
 		if (a_stripdata == Strip::None) {
 			return a_mergewith;
 		}
-		const auto join = [&]() {
-			std::string ret{ "[" };
-			for (size_t i = 0;; i++) {
-				if (a_mergewith[i]) {
-					ret += std::to_string(a_mergewith[i]->formID);
-				}
-				if (i == a_mergewith.size() - 1) {
-					ret += "]";
-					break;
-				} else {
-					ret += ", ";
-				}
-			}
-			return ret;
-		};
-		logger::info("Stripping By Data {}, Initial Equipment: {}", a_mergewith.size(), join());
+		logger::info("Stripping By Data {}, Initial Equipment: [{:X}]", a_mergewith.size(), fmt::join(a_mergewith, ", "));
 		uint32_t slots;
 		bool weapon;
 		if (a_overwrite.size() >= 2 && a_overwrite[0] != 0) {
@@ -156,23 +154,24 @@ namespace Papyrus::ActorAlias
 				}
 			}
 		}
-		if (weapon && actor->currentProcess) {
-			a_mergewith[Left] = actor->currentProcess->GetEquippedLeftHand();
-			a_mergewith[Right] = actor->currentProcess->GetEquippedRightHand();
-		}
-
 		const auto stripconfig = UserData::StripData::GetSingleton();
 		const auto manager = RE::ActorEquipManager::GetSingleton();
-		const auto& inventory = actor->GetInventory();
-		for (const auto& [form, data] : inventory) {
-			if (form->IsNot(RE::FormType::Armor) || !data.second->IsWorn()) {
+		for (const auto& [form, data] : actor->GetInventory()) {
+			if (!data.second->IsWorn()) {
 				continue;
 			}
 			switch (stripconfig->CheckStrip(form)) {
 			case UserData::Strip::NoStrip:
 				continue;
 			case UserData::Strip::None:
-				if (const auto biped = form->As<RE::TESObjectARMO>()) {
+				if (weapon && form->IsWeapon() && actor->currentProcess) {
+					if (actor->currentProcess->GetEquippedRightHand() == form)
+						a_mergewith[Right] = form->AsReference();
+					else
+						a_mergewith[Left] = form->AsReference();
+					manager->UnequipObject(actor, form);
+					continue;
+				} else if (const auto biped = form->As<RE::BGSBipedObjectForm>()) {
 					const auto biped_slots = static_cast<uint32_t>(biped->GetSlotMask());
 					if ((biped_slots & slots) == 0) {
 						continue;
@@ -185,7 +184,7 @@ namespace Papyrus::ActorAlias
 			a_mergewith.push_back(form);
 			manager->UnequipObject(actor, form);
 		}
-		logger::info("Stripping By Data {}, Returning Equipment: {}", a_mergewith.size(), join());
+		logger::info("Stripping By Data {}, Returning Equipment: [{:X}]", a_mergewith.size(), fmt::join(a_mergewith, ", "));
 		actor->Update3DModel();
 		return a_mergewith;
 	}

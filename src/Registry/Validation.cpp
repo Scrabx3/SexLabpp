@@ -20,7 +20,7 @@ int32_t Registry::IsValidActorImpl(RE::Actor* a_actor)
 		return -13;
 	else if (a_actor->IsFlying())
 		return -15;
-	else if (a_actor->IsOnMount())
+	else if (a_actor->IsOnMount() || a_actor->GetActorValue(RE::ActorValue::kVariable05) > 0)
 		return -16;
 
 	auto validfaction = 1;

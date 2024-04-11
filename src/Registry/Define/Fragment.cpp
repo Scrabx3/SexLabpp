@@ -21,7 +21,6 @@ namespace Registry
 			logger::error("Cannt build fragment from Actor {:X}: Invalid Sex", a_actor->formID);
 			return { PositionFragment::None };
 		}
-
 		const auto racekey = RaceHandler::GetRaceKey(a_actor);
 		switch (racekey) {
 		case RaceKey::None:
@@ -33,7 +32,6 @@ namespace Registry
 				if (a_actor->HasKeyword(GameForms::Vampire)) {
 					ret.set(PositionFragment::Vampire);
 				}
-				// COMEBACK: bound extra
 			}
 			break;
 		default:
@@ -43,13 +41,11 @@ namespace Registry
 			}
 			break;
 		}
-
-		if (a_actor->IsDead() || a_actor->IsUnconscious()) {
+		if (a_actor->IsDead() || a_actor->IsUnconscious() || a_actor->GetActorValue(RE::ActorValue::kVariable05) < 0) {
 			ret.set(PositionFragment::Unconscious);
 		} else if (a_submissive) {
 			ret.set(PositionFragment::Submissive);
 		}
-
 		return ret.get();
 	}
 
@@ -66,8 +62,6 @@ namespace Registry
 		for (size_t n = i; n < 5; n++) {
 			ret <<= PositionFragmentSize;
 		}
-		// ret <<= HeaderFragmentSize;
-		// ret |= static_cast<std::underlying_type<HeaderFragment>::type>(a_header);
 		return ret;
   }
 
@@ -87,7 +81,6 @@ namespace Registry
 		if (a_racekey == RaceKey::Human) {
 			return PositionFragment::Human;
 		}
-
 		return PositionFragment(static_cast<underlying>(a_racekey) << 3);
 	}
 
@@ -95,10 +88,8 @@ namespace Registry
 	{
 		std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> ret{};
 		for (auto&& actor : a_actors) {
-			const auto submissive = std::find(a_submissives.begin(), a_submissives.end(), actor) != a_submissives.end();
-			ret.emplace_back(
-				actor,
-				MakeFragmentFromActor(actor, submissive));
+			const auto submissive = std::ranges::contains(a_submissives, actor);
+			ret.emplace_back(actor, MakeFragmentFromActor(actor, submissive));
 		}
 		return ret;
 	}
