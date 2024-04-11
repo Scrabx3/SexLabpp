@@ -41,11 +41,10 @@ namespace Registry
 			}
 			break;
 		}
-		if (a_actor->IsDead() || a_actor->IsUnconscious() || a_actor->GetActorValue(RE::ActorValue::kVariable05) < 0) {
+		if (a_actor->IsDead() || a_actor->IsUnconscious() || a_actor->GetActorValue(RE::ActorValue::kVariable05) < 0)
 			ret.set(PositionFragment::Unconscious);
-		} else if (a_submissive) {
+		if (a_submissive)
 			ret.set(PositionFragment::Submissive);
-		}
 		return ret.get();
 	}
 

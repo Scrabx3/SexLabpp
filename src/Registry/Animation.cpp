@@ -357,7 +357,7 @@ namespace Registry
 			fragments.emplace_back(PositionFragment::Futa);
 		if (this->extra.all(Extra::Unconscious))
 			setFragmentBit(PositionFragment::Unconscious);
-		else if (this->extra.all(Extra::Submissive))
+		if (this->extra.all(Extra::Submissive))
 			setFragmentBit(PositionFragment::Submissive);
 
 		switch (this->race) {
