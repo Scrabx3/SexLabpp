@@ -307,31 +307,37 @@ namespace Registry
 				data.types.push_back(*a_type);
 				return a_type;
 			};
-			std::vector<std::shared_ptr<WorkingData>> snapshots{};
-			snapshots.reserve(_positions.size());
-			for (auto&& it : _positions) {
-				auto& obj = snapshots.emplace_back(std::make_shared<WorkingData>(it));
-				update(*obj, obj->GetsHandjob(*obj));
-			}
-			assert(_positions.size() == snapshots.size());
-			Combinatorics::for_each_permutation(snapshots.begin(), snapshots.begin() + 2, snapshots.end(), 
-				[&](auto start, [[maybe_unused]] auto end) {
-					assert(std::distance(start, end) == 2);
-					auto& fst = **start;
-					auto& snd = **(start + 1);
-					update(fst, fst.GetsOral(snd));
-					update(fst, fst.GetsHandjob(snd));
-					update(fst, fst.GetsFootjob(snd));
-					update(fst, fst.DoesGrinidng(snd));
-					if (auto type = update(fst, fst.HasIntercourse(snd))) {
-						TypeData mirror = *type;
-						mirror._type = type->_type == TypeData::Type::VaginalP ? TypeData::Type::VaginalA : TypeData::Type::AnalA;
-						snd.types.push_back(mirror);
-					}
-					return false;
-			});
-			for (size_t i = 0; i < _positions.size(); i++) {
-				_positions[i]._types = std::move(snapshots[i]->types);
+			if (_positions.size() == 1) {
+				WorkingData data{ _positions[0] };
+				update(data, data.GetsHandjob(data));
+				_positions[0]._types = data.types;
+			} else {
+				std::vector<std::shared_ptr<WorkingData>> snapshots{};
+				snapshots.reserve(_positions.size());
+				for (auto&& it : _positions) {
+					auto& obj = snapshots.emplace_back(std::make_shared<WorkingData>(it));
+					update(*obj, obj->GetsHandjob(*obj));
+				}
+				assert(_positions.size() == snapshots.size());
+				Combinatorics::for_each_permutation(snapshots.begin(), snapshots.begin() + 2, snapshots.end(),
+					[&](auto start, [[maybe_unused]] auto end) {
+						assert(std::distance(start, end) == 2);
+						auto& fst = **start;
+						auto& snd = **(start + 1);
+						update(fst, fst.GetsOral(snd));
+						update(fst, fst.GetsHandjob(snd));
+						update(fst, fst.GetsFootjob(snd));
+						update(fst, fst.DoesGrinidng(snd));
+						if (auto type = update(fst, fst.HasIntercourse(snd))) {
+							TypeData mirror = *type;
+							mirror._type = type->_type == TypeData::Type::VaginalP ? TypeData::Type::VaginalA : TypeData::Type::AnalA;
+							snd.types.push_back(mirror);
+						}
+						return false;
+					});
+				for (size_t i = 0; i < _positions.size(); i++) {
+					_positions[i]._types = std::move(snapshots[i]->types);
+				}
 			}
 			std::this_thread::sleep_for(interval);
 		}
