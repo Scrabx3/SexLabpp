@@ -618,7 +618,7 @@ namespace Registry
 				return std::nullopt;
 			}
 		}
-		std::vector<RE::Actor*> ret{};
+		std::vector<RE::Actor*> ret;
 		Combinatorics::ForEachCombination(compatibles, [&](auto it) {
 			std::vector<RE::Actor*> result(it.size(), nullptr);
 			for (auto&& current : it) {
@@ -628,7 +628,7 @@ namespace Registry
 				}
 				result[scene_idx] = actor;
 			}
-			assert(std::find(result.begin(), result.end(), nullptr) == result.end());
+			assert(!std::ranges::contains(result, nullptr));
 			ret = result;
 			return Combinatorics::CResult::Stop;
 		});

@@ -121,7 +121,7 @@ namespace Registry
 		std::thread _hashbuilder{ [&]() {
 			std::vector<PositionFragment> fragments;
 			for (auto&& position : a_actors) {
-				const auto submissive = std::find(a_submissives.begin(), a_submissives.end(), position) != a_submissives.end();
+				const auto submissive = std::ranges::contains(a_submissives, position);
 				const auto fragment = MakeFragmentFromActor(position, submissive);
 				fragments.push_back(fragment);
 			}

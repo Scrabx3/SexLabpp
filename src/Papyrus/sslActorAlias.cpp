@@ -1,7 +1,7 @@
 #include "sslActorAlias.h"
 
-#include "UserData/StripData.h"
 #include "Registry/Util/Scale.h"
+#include "UserData/StripData.h"
 
 namespace Papyrus::ActorAlias
 {
