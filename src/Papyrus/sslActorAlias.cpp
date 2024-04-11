@@ -115,7 +115,7 @@ namespace Papyrus::ActorAlias
 			std::string ret{ "[" };
 			for (size_t i = 0;; i++) {
 				if (a_mergewith[i]) {
-					ret += std::to_string(a_mergewith[i]->formID);
+					ret += std::format("{:#x}", a_mergewith[i]->formID);
 				}
 				if (i == a_mergewith.size() - 1) {
 					ret += "]";
@@ -165,7 +165,13 @@ namespace Papyrus::ActorAlias
 		const auto manager = RE::ActorEquipManager::GetSingleton();
 		const auto& inventory = actor->GetInventory();
 		for (const auto& [form, data] : inventory) {
-			if (form->IsNot(RE::FormType::Armor) || !data.second->IsWorn()) {
+			if (!data.second->IsWorn()) {
+				continue;
+			}
+			if (form->IsNot(RE::FormType::Armor)) {
+				if (weapon && form->IsWeapon()) {
+					manager->UnequipObject(actor, form);
+				}
 				continue;
 			}
 			switch (stripconfig->CheckStrip(form)) {
