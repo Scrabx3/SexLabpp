@@ -163,14 +163,10 @@ namespace Papyrus::ActorAlias
 			switch (stripconfig->CheckStrip(form)) {
 			case UserData::Strip::NoStrip:
 				continue;
+			case UserData::Strip::Always:
+				break;
 			case UserData::Strip::None:
-				if (weapon && form->IsWeapon() && actor->currentProcess) {
-					if (actor->currentProcess->GetEquippedRightHand() == form)
-						a_mergewith[Right] = form->AsReference();
-					else
-						a_mergewith[Left] = form->AsReference();
-					manager->UnequipObject(actor, form);
-					continue;
+				if (form->IsWeapon() && weapon) {
 				} else if (const auto biped = form->As<RE::BGSBipedObjectForm>()) {
 					const auto biped_slots = static_cast<uint32_t>(biped->GetSlotMask());
 					if ((biped_slots & slots) == 0) {
@@ -178,10 +174,15 @@ namespace Papyrus::ActorAlias
 					}
 				}
 				break;
-			case UserData::Strip::Always:
-				break;
 			}
-			a_mergewith.push_back(form);
+			if (form->IsWeapon() && actor->currentProcess) {
+				if (actor->currentProcess->GetEquippedRightHand() == form)
+					a_mergewith[Right] = form->AsReference();
+				else
+					a_mergewith[Left] = form->AsReference();
+			} else {
+				a_mergewith.push_back(form);
+			}
 			manager->UnequipObject(actor, form);
 		}
 		logger::info("Stripping By Data {}, Returning Equipment: [{:X}]", a_mergewith.size(), fmt::join(a_mergewith, ", "));
