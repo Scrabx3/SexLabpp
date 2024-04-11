@@ -256,14 +256,16 @@ namespace Registry
 	bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
 	{
 		auto fragment = stl::enumeration(MakeFragmentFromActor(a_actor, false));
-		if (CanFillPosition(fragment.get()))
+		if (CanFillPosition(fragment.get(), false))
 			return true;
-		
+		if (CanFillPosition(fragment.get(), true))
+			return true;
+
 		fragment.set(PositionFragment::Submissive);
-		return CanFillPosition(fragment.get());
+		return CanFillPosition(fragment.get(), false) || CanFillPosition(fragment.get(), true);
 	}
 
-	bool PositionInfo::CanFillPosition(PositionFragment a_fragment) const
+	bool PositionInfo::CanFillPosition(PositionFragment a_fragment, bool a_skipdead) const
 	{
 		const auto fragment = stl::enumeration(a_fragment);
 		if (fragment.all(PositionFragment::Futa)) {
@@ -276,24 +278,13 @@ namespace Registry
 				return false;
 		}
 
-		if (fragment.all(PositionFragment::Unconscious) != this->extra.all(Extra::Unconscious))
+		if (!a_skipdead && fragment.all(PositionFragment::Unconscious) != this->extra.all(Extra::Unconscious))
 			return false;
 		if (fragment.all(PositionFragment::Submissive) != this->extra.all(Extra::Submissive))
 			return false;
 
 		if (fragment.all(PositionFragment::Human)) {
 			if (this->extra.all(Extra::Vamprie) && !fragment.all(PositionFragment::Vampire))
-				return false;
-			if (fragment.all(PositionFragment::HandShackle)) {
-				if (!extra.all(Extra::HandShackle))
-					return false;
-			} else {
-				if (extra.all(Extra::Armbinder) != fragment.all(PositionFragment::Arminder))
-					return false;
-				if (extra.all(Extra::Yoke) != fragment.all(PositionFragment::Yoke))
-					return false;
-			}
-			if (extra.any(Extra::Legbinder) != fragment.all(PositionFragment::LegsBound))
 				return false;
 		} else {
 			const auto race_frag = RaceKeyAsFragment(race);
@@ -364,7 +355,6 @@ namespace Registry
 			fragments.emplace_back(PositionFragment::Female);
 		if (this->sex.all(Sex::Futa))
 			fragments.emplace_back(PositionFragment::Futa);
-
 		if (this->extra.all(Extra::Unconscious))
 			setFragmentBit(PositionFragment::Unconscious);
 		else if (this->extra.all(Extra::Submissive))
@@ -378,14 +368,6 @@ namespace Registry
 					setFragmentBit(PositionFragment::Vampire);
 				} else {
 					addVariance(PositionFragment::Vampire);
-				}
-				if (this->extra.all(Extra::Armbinder)) {
-					setFragmentBit(PositionFragment::Arminder);
-				} else if (this->extra.all(Extra::Yoke)) {
-					setFragmentBit(PositionFragment::Yoke);
-				}
-				if (this->extra.all(Extra::Legbinder)) {
-					setFragmentBit(PositionFragment::LegsBound);
 				}
 			}
 			break;
@@ -401,11 +383,9 @@ namespace Registry
 			setRaceBit(this->race);
 			break;
 		}
-
 		std::vector<PositionFragment> ret{};
 		for (auto&& it : fragments)
 			ret.push_back(it.get());
-
 		return ret;
 	}
 
@@ -450,7 +430,7 @@ namespace Registry
 		return ret;
 	}
 
-	Stage* Scene::GetStageByKey_Mutable(const RE::BSFixedString& a_key)
+	Stage* Scene::GetStageByKey(const RE::BSFixedString& a_key)
 	{
 		if (a_key.empty()) {
 			return start_animation;
@@ -620,17 +600,16 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions) const
+	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, bool a_skipdead) const
 	{
 		if (a_positions.size() != this->positions.size())
 			return std::nullopt;
-		// Mark every position that every actor can be placed in
-		// logger::info("Sorting actors for scene {}", this->name);
+
 		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
 		compatibles.resize(a_positions.size());
 		for (size_t i = 0; i < a_positions.size(); i++) {
 			for (size_t n = 0; n < this->positions.size(); n++) {
-				if (this->positions[n].CanFillPosition(a_positions[i].second)) {
+				if (this->positions[n].CanFillPosition(a_positions[i].second, a_skipdead)) {
 					compatibles[i].emplace_back(n, a_positions[i].first);
 				}
 			}
@@ -639,10 +618,8 @@ namespace Registry
 				return std::nullopt;
 			}
 		}
-		// Then find a combination of compatibles that consists exclusively of unique elements
 		std::vector<RE::Actor*> ret{};
 		Combinatorics::ForEachCombination(compatibles, [&](auto it) {
-			// Iteration always use the same nth actor + some idx of a compatible position
 			std::vector<RE::Actor*> result(it.size(), nullptr);
 			for (auto&& current : it) {
 				const auto& [scene_idx, actor] = *current;
@@ -665,6 +642,8 @@ namespace Registry
 	{
 		if (auto ret = SortActors(a_positions))
 			return ret;
+		if (auto ret = SortActors(a_positions, true))
+			return ret;
 
 		for (auto&& [actor, fragment] : a_positions) {
 			auto e = stl::enumeration(fragment);
@@ -674,6 +653,8 @@ namespace Registry
 			}
 			fragment = e.get();
 			if (auto ret = SortActors(a_positions))
+				return ret;
+			if (auto ret = SortActors(a_positions, true))
 				return ret;
 		}
 		return std::nullopt;

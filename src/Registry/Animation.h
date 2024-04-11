@@ -67,10 +67,7 @@ namespace Registry
 			Submissive = 1 << 0,
 			HandShackle = 1 << 1,
 			Vamprie = 1 << 2,
-			Unconscious = 1 << 3,
-			Yoke = 1 << 4,
-			Armbinder = 1 << 5,
-			Legbinder = 1 << 6,
+			Unconscious = 1 << 3
 		};
 
 	public:
@@ -87,7 +84,7 @@ namespace Registry
 
 		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
 		_NODISCARD bool CanFillPosition(const PositionInfo& a_other) const;
-		_NODISCARD bool CanFillPosition(PositionFragment a_fragment) const;
+		_NODISCARD bool CanFillPosition(PositionFragment a_fragment, bool a_skipdead = false) const;
 		_NODISCARD std::vector<PositionFragment> MakeFragments() const;
 
 		_NODISCARD bool HasExtraCstm(const RE::BSFixedString& a_extra) const;
@@ -105,6 +102,8 @@ namespace Registry
 	class Scene
 	{
 	public:
+		using FragmentPair = std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>;
+
 		enum class NodeType
 		{
 			None = -1,
@@ -144,12 +143,12 @@ namespace Registry
 		_NODISCARD const PositionInfo* GetNthPosition(size_t n) const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFallback(std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> a_positions) const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const FragmentPair& a_positions, bool a_skipdead = false) const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFallback(FragmentPair a_positions) const;
 
 		_NODISCARD size_t GetNumStages() const;
 		_NODISCARD const std::vector<const Stage*> GetAllStages() const;
-		_NODISCARD Stage* GetStageByKey_Mutable(const RE::BSFixedString& a_stage);
+		_NODISCARD Stage* GetStageByKey(const RE::BSFixedString& a_stage);
 		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_stage) const;
 		_NODISCARD std::vector<const Stage*> GetLongestPath(const Stage* a_src) const;
 		_NODISCARD std::vector<const Stage*> GetShortestPath(const Stage* a_src) const;

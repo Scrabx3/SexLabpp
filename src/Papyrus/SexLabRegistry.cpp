@@ -781,7 +781,7 @@ namespace Papyrus::SexLabRegistry
 				return false;
 			});
 		} else {
-			const auto stage = scene->GetStageByKey_Mutable(a_stage);
+			const auto stage = scene->GetStageByKey(a_stage);
 			if (!stage) {
 				a_vm->TraceStack("Invalid stage id", a_stackID);
 				return;
@@ -809,7 +809,7 @@ namespace Papyrus::SexLabRegistry
 				return false;
 			});
 		} else {
-			const auto stage = scene->GetStageByKey_Mutable(a_stage);
+			const auto stage = scene->GetStageByKey(a_stage);
 			if (!stage) {
 				a_vm->TraceStack("Invalid stage id", a_stackID);
 				return;
@@ -825,7 +825,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey_Mutable(a_stage);
+		const auto stage = scene->GetStageByKey(a_stage);
 		if (!stage) {
 			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return;
@@ -842,7 +842,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey_Mutable(a_stage);
+		const auto stage = scene->GetStageByKey(a_stage);
 		if (!stage) {
 			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return;
@@ -890,7 +890,7 @@ namespace Papyrus::SexLabRegistry
 				return false;
 			});
 		} else {
-			const auto stage = scene->GetStageByKey_Mutable(a_stage);
+			const auto stage = scene->GetStageByKey(a_stage);
 			if (!stage) {
 				a_vm->TraceStack("Invalid stage id", a_stackID);
 				return;

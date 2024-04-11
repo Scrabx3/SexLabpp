@@ -20,22 +20,18 @@ namespace Registry
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
-
-		std::vector<std::thread> threads;
+		std::vector<std::thread> threads{};
 		for (auto& file : fs::directory_iterator{ scenepath }) {
 			if (file.path().extension() != ".slr") {
 				continue;
 			}
-
 			threads.emplace_back([this, file]() {
 				try {
 					auto package = std::make_unique<AnimPackage>(file);
 					for (auto&& scene : package->scenes) {
-						// For each scene, find all viable hash locks and sort them into the library
 						const auto positionFragments = scene->MakeFragments();
 						Combinatorics::ForEachCombination<PositionFragment>(positionFragments, [&](const std::vector<std::vector<PositionFragment>::const_iterator>& it) {
-							// Create a copy of the current scene
-							std::vector<PositionFragment> argFragment;
+							std::vector<PositionFragment> argFragment{};
 							argFragment.reserve(it.size());
 							for (const auto& current : it) {
 								if (*current == PositionFragment::None) {
@@ -49,12 +45,8 @@ namespace Registry
 							const auto where = scenes.find(key);
 							if (where == scenes.end()) {
 								scenes[key] = { scene.get() };
-							} else {
-								// A scene containing similar positions may create identical hashes in different iterations
-								auto& vec = where->second;
-								if (std::find(vec.begin(), vec.end(), scene.get()) == vec.end()) {
-									vec.push_back(scene.get());
-								}
+							} else if (!std::ranges::contains(where->second, scene.get())) {
+								where->second.push_back(scene.get());
 							}
 							return Combinatorics::CResult::Next;
 						});
@@ -74,8 +66,8 @@ namespace Registry
 			thread.join();
 		}
 		const auto t2 = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms_double.count());
+		std::chrono::duration<double, std::milli> ms = t2 - t1;
+		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
 
 		const auto furniturepath = fs::path{ CONFIGPATH("Furniture") };
 		if (!fs::exists(scenepath, ec) || fs::is_empty(scenepath, ec)) {
@@ -103,8 +95,8 @@ namespace Registry
 			}
 		}
 		const auto t3 = std::chrono::high_resolution_clock::now();
-		ms_double = t3 - t2;
-		logger::info("Loaded {} Furnitures in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms_double.count());
+		ms = t3 - t2;
+		logger::info("Loaded {} Furnitures in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
 		logger::info("Initialized Data");
 	}
 
@@ -135,31 +127,31 @@ namespace Registry
 			}
 			std::stable_sort(fragments.begin(), fragments.end());
 			hash = CombineFragments(fragments);
-		} };	// Thread this because building details can be quite expensive
+		} };
 		TagDetails tags{ a_tags };
+		const auto tagstr = a_tags.empty() ? "[]"s : fmt::format("[{}]", fmt::join(a_tags, ", "));
 		_hashbuilder.join();
 
 		const std::shared_lock lock{ read_write_lock };
 		const auto where = this->scenes.find(hash);
 		if (where == this->scenes.end()) {
-			logger::info("Invalid query: [{} | {} <{}>]; No animations for given actors", a_actors.size(), fmt::join(a_tags, ", "), a_tags.size());
+			logger::info("Invalid query: [{} | {}]; No animations for given actors", a_actors.size(), tagstr);
 			return {};
 		}
 		const auto& rawScenes = where->second;
 
-		std::vector<Scene*> ret;
+		std::vector<Scene*> ret{};
 		ret.reserve(rawScenes.size() / 2);
 		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
 			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
 		});
 		if (ret.empty()) {
-			logger::info("Invalid query: [{} | {} <{}>]; 0/{} animations use given tags", a_actors.size(), fmt::join(a_tags, ", "), a_tags.size(), where->second.size());
+			logger::info("Invalid query: [{} | {}]; 0/{} animations use requested tags", a_actors.size(), tagstr, where->second.size());
 			return {};
 		}
 		const auto t2 = std::chrono::high_resolution_clock::now();
-		// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-		logger::info("Found {} scenes for query [{} | {} <{}>] actors in {}ms", ret.size(), a_actors.size(), fmt::join(a_tags, ", "), a_tags.size(), ms_double.count());
+		std::chrono::duration<double, std::milli> ms = t2 - t1;
+		logger::info("Found {} scenes for query [{} | {}] actors in {}ms", ret.size(), a_actors.size(), tagstr, ms.count());
 		return ret;
 	}
 
