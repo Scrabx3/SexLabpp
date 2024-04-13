@@ -124,10 +124,9 @@ namespace Papyrus::ActorAlias
 		if (a_stripdata == Strip::None) {
 			return a_mergewith;
 		}
-		logger::info("Stripping By Data {}, Initial Equipment: [{:X}]", a_mergewith.size(), fmt::join(a_mergewith, ", "));
 		uint32_t slots;
 		bool weapon;
-		if (a_overwrite.size() >= 2 && a_overwrite[0] != 0) {
+		if (a_overwrite.size() >= 2) {
 			slots = a_overwrite[0];
 			weapon = a_overwrite[1];
 		} else {
@@ -185,7 +184,11 @@ namespace Papyrus::ActorAlias
 			}
 			manager->UnequipObject(actor, form);
 		}
-		logger::info("Stripping By Data {}, Returning Equipment: [{:X}]", a_mergewith.size(), fmt::join(a_mergewith, ", "));
+		std::vector<RE::FormID> ids{};
+		ids.reserve(a_mergewith.size());
+		for (auto&& it : a_mergewith)
+			ids.push_back(it ? it->formID : 0);
+		logger::info("Stripping, Policy: {}, Stripped Equipment: [{:X}]", a_mergewith.size(), fmt::join(ids, ", "));
 		actor->Update3DModel();
 		return a_mergewith;
 	}
