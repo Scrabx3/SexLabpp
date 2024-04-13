@@ -38,6 +38,7 @@ namespace Papyrus::ActorAlias
 			case RE::ACTOR_LIFE_STATE::kDying:
 			case RE::ACTOR_LIFE_STATE::kDead:
 				actor->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Dying);
+				actor->Resurrect(false, true);
 				break;
 			}
 			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
@@ -71,14 +72,21 @@ namespace Papyrus::ActorAlias
 		case STATUS05::Unconscious:
 			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kUnconcious;
 			break;
-		case STATUS05::Dying:
-			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kDying;
-			break;
+		// case STATUS05::Dying:
+		// 	{
+		// 		const float hp = actor->GetActorValue(RE::ActorValue::kHealth);
+		// 		const auto killer = actor->myKiller.get().get();
+		// 		actor->KillImpl(killer, hp + 1, false, true);
+		// 	}
+		// 	break;
 		default:
 			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
+			break;
 		}
 		if (actor->IsPlayerRef()) {
 			RE::PlayerCharacter::GetSingleton()->SetAIDriven(false);
+		} else {
+			actor->SetActorValue(RE::ActorValue::kVariable05, 0.0f);
 		}
 		actor->SetCollision(true);
 	}
