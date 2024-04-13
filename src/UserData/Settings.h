@@ -27,7 +27,6 @@ struct Settings
 	static inline bool bAutoTFC{ false };
 	static inline bool bAutoAdvance{ true };
 	static inline bool bOrgasmEffects{ false };
-	static inline bool bLimitedStrip{ true };
 	static inline bool bRestrictSameSex{ false };
 	static inline bool bShowInMap{ false };
 	static inline bool bDisableTeleport{ true };
@@ -209,7 +208,6 @@ struct Settings
 		ENTRY(bAutoTFC),
 		ENTRY(bAutoAdvance),
 		ENTRY(bOrgasmEffects),
-		ENTRY(bLimitedStrip),
 		ENTRY(bRestrictSameSex),
 		ENTRY(bShowInMap),
 		ENTRY(bDisableTeleport),
