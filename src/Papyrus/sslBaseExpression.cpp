@@ -17,7 +17,7 @@ namespace Papyrus::BaseExpression
 		return a_id < keyframe.count ? keyframe.values[a_id] : 0.0f;
 	}
 
-	float GetPhonem(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, uint32_t a_id)
+	float GetPhoneme(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, uint32_t a_id)
 	{
 		if (!a_actor) {
 			a_vm->TraceStack("Actor is none", a_stackID);

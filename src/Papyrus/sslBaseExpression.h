@@ -3,7 +3,7 @@
 namespace Papyrus::BaseExpression
 {
 	float GetModifier(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* ActorRef, uint32_t a_id);
-	float GetPhonem(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* ActorRef, uint32_t a_id);
+	float GetPhoneme(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* ActorRef, uint32_t a_id);
 	float GetExpression(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* ActorRef, bool a_getid);
 
 	std::vector<RE::BSFixedString> GetExpressionTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
@@ -18,7 +18,7 @@ namespace Papyrus::BaseExpression
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(GetModifier, "sslBaseExpression", true);
-		REGISTERFUNC(GetPhonem, "sslBaseExpression", true);
+		REGISTERFUNC(GetPhoneme, "sslBaseExpression", true);
 		REGISTERFUNC(GetExpression, "sslBaseExpression", true);
 		REGISTERFUNC(GetExpressionTags, "sslBaseExpression", true);
 		REGISTERFUNC(SetExpressionTags, "sslBaseExpression", true);
