@@ -462,10 +462,11 @@ namespace Papyrus::ThreadModel
 
 	float GetPhysicVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type)
 	{
-		if (!a_position || !a_partner) {
+		if (!a_position) {
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return 0.0f;
-		} else if (a_type == -1) {
+		}
+		if (a_type == -1) {
 			a_vm->TraceStack("Type cant be 'any' here", a_stackID);
 			return 0.0f;
 		}
@@ -479,7 +480,7 @@ namespace Papyrus::ThreadModel
 			if (p._owner != a_position->formID)
 				continue;
 			for (auto&& type : p._types) {
-				if (a_partner->formID != type._partner)
+				if (a_partner && a_partner->formID != type._partner)
 					continue;
 				if (a_type != static_cast<int>(type._type))
 					continue;
