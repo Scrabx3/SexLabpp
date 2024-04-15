@@ -27,7 +27,7 @@ namespace Registry
 		};
 
 	public:
-		Position(std::ifstream& a_stream);
+		Position(std::ifstream& a_stream, uint8_t a_version);
 		~Position() = default;
 
 		void Save(YAML::Node& a_node) const;
@@ -45,7 +45,7 @@ namespace Registry
 	struct Stage
 	{
 	public:
-		Stage(std::ifstream& a_stream);
+		Stage(std::ifstream& a_stream, uint8_t a_version);
 		~Stage() = default;
 
 		void Save(YAML::Node& a_node) const;

@@ -100,7 +100,7 @@ namespace Registry
 		stages.reserve(stage_count);
 		for (size_t i = 0; i < stage_count; i++) {
 			const auto& stage = stages.emplace_back(
-				std::make_unique<Stage>(a_stream));
+				std::make_unique<Stage>(a_stream, a_version));
 
 			tags.AddTag(stage->tags);
 			if (stage->id == startstage) {
@@ -165,7 +165,7 @@ namespace Registry
 		}
 	}
 
-	Stage::Stage(std::ifstream& a_stream)
+	Stage::Stage(std::ifstream& a_stream, uint8_t a_version)
 	{
 		id.resize(Decode::ID_SIZE);
 		a_stream.read(id.data(), Decode::ID_SIZE);
@@ -174,7 +174,7 @@ namespace Registry
 		Decode::Read(a_stream, position_count);
 		positions.reserve(position_count);
 		for (size_t i = 0; i < position_count; i++) {
-			positions.emplace_back(a_stream);
+			positions.emplace_back(a_stream, a_version);
 		}
 
 		Decode::Read(a_stream, fixedlength);
@@ -182,12 +182,12 @@ namespace Registry
 		tags = TagData{ a_stream };
 	}
 
-	Position::Position(std::ifstream& a_stream) :
+	Position::Position(std::ifstream& a_stream, uint8_t a_version) :
 		event(Decode::Read<decltype(event)>(a_stream)),
 		climax(Decode::Read<uint8_t>(a_stream) > 0),
 		offset(Transform(a_stream)),
 		strips(decltype(strips)::enum_type(Decode::Read<uint8_t>(a_stream))),
-		schlong(0) {}
+		schlong(a_version >= 3 ? Decode::Read<decltype(schlong)>(a_stream) : 0) {}
 
 	void Position::Save(YAML::Node& a_node) const
 	{
