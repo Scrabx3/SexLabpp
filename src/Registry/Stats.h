@@ -1,5 +1,7 @@
 #pragma once
 
+#include <shared_mutex>
+
 #include "Registry/Define/Sex.h"
 #include "Registry/Define/RaceKey.h"
 
@@ -158,6 +160,7 @@ namespace Registry::Statistics
 		void Revert(SKSE::SerializationInterface* a_intfc);
 
 	private:
+		mutable std::shared_mutex _m{};
 		std::vector<ActorEncounter> _encounters;
 		std::map<RE::FormID, ActorStats> _data;
 	};
