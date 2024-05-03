@@ -19,6 +19,7 @@ namespace Registry
 		switch (version) {
 		case 1:
 		case 2:
+		case 3:
 			{
 				Decode::Read(stream, name);
 				Decode::Read(stream, author);
