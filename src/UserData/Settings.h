@@ -8,10 +8,10 @@ struct Settings
 	static constexpr float POPULATION_HETERO_DEFAULT{ 80.0f };
 	static constexpr float POPULATION_HOMO_DEFAULT{ 8.0f };
 
-	static void Initialize();			// Pre LoadData
+	static void Initialize();	 // Pre LoadData
 	static void InitializeYAML();
 	static void InitializeINI();
-	static void InitializeData();	// Post LoadData
+	static void InitializeData();	 // Post LoadData
 	static void Save();
 
 	// --- MCM
@@ -167,8 +167,29 @@ struct Settings
 	static inline float fDistanceHand{ 8.3f };			 // ~2.2 distance to surface
 	static inline float fDistanceCrotch{ 18.0f };		 // Distance from Pelvis/Hip node to crotch
 	static inline float fAnglePenetration{ 35.0f };	 // Angle relative to crotch area below which the schlong is no longer considered penetrating
-	static inline float fAngleGrinding{ 30.0f };	// angle for schlong and cortch to be considered "parallel"
-	static inline float fAngleMouth{ 30.0f };	 // Angle of the cone from headnode to schlong that interprets the schlong in front of mouth
+	static inline float fAngleGrinding{ 30.0f };		 // angle for schlong and cortch to be considered "parallel"
+	static inline float fAngleMouth{ 30.0f };				 // Angle of the cone from headnode to schlong that interprets the schlong in front of mouth
+
+	// --- Enjoyment
+	static inline float fEnjGrinding{ 0.075 };
+	static inline float fEnjHandActive{ 0.375 };
+	static inline float fEnjHandPassive{ 0.475 };
+	static inline float fEnjFootActive{ 0.175 };
+	static inline float fEnjFootPassive{ 0.3 };
+	static inline float fEnjOralActive{ 0.525 };
+	static inline float fEnjOralPassive{ 0.575 };
+	static inline float fEnjVaginalActive{ 0.725 };
+	static inline float fEnjVaginalPassive{ 0.825 };
+	static inline float fEnjAnalActive{ 0.925 };
+	static inline float fEnjAnalPassive{ 1.025 };
+	static inline float fFactorNonInterEnjRaise{ 0.6 };
+	static inline float fFactorInterEnjRaise{ 1.2 };
+	static inline float fTimeMax{ 30.0 };
+	static inline float fRequiredXP{ 50.0 };
+	static inline float fBoostTime{ 30.0 };
+	static inline float fPenaltyTime{ 80.0 };
+	static inline uint8_t iMaxNoPainOrgasmsM{ 1 };
+	static inline uint8_t iMaxNoPainOrgasmsF{ 2 };
 
 	// --- Misc
 	static inline std::vector<RE::FormID> SOS_ExcludeFactions{};

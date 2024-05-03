@@ -20,7 +20,7 @@ namespace Papyrus::SystemConfig
 	}
 
 	int GetSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
-  {
+	{
 		auto ret = GetSetting<int*>(a_vm, a_stackID, a_setting);
 		return ret ? *ret : 0;
 	}
@@ -32,10 +32,10 @@ namespace Papyrus::SystemConfig
 	}
 
 	bool GetSettingBool(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
-  {
+	{
 		auto ret = GetSetting<bool*>(a_vm, a_stackID, a_setting);
 		return ret ? *ret : 0;
-  }
+	}
 
 	std::string GetSettingStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
 	{
@@ -46,13 +46,13 @@ namespace Papyrus::SystemConfig
 	int GetSettingIntA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, size_t n)
 	{
 		auto ret = GetSetting<std::vector<int>*>(a_vm, a_stackID, a_setting);
-    if (!ret)
-      return 0;
+		if (!ret)
+			return 0;
 		if (n < 0 || n >= ret->size()) {
 			a_vm->TraceStack(fmt::format("Index out of range: {}/{}", n, ret->size()).c_str(), a_stackID);
 			return 0;
 		}
-    return ret->at(n);
+		return ret->at(n);
 	}
 
 	float GetSettingFltA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, size_t n)
@@ -68,7 +68,7 @@ namespace Papyrus::SystemConfig
 	}
 
 	void SetSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, int a_value)
-  {
+	{
 		auto s = GetSetting<int*>(a_vm, a_stackID, a_setting);
 		if (!s)
 			return;
@@ -104,7 +104,7 @@ namespace Papyrus::SystemConfig
 	}
 
 	void SetSettingIntA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, int a_value, int n)
-  {
+	{
 		auto s = GetSetting<std::vector<int>*>(a_vm, a_stackID, a_setting);
 		if (!s)
 			return;
@@ -114,10 +114,10 @@ namespace Papyrus::SystemConfig
 		}
 
 		(*s)[n] = a_value;
-  }
+	}
 
 	void SetSettingFltA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, float a_value, int n)
-  {
+	{
 		auto s = GetSetting<std::vector<float>*>(a_vm, a_stackID, a_setting);
 		if (!s)
 			return;
@@ -132,7 +132,53 @@ namespace Papyrus::SystemConfig
 	int GetAnimationCount(RE::StaticFunctionTag*)
 	{
 		return static_cast<int32_t>(Registry::Library::GetSingleton()->GetSceneCount());
-	} 
+	}
+
+	std::vector<float> GetEnjoymentFactors(RE::StaticFunctionTag*)
+	{
+		return {
+			Settings::fEnjGrinding,
+			Settings::fEnjHandActive,
+			Settings::fEnjHandPassive,
+			Settings::fEnjFootActive,
+			Settings::fEnjFootPassive,
+			Settings::fEnjOralActive,
+			Settings::fEnjOralPassive,
+			Settings::fEnjVaginalActive,
+			Settings::fEnjVaginalPassive,
+			Settings::fEnjAnalActive,
+			Settings::fEnjAnalPassive
+		};
+	}
+
+	int GetEnjoymentSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_setting)
+	{
+		if (a_setting == "iMaxNoPainOrgasmsM")
+			return Settings::iMaxNoPainOrgasmsM;
+		else if (a_setting == "	iMaxNoPainOrgasmsF")
+			return Settings::iMaxNoPainOrgasmsF;
+		a_vm->TraceStack(fmt::format("Invalid Setting {}", a_setting.c_str()).c_str(), a_stackID);
+		return 0;
+	}
+
+	float GetEnjoymentSettingFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_setting)
+	{
+		if (a_setting == "fFactorNonInterEnjRaise")
+			return Settings::fFactorNonInterEnjRaise;
+		else if (a_setting == "fFactorInterEnjRaise")
+			return Settings::fFactorInterEnjRaise;
+		else if (a_setting == "fTimeMax")
+			return Settings::fTimeMax;
+		else if (a_setting == "fRequiredXP")
+			return Settings::fRequiredXP;
+		else if (a_setting == "fBoostTime")
+			return Settings::fBoostTime;
+		else if (a_setting == "fPenaltyTime")
+			return Settings::fPenaltyTime;
+		a_vm->TraceStack(fmt::format("Invalid Setting {}", a_setting.c_str()).c_str(), a_stackID);
+		return 0.0f;
+	}
+
 
 	std::vector<RE::TESForm*> GetStrippableItems(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target, bool a_wornonly)
 	{
@@ -159,4 +205,4 @@ namespace Papyrus::SystemConfig
 	}
 
 
-} // namespace Papyrus
+}	 // namespace Papyrus

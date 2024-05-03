@@ -97,79 +97,79 @@ void Settings::InitializeINI()
 		if (!inifile.GetValue(a_section, a_option))
 			return;
 
-		if constexpr (std::is_same<T, int>::value || std::is_same<T, uint32_t>::value) {
+		if constexpr (std::is_integral_v<T>) {
 			a_out = static_cast<T>(inifile.GetLongValue(a_section, a_option));
-		} else if (std::is_same<T, float>::value) {
+		} else if constexpr (std::is_floating_point_v<T>) {
 			a_out = static_cast<T>(inifile.GetDoubleValue(a_section, a_option));
-		} else if (std::is_same<T, bool>::value) {
-			a_out = static_cast<T>(inifile.GetBoolValue(a_section, a_option));
+		} else {
+			logger::error("Unknown Type for option {} in section {}", a_option, a_section);
 		}
 	};
-#define READINI(section, out) ReadIni(section, #out, out);
+#define READINI(section, out) ReadIni(section, #out, out)
 
 	// Animation
-	READINI("Animation", iFurniturePrefWeight)
-	READINI("Animation", fScanRadius)
-	READINI("Animation", fMinScale)
-	READINI("Animation", bAllowDead)
+	READINI("Animation", iFurniturePrefWeight);
+	READINI("Animation", fScanRadius);
+	READINI("Animation", fMinScale);
+	READINI("Animation", bAllowDead);
 
 	// Creature
-	READINI("Creature", bAshHopper)
-	READINI("Creature", bBear)
-	READINI("Creature", bBoar)
-	READINI("Creature", bBoarMounted)
-	READINI("Creature", bBoarSingle)
-	READINI("Creature", bCanine)
-	READINI("Creature", bChaurus)
-	READINI("Creature", bChaurusHunter)
-	READINI("Creature", bChaurusReaper)
-	READINI("Creature", bChicken)
-	READINI("Creature", bCow)
-	READINI("Creature", bDeer)
-	READINI("Creature", bDog)
-	READINI("Creature", bDragon)
-	READINI("Creature", bDragonPriest)
-	READINI("Creature", bDraugr)
-	READINI("Creature", bDwarvenBallista)
-	READINI("Creature", bDwarvenCenturion)
-	READINI("Creature", bDwarvenSphere)
-	READINI("Creature", bDwarvenSpider)
-	READINI("Creature", bFalmer)
-	READINI("Creature", bFlameAtronach)
-	READINI("Creature", bFox)
-	READINI("Creature", bFrostAtronach)
-	READINI("Creature", bGargoyle)
-	READINI("Creature", bGiant)
-	READINI("Creature", bGiantSpider)
-	READINI("Creature", bGoat)
-	READINI("Creature", bHagraven)
-	READINI("Creature", bHare)
-	READINI("Creature", bHorker)
-	READINI("Creature", bHorse)
-	READINI("Creature", bIceWraith)
-	READINI("Creature", bLargeSpider)
-	READINI("Creature", bLurker)
-	READINI("Creature", bMammoth)
-	READINI("Creature", bMudcrab)
-	READINI("Creature", bNetch)
-	READINI("Creature", bRiekling)
-	READINI("Creature", bSabrecat)
-	READINI("Creature", bSeeker)
-	READINI("Creature", bSkeever)
-	READINI("Creature", bSlaughterfish)
-	READINI("Creature", bSpider)
-	READINI("Creature", bSpriggan)
-	READINI("Creature", bStormAtronach)
-	READINI("Creature", bTroll)
-	READINI("Creature", bVampireLord)
-	READINI("Creature", bWerewolf)
-	READINI("Creature", bWisp)
-	READINI("Creature", bWispmother)
-	READINI("Creature", bWolf)
+	READINI("Creature", bAshHopper);
+	READINI("Creature", bBear);
+	READINI("Creature", bBoar);
+	READINI("Creature", bBoarMounted);
+	READINI("Creature", bBoarSingle);
+	READINI("Creature", bCanine);
+	READINI("Creature", bChaurus);
+	READINI("Creature", bChaurusHunter);
+	READINI("Creature", bChaurusReaper);
+	READINI("Creature", bChicken);
+	READINI("Creature", bCow);
+	READINI("Creature", bDeer);
+	READINI("Creature", bDog);
+	READINI("Creature", bDragon);
+	READINI("Creature", bDragonPriest);
+	READINI("Creature", bDraugr);
+	READINI("Creature", bDwarvenBallista);
+	READINI("Creature", bDwarvenCenturion);
+	READINI("Creature", bDwarvenSphere);
+	READINI("Creature", bDwarvenSpider);
+	READINI("Creature", bFalmer);
+	READINI("Creature", bFlameAtronach);
+	READINI("Creature", bFox);
+	READINI("Creature", bFrostAtronach);
+	READINI("Creature", bGargoyle);
+	READINI("Creature", bGiant);
+	READINI("Creature", bGiantSpider);
+	READINI("Creature", bGoat);
+	READINI("Creature", bHagraven);
+	READINI("Creature", bHare);
+	READINI("Creature", bHorker);
+	READINI("Creature", bHorse);
+	READINI("Creature", bIceWraith);
+	READINI("Creature", bLargeSpider);
+	READINI("Creature", bLurker);
+	READINI("Creature", bMammoth);
+	READINI("Creature", bMudcrab);
+	READINI("Creature", bNetch);
+	READINI("Creature", bRiekling);
+	READINI("Creature", bSabrecat);
+	READINI("Creature", bSeeker);
+	READINI("Creature", bSkeever);
+	READINI("Creature", bSlaughterfish);
+	READINI("Creature", bSpider);
+	READINI("Creature", bSpriggan);
+	READINI("Creature", bStormAtronach);
+	READINI("Creature", bTroll);
+	READINI("Creature", bVampireLord);
+	READINI("Creature", bWerewolf);
+	READINI("Creature", bWisp);
+	READINI("Creature", bWispmother);
+	READINI("Creature", bWolf);
 
 	// Statistics
-	READINI("Statistics", fPercentageHetero)
-	READINI("Statistics", fPercentageHomo)
+	READINI("Statistics", fPercentageHetero);
+	READINI("Statistics", fPercentageHomo);
 
 	if (fPercentageHetero + fPercentageHomo > 100) {
 		logger::error("Sexuality Percentage Settings must be at most 100.0");
@@ -178,13 +178,34 @@ void Settings::InitializeINI()
 	}
 
 	// Distance
-	READINI("Distance", fDistanceHead)
-	READINI("Distance", fDistanceFoot)
-	READINI("Distance", fDistanceHand)
-	READINI("Distance", fDistanceCrotch)
-	READINI("Distance", fAnglePenetration)
-	READINI("Distance", fAngleGrinding)
-	READINI("Distance", fAngleMouth)
+	READINI("Distance", fDistanceHead);
+	READINI("Distance", fDistanceFoot);
+	READINI("Distance", fDistanceHand);
+	READINI("Distance", fDistanceCrotch);
+	READINI("Distance", fAnglePenetration);
+	READINI("Distance", fAngleGrinding);
+	READINI("Distance", fAngleMouth);
+
+	// Enjoyment
+	READINI("Enjoyment", fEnjGrinding);
+	READINI("Enjoyment", fEnjHandActive);
+	READINI("Enjoyment", fEnjHandPassive);
+	READINI("Enjoyment", fEnjFootActive);
+	READINI("Enjoyment", fEnjFootPassive);
+	READINI("Enjoyment", fEnjOralActive);
+	READINI("Enjoyment", fEnjOralPassive);
+	READINI("Enjoyment", fEnjVaginalActive);
+	READINI("Enjoyment", fEnjVaginalPassive);
+	READINI("Enjoyment", fEnjAnalActive);
+	READINI("Enjoyment", fEnjAnalPassive);
+	READINI("Enjoyment", fFactorNonInterEnjRaise);
+	READINI("Enjoyment", fFactorInterEnjRaise);
+	READINI("Enjoyment", fTimeMax);
+	READINI("Enjoyment", fRequiredXP);
+	READINI("Enjoyment", fBoostTime);
+	READINI("Enjoyment", fPenaltyTime);
+	READINI("Enjoyment", iMaxNoPainOrgasmsM);
+	READINI("Enjoyment", iMaxNoPainOrgasmsF);
 
 #undef READINI
 

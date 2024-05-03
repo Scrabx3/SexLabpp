@@ -243,7 +243,7 @@ namespace Registry
 	void Scene::Load(const YAML::Node& a_node)
 	{
 		if (const auto enable = a_node["enabled"]; enable.IsDefined())
-			this->enabled = a_node["enabled"].as<bool>();
+			this->enabled = enable.as<bool>();
 
 		for (auto&& stage : stages) {
 			if (auto node = a_node[stage->id]; node.IsDefined()) {
