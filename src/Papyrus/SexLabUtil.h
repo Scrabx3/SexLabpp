@@ -20,7 +20,11 @@ namespace Papyrus::SexLabUtil
 		a_str.erase(where, a_substring.length());
 		return a_str;
 	}
-	void PrintConsole(RE::StaticFunctionTag*, std::string a_str) { Registry::PrintConsole(a_str.c_str()); }
+	void PrintConsole(RE::StaticFunctionTag*, std::string a_str)
+	{
+		if (!a_str.empty())
+			Registry::PrintConsole(a_str.c_str());
+	}
 
 	int IntMinMaxIndex(RE::StaticFunctionTag*, std::vector<int> arr, bool findHighestValue)
   {
