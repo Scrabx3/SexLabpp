@@ -59,6 +59,8 @@ set(CXX_FILES
 	src/Registry/Stats.cpp
 	src/Registry/Validation.h
 	src/Registry/Validation.cpp
+	src/Registry/Voice.h
+	src/Registry/Voice.cpp
 
 	src/Papyrus/LegacyData.h
 	src/Papyrus/Serialize.h
