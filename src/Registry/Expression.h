@@ -7,8 +7,6 @@ namespace Registry
 	class Expression :
 		public Singleton<Expression>
 	{
-		static inline const auto EXPRESSION_PATH{ CONFIGPATH("Expressions") };
-
 	public:
 		struct Profile
 		{

@@ -10,18 +10,17 @@ namespace Registry
 		logger::info("Loading files..");
 		const auto t1 = std::chrono::high_resolution_clock::now();
 
-		const auto scenepath = fs::path{ CONFIGPATH("Registry") };
 		std::error_code ec{};
-		if (!fs::exists(scenepath, ec) || fs::is_empty(scenepath, ec)) {
+		if (!fs::exists(SCENEPATH, ec) || fs::is_empty(SCENEPATH, ec)) {
 			const auto msg = ec ? fmt::format("An error occured while initializing SexLab animations: {}", ec.message()) :
-														fmt::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", scenepath.string());
+														fmt::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", SCENEPATH);
 			logger::critical("{}", msg);
 			if (MESSAGEBOX(nullptr, fmt::format("{}\n\nExit game now?", msg).c_str(), "SexLab p+ Registry", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
 		std::vector<std::thread> threads{};
-		for (auto& file : fs::directory_iterator{ scenepath }) {
+		for (auto& file : fs::directory_iterator{ SCENEPATH }) {
 			if (file.path().extension() != ".slr") {
 				continue;
 			}
@@ -69,14 +68,13 @@ namespace Registry
 		std::chrono::duration<double, std::milli> ms = t2 - t1;
 		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
 
-		const auto furniturepath = fs::path{ CONFIGPATH("Furniture") };
-		if (!fs::exists(scenepath, ec) || fs::is_empty(scenepath, ec)) {
+		if (!fs::exists(FURNITUREPATH, ec) || fs::is_empty(FURNITUREPATH, ec)) {
 			const auto msg = ec ? fmt::format("An error occured while attempting to read furniture info: {}", ec.message()) :
-														fmt::format("Unable to load furnitures. Folder {} is empty or does not exist.", scenepath.string());
+														fmt::format("Unable to load furnitures. Folder {} is empty or does not exist.", FURNITUREPATH);
 			logger::critical("{}", msg);
 		} else {
 			const std::unique_lock lock{ read_write_lock };
-			for (auto& file : fs::directory_iterator{ scenepath }) {
+			for (auto& file : fs::directory_iterator{ FURNITUREPATH }) {
 				if (auto ext = file.path().extension(); ext != ".yml" && ext != ".yaml") {
 					continue;
 				}
@@ -93,10 +91,10 @@ namespace Registry
 					logger::error("Unable to load furnitures in file {}; Error: {}", filename, e.what());
 				}
 			}
+			const auto t3 = std::chrono::high_resolution_clock::now();
+			ms = t3 - t2;
+			logger::info("Loaded {} Furnitures in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
 		}
-		const auto t3 = std::chrono::high_resolution_clock::now();
-		ms = t3 - t2;
-		logger::info("Loaded {} Furnitures in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
 		logger::info("Initialized Data");
 	}
 
@@ -203,8 +201,8 @@ namespace Registry
 					auto node = data[scene->id];
 					scene->Save(node);
 				}
-				const auto path = fmt::format("Registry\\UserData\\Scenes\\{}_{}.yaml", p->GetName(), p->GetHash());
-				std::ofstream fout(CONFIGPATH(path));
+				const auto filepath = fmt::format("{}\\{}_{}.yaml", SCENESETTINGPATH, p->GetName(), p->GetHash());
+				std::ofstream fout(filepath);
 				fout << data;
 			});
 		}
@@ -216,12 +214,11 @@ namespace Registry
 
 	void Library::Load()
 	{
-		const auto path = fs::path{ CONFIGPATH("Registry\\UserData\\Scenes") };
-		if (!fs::exists(path))
+		if (!fs::exists(SCENESETTINGPATH))
 			return;
 
 		std::unique_lock lock{ read_write_lock };
-		for (auto& file : fs::directory_iterator{ path }) {
+		for (auto& file : fs::directory_iterator{ SCENESETTINGPATH }) {
 			if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
 				continue;
 			const auto filename = file.path().filename().string();
@@ -240,7 +237,7 @@ namespace Registry
 		}
 		logger::info("Finished loading registry settings");
 	}
-	
+
 	const FurnitureDetails* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const
 	{
 		if (a_ref->Is(RE::FormType::ActorCharacter)) {

@@ -2,9 +2,6 @@
 
 struct Settings
 {
-	static constexpr const char* YAMLPATH{ "Data\\SKSE\\SexLab\\Settings.yaml" };
-	static constexpr const char* INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
-
 	static constexpr float POPULATION_HETERO_DEFAULT{ 80.0f };
 	static constexpr float POPULATION_HOMO_DEFAULT{ 8.0f };
 

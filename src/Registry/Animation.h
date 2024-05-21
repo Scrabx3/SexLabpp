@@ -65,7 +65,7 @@ namespace Registry
 		enum class Extra : uint8_t
 		{
 			Submissive = 1 << 0,
-			HandShackle = 1 << 1,
+			// Unused = 1 << 1,
 			Vamprie = 1 << 2,
 			Unconscious = 1 << 3
 		};

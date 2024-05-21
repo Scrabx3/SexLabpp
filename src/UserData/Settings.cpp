@@ -215,7 +215,7 @@ void Settings::InitializeINI()
 void Settings::InitializeData()
 {
 	const auto& handler = RE::TESDataHandler::GetSingleton();
-	const auto root = YAML::LoadFile(CONFIGPATH("SchlongsOfSkyrim.yaml"));
+	const auto root = YAML::LoadFile(SCHLONGPATH);
 	for (auto&& i : root["Blacklist"]) {
 		const auto esp = i["ESP"].as<std::string>();
 		logger::info("Looking for non-schlongs in esp {}", esp);
@@ -280,7 +280,7 @@ void Settings::Save()
 			break;
 		}
 	}
-	std::ofstream fout(CONFIGPATH("Settings.yaml"));
+	std::ofstream fout{ YAMLPATH };
 	fout << settings;
 	logger::info("Finished saving user settings");
 }

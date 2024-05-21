@@ -33,7 +33,21 @@ using namespace std::literals;
 #include "UserData/Settings.h"
 
 #define ESPNAME "SexLab.esm"
-static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return "Data\\SKSE\\SexLab\\"s + file; };
+constexpr auto LEGACY_CONFIG { "Data\\SKSE\\Plugins\\SexLab\\" };
+constexpr auto YAMLPATH{ "Data\\SKSE\\SexLab\\Settings.yaml" };
+constexpr auto INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
+
+#define CONFIGPATH(path) "Data\\SKSE\\SexLab\\" path
+#define SCENEPATH CONFIGPATH("Registry")
+#define FURNITUREPATH CONFIGPATH("Furniture")
+#define VOICEPATH CONFIGPATH("Voices")
+#define EXPRESSIONPATH CONFIGPATH("Expressions")
+#define STRIPPINGPATH CONFIGPATH("Stripping.yaml")
+#define SCHLONGPATH CONFIGPATH("SchlongsOfSkyrim.yaml")
+
+#define USERDATAPATH(path) CONFIGPATH("UserData\\") path
+#define VOICESETTINGPATH USERDATAPATH("Voices.yaml")
+#define SCENESETTINGPATH USERDATAPATH("Scenes.yaml")
 
 #ifndef NDEBUG
 template <class T>

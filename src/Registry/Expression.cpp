@@ -291,10 +291,9 @@ namespace Registry
 	void Expression::Initialize()
 	{
 		logger::info("Loading Expressions");
-		const auto path_legacy = fs::path{ "Data\\SKSE\\Plugins\\SexLab\\" };
 		bool has_new = false;
-		if (fs::exists(path_legacy) && fs::is_directory(path_legacy)) {
-			for (auto& file : fs::directory_iterator{ path_legacy }) {
+		if (fs::exists(LEGACY_CONFIG) && fs::is_directory(LEGACY_CONFIG)) {
+			for (auto& file : fs::directory_iterator{ LEGACY_CONFIG }) {
 				auto filename = file.path().filename().string();
 				ToLower(filename);
 				if (!filename.starts_with("expression"))
@@ -310,8 +309,8 @@ namespace Registry
 				}
 			}
 		}
-		if (fs::exists(EXPRESSION_PATH) && fs::is_directory(EXPRESSION_PATH)) {
-			for (auto& file : fs::directory_iterator{ path_legacy }) {
+		if (fs::exists(EXPRESSIONPATH) && fs::is_directory(EXPRESSIONPATH)) {
+			for (auto& file : fs::directory_iterator{ LEGACY_CONFIG }) {
 				auto filename = file.path().filename().string();
 				try {
 					logger::info("Attempting to parse expression file {}", filename);
@@ -339,7 +338,7 @@ namespace Registry
 			if (profile.isdefault)
 				continue;
 			const auto file = profile.AsYAML();
-			std::ofstream fout(fmt::format("{}\\{}", EXPRESSION_PATH, id));
+			std::ofstream fout(fmt::format("{}\\{}", EXPRESSIONPATH, id));
 			fout << file;
 		}
 		if (verbose) {
