@@ -7,6 +7,7 @@ Actor:
 Tags:
   - Tag1
   - Tag2
+  - ...
 
 Voices:
   - <Voice1Form>: 0
@@ -15,7 +16,7 @@ Voices:
   - ...
 Orgasm: <VoiceForm>
 
-ConditionedVoices:
+Extra:
   - Voices:
       - <Voice1Form>
       - <Voice2Form>

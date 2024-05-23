@@ -32,6 +32,12 @@ namespace Registry
 		const size_t base = a_string.starts_with("0x") ? 16 : 10;
 		return FormFromString<T>(a_string, base);
 	}
+	
+	static std::string FormToString(RE::TESForm* a_form)
+	{
+		auto file = a_form->GetFile(0);
+		return fmt::format("{}|{}", a_form->GetLocalFormID(), file->GetFilename());
+	}
 
 	inline void PrintConsole(std::string_view a_msg) { RE::ConsoleLog::GetSingleton()->Print(a_msg.data()); }
 	inline void PrintConsole(const char* a_msg) { RE::ConsoleLog::GetSingleton()->Print(a_msg); }
