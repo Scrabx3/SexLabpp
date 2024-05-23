@@ -1,0 +1,28 @@
+Name: ExampleName # Should be unique
+
+Actor:
+  - Sex: Female   # Male, Female or Any
+  - Race: Human   # Single or List
+
+Tags:
+  - Tag1
+  - Tag2
+
+Voices:
+  - <Voice1Form>: 0
+  - <Voice2Form>: 20
+  - <Voice3Form>: 65
+  - ...
+Orgasm: <VoiceForm>
+
+ConditionedVoices:
+  - Voices:
+      - <Voice1Form>
+      - <Voice2Form>
+      - <Voice3Form>
+      - ...
+    Conditions:
+      - Submissive: true
+      - Context: Aggressive   # Single or List
+      - Position: ExampleData # Position ExtraData, Single or List
+      - Tags: Dominant        # Stage Tags, Single or List

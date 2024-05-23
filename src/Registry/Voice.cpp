@@ -38,6 +38,18 @@ namespace Registry
 		return v->defaultset.Get(a_priority);
 	}
 
+	RE::TESSound* Voice::GetOrgasmSound(RE::BSFixedString a_voice, Stage* a_stage, PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const
+	{
+		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
+		if (v == voices.end()) {
+			logger::error("No such voice registered: {}", a_voice);
+			return nullptr;
+		}
+		if (v->orgasmvfx)
+			return v->orgasmvfx;
+		return PickSound(a_voice, 100, a_stage, a_info, a_context);
+	}
+
 	void Voice::Initialize()
 	{
 		for (size_t i = 0; i < static_cast<size_t>(VoiceObject::Defaults::Total); i++) {
@@ -52,11 +64,11 @@ namespace Registry
 				try {
 					const auto root = YAML::LoadFile(file.path().string());
 					auto v = VoiceObject{ root };
-					if (std::ranges::contains(voices, v)) {
-						logger::error("Already added Voice with following ID: {}", v.name);
-						continue;
+					if (auto w = std::ranges::find(voices, v); w != voices.end()) {
+						*w = std::move(v);
+					} else {
+						voices.push_back(std::move(v));
 					}
-					voices.push_back(std::move(v));
 					logger::info("Loaded scene voice {}", filename);
 				} catch (const std::exception& e) {
 					logger::error("Error while loading scene settings from file {}: {}", filename, e.what());
@@ -103,7 +115,16 @@ namespace Registry
 	Voice::VoiceObject::VoiceObject(const YAML::Node& a_node) :
 		name(a_node["Name"].as<std::string>()),
 		enabled(true),
-		sex(a_node["Actor"]["Sex"].as<std::string>() == "Female" ? RE::SEXES::kFemale : RE::SEXES::kMale),
+		sex([&]() {
+			auto node = a_node["Actor"]["Sex"];
+			if (!node.IsDefined())
+				return RE::SEXES::kNone;
+			auto str = node.as<std::string>();
+			ToLower(str);
+			return str == "female" ? RE::SEXES::kFemale :
+						 str == "male"	 ? RE::SEXES::kMale :
+															 RE::SEXES::kNone;
+		}()),
 		races([&]() -> decltype(races) {
 			auto node = a_node["Actor"]["Race"];
 			if (node.IsScalar())
@@ -122,6 +143,7 @@ namespace Registry
 			return { arg };
 		}()),
 		defaultset(a_node),
+		orgasmvfx([&]() { auto&node = a_node["Orgasm"]; return node.IsDefined() ? FormFromString<RE::TESSound*>(node.as<std::string>()) : nullptr; }()),
 		extrasets([&]() {
 			decltype(extrasets) ret{};
 			ret.emplace_back(a_node);
@@ -411,7 +433,10 @@ namespace Registry
 				data.emplace_back(sound, (i++ / max) * 100);
 			}
 		}
-		
+		std::sort(data.begin(), data.end(), [](auto& a, auto& b) { 
+			return a.second < b.second;
+		});
+
 		auto convec = a_node["Conditions"];
 		if (!convec.IsDefined())
 			return;

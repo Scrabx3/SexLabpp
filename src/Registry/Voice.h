@@ -92,6 +92,7 @@ namespace Registry
 
 			TagData tags;
 			VoiceSet defaultset;
+			RE::TESSound* orgasmvfx;
 			std::vector<VoiceSet> extrasets;
 
 			constexpr bool operator==(const VoiceObject& a_rhs) const noexcept { return name == a_rhs.name; }
@@ -100,6 +101,7 @@ namespace Registry
 	public:
 		RE::BSFixedString GetVoice(RE::Actor* a_actor, const TagDetails& tags) const;
 		RE::TESSound* PickSound(RE::BSFixedString a_voice, uint32_t a_priority, Stage* a_stage, PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const;
+		RE::TESSound* GetOrgasmSound(RE::BSFixedString a_voice, Stage* a_stage, PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const;
 
 		void Initialize();
 		void Save();
