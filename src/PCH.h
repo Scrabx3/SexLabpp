@@ -8,10 +8,12 @@
 
 #include <atomic>
 #include <glm/glm.hpp>
+#include <magic_enum.hpp>
+#include <nlohmann/json.hpp>
 #include <ranges>
 #include <unordered_map>
 #include <yaml-cpp/yaml.h>
-#include <nlohmann/json.hpp>
+static_assert(magic_enum::is_magic_enum_supported);
 
 #pragma warning(push)
 #ifdef NDEBUG

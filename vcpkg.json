@@ -9,6 +9,7 @@
     "simpleini",
     "yaml-cpp",
     "nlohmann-json",
+    "magic-enum",
     "glm"
   ],
   "overrides": [

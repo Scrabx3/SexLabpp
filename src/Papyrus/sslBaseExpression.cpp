@@ -13,7 +13,7 @@ namespace Papyrus::BaseExpression
 		const auto data = a_actor->GetFaceGenAnimationData();
 		if (!data)
 			return 0.0f;
-    const auto& keyframe = data->modifierKeyFrame;
+		const auto& keyframe = data->modifierKeyFrame;
 		return a_id < keyframe.count ? keyframe.values[a_id] : 0.0f;
 	}
 
@@ -49,14 +49,14 @@ namespace Papyrus::BaseExpression
 	}
 
 	std::vector<RE::BSFixedString> GetExpressionTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
-  {
-    auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
-    if (!profile) {
-      a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
-      return {};
-    }
-    return profile->tags.AsVector();
-  }
+	{
+		auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+		if (!profile) {
+			a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
+			return {};
+		}
+		return profile->tags.AsVector();
+	}
 
 	void SetExpressionTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, std::vector<RE::BSFixedString> a_newtags)
 	{
@@ -69,7 +69,7 @@ namespace Papyrus::BaseExpression
 	}
 
 	bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
-  {
+	{
 		auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
 		if (!profile) {
 			a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
@@ -86,18 +86,6 @@ namespace Papyrus::BaseExpression
 			return;
 		}
 		profile->enabled = a_enabled;
-	}
-
-	void RenameExpression(RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_newid)
-	{
-		if (a_id.empty()) {
-			if (a_newid.empty()) {
-				return;
-			}
-			Registry::Expression::GetSingleton()->CreateProfile(a_newid);
-			return;
-		}
-		Registry::Expression::GetSingleton()->RenameProfile(a_id, a_newid);
 	}
 
 	std::vector<int32_t> GetLevelCounts(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
@@ -143,4 +131,19 @@ namespace Papyrus::BaseExpression
 		std::copy_n(a_values.begin(), data[a_level].size(), data[a_level].begin());
 	}
 
-} // namespace Papyrus::BaseExpression
+	void CreateEmptyProfile(RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		Registry::Expression::GetSingleton()->CreateProfile(a_id);
+	}
+
+	void SaveExpression(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+	{
+		auto p = Registry::Expression::GetSingleton()->GetProfile(a_id);
+		if (!p) {
+			a_vm->TraceStack("Invalid Profile", a_stackID);
+			return;
+		}
+		p->Save();
+	}
+
+}	 // namespace Papyrus::BaseExpression

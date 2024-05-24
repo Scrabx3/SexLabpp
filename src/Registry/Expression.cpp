@@ -63,180 +63,143 @@ namespace Registry
 		}
 	}
 
-	YAML::Node Expression::Profile::AsYAML() const
+	Expression::Profile::Profile(DefaultExpression a_default) :
+		id(magic_enum::enum_name(a_default))
 	{
-		YAML::Node ret;
-		ret["id"] = id.data();
+		switch (a_default) {
+		case DefaultExpression::Afraid:
+			data[RE::SEXES::kMale] = {
+				{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
+				{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
+				{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
+				{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 }
+			};
+			data[RE::SEXES::kFemale] = {
+				{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
+				{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
+				{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
+				{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 },
+			};
+			tags = { std::vector{ "Aggressor", "Afraid", "Scared", "Pain", "Negative" } };
+			break;
+		case DefaultExpression::Angry:
+			data[RE::SEXES::kMale] = {
+				{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0, 0.4f },
+				{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0.55f },
+				{ 0, 0, 0, 0.4f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.65f, 0.65f, 0, 1 }
+			};
+			data[RE::SEXES::kFemale] = {
+				{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0, 0.4f },
+				{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0.55f },
+				{ 0, 0, 0, 0.4f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.65f, 0.65f, 0, 1 },
+			};
+			tags = { std::vector{ "Aggressor", "Victim", "Mad", "Angry", "Upset" } };
+			break;
+		case DefaultExpression::Happy:
+			data[RE::SEXES::kMale] = {
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2.0f, 0.5f },
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2.0f, 0.7f },
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.7f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2.0f, 0.8f }
+			};
+			data[RE::SEXES::kFemale] = {
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2.0f, 0.5f },
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2.0f, 0.7f },
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.7f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2.0f, 0.8f }
+			};
+			tags = { std::vector{ "Normal", "Happy", "Consensual" } };
+			break;
+		case DefaultExpression::Joy:
+			data[RE::SEXES::kMale] = {
+				{ 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0.2f, 0, 0, 0, 0, 0, 0, 13.0f, 0.4f },
+				{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4f, 0.4f, 8.0f, 0.4f },
+				{ 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 0, 0, 0, 0, 0.3f, 0.3f, 13.0f, 0.8f }
+			};
+			data[RE::SEXES::kFemale] = {
+				{ 0.3f, 0, 0, 0, 0, 0, 0, 0.6f, 0, 0, 0, 0, 0.6f, 0, 0, 0, 0.3f, 0.3f, 0, 0, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.45f },
+				{ 0, 0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.3f, 0.3f, 0, 0, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.6f },
+				{ 0, 0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.3f, 0.3f, 0, 0, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.6f },
+				{ 0.1f, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0.7f, 0.7f, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.5f },
+				{ 0.6f, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0.7f, 0.7f, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.6f },
+			};
+			tags = { std::vector{ "Normal", "Happy", "Joy", "Pleasure", "Consensual" } };
+			break;
+		case DefaultExpression::Pained:
+			data[RE::SEXES::kMale] = {
+				{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
+				{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
+				{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
+				{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 }
+			};
+			data[RE::SEXES::kFemale] = {
+				{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
+				{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
+				{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
+				{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 }
+			};
+			tags = { std::vector{ "Victim", "Afraid", "Pain", "Pained", "Negative" } };
+			break;
+		case DefaultExpression::Pleasure:
+			data[RE::SEXES::kMale] = {
+				{ 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0.2f, 0, 0, 0, 0, 0, 0, 13.0f, 0.4f },
+				{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4f, 0.4f, 8.0f, 0.4f },
+				{ 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 0, 0, 0, 0, 0.3f, 0.3f, 13.0f, 0.8f }
+			};
+			data[RE::SEXES::kFemale] = {
+				{ 0, 0, 0, 0, 0, 0.3f, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.0f, 0.3f },
+				{ 0.2f, 0, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0.2f, 0.2f, 0, 0, 0, 0, 0, 0, 10, 0.5f },
+				{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0, 0, 0, 0, 0.5f, 0.5f, 0.3f, 0.3f, 0.7f, 0.4f, 0, 0, 0, 0, 0, 0, 10, 0.7f },
+				{ 0, 0, 0, 0, 0.35f, 0, 0, 0, 0, 0, 0.2f, 0, 0.3f, 0, 0, 0, 0.1f, 0.1f, 0.25f, 0.25f, 0, 0, 1.0f, 1.0f, 0, 0, 0, 0, 0.3f, 0.3f, 10, 1.0f },
+				{ 0.4f, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0.8f, 0, 0, 0.2f, 0.15f, 0.15f, 0.25f, 0.25f, 0.6f, 0.6f, 0, 0, 0, 0, 0, 1.0f, 0.7f, 0.6f, 12.0f, 0.6f }
+			};
+			tags = { std::vector{ "Normal", "Happy", "Consensual", "Pleasure" } };
+			break;
+		case DefaultExpression::Sad:
+			data[RE::SEXES::kMale] = {
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2, 0.5f },
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2, 0.7f },
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.6f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2, 0.8f }
+			};
+			data[RE::SEXES::kFemale] = {
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2, 0.5f },
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2, 0.7f },
+				{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.6f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2, 0.8f },
+			};
+			tags = { std::vector{ "Normal", "Victim", "Sad" } };
+			break;
+		case DefaultExpression::Shy:
+			data[RE::SEXES::kMale] = {
+				{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 4.0f, 0.9f },
+				{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f },
+				{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f }
+			};
+			data[RE::SEXES::kFemale] = {
+				{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 4.0f, 0.9f },
+				{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f },
+				{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f },
+			};
+			tags = { std::vector{ "Normal", "Consensual", "Nervous", "Sad", "Shy" } };
+			break;
+		default:
+			assert(false);
+			break;
+		}
+	}
+
+	void Expression::Profile::Save() const
+	{
+		YAML::Node file;
+		file["id"] = id.data();
 		for (auto&& tag : tags.AsVector()) {
-			ret["tags"].push_back(tag.data());
+			file["tags"].push_back(tag.data());
 		}
 		for (size_t i = 0; i < RE::SEXES::kTotal; i++) {
 			for (size_t n = 0; n < data[i].size(); n++) {
-				ret["data"][i].push_back(data[i][n]);
+				file["data"][i].push_back(data[i][n]);
 			}
 		}
-		ret["enabled"] = enabled;
-		return ret;
-	}
-
-	Expression::Profile Expression::GetDefaultAfraid()
-	{
-		Profile ret{ RE::BSFixedString{ "Afraid" } };
-		ret.data[RE::SEXES::kMale] = {
-			{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
-			{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
-			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
-			{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 }
-		};
-		ret.data[RE::SEXES::kFemale] = {
-			{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
-			{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
-			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
-			{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 },
-		};
-		ret.tags = { std::vector{ "Aggressor", "Afraid", "Scared", "Pain", "Negative" } };
-		ret.enabled = true;
-		ret.isdefault = true;
-		return ret;
-	}
-
-	Expression::Profile Expression::GetDefaultAngry()
-	{
-		Profile ret{ RE::BSFixedString{ "Angry" } };
-		ret.data[RE::SEXES::kMale] = {
-			{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0, 0.4f },
-			{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0.55f },
-			{ 0, 0, 0, 0.4f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.65f, 0.65f, 0, 1 }
-		};
-		ret.data[RE::SEXES::kFemale] = {
-			{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0, 0.4f },
-			{ 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0.55f },
-			{ 0, 0, 0, 0.4f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.65f, 0.65f, 0, 1 },
-		};
-		ret.tags = { std::vector{ "Aggressor", "Victim", "Mad", "Angry", "Upset" } };
-		ret.enabled = true;
-		ret.isdefault = true;
-		return ret;
-	}
-
-	Expression::Profile Expression::GetDefaultHappy()
-	{
-		Profile ret{ RE::BSFixedString{ "Happy" } };
-		ret.data[RE::SEXES::kMale] = {
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2.0f, 0.5f },
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2.0f, 0.7f },
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.7f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2.0f, 0.8f }
-		};
-		ret.data[RE::SEXES::kFemale] = {
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2.0f, 0.5f },
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2.0f, 0.7f },
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.7f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2.0f, 0.8f }
-		};
-		ret.tags = { std::vector{ "Normal", "Happy", "Consensual" } };
-		ret.enabled = true;
-		ret.isdefault = true;
-		return ret;
-	}
-
-	Expression::Profile Expression::GetDefaultJoy()
-	{
-		Profile ret{ RE::BSFixedString{ "Joy" } };
-		ret.data[RE::SEXES::kMale] = {
-			{ 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0.2f, 0, 0, 0, 0, 0, 0, 13.0f, 0.4f },
-			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4f, 0.4f, 8.0f, 0.4f },
-			{ 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 0, 0, 0, 0, 0.3f, 0.3f, 13.0f, 0.8f }
-		};
-		ret.data[RE::SEXES::kFemale] = {
-			{ 0.3f, 0, 0, 0, 0, 0, 0, 0.6f, 0, 0, 0, 0, 0.6f, 0, 0, 0, 0.3f, 0.3f, 0, 0, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.45f },
-			{ 0, 0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.3f, 0.3f, 0, 0, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.6f },
-			{ 0, 0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.3f, 0.3f, 0, 0, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.6f },
-			{ 0.1f, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0.7f, 0.7f, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.5f },
-			{ 0.6f, 0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0.7f, 0.7f, 1.0f, 1.0f, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 10, 0.6f },
-		};
-		ret.tags = { std::vector{ "Normal", "Happy", "Joy", "Pleasure", "Consensual" } };
-		ret.enabled = true;
-		ret.isdefault = true;
-		return ret;
-	}
-
-	Expression::Profile Expression::GetDefaultPained()
-	{
-		Profile ret{ RE::BSFixedString{ "Pained" } };
-		ret.data[RE::SEXES::kMale] = {
-			{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
-			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
-			{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
-			{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 }
-		};
-		ret.data[RE::SEXES::kFemale] = {
-			{ 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0.1f, 0, 0, 0.5f, 0.5f, 0, 0, 0, 0, 0.3f, 0.3f, 3, 1 },
-			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0, 0.4f, 3, 1 },
-			{ 0, 0, 1, 0, 0, 0.4f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1 },
-			{ 0.3f, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0.9f, 0, 0, 9, 1 }
-		};
-		ret.tags = { std::vector{ "Victim", "Afraid", "Pain", "Pained", "Negative" } };
-		ret.enabled = true;
-		ret.isdefault = true;
-		return ret;
-	}
-
-	Expression::Profile Expression::GetDefaultPleasure()
-	{
-		Profile ret{ RE::BSFixedString{ "Pleasure" } };
-		ret.data[RE::SEXES::kMale] = {
-			{ 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0.2f, 0, 0, 0, 0, 0, 0, 13.0f, 0.4f },
-			{ 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4f, 0.4f, 8.0f, 0.4f },
-			{ 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 0, 0, 0, 0, 0.3f, 0.3f, 13.0f, 0.8f }
-		};
-		ret.data[RE::SEXES::kFemale] = {
-			{ 0, 0, 0, 0, 0, 0.3f, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.0f, 0.3f },
-			{ 0.2f, 0, 0, 0.3f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.3f, 0.2f, 0.2f, 0, 0, 0, 0, 0, 0, 10, 0.5f },
-			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3f, 0.1f, 0, 0, 0, 0, 0.5f, 0.5f, 0.3f, 0.3f, 0.7f, 0.4f, 0, 0, 0, 0, 0, 0, 10, 0.7f },
-			{ 0, 0, 0, 0, 0.35f, 0, 0, 0, 0, 0, 0.2f, 0, 0.3f, 0, 0, 0, 0.1f, 0.1f, 0.25f, 0.25f, 0, 0, 1.0f, 1.0f, 0, 0, 0, 0, 0.3f, 0.3f, 10, 1.0f },
-			{ 0.4f, 0, 0, 0, 0, 0.2f, 0, 0, 0, 0, 0, 0, 0.8f, 0, 0, 0.2f, 0.15f, 0.15f, 0.25f, 0.25f, 0.6f, 0.6f, 0, 0, 0, 0, 0, 1.0f, 0.7f, 0.6f, 12.0f, 0.6f }
-		};
-		ret.tags = { std::vector{ "Normal", "Happy", "Consensual", "Pleasure" } };
-		ret.enabled = true;
-		ret.isdefault = true;
-		return ret;
-	}
-
-	Expression::Profile Expression::GetDefaultSad()
-	{
-		Profile ret{ RE::BSFixedString{ "Sad" } };
-		ret.data[RE::SEXES::kMale] = {
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2, 0.5f },
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2, 0.7f },
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.6f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2, 0.8f }
-		};
-		ret.data[RE::SEXES::kFemale] = {
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.5f, 2, 0.5f },
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.7f, 0.7f, 2, 0.7f },
-			{ 0, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0, 0.6f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.8f, 0.8f, 2, 0.8f },
-		};
-		ret.tags = { std::vector{ "Normal", "Victim", "Sad" } };
-		ret.enabled = true;
-		ret.isdefault = true;
-		return ret;
-	}
-
-	Expression::Profile Expression::GetDefaultShy()
-	{
-		Profile ret{ RE::BSFixedString{ "Shy" } };
-		ret.data[RE::SEXES::kMale] = {
-			{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 4.0f, 0.9f },
-			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f },
-			{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f }
-		};
-		ret.data[RE::SEXES::kFemale] = {
-			{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2f, 0, 0, 4.0f, 0.9f },
-			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f },
-			{ 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5f, 0.4f, 0, 0, 0.3f, 0, 3.0f, 0.5f },
-		};
-		ret.tags = { std::vector{ "Normal", "Consensual", "Nervous", "Sad", "Shy" } };
-		ret.enabled = true;
-		ret.isdefault = true;
-		return ret;
+		file["enabled"] = enabled;
+		std::ofstream fout(fmt::format("{}\\{}.yaml", EXPRESSIONPATH, id));
+		fout << file;
 	}
 
 	const Expression::Profile* Expression::GetProfile(const RE::BSFixedString& a_id) const
@@ -257,24 +220,13 @@ namespace Registry
 		return &where->second;
 	}
 
-	bool Expression::RenameProfile(const RE::BSFixedString& a_id, const RE::BSFixedString& a_newid)
-	{
-		auto where = _profiles.find(a_id);
-		if (where == _profiles.end())
-			return false;
-
-		_profiles[a_newid] = where->second;
-		_profiles.erase(where);
-		return true;
-	}
-
 	bool Expression::CreateProfile(const RE::BSFixedString& a_id)
 	{
-		auto where = _profiles.find(a_id);
-		if (where != _profiles.end())
+		if (_profiles.contains(a_id)) {
+			logger::error("Expression {} has already been initialized", a_id);
 			return false;
-
-		_profiles[a_id] = Profile{ a_id };
+		}
+		_profiles.emplace(a_id, Profile{ a_id });
 		return true;
 	}
 
@@ -291,7 +243,26 @@ namespace Registry
 	void Expression::Initialize()
 	{
 		logger::info("Loading Expressions");
-		bool has_new = false;
+
+		constexpr auto arr = magic_enum::enum_values<DefaultExpression>();
+		for (auto&& e : arr) {
+			_profiles.emplace(magic_enum::enum_name(e), Profile{ e });
+		}
+
+		if (fs::exists(EXPRESSIONPATH) && fs::is_directory(EXPRESSIONPATH)) {
+			for (auto& file : fs::directory_iterator{ LEGACY_CONFIG }) {
+				auto filename = file.path().filename().string();
+				try {
+					const auto yaml = YAML::LoadFile(file.path().string());
+					const auto profile = Profile{ yaml };
+					_profiles.emplace(profile.id, std::move(profile));
+					logger::info("Added expression {}", filename);
+				} catch (const std::exception& e) {
+					logger::info("Failed to load {}, Error = {}", filename, e.what());
+				}
+			}
+		}
+
 		if (fs::exists(LEGACY_CONFIG) && fs::is_directory(LEGACY_CONFIG)) {
 			for (auto& file : fs::directory_iterator{ LEGACY_CONFIG }) {
 				auto filename = file.path().filename().string();
@@ -299,51 +270,29 @@ namespace Registry
 				if (!filename.starts_with("expression"))
 					continue;
 				try {
-					logger::info("Attempting to update legacy file {}", filename);
 					const auto jsonfile = nlohmann::json::parse(std::ifstream(file.path().string()));
 					const auto profile = Profile{ jsonfile };
-					_profiles[profile.id] = std::move(profile);
+					if (_profiles.contains(profile.id)) {
+						continue;
+					}
+					profile.Save();
+					_profiles.emplace(profile.id, std::move(profile));
 					logger::info("Added legacy expression {}. You may delete this file now", filename);
 				} catch (const std::exception& e) {
 					logger::info("Failed to update {}, Error = {}", filename, e.what());
 				}
 			}
 		}
-		if (fs::exists(EXPRESSIONPATH) && fs::is_directory(EXPRESSIONPATH)) {
-			for (auto& file : fs::directory_iterator{ LEGACY_CONFIG }) {
-				auto filename = file.path().filename().string();
-				try {
-					logger::info("Attempting to parse expression file {}", filename);
-					const auto yaml = YAML::LoadFile(file.path().string());
-					const auto profile = Profile{ yaml };
-					_profiles[profile.id] = std::move(profile);
-					logger::info("Added expression {}", filename);
-				} catch (const std::exception& e) {
-					logger::info("Failed to load {}, Error = {}", filename, e.what());
-				}
-			}
-		}
-		if (has_new) {
-			Save(false);
-		}
-		logger::info("Finished loading expressions");
+
+		logger::info("Loaded {} expressions", _profiles.size());
 	}
 
-	void Expression::Save(bool verbose)
+	void Expression::Save()
 	{
-		if (verbose) {
-			logger::info("Saving expressions");
-		}
 		for (auto&& [id, profile] : _profiles) {
-			if (profile.isdefault)
-				continue;
-			const auto file = profile.AsYAML();
-			std::ofstream fout(fmt::format("{}\\{}", EXPRESSIONPATH, id));
-			fout << file;
+			profile.Save();
 		}
-		if (verbose) {
-			logger::info("Finished saving expressions");
-		}
+		logger::info("Finished saving expressions");
 	}
 
 }	 // namespace Registry

@@ -17,7 +17,7 @@ set(PAPYRUS_VR "14vr")
 # ---- Project ----
 project(
     SexLab
-    VERSION 2.7.1.0
+    VERSION 2.9.0.0
     LANGUAGES CXX
 )
 
@@ -87,6 +87,7 @@ endif()
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
 find_package(glm REQUIRED CONFIG)
+find_package(magic_enum REQUIRED)
 
 # ---- Add source files ----
 include(CMake/source-list.cmake)
@@ -156,6 +157,7 @@ target_link_libraries(
     ${CommonLibName}::${CommonLibName}
     spdlog::spdlog
     yaml-cpp
+    magic_enum::magic_enum
 )
 
 target_precompile_headers("${PROJECT_NAME}"

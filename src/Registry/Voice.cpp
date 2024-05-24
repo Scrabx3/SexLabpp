@@ -193,6 +193,8 @@ namespace Registry
 
 	void Voice::Initialize()
 	{
+		logger::info("Loading Voices");
+
 		if (fs::exists(VOICEPATH)) {
 			for (auto& file : fs::directory_iterator{ VOICEPATH }) {
 				if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
