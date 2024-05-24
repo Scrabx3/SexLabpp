@@ -386,6 +386,8 @@ namespace Registry::Statistics
 	RE::Actor* StatisticsData::GetMostRecentEncounter(RE::Actor* a_actor, ActorEncounter::EncounterType a_type)
 	{
 		const std::shared_lock lock{ _m };
+		if (_encounters.empty())
+			return nullptr;
 		for (size_t i = _encounters.size() - 1; i >= 0; i--) {
 			const auto partnerobj = _encounters[i].GetPartner(a_actor);
 			const auto partner = partnerobj ? RE::TESForm::LookupByID<RE::Actor>(partnerobj->id) : nullptr;
