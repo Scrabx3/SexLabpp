@@ -11,18 +11,18 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	switch (message->type) {
 	case SKSE::MessagingInterface::kPostLoad:
 #ifdef NDEBUG
+		Registry::Library::GetSingleton()->Initialize();
 		Registry::Voice::GetSingleton()->Initialize();
 		Registry::Expression::GetSingleton()->Initialize();
-		Registry::Library::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Load();
 		Settings::Initialize();
 #endif
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
 #ifndef NDEBUG
+		Registry::Library::GetSingleton()->Initialize();
 		Registry::Voice::GetSingleton()->Initialize();
 		Registry::Expression::GetSingleton()->Initialize();
-		Registry::Library::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Load();
 		Settings::Initialize();
 #endif

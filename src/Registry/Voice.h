@@ -40,10 +40,8 @@ namespace Registry
 		};
 
 	public:
-		VoiceSet(const std::vector<std::pair<RE::TESSound*, uint8_t>>& a_data, const std::vector<CONDITION>& a_conditions = {}) :
-			data(a_data), conditions(a_conditions) { assert(!a_data.empty()); }
 		VoiceSet(const YAML::Node& a_node);
-		VoiceSet() = default;
+		VoiceSet(bool a_aslegacyextra);
 		~VoiceSet() = default;
 
 		bool IsValid(const Stage* a_stage, const PositionInfo* a_position, const std::vector<RE::BSFixedString>& a_context) const;
@@ -55,8 +53,8 @@ namespace Registry
 		YAML::Node AsYaml() const;
 
 	private:
-		std::vector<std::pair<RE::TESSound*, uint8_t>> data;
-		std::vector<CONDITION> conditions;
+		std::vector<std::pair<RE::TESSound*, uint8_t>> data{};
+		std::vector<CONDITION> conditions{};
 	};
 
 	class Voice :
@@ -64,39 +62,9 @@ namespace Registry
 	{
 		struct VoiceObject
 		{
-			enum class Defaults
-			{
-				FemaleClassic,
-				FemaleBreathy,
-				FemaleYoung,
-				FemaleStimulated,
-				FemaleQuiet,
-				FemaleExcitable,
-				FemaleAverage,
-				FemaleMature,
-				MaleNeutral,
-				MaleCalm,
-				MaleRough,
-				MaleAverage,
-
-				ChaurusVoice01,
-				DogVoice01,
-				DraugrVoice01,
-				FalmerVoice01,
-				GiantVoice01,
-				HorseVoice01,
-				SprigganVoice01,
-				TrollVoice01,
-				WerewolfVoice01,
-				WolfVoice01,
-
-				Total
-			};
-
 			VoiceObject(const YAML::Node& a_node);
 			VoiceObject(RE::BSFixedString a_name) :
-				name(a_name), fromfile(false){};
-			VoiceObject(Defaults a_default);
+				name(a_name), fromfile(false), defaultset(false), extrasets({ { true } }){};
 			~VoiceObject() = default;
 
 			RE::BSFixedString name;
@@ -107,7 +75,7 @@ namespace Registry
 			std::vector<RaceKey> races{};
 
 			TagData tags{};
-			VoiceSet defaultset{};
+			VoiceSet defaultset;
 			RE::TESSound* orgasmvfx{ nullptr };
 			std::vector<VoiceSet> extrasets{};
 
