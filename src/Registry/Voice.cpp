@@ -135,6 +135,11 @@ namespace Registry
 			logger::error("From File initialized Voice Objects are read only. {}", a_voice);
 			return;
 		}
+		if (!a_races.empty() && !std::ranges::contains(a_races, RaceKey::Human)) {
+			v->tags.AddTag("Creature");
+		} else {
+			v->tags.RemoveTag("Creature");
+		}
 		v->races = a_races;
 	}
 
@@ -148,6 +153,20 @@ namespace Registry
 		if (v->fromfile) {
 			logger::error("From File initialized Voice Objects are read only. {}", a_voice);
 			return;
+		}
+		switch (a_sex) {
+		case RE::SEXES::kFemale:
+			v->tags.RemoveTag("Male");
+			v->tags.AddTag("Female");
+			break;
+		case RE::SEXES::kMale:
+			v->tags.AddTag("Male");
+			v->tags.RemoveTag("Female");
+			break;
+		default:
+			v->tags.AddTag("Female");
+			v->tags.AddTag("Male");
+			break;
 		}
 		v->sex = a_sex;
 	}
