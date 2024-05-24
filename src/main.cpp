@@ -2,6 +2,7 @@
 #include "Registry/Expression.h"
 #include "Registry/Library.h"
 #include "Registry/Stats.h"
+#include "Registry/Voice.h"
 #include "Serialization.h"
 #include "UserData/StripData.h"
 
@@ -10,6 +11,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	switch (message->type) {
 	case SKSE::MessagingInterface::kPostLoad:
 #ifdef NDEBUG
+		Registry::Voice::GetSingleton()->Initialize();
 		Registry::Expression::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Load();
@@ -18,6 +20,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
 #ifndef NDEBUG
+		Registry::Voice::GetSingleton()->Initialize();
 		Registry::Expression::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Load();
