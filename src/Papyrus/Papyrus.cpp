@@ -5,6 +5,7 @@
 #include "Papyrus/sslActorStats.h"
 #include "Papyrus/sslAnimationSlots.h"
 #include "Papyrus/sslBaseExpression.h"
+#include "Papyrus/sslBaseVoice.h"
 #include "Papyrus/sslCreatureAnimationSlots.h"
 #include "Papyrus/sslExpressionSlots.h"
 #include "Papyrus/sslSystemConfig.h"
@@ -28,6 +29,7 @@ namespace Papyrus
 		papyrus->Register(Papyrus::AnimationSlots::Register);
 		papyrus->Register(Papyrus::CreatureAnimationSlots::Register);
 		papyrus->Register(Papyrus::BaseExpression::Register);
+		papyrus->Register(Papyrus::BaseVoice::Register);
 		papyrus->Register(Papyrus::ExpressionSlots::Register);
 		papyrus->Register(Papyrus::SystemConfig::Register);
 		papyrus->Register(Papyrus::ThreadLibrary::Register);

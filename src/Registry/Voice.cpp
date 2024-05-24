@@ -173,9 +173,9 @@ namespace Registry
 
 	void Voice::Initialize()
 	{
-		for (size_t i = 0; i < static_cast<size_t>(VoiceObject::Defaults::Total); i++) {
-			voices.emplace_back(VoiceObject::Defaults(i));
-		}
+		// for (size_t i = 0; i < static_cast<size_t>(VoiceObject::Defaults::Total); i++) {
+		// 	voices.emplace_back(VoiceObject::Defaults(i));
+		// }
 
 		if (fs::exists(VOICEPATH)) {
 			for (auto& file : fs::directory_iterator{ VOICEPATH }) {
