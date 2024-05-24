@@ -93,7 +93,7 @@ namespace Registry
 			}
 			const auto t3 = std::chrono::high_resolution_clock::now();
 			ms = t3 - t2;
-			logger::info("Loaded {} Furnitures in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
+			logger::info("Loaded {} Furnitures in {}ms", packages.size(), ms.count());
 		}
 		logger::info("Initialized Data");
 	}
