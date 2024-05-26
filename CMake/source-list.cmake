@@ -78,10 +78,6 @@ set(CXX_FILES
 	src/Papyrus/sslActorStats.cpp
 	src/Papyrus/sslAnimationSlots.h
 	src/Papyrus/sslAnimationSlots.cpp
-	src/Papyrus/sslBaseExpression.h
-	src/Papyrus/sslBaseExpression.cpp
-	src/Papyrus/sslBaseVoice.h
-	src/Papyrus/sslBaseVoice.cpp
 	src/Papyrus/sslCreatureAnimationSlots.h
 	src/Papyrus/sslCreatureAnimationSlots.cpp
 	src/Papyrus/sslExpressionSlots.h
