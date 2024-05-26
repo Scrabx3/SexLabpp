@@ -133,9 +133,9 @@ namespace Papyrus::ExpressionSlots
 			std::copy_n(a_values.begin(), data[a_level].size(), data[a_level].begin());
 		}
 
-		void CreateEmptyProfile(RE::StaticFunctionTag*, RE::BSFixedString a_id)
+		bool CreateEmptyProfile(RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			Registry::Expression::GetSingleton()->CreateProfile(a_id);
+			return Registry::Expression::GetSingleton()->CreateProfile(a_id);
 		}
 
 		void SaveExpression(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)

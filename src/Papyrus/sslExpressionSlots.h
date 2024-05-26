@@ -23,7 +23,7 @@ namespace Papyrus::ExpressionSlots
 		std::vector<float> GetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int a_level);
 		void SetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values);
 
-		void CreateEmptyProfile(RE::StaticFunctionTag*, RE::BSFixedString a_id);
+		bool CreateEmptyProfile(RE::StaticFunctionTag*, RE::BSFixedString a_id);
 		void SaveExpression(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
 
 		inline bool Register(VM* a_vm)
