@@ -119,7 +119,10 @@ namespace Papyrus::VoiceSlots
 			std::vector<Registry::RaceKey> races{};
 			races.reserve(a_set.size());
 			for (auto&& r : a_set) {
-				races.push_back(Registry::RaceHandler::GetRaceKey(r));
+				const auto rk = Registry::RaceHandler::GetRaceKey(r);
+				if (rk == Registry::RaceKey::None)
+					continue;
+				races.push_back(rk);
 			}
 			Registry::Voice::GetSingleton()->SetRace(a_id, races);
 		}
