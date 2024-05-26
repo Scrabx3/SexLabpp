@@ -579,7 +579,12 @@ namespace Registry
 	{
 		YAML::Node ret{};
 		for (auto&& [v, prio] : data) {
-			ret["Voices"][FormToString(v)] = static_cast<int32_t>(prio);
+			if (!v)
+				continue;
+			auto key = FormToString(v);
+			if (ret["Voices"][key].IsDefined())
+				continue;
+			ret["Voices"][key] = static_cast<int32_t>(prio);
 		}
 		for (auto&& c : conditions) {
 			switch (c.type) {
