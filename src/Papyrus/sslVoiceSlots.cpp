@@ -136,7 +136,9 @@ namespace Papyrus::VoiceSlots
 
 	RE::BSFixedString SelectVoiceByTags(RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_tags)
 	{
-		return SelectVoiceByTagsA(nullptr, a_actor, { a_tags.data() });
+		auto s = Registry::Voice::GetSingleton();
+		auto v = a_actor ? s->GetVoice(a_actor, { a_tags }) : s->GetVoice(Registry::TagDetails{ a_tags });
+		return v ? v->name : "";
 	}
 
 	RE::BSFixedString SelectVoiceByTagsA(RE::StaticFunctionTag*, RE::Actor* a_actor, std::vector<std::string_view> a_tags)
