@@ -224,6 +224,10 @@ namespace Registry
 
 	RaceKey RaceHandler::GetRaceKey(const RE::BSFixedString& a_racestring)
 	{
+		auto v = magic_enum::enum_cast<RaceKey>(a_racestring, magic_enum::case_insensitive);
+		if (v.has_value()) {
+			return v.value();
+		}
 		for (auto&& [racekey, racestring] : LegacyRaceKeys) {
 			if (a_racestring == racestring) {
 				return racekey;
