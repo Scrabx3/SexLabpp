@@ -2,12 +2,27 @@
 
 namespace Registry
 {
-	RE::BSFixedString Voice::GetVoice(RE::Actor* a_actor, const TagDetails& tags) const
+	std::vector<RE::BSFixedString> Voice::GetAllVoiceNames() const
 	{
+		std::shared_lock lock{ _m };
+		std::vector<RE::BSFixedString> ret{};
+		ret.reserve(voices.size());
+		for (auto&& v : voices) {
+			ret.push_back(v.name);
+		}
+		return ret;
+	}
+
+	const Voice::VoiceObject* Voice::GetVoice(RE::Actor* a_actor, const TagDetails& tags) const
+	{
+		std::shared_lock lock{ _m };
+		if (auto saved = GetSavedVoice(a_actor->GetFormID()))
+			return saved;
+
 		auto base = a_actor->GetActorBase();
 		auto sex = base ? base->GetSex() : RE::SEXES::kMale;
 		auto race = RaceHandler::GetRaceKey(a_actor);
-		std::vector<const VoiceObject*> ret;
+		std::vector<const VoiceObject*> ret{};
 		for (auto&& voice : voices) {
 			if (voice.sex != RE::SEXES::kNone && voice.sex != sex)
 				continue;
@@ -18,17 +33,47 @@ namespace Registry
 				continue;
 			ret.push_back(&voice);
 		}
-		return ret[Random::draw<size_t>(0, ret.size() - 1)]->name;
+		if (ret.empty()) {
+			return nullptr;
+		}
+		return ret[Random::draw<size_t>(0, ret.size() - 1)];
 	}
 
-	const Voice::VoiceObject* Voice::GetVoiceObject(RE::BSFixedString a_voice) const
+	const Voice::VoiceObject* Voice::GetVoice(const TagDetails& tags) const
 	{
+		std::shared_lock lock{ _m };
+		std::vector<const VoiceObject*> ret{};
+		for (auto&& voice : voices) {
+			if (!tags.MatchTags(voice.tags))
+				continue;
+			ret.push_back(&voice);
+		}
+		return ret.empty() ? nullptr : ret[Random::draw<size_t>(0, ret.size() - 1)];
+	}
+
+	const Voice::VoiceObject* Voice::GetVoice(RaceKey a_race) const
+	{
+		std::shared_lock lock{ _m };
+		std::vector<const VoiceObject*> ret{};
+		for (auto&& voice : voices) {
+			auto where = std::ranges::find_if(voice.races, [&](auto rk) { return RaceHandler::IsCompatibleRaceKey(rk, a_race); });
+			if (where == voice.races.end())
+				continue;
+			ret.push_back(&voice);
+		}
+		return ret.empty() ? nullptr : ret[Random::draw<size_t>(0, ret.size() - 1)];
+	}
+
+	const Voice::VoiceObject* Voice::GetVoice(RE::BSFixedString a_voice) const
+	{
+		std::shared_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
 		return v == voices.end() ? nullptr : v._Ptr;
 	}
 
 	void Voice::SetVoiceObjectEnabled(RE::BSFixedString a_voice, bool a_enabled)
 	{
+		std::unique_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
 		if (v == voices.end()) {
 			logger::error("No such voice registered: {}", a_voice);
@@ -39,6 +84,7 @@ namespace Registry
 
 	RE::TESSound* Voice::PickSound(RE::BSFixedString a_voice, uint32_t a_priority, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const
 	{
+		std::shared_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
 		if (v == voices.end()) {
 			logger::error("No such voice registered: {}", a_voice);
@@ -54,6 +100,7 @@ namespace Registry
 
 	RE::TESSound* Voice::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const
 	{
+		std::shared_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
 		if (v == voices.end()) {
 			logger::error("No such voice registered: {}", a_voice);
@@ -65,6 +112,7 @@ namespace Registry
 
 	RE::TESSound* Voice::GetOrgasmSound(RE::BSFixedString a_voice, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const
 	{
+		std::shared_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
 		if (v == voices.end()) {
 			logger::error("No such voice registered: {}", a_voice);
@@ -75,8 +123,28 @@ namespace Registry
 		return PickSound(a_voice, 100, a_stage, a_info, a_context);
 	}
 
+	const Voice::VoiceObject* Voice::GetSavedVoice(RE::FormID a_key) const
+	{
+		std::shared_lock lock{ _m };
+		auto w = saved_voices.find(a_key);
+		return w == saved_voices.end() ? nullptr : w->second;
+	}
+
+	void Voice::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)
+	{
+		std::unique_lock lock{ _m };
+		saved_voices.insert_or_assign(a_key, GetVoice(a_voice));
+	}
+
+	void Voice::ClearVoice(RE::FormID a_key)
+	{
+		std::unique_lock lock{ _m };
+		saved_voices.erase(a_key);
+	}
+
 	bool Voice::InitializeNew(RE::BSFixedString a_voice)
 	{
+		std::unique_lock lock{ _m };
 		if (std::ranges::contains(voices, a_voice)) {
 			logger::error("Voice {} has already been initialized", a_voice);
 			return false;
@@ -87,6 +155,7 @@ namespace Registry
 
 	void Voice::SetSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)
 	{
+		std::unique_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
 		if (v == voices.end()) {
 			logger::error("No such voice registered: {}", a_voice);
@@ -113,6 +182,7 @@ namespace Registry
 
 	void Voice::SetTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)
 	{
+		std::unique_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
 		if (v == voices.end()) {
 			logger::error("No such voice registered: {}", a_voice);
@@ -127,6 +197,7 @@ namespace Registry
 
 	void Voice::SetRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)
 	{
+		std::unique_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
 		if (v == voices.end()) {
 			logger::error("No such voice registered: {}", a_voice);
@@ -146,6 +217,7 @@ namespace Registry
 
 	void Voice::SetSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)
 	{
+		std::unique_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
 		if (v == voices.end()) {
 			logger::error("No such voice registered: {}", a_voice);
@@ -193,6 +265,7 @@ namespace Registry
 
 	void Voice::Initialize()
 	{
+		std::unique_lock lock{ _m };
 		logger::info("Loading Voices");
 
 		if (fs::exists(VOICEPATH)) {
@@ -230,25 +303,72 @@ namespace Registry
 				logger::error("Error while loading voice settings: {}", e.what());
 			}
 		}
-
 		logger::info("Loaded {} Voices", voices.size());
+
+		if (fs::exists(VOICE_NPCPATH)) {
+			try {
+				const auto root = YAML::LoadFile(VOICE_NPCPATH);
+				for (auto&& it : root) {
+					const auto str = it.first.as<std::string>();
+					auto id = FormFromString<RE::FormID>(str);
+					if (id == 0)
+						continue;
+					auto v = it.second.as<std::string>();
+					auto vobj = GetVoice(v);
+					if (!vobj) {
+						logger::error("Actor {} uses unknown Voice {}", id, v);
+						continue;
+					}
+					saved_voices.insert_or_assign(id, vobj);
+				}
+			} catch (const std::exception& e) {
+				logger::error("Error while loading npc voices: {}", e.what());
+			}
+		}
+		logger::info("Loaded {} NPC Voices", saved_voices.size());
 	}
 
 	void Voice::Save()
 	{
-		if (!fs::exists(VOICESETTINGPATH))
-			return;
-
-		try {
-			auto root = YAML::LoadFile(VOICESETTINGPATH);
+		std::shared_lock lock{ _m };
+		{
+			YAML::Node root{};
+			if (fs::exists(VOICESETTINGPATH))
+				try {
+					root = YAML::LoadFile(VOICESETTINGPATH);
+				} catch (const std::exception& e) {
+					logger::error("Error while loading voice settings: {}. The file will be re-generated", e.what());
+				}
 			for (auto&& it : voices) {
 				root[it.name.data()] = it.enabled;
 			}
 			std::ofstream fout(VOICESETTINGPATH);
 			fout << root;
 			logger::info("Finished saving voice settings");
-		} catch (const std::exception& e) {
-			logger::error("Error while saving voice settings: {}", e.what());
+		}
+		{
+			YAML::Node root{};
+			if (fs::exists(VOICE_NPCPATH))
+				try {
+					root = YAML::LoadFile(VOICE_NPCPATH);
+				} catch (const std::exception& e) {
+					logger::error("Error while loading npc voices: {}. The file will be re-generated", e.what());
+				}
+			for (auto&& [id, voice] : saved_voices) {
+				auto form = RE::TESForm::LookupByID<RE::Actor>(id);
+				if (form) {
+					if (auto base = form->GetActorBase()) {
+						if (!base->IsUnique())
+							continue;
+					}
+					auto str = FormToString(form);
+					root[str] = voice->name.data();
+				}
+			}
+
+			std::ofstream fout(VOICE_NPCPATH);
+			fout << root;
+			logger::info("Finished saving npc voices");
 		}
 	}
 

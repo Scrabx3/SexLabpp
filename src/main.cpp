@@ -8,23 +8,23 @@
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
-	switch (message->type) {
-	case SKSE::MessagingInterface::kPostLoad:
-#ifdef NDEBUG
+	const auto init = []() {
 		Registry::Library::GetSingleton()->Initialize();
 		Registry::Voice::GetSingleton()->Initialize();
 		Registry::Expression::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Load();
+	};
+	switch (message->type)
+	{
+	case SKSE::MessagingInterface::kPostLoad:
 		Settings::Initialize();
+#ifdef NDEBUG
+		std::thread(init).detach();
 #endif
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
 #ifndef NDEBUG
-		Registry::Library::GetSingleton()->Initialize();
-		Registry::Voice::GetSingleton()->Initialize();
-		Registry::Expression::GetSingleton()->Initialize();
-		Registry::Library::GetSingleton()->Load();
-		Settings::Initialize();
+		init();
 #endif
 		if (!GameForms::LoadData()) {
 			logger::critical("Unable to load esp objects");
@@ -36,10 +36,13 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		Settings::InitializeData();
 		break;
 	case SKSE::MessagingInterface::kSaveGame:
-		Settings::Save();
-		Registry::Library::GetSingleton()->Save();
-		Registry::Expression::GetSingleton()->Save();
-		UserData::StripData::GetSingleton()->Save();
+		std::thread([]() {
+			Settings::Save();
+			Registry::Library::GetSingleton()->Save();
+			Registry::Expression::GetSingleton()->Save();
+			UserData::StripData::GetSingleton()->Save();
+			Registry::Voice::GetSingleton()->Save();
+		}).detach();
 		break;
 	case SKSE::MessagingInterface::kPreLoadGame:
 		break;

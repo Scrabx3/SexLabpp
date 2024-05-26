@@ -1,5 +1,7 @@
 #pragma once
 
+#include <shared_mutex>
+
 #include "Animation.h"
 #include "Define/RaceKey.h"
 
@@ -85,13 +87,20 @@ namespace Registry
 		};
 
 	public:
-		RE::BSFixedString GetVoice(RE::Actor* a_actor, const TagDetails& tags) const;
-		const VoiceObject* GetVoiceObject(RE::BSFixedString a_voice) const;
+		std::vector<RE::BSFixedString> GetAllVoiceNames() const;
+		const VoiceObject* GetVoice(RE::Actor* a_actor, const TagDetails& tags) const;
+		const VoiceObject* GetVoice(const TagDetails& tags) const;
+		const VoiceObject* GetVoice(RE::BSFixedString a_voice) const;
+		const VoiceObject* GetVoice(RaceKey a_race) const;
 		void SetVoiceObjectEnabled(RE::BSFixedString a_voice, bool a_enabled);
 
 		RE::TESSound* PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const;
 		RE::TESSound* PickSound(RE::BSFixedString a_voice, uint32_t a_priority, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const;
 		RE::TESSound* GetOrgasmSound(RE::BSFixedString a_voice, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const;
+
+		const VoiceObject* GetSavedVoice(RE::FormID a_key) const;
+		void SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice);
+		void ClearVoice(RE::FormID a_key);
 
 	public:
 		bool InitializeNew(RE::BSFixedString a_voice);
@@ -107,7 +116,9 @@ namespace Registry
 		void Save();
 
 	private:
-		std::vector<VoiceObject> voices;
+		mutable std::shared_mutex _m{};
+		std::vector<VoiceObject> voices{};
+		std::map<RE::FormID, const VoiceObject*> saved_voices{};
 	};
 
 }	 // namespace Registry::Voice

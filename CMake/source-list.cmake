@@ -92,4 +92,6 @@ set(CXX_FILES
 	src/Papyrus/sslThreadLibrary.cpp
 	src/Papyrus/sslThreadModel.h
 	src/Papyrus/sslThreadModel.cpp
+	src/Papyrus/sslVoiceSlots.h
+	src/Papyrus/sslVoiceSlots.cpp
 )

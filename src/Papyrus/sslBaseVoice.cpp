@@ -8,7 +8,7 @@ namespace Papyrus::BaseVoice
 	bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 	{
 		const auto vs = Registry::Voice::GetSingleton();
-		auto it = vs->GetVoiceObject(a_id);
+		auto it = vs->GetVoice(a_id);
 		if (!it) {
 			a_vm->TraceStack("Invalid voice form", a_stackID);
 			return false;
@@ -25,7 +25,7 @@ namespace Papyrus::BaseVoice
 	std::vector<RE::BSFixedString> GetVoiceTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 	{
 		const auto vs = Registry::Voice::GetSingleton();
-		auto it = vs->GetVoiceObject(a_id);
+		auto it = vs->GetVoice(a_id);
 		if (!it) {
 			a_vm->TraceStack("Invalid voice form", a_stackID);
 			return {};
@@ -36,7 +36,7 @@ namespace Papyrus::BaseVoice
 	int GetCompatibleSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 	{
 		const auto vs = Registry::Voice::GetSingleton();
-		auto it = vs->GetVoiceObject(a_id);
+		auto it = vs->GetVoice(a_id);
 		if (!it) {
 			a_vm->TraceStack("Invalid voice form", a_stackID);
 			return {};
@@ -47,7 +47,7 @@ namespace Papyrus::BaseVoice
 	std::vector<RE::BSFixedString> GetCompatibleRaces(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 	{
 		const auto vs = Registry::Voice::GetSingleton();
-		auto it = vs->GetVoiceObject(a_id);
+		auto it = vs->GetVoice(a_id);
 		if (!it) {
 			a_vm->TraceStack("Invalid voice form", a_stackID);
 			return {};

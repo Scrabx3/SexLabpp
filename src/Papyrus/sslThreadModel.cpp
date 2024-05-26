@@ -437,10 +437,6 @@ namespace Papyrus::ThreadModel
 
 	std::vector<RE::Actor*> GetPhysicPartnersByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
 	{
-		if (!a_position) {
-			a_vm->TraceStack("Actor is none", a_stackID);
-			return {};
-		}
 		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
 		if (!data) {
 			a_vm->TraceStack("Not registered", a_stackID);
@@ -455,6 +451,55 @@ namespace Papyrus::ThreadModel
 					continue;
 				if (auto it = RE::TESForm::LookupByID<RE::Actor>(type._partner))
 					ret.push_back(it);
+			}
+		}
+		return ret;
+	}
+
+	RE::Actor* GetPhysicPartnerByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	{
+		if (!a_position) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+		}
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return {};
+		}
+		for (auto&& p : data->_positions) {
+			auto it = RE::TESForm::LookupByID<RE::Actor>(p._owner);
+			if (!it)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_position->formID == type._partner) {
+					if (a_type == -1 || a_type == static_cast<int>(type._type))
+						return it;
+					break;
+				}
+			}
+		}
+		return nullptr;
+	}
+
+	std::vector<RE::Actor*> GetPhysicPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	{
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return {};
+		}
+		std::vector<RE::Actor*> ret{};
+		for (auto&& p : data->_positions) {
+			auto it = RE::TESForm::LookupByID<RE::Actor>(p._owner);
+			if (!it)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_position->formID == type._partner) {
+					if (a_type == -1 || a_type == static_cast<int>(type._type))
+						ret.push_back(it);
+					break;
+				}
 			}
 		}
 		return ret;

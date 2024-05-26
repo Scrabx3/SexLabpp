@@ -29,6 +29,8 @@ namespace Papyrus::ThreadModel
 	bool HasPhysicType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner);
 	RE::Actor* GetPhysicPartnerByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
 	std::vector<RE::Actor*> GetPhysicPartnersByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
+	RE::Actor* GetPhysicPartnerByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
+	std::vector<RE::Actor*> GetPhysicPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
 	float GetPhysicVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type);
 
 	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions,	
@@ -55,6 +57,8 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(HasPhysicType, "sslThreadModel", true);
 		REGISTERFUNC(GetPhysicPartnerByType, "sslThreadModel", true);
 		REGISTERFUNC(GetPhysicPartnersByType, "sslThreadModel", true);
+		REGISTERFUNC(GetPhysicPartnerByTypeRev, "sslThreadModel", true);
+		REGISTERFUNC(GetPhysicPartnersByTypeRev, "sslThreadModel", true);
 		REGISTERFUNC(GetPhysicVelocity, "sslThreadModel", true);
 
 		REGISTERFUNC(AddExperience, "sslThreadModel", true);

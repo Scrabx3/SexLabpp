@@ -49,6 +49,7 @@ constexpr auto INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
 
 #define USERDATAPATH(path) CONFIGPATH("UserData\\") path
 #define VOICESETTINGPATH USERDATAPATH("Voices.yaml")
+#define VOICE_NPCPATH USERDATAPATH("Voices_NPC.yaml")
 #define SCENESETTINGPATH USERDATAPATH("Scenes")
 
 #ifndef NDEBUG
