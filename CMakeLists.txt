@@ -132,7 +132,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 
         "/wd4201" # nonstandard extension used : nameless struct/union
 
-        "$<$<CONFIG:DEBUG>:>"
+        "$<$<CONFIG:DEBUG>:/bigobj>"
         "$<$<CONFIG:RELEASE>:/Zc:inline;/JMC-;/Ob3>"
     )
 
