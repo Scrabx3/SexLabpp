@@ -22,6 +22,10 @@ namespace Registry
 		auto base = a_actor->GetActorBase();
 		auto sex = base ? base->GetSex() : RE::SEXES::kMale;
 		auto race = RaceHandler::GetRaceKey(a_actor);
+		if (race == RaceKey::None) {
+			logger::error("Actor {} has invalid racekey", a_actor->GetFormID());
+			return nullptr;
+		}
 		std::vector<const VoiceObject*> ret{};
 		for (auto&& voice : voices) {
 			if (voice.sex != RE::SEXES::kNone && voice.sex != sex)
