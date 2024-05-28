@@ -13,7 +13,6 @@ namespace Papyrus::ActorLibrary
 			return -1;
 		}
 		const auto code = Registry::IsValidActorImpl(a_actor);
-		// Gotta do some number tweaking to stay consistent on the papyrus sade
 		return code == 0 ? -2 : code;
 	}
 

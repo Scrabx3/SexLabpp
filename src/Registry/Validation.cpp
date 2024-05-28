@@ -12,7 +12,7 @@ int32_t Registry::IsValidActorImpl(RE::Actor* a_actor)
 {
 	if (!a_actor->Is3DLoaded())
 		return -12;
-	else if (a_actor->IsDisabled())
+	else if (a_actor->IsDisabled() || !a_actor->IsAIEnabled())
 		return -14;
 
 	const auto lifestate = a_actor->GetLifeState();
