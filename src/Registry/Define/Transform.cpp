@@ -11,26 +11,26 @@ namespace Registry
 		location(a_point.x, a_point.y, a_point.z), rotation(a_rotation) {}
 	Coordinate::Coordinate(const std::vector<float>& a_coordinates) :
 		location(glm::vec3{ a_coordinates[0], a_coordinates[1], a_coordinates[2] }), rotation(a_coordinates[3])
- {}
- Coordinate::Coordinate(std::ifstream& a_stream) :
-	 location([&]() {
-		 glm::vec3 ret{};
-		 Decode::Read(a_stream, ret.x);
-		 Decode::Read(a_stream, ret.y);
-		 Decode::Read(a_stream, ret.z);
-		 return ret;
-	 }()),
-	 rotation(Decode::Read<float>(a_stream)) {}
+	{}
+	Coordinate::Coordinate(std::ifstream& a_stream) :
+		location([&]() {
+			glm::vec3 ret{};
+			Decode::Read(a_stream, ret.x);
+			Decode::Read(a_stream, ret.y);
+			Decode::Read(a_stream, ret.z);
+			return ret;
+		}()),
+		rotation(Decode::Read<float>(a_stream)) {}
 
- void Coordinate::Apply(Coordinate& a_coordinate) const
- {
-	 const auto rotate = glm::rotate(glm::mat4(1.0f), a_coordinate.rotation, glm::vec3(0, 0, 1));
-	 const auto transform = glm::mat3{ rotate } * location;
-	 a_coordinate.location += transform;
+	void Coordinate::Apply(Coordinate& a_coordinate) const
+	{
+		const auto rotate = glm::rotate(glm::mat4(1.0f), a_coordinate.rotation, glm::vec3(0, 0, 1));
+		const auto transform = glm::mat3{ rotate } * location;
+		a_coordinate.location += transform;
 
-	 if (this->rotation) {
-		 a_coordinate.rotation += this->rotation;
-	 }
+		if (this->rotation) {
+			a_coordinate.rotation += this->rotation;
+		}
 	}
 
 	Transform::Transform(const Coordinate& a_rawoffset) :
@@ -40,14 +40,14 @@ namespace Registry
 		_raw(a_binarystream), _offset(_raw) {}
 
 	const Coordinate& Transform::GetRawOffset() const
-  {
-    return _raw;
-  }
+	{
+		return _raw;
+	}
 
 	const Coordinate& Transform::GetOffset() const
-  {
-    return _offset;
-  }
+	{
+		return _offset;
+	}
 
 	void Transform::UpdateOffset(const Coordinate& a_newoffset)
 	{
