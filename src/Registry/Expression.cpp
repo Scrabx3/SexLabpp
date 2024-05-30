@@ -187,6 +187,10 @@ namespace Registry
 
 	void Expression::Profile::Save() const
 	{
+		if (!has_edits)
+			return;
+
+		has_edits = false;
 		YAML::Node file;
 		file["id"] = id.data();
 		for (auto&& tag : tags.AsVector()) {
@@ -211,15 +215,6 @@ namespace Registry
 		return &where->second;
 	}
 
-	Expression::Profile* Expression::GetProfile(const RE::BSFixedString& a_id)
-	{
-		auto where = _profiles.find(a_id);
-		if (where == _profiles.end())
-			return nullptr;
-
-		return &where->second;
-	}
-
 	bool Expression::CreateProfile(const RE::BSFixedString& a_id)
 	{
 		if (_profiles.contains(a_id)) {
@@ -230,7 +225,7 @@ namespace Registry
 		return true;
 	}
 
-	bool Expression::ForEachProfile(std::function<bool(Profile&)> a_func)
+	bool Expression::ForEachProfile(std::function<bool(const Profile&)> a_func)
 	{
 		for (auto&& [id, profile] : _profiles) {
 			if (a_func(profile)) {
@@ -240,14 +235,43 @@ namespace Registry
 		return false;
 	}
 
+	void Expression::UpdateValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
+	{
+		auto w = _profiles.find(a_id);
+		if (w == _profiles.end())
+			return;
+		
+		w->second.has_edits = true;
+		auto& data = w->second.data[a_female];
+		while (data.size() <= a_level) {
+			data.emplace_back();
+		}
+		std::copy_n(a_values.begin(), data[a_level].size(), data[a_level].begin());
+	}
+
+	void Expression::UpdateTags(RE::BSFixedString a_id, const TagData& a_newtags)
+	{
+		auto w = _profiles.find(a_id);
+		if (w == _profiles.end())
+			return;
+
+		w->second.has_edits = true;
+		auto& data = w->second.tags = a_newtags;
+	}
+
+	void Expression::SetEnabled(RE::BSFixedString a_id, bool a_enabled)
+	{
+		auto w = _profiles.find(a_id);
+		if (w == _profiles.end())
+			return;
+
+		w->second.has_edits = true;
+		auto& data = w->second.enabled = a_enabled;
+	}
+
 	void Expression::Initialize()
 	{
 		logger::info("Loading Expressions");
-
-		constexpr auto arr = magic_enum::enum_values<DefaultExpression>();
-		for (auto&& e : arr) {
-			_profiles.emplace(magic_enum::enum_name(e), Profile{ e });
-		}
 
 		if (fs::exists(EXPRESSIONPATH) && fs::is_directory(EXPRESSIONPATH)) {
 			for (auto& file : fs::directory_iterator{ LEGACY_CONFIG }) {
@@ -255,8 +279,9 @@ namespace Registry
 				try {
 					const auto yaml = YAML::LoadFile(file.path().string());
 					const auto profile = Profile{ yaml };
-					_profiles.emplace(profile.id, std::move(profile));
-					logger::info("Added expression {}", filename);
+					if (_profiles.emplace(profile.id, std::move(profile)).second) {
+						logger::info("Added expression {}", filename);
+					}
 				} catch (const std::exception& e) {
 					logger::info("Failed to load {}, Error = {}", filename, e.what());
 				}
@@ -272,16 +297,20 @@ namespace Registry
 				try {
 					const auto jsonfile = nlohmann::json::parse(std::ifstream(file.path().string()));
 					const auto profile = Profile{ jsonfile };
-					if (_profiles.contains(profile.id)) {
-						continue;
+					auto succ = _profiles.emplace(profile.id, std::move(profile));
+					if (succ.second) {
+						succ.first->second.Save();
+						logger::info("Added legacy expression {}. You may delete this file now", filename);
 					}
-					profile.Save();
-					_profiles.emplace(profile.id, std::move(profile));
-					logger::info("Added legacy expression {}. You may delete this file now", filename);
 				} catch (const std::exception& e) {
 					logger::info("Failed to update {}, Error = {}", filename, e.what());
 				}
 			}
+		}
+
+		constexpr auto arr = magic_enum::enum_values<DefaultExpression>();
+		for (auto&& e : arr) {
+			_profiles.emplace(magic_enum::enum_name(e), Profile{ e });
 		}
 
 		logger::info("Loaded {} expressions", _profiles.size());

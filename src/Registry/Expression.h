@@ -45,6 +45,7 @@ namespace Registry
 		public:
 			RE::BSFixedString id;
 			bool enabled{ true };
+			mutable bool has_edits{ false };
 
 			TagData tags{};
 			std::vector<std::array<float, Total>> data[RE::SEXES::kTotal]{};
@@ -52,11 +53,13 @@ namespace Registry
 
 	public:
 		const Profile* GetProfile(const RE::BSFixedString& a_id) const;
-		Profile* GetProfile(const RE::BSFixedString& a_id);
+		bool ForEachProfile(std::function<bool(const Profile&)> a_func);
+
+		void UpdateValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values);
+		void UpdateTags(RE::BSFixedString a_id, const TagData& a_newtags);
+		void SetEnabled(RE::BSFixedString a_id, bool a_enabled);
+
 		bool CreateProfile(const RE::BSFixedString& a_id);
-
-		bool ForEachProfile(std::function<bool(Profile&)> a_func);
-
 		void Initialize();
 		void Save();
 

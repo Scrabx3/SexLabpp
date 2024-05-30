@@ -62,12 +62,12 @@ namespace Papyrus::ExpressionSlots
 
 		void SetExpressionTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, std::vector<RE::BSFixedString> a_newtags)
 		{
-			const auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
-			if (!profile) {
+			auto expr = Registry::Expression::GetSingleton();
+			if (!expr->GetProfile(a_id)) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return;
 			}
-			profile->tags = { a_newtags };
+			expr->UpdateTags(a_id, { a_newtags });
 		}
 
 		bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
@@ -82,12 +82,12 @@ namespace Papyrus::ExpressionSlots
 
 		void SetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_enabled)
 		{
-			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
-			if (!profile) {
+			auto expr = Registry::Expression::GetSingleton();
+			if (!expr->GetProfile(a_id)) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return;
 			}
-			profile->enabled = a_enabled;
+			expr->SetEnabled(a_id, a_enabled);
 		}
 
 		std::vector<int32_t> GetLevelCounts(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
@@ -121,16 +121,12 @@ namespace Papyrus::ExpressionSlots
 				a_vm->TraceStack("Invalid Value Size", a_stackID);
 				return;
 			}
-			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
-			if (!profile) {
+			auto expr = Registry::Expression::GetSingleton();
+			if (!expr->GetProfile(a_id)) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return;
 			}
-			auto& data = profile->data[a_female];
-			while (data.size() <= a_level) {
-				data.emplace_back();
-			}
-			std::copy_n(a_values.begin(), data[a_level].size(), data[a_level].begin());
+			expr->UpdateValues(a_id, a_female, a_level, a_values);
 		}
 
 		bool CreateEmptyProfile(RE::StaticFunctionTag*, RE::BSFixedString a_id)
@@ -152,7 +148,7 @@ namespace Papyrus::ExpressionSlots
 	std::vector<RE::BSFixedString> GetAllProfileIDs(RE::StaticFunctionTag*)
   {
 		std::vector<RE::BSFixedString> ret{};
-		Registry::Expression::GetSingleton()->ForEachProfile([&](Registry::Expression::Profile& profile) {
+		Registry::Expression::GetSingleton()->ForEachProfile([&](const Registry::Expression::Profile& profile) {
 			ret.push_back(profile.id);
       return false;
 		});
@@ -178,7 +174,7 @@ namespace Papyrus::ExpressionSlots
 			tag = "Normal";
 			break;
 		}
-		Registry::Expression::GetSingleton()->ForEachProfile([&](Registry::Expression::Profile& profile) {
+		Registry::Expression::GetSingleton()->ForEachProfile([&](const Registry::Expression::Profile& profile) {
 			if (!profile.tags.HasTag(tag)) {
 				return false;
 			}
@@ -197,7 +193,7 @@ namespace Papyrus::ExpressionSlots
 		std::vector<RE::BSFixedString> ret{};
 		auto list = Registry::StringSplit(a_tags);
 		Registry::TagDetails search{ list };
-		Registry::Expression::GetSingleton()->ForEachProfile([&](Registry::Expression::Profile& profile) {
+		Registry::Expression::GetSingleton()->ForEachProfile([&](const Registry::Expression::Profile& profile) {
 			if (!search.MatchTags(profile.tags)) {
 				return false;
 			}
