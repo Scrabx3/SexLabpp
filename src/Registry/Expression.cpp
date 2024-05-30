@@ -37,7 +37,7 @@ namespace Registry
 			throw std::exception("Missing 'floatList' field");
 		auto fill = [&](RE::SEXES::SEX sex, std::string begin) mutable {
 			constexpr auto MAX_VALUE_FIELDS = 5;
-			for (size_t i = 0; i < MAX_VALUE_FIELDS; i++) {
+			for (size_t i = 1; i <= MAX_VALUE_FIELDS; i++) {
 				auto fieldname = begin + std::to_string(i);
 				auto field = floats->find(fieldname);
 				if (field == floats->end() || !field->is_array())
@@ -51,6 +51,9 @@ namespace Registry
 		};
 		fill(RE::SEXES::kMale, "male");
 		fill(RE::SEXES::kFemale, "female");
+		if (data[RE::SEXES::kMale].empty() && data[RE::SEXES::kFemale].empty()) {
+			throw std::exception("Data fields have no values");
+		}
 		if (const auto ints = a_src.find("int"); ints != a_src.end()) {
 			const auto get = [&](const char* fieldname) -> bool {
 				auto field = ints->find(fieldname);
@@ -197,8 +200,12 @@ namespace Registry
 			file["tags"].push_back(tag.data());
 		}
 		for (size_t i = 0; i < RE::SEXES::kTotal; i++) {
-			for (size_t n = 0; n < data[i].size(); n++) {
-				file["data"][i].push_back(data[i][n]);
+			if (data[i].empty()) {
+				file["data"][i].push_back(std::vector<int>(32, 0));
+			} else {
+				for (size_t n = 0; n < data[i].size(); n++) {
+					file["data"][i].push_back(data[i][n]);
+				}
 			}
 		}
 		file["enabled"] = enabled;
@@ -240,7 +247,7 @@ namespace Registry
 		auto w = _profiles.find(a_id);
 		if (w == _profiles.end())
 			return;
-		
+
 		w->second.has_edits = true;
 		auto& data = w->second.data[a_female];
 		while (data.size() <= a_level) {
@@ -256,7 +263,7 @@ namespace Registry
 			return;
 
 		w->second.has_edits = true;
-		auto& data = w->second.tags = a_newtags;
+		w->second.tags = a_newtags;
 	}
 
 	void Expression::SetEnabled(RE::BSFixedString a_id, bool a_enabled)
@@ -266,7 +273,7 @@ namespace Registry
 			return;
 
 		w->second.has_edits = true;
-		auto& data = w->second.enabled = a_enabled;
+		w->second.enabled = a_enabled;
 	}
 
 	void Expression::Initialize()
@@ -278,7 +285,7 @@ namespace Registry
 				auto filename = file.path().filename().string();
 				try {
 					const auto yaml = YAML::LoadFile(file.path().string());
-					const auto profile = Profile{ yaml };
+					auto profile = Profile{ yaml };
 					if (_profiles.emplace(profile.id, std::move(profile)).second) {
 						logger::info("Added expression {}", filename);
 					}
@@ -296,9 +303,10 @@ namespace Registry
 					continue;
 				try {
 					const auto jsonfile = nlohmann::json::parse(std::ifstream(file.path().string()));
-					const auto profile = Profile{ jsonfile };
+					auto profile = Profile{ jsonfile };
 					auto succ = _profiles.emplace(profile.id, std::move(profile));
 					if (succ.second) {
+						succ.first->second.has_edits = true;
 						succ.first->second.Save();
 						logger::info("Added legacy expression {}. You may delete this file now", filename);
 					}
