@@ -118,7 +118,7 @@ namespace Registry
 	private:
 		mutable std::shared_mutex _m{};
 		std::vector<VoiceObject> voices{};
-		std::map<RE::FormID, const VoiceObject*> saved_voices{};
+		mutable std::map<RE::FormID, const VoiceObject*> saved_voices{};
 	};
 
 }	 // namespace Registry::Voice

@@ -40,7 +40,9 @@ namespace Registry
 		if (ret.empty()) {
 			return nullptr;
 		}
-		return ret[Random::draw<size_t>(0, ret.size() - 1)];
+		auto v = ret[Random::draw<size_t>(0, ret.size() - 1)];
+		saved_voices[a_actor->formID] = v;
+		return v;
 	}
 
 	const Voice::VoiceObject* Voice::GetVoice(const TagDetails& tags) const
