@@ -151,7 +151,7 @@ namespace Registry
 	bool Voice::InitializeNew(RE::BSFixedString a_voice)
 	{
 		std::unique_lock lock{ _m };
-		if (std::ranges::contains(voices, a_voice)) {
+		if (std::ranges::contains(voices, a_voice, [](auto& it) { return it.name; })) {
 			logger::error("Voice {} has already been initialized", a_voice);
 			return false;
 		}
@@ -320,12 +320,12 @@ namespace Registry
 					if (id == 0)
 						continue;
 					auto v = it.second.as<std::string>();
-					auto vobj = GetVoice(v);
-					if (!vobj) {
+					auto vobj = std::ranges::find(voices, v.data(), [](auto& it) { return it.name; });
+					if (vobj == voices.end()) {
 						logger::error("Actor {} uses unknown Voice {}", id, v);
 						continue;
 					}
-					saved_voices.insert_or_assign(id, vobj);
+					saved_voices.insert_or_assign(id, vobj._Ptr);
 				}
 			} catch (const std::exception& e) {
 				logger::error("Error while loading npc voices: {}", e.what());
@@ -498,7 +498,7 @@ namespace Registry
 			auto key = con.first.as<std::string>();
 			ToLower(key);
 			if (key == "submissive") {
-				CONDITION::Condition ct;
+				CONDITION::Condition ct{};
 				ct._bool = con.second.as<bool>();
 				conditions.emplace_back(CONDITION::ConditionType::Submissive, ct);
 				continue;
@@ -510,13 +510,13 @@ namespace Registry
 														CONDITION::ConditionType::Tag;
 			if (con.second.IsScalar()) {
 				auto str = con.second.as<std::string>().c_str();
-				CONDITION::Condition ct;
+				CONDITION::Condition ct{};
 				ct._bool = _strdup(str);
 				conditions.emplace_back(contype, ct);
 			} else {
 				for (auto&& it : con.second) {
 					auto str = it.as<std::string>().c_str();
-					CONDITION::Condition ct;
+					CONDITION::Condition ct{};
 					ct._bool = _strdup(str);
 					conditions.emplace_back(contype, ct);
 				}
