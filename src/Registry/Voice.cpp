@@ -363,12 +363,20 @@ namespace Registry
 			for (auto&& [id, voice] : saved_voices) {
 				auto form = RE::TESForm::LookupByID<RE::Actor>(id);
 				if (form) {
-					if (auto base = form->GetActorBase()) {
-						if (!base->IsUnique())
-							continue;
+					if (form->IsPlayerRef()) {
+						root["20"] = voice->name.data();
+					} else {
+						if (auto base = form->GetActorBase()) {
+							if (!base->IsUnique())
+								continue;
+						}
+						auto str = FormToString(form);
+						if (str.empty()) {
+							logger::error("Form {:X} has no associated file", form->GetFormID());
+						} else {
+							root[str] = voice->name.data();
+						}
 					}
-					auto str = FormToString(form);
-					root[str] = voice->name.data();
 				}
 			}
 
