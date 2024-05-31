@@ -90,4 +90,6 @@ set(CXX_FILES
 	src/Papyrus/sslThreadModel.cpp
 	src/Papyrus/sslVoiceSlots.h
 	src/Papyrus/sslVoiceSlots.cpp
+
+	src/Registry/Util/Console.h
 )
