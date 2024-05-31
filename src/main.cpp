@@ -2,9 +2,35 @@
 #include "Registry/Expression.h"
 #include "Registry/Library.h"
 #include "Registry/Stats.h"
+#include "Registry/Util/Console.h"
 #include "Registry/Voice.h"
 #include "Serialization.h"
 #include "UserData/StripData.h"
+
+// class EventHandler :
+// 	public Singleton<EventHandler>,
+// 	public RE::BSTEventSink<RE::BSAnimationGraphEvent>
+// {
+// public:
+// 	using EventResult = RE::BSEventNotifyControl;
+
+// 	void Register()
+// 	{
+// 		RE::PlayerCharacter::GetSingleton()->AddAnimationGraphEventSink(this);
+// 	}
+
+// public:
+// 	EventResult ProcessEvent(const RE::BSAnimationGraphEvent* a_event, RE::BSTEventSource<RE::BSAnimationGraphEvent>*) override
+// 	{
+// 		if (!a_event || a_event->holder->IsNot(RE::FormType::ActorCharacter))
+// 			return EventResult::kContinue;
+
+// 		auto source = const_cast<RE::Actor*>(a_event->holder->As<RE::Actor>());
+// 		if (source->IsWeaponDrawn())
+// 			logger::info("Tag = {} | Payload = {}", a_event->tag, a_event->payload);
+// 		return EventResult::kContinue;
+// 	}
+// };
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
@@ -13,8 +39,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		Registry::Library::GetSingleton()->Load();
 		Registry::Expression::GetSingleton()->Initialize();
 	};
-	switch (message->type)
-	{
+	switch (message->type) {
 	case SKSE::MessagingInterface::kPostLoad:
 		Settings::Initialize();
 #ifdef NDEBUG
@@ -44,7 +69,8 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 			Registry::Voice::GetSingleton()->Save();
 		}).detach();
 		break;
-	case SKSE::MessagingInterface::kPreLoadGame:
+	case SKSE::MessagingInterface::kPostLoadGame:
+		// EventHandler::GetSingleton()->Register();
 		break;
 	}
 }
@@ -124,6 +150,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	}
 
 	// Hooks::Install();
+	// Registry::Console::Install();
 
 	const auto serialization = SKSE::GetSerializationInterface();
 	serialization->SetUniqueID('slpp');
