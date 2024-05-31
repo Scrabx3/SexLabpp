@@ -173,7 +173,8 @@ namespace Papyrus::ActorAlias
 			case UserData::Strip::Always:
 				break;
 			case UserData::Strip::None:
-				if (form->IsWeapon() && weapon) {
+				if (form->IsWeapon() && !weapon) {
+					continue;
 				} else if (const auto biped = form->As<RE::BGSBipedObjectForm>()) {
 					const auto biped_slots = static_cast<uint32_t>(biped->GetSlotMask());
 					if ((biped_slots & slots) == 0) {
