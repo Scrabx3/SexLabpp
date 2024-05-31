@@ -44,6 +44,19 @@ namespace Papyrus::ActorAlias
 			actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
 		}
 
+		if (actor->IsWeaponDrawn()) {
+			const auto factory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>();
+			if (const auto script = factory ? factory->Create() : nullptr) {
+				script->SetCommand("rae weaponsheathe");
+				script->CompileAndRun(actor);
+				if (!actor->IsPlayerRef() && actor->IsSneaking()) {
+					script->SetCommand("setforcesneak 0");
+					script->CompileAndRun(actor);
+				}
+				delete script;
+			}
+		}
+
 		actor->StopCombat();
 		actor->EndDialogue();
 		actor->InterruptCast(false);
