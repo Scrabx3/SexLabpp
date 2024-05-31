@@ -36,6 +36,8 @@ namespace Registry
 	static std::string FormToString(RE::TESForm* a_form)
 	{
 		auto file = a_form->GetFile(0);
+		if (!file)
+			return ""s;
 		return fmt::format("{}|{}", a_form->GetLocalFormID(), file->GetFilename());
 	}
 
