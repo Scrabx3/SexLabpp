@@ -70,8 +70,6 @@ set(CXX_FILES
 	src/Papyrus/SexLabRegistry.h
 	src/Papyrus/SexLabRegistry.cpp
 	src/Papyrus/SexLabUtil.h
-	src/Papyrus/sslActorAlias.h
-	src/Papyrus/sslActorAlias.cpp
 	src/Papyrus/sslActorLibrary.h
 	src/Papyrus/sslActorLibrary.cpp
 	src/Papyrus/sslActorStats.h
