@@ -75,6 +75,7 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(UpdateBaseCoordinates, "sslThreadModel", true);
 		REGISTERFUNC(ApplySceneOffset, "sslThreadModel", true);
 
+		REGISTERFUNC(SelectNextStage, "sslThreadModel", false);
 		REGISTERFUNC(PlaceAndPlay, "sslThreadModel", false);
 		REGISTERFUNC(RePlace, "sslThreadModel", false);
 
