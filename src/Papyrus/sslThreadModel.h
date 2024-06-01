@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Registry/Animation.h"
-#include "UserData/StripData.h"
 
 namespace Papyrus::ThreadModel
 {

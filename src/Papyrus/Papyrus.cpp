@@ -1,6 +1,5 @@
 #include "Papyrus/SexLabRegistry.h"
 #include "Papyrus/SexLabUtil.h"
-#include "Papyrus/sslActorAlias.h"
 #include "Papyrus/sslActorLibrary.h"
 #include "Papyrus/sslActorStats.h"
 #include "Papyrus/sslAnimationSlots.h"
@@ -22,7 +21,6 @@ namespace Papyrus
 		}
 		papyrus->Register(Papyrus::SexLabRegistry::Register);
 		papyrus->Register(Papyrus::SexLabUtil::Register);
-		papyrus->Register(Papyrus::ActorAlias::Register);
 		papyrus->Register(Papyrus::ActorLibrary::Register);
 		papyrus->Register(Papyrus::ActorStats::Register);
 		papyrus->Register(Papyrus::AnimationSlots::Register);

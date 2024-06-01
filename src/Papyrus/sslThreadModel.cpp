@@ -6,6 +6,7 @@
 #include "Registry/Stats.h"
 #include "Registry/Util/CellCrawler.h"
 #include "Registry/Util/Scale.h"
+#include "UserData/StripData.h"
 
 using Offset = Registry::CoordinateType;
 
@@ -15,13 +16,9 @@ namespace Papyrus::ThreadModel
 	{
 		void LockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias)
 		{
-			if (!a_alias) {
-				a_vm->TraceStack("Cannot call LockActorImpl on a none reference", a_stackID);
-				return;
-			}
 			const auto actor = a_alias->GetActorReference();
 			if (!actor) {
-				a_vm->TraceStack("LockActorImpl requires the filled reference to be an actor", a_stackID);
+				a_vm->TraceStack("Reference is empty or not an actor", a_stackID);
 				return;
 			}
 			if (actor->IsPlayerRef()) {
@@ -79,13 +76,9 @@ namespace Papyrus::ThreadModel
 
 		void UnlockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias)
 		{
-			if (!a_alias) {
-				a_vm->TraceStack("Cannot call LockActorImpl on a none reference", a_stackID);
-				return;
-			}
 			const auto actor = a_alias->GetActorReference();
 			if (!actor) {
-				a_vm->TraceStack("LockActorImpl requires the filled reference to be an actor", a_stackID);
+				a_vm->TraceStack("Reference is empty or not an actor", a_stackID);
 				return;
 			}
 			Registry::Scale::GetSingleton()->RemoveScale(actor);
@@ -452,7 +445,7 @@ namespace Papyrus::ThreadModel
 		}
 		Registry::TagData tags{ a_tags };
 		std::vector<int> weights{};
-		size_t n = 0;
+		int n = 0;
 		for (auto &&i : *adj)
 		{
 			auto c = i->tags.CountTags(tags);
