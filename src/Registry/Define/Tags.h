@@ -92,6 +92,7 @@ namespace Registry
 
 		/// @brief Checks if this has any or all of the arguments tags
 		_NODISCARD bool HasTags(const TagData& a_tag, bool a_all) const;
+		_NODISCARD uint32_t CountTags(const TagData& a_tag) const;
 
 		/// @brief If this data contains any tags
 		_NODISCARD bool IsEmpty() const;
