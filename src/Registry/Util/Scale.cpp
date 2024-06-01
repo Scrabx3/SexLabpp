@@ -25,7 +25,6 @@ namespace Registry
 			Settings::bDisableScale = true;
 			return;
 		}
-
 		switch (a_racekey) {
 		case RaceKey::AshHopper:
 			a_absolutescale *= 0.5f;
@@ -64,18 +63,24 @@ namespace Registry
 			// a_absolutescale *= 1.0f;
 			break;
 		}
+		float basescale = GetScale(a_actor);
+		if (basescale - a_absolutescale < 0.01) {
+			logger::info("Attempted Node Transform to Actor = {:X}, Scale = {} -> {}", a_actor->GetFormID(), basescale, a_absolutescale);
+			return;
+		}
 
 		const auto base = a_actor->GetActorBase();
 		const auto female = base ? base->GetSex() == RE::SEXES::kFemale : false;
 		transformInterface->AddNodeTransformScaleMode(a_actor, false, female, basenode, namekey, ScaleModes::Multiplicative);
-		transformInterface->RemoveNodeTransformScale(a_actor, false, female, basenode, namekey);
-		transformInterface->UpdateNodeTransforms(a_actor, false, female, basenode);
+		if (transformInterface->RemoveNodeTransformScale(a_actor, false, female, basenode, namekey)) {
+			transformInterface->UpdateNodeTransforms(a_actor, false, female, basenode);
+			basescale = GetScale(a_actor);
+		}
+		// base * x = absolute <=> x = absolute / base
+		float x = a_absolutescale / basescale;
 
-		float basescale = GetScale(a_actor);
-		// base * x = scale <=> x = scale / base
-		float targetscale = a_absolutescale / basescale;
-
-		transformInterface->AddNodeTransformScale(a_actor, false, female, basenode, namekey, targetscale);
+		logger::info("Applying Node Transform to Actor = {:X}, Scale = {} -> {}, x = {}", a_actor->GetFormID(), basescale, a_absolutescale, x);
+		transformInterface->AddNodeTransformScale(a_actor, false, female, basenode, namekey, x);
 		transformInterface->UpdateNodeTransforms(a_actor, false, female, basenode);
 	}
 
