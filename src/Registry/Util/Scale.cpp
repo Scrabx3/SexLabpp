@@ -97,9 +97,10 @@ namespace Registry
 
 		const auto base = a_actor->GetActorBase();
 		const auto female = base ? base->GetSex() == RE::SEXES::kFemale : false;
-		transformInterface->RemoveNodeTransformScale(a_actor, false, female, basenode, namekey);
-		transformInterface->RemoveNodeTransformScaleMode(a_actor, false, female, basenode, namekey);
-		transformInterface->UpdateNodeTransforms(a_actor, false, female, basenode);
+		if (transformInterface->RemoveNodeTransformScale(a_actor, false, female, basenode, namekey)) {
+			logger::info("Removed Transform Scale from {:X}", a_actor->GetFormID());
+			transformInterface->UpdateNodeTransforms(a_actor, false, female, basenode);
+		}
   }
 
 }  // namespace Registry
