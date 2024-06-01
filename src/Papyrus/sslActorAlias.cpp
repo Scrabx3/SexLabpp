@@ -198,9 +198,9 @@ namespace Papyrus::ActorAlias
 			}
 			if (form->IsWeapon() && actor->currentProcess) {
 				if (actor->currentProcess->GetEquippedRightHand() == form)
-					a_mergewith[Right] = form->AsReference();
+					a_mergewith[Right] = form;
 				else
-					a_mergewith[Left] = form->AsReference();
+					a_mergewith[Left] = form;
 			} else {
 				a_mergewith.push_back(form);
 			}
