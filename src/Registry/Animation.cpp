@@ -661,7 +661,7 @@ namespace Registry
 		return std::nullopt;
 	}
 
-	size_t Scene::GetNumLinkedStages(const Stage* a_stage) const
+	size_t Scene::GetNumAdjacentStages(const Stage* a_stage) const
 	{
 		const auto where = graph.find(a_stage);
 		if (where == graph.end())
@@ -670,7 +670,7 @@ namespace Registry
 		return where->second.size();
 	}
 
-	const Stage* Scene::GetNthLinkedStage(const Stage* a_stage, size_t n) const
+	const Stage* Scene::GetNthAdjacentStage(const Stage* a_stage, size_t n) const
 	{
 		const auto where = graph.find(a_stage);
 		if (where == graph.end())
@@ -680,6 +680,15 @@ namespace Registry
 			return 0;
 		
 		return where->second[n];
+	}
+
+	const std::vector<const Stage*>* Scene::GetAdjacentStages(const Stage* a_stage) const
+	{
+		const auto where = graph.find(a_stage);
+		if (where == graph.end())
+			return nullptr;
+
+		return &where->second;
 	}
 
 	RE::BSFixedString Scene::GetNthAnimationEvent(const Stage* a_stage, size_t n) const

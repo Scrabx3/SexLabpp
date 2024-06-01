@@ -158,8 +158,9 @@ namespace Registry
 		_NODISCARD std::vector<const Stage*> GetEndingStages() const;
 		_NODISCARD std::vector<const Stage*> GetClimaxStages() const;
 		_NODISCARD std::vector<const Stage*> GetFixedLengthStages() const;
-		_NODISCARD size_t GetNumLinkedStages(const Stage* a_stage) const;
-		_NODISCARD const Stage* GetNthLinkedStage(const Stage* a_stage, size_t n) const;
+		_NODISCARD size_t GetNumAdjacentStages(const Stage* a_stage) const;
+		_NODISCARD const Stage* GetNthAdjacentStage(const Stage* a_stage, size_t n) const;
+		_NODISCARD const std::vector<const Stage*>* GetAdjacentStages(const Stage* a_stage) const;
 		_NODISCARD RE::BSFixedString GetNthAnimationEvent(const Stage* a_stage, size_t n) const;
 		_NODISCARD std::vector<RE::BSFixedString> GetAnimationEvents(const Stage* a_stage) const;
 
