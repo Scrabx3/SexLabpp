@@ -559,7 +559,7 @@ namespace Papyrus::SexLabRegistry
 	{
 		SCENE("");
 		STAGE("");
-		const auto ret = scene->GetNthLinkedStage(stage, n);
+		const auto ret = scene->GetNthAdjacentStage(stage, n);
 		return ret ? ret->id : "";
 	}
 
@@ -567,7 +567,7 @@ namespace Papyrus::SexLabRegistry
 	{
 		SCENE(0);
 		STAGE(0);
-		return static_cast<int32_t>(scene->GetNumLinkedStages(stage));
+		return static_cast<int32_t>(scene->GetNumAdjacentStages(stage));
 	}
 
 	int32_t GetNodeType(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)

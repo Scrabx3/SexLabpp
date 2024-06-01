@@ -221,6 +221,33 @@ namespace Papyrus::ThreadModel
 		ret.ToContainer(a_out);
 	}
 
+	int SelectNextStage(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_scene, RE::BSFixedString a_stage, std::vector<RE::BSFixedString> a_tags)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return 0;
+		}
+		const auto stage = scene->GetStageByKey(a_stage);
+		if (!stage) {
+			a_vm->TraceStack("Invalid stage id", a_stackID);
+			return 0;
+		}
+		auto adj = scene->GetAdjacentStages(stage);
+		if (!adj) {
+			return 0;
+		}
+		Registry::TagData tags{ a_tags };
+		std::vector<int> weights{};
+		size_t n = 0;
+		for (auto &&i : *adj)
+		{
+			auto c = i->tags.CountTags(tags);
+			weights.resize(weights.size() + c + 1, n++);
+		}
+		return weights[Random::draw<size_t>(0, weights.size() - 1)];
+	}
+
 	RE::BSFixedString PlaceAndPlay(VM* a_vm, StackID a_stackID, RE::TESQuest*,
 		std::vector<RE::Actor*> a_positions,
 		std::vector<float> a_coordinates,
