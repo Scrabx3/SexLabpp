@@ -64,7 +64,7 @@ namespace Registry
 			break;
 		}
 		float basescale = GetScale(a_actor);
-		if (basescale - a_absolutescale < 0.01) {
+		if (std::abs(basescale - a_absolutescale) < 0.03) {
 			logger::info("Attempted Node Transform to Actor = {:X}, Scale = {} -> {}", a_actor->GetFormID(), basescale, a_absolutescale);
 			return;
 		}
