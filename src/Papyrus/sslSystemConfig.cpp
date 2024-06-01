@@ -155,7 +155,7 @@ namespace Papyrus::SystemConfig
 	{
 		if (a_setting == "iMaxNoPainOrgasmsM")
 			return Settings::iMaxNoPainOrgasmsM;
-		else if (a_setting == "	iMaxNoPainOrgasmsF")
+		else if (a_setting == "iMaxNoPainOrgasmsF")
 			return Settings::iMaxNoPainOrgasmsF;
 		a_vm->TraceStack(fmt::format("Invalid Setting {}", a_setting.c_str()).c_str(), a_stackID);
 		return 0;
