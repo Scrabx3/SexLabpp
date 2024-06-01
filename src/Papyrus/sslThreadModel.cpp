@@ -440,7 +440,7 @@ namespace Papyrus::ThreadModel
 			return 0;
 		}
 		auto adj = scene->GetAdjacentStages(stage);
-		if (!adj) {
+		if (!adj || adj->empty()) {
 			return 0;
 		}
 		Registry::TagData tags{ a_tags };
