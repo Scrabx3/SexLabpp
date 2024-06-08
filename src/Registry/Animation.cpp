@@ -256,52 +256,52 @@ namespace Registry
 
 	bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
 	{
-		auto fragment = stl::enumeration(MakeFragmentFromActor(a_actor, false));
-		if (CanFillPosition(fragment.get(), false))
-			return true;
-		if (CanFillPosition(fragment.get(), true))
-			return true;
-
-		fragment.set(PositionFragment::Submissive);
-		return CanFillPosition(fragment.get(), false) || CanFillPosition(fragment.get(), true);
+		auto fragment = MakeFragmentFromActor(a_actor, true);
+		return CanFillPosition(fragment, true);
 	}
 
-	bool PositionInfo::CanFillPosition(PositionFragment a_fragment, bool a_skipdead) const
+	bool PositionInfo::CanFillPosition(stl::enumeration<PositionFragment> a_fragment, bool a_vague) const
 	{
-		const auto fragment = stl::enumeration(a_fragment);
-		if (fragment.all(PositionFragment::Futa)) {
-			if (!this->sex.all(Sex::Futa))
+		if (a_vague) {
+			if (a_fragment.all(PositionFragment::Futa))
+				;
+			else if (a_fragment.all(PositionFragment::Male) && !sex.all(Sex::Male))
+				return false;
+			else if (a_fragment.all(PositionFragment::Female) && !sex.any(Sex::Male, Sex::Female))
 				return false;
 		} else {
-			if (fragment.all(PositionFragment::Male) && !this->sex.all(Sex::Male))
+			if (a_fragment.all(PositionFragment::Futa)) {
+				if (!sex.all(Sex::Futa))
+					return false;
+			} else {
+				if (a_fragment.all(PositionFragment::Male) && !sex.all(Sex::Male))
+					return false;
+				if (a_fragment.all(PositionFragment::Female) && !sex.all(Sex::Female))
+					return false;
+			}
+
+			if (a_fragment.all(PositionFragment::Unconscious) != extra.all(Extra::Unconscious))
 				return false;
-			if (fragment.all(PositionFragment::Female) && !this->sex.all(Sex::Female))
+			if (a_fragment.all(PositionFragment::Submissive) != extra.all(Extra::Submissive))
 				return false;
 		}
 
-		if (!a_skipdead && fragment.all(PositionFragment::Unconscious) != this->extra.all(Extra::Unconscious))
-			return false;
-		if (fragment.all(PositionFragment::Submissive) != this->extra.all(Extra::Submissive))
-			return false;
-
-		if (fragment.all(PositionFragment::Human)) {
-			if (this->extra.all(Extra::Vamprie) && !fragment.all(PositionFragment::Vampire))
+		if (a_fragment.all(PositionFragment::Human)) {
+			if (this->extra.all(Extra::Vamprie) && !a_fragment.all(PositionFragment::Vampire))
 				return false;
 		} else {
 			const auto race_frag = RaceKeyAsFragment(race);
-			if (!fragment.all(race_frag)) {
+			if (!a_fragment.all(race_frag)) {
 				if (race == RaceKey::Canine) {
-					if (!fragment.all(RaceKeyAsFragment(RaceKey::Dog)) && 
-						!fragment.all(RaceKeyAsFragment(RaceKey::Wolf)) && 
-						!fragment.all(RaceKeyAsFragment(RaceKey::Fox)))
+					if (!a_fragment.all(RaceKeyAsFragment(RaceKey::Dog)) &&
+							!a_fragment.all(RaceKeyAsFragment(RaceKey::Wolf)) &&
+							!a_fragment.all(RaceKeyAsFragment(RaceKey::Fox)))
 						return false;
-				}
-				else if (race == RaceKey::Boar) {
-					if (!fragment.all(RaceKeyAsFragment(RaceKey::BoarMounted)) &&
-						!fragment.all(RaceKeyAsFragment(RaceKey::BoarSingle)))
+				} else if (race == RaceKey::Boar) {
+					if (!a_fragment.all(RaceKeyAsFragment(RaceKey::BoarMounted)) &&
+							!a_fragment.all(RaceKeyAsFragment(RaceKey::BoarSingle)))
 						return false;
-				}
-				else {
+				} else {
 					return false;
 				}
 			}
@@ -601,7 +601,7 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, bool a_skipdead) const
+	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, bool a_vague) const
 	{
 		if (a_positions.size() != this->positions.size())
 			return std::nullopt;
@@ -610,8 +610,15 @@ namespace Registry
 		compatibles.resize(a_positions.size());
 		for (size_t i = 0; i < a_positions.size(); i++) {
 			for (size_t n = 0; n < this->positions.size(); n++) {
-				if (this->positions[n].CanFillPosition(a_positions[i].second, a_skipdead)) {
+				if (this->positions[n].CanFillPosition(a_positions[i].second, false)) {
 					compatibles[i].emplace_back(n, a_positions[i].first);
+				}
+			}
+			if (a_vague) {
+				for (size_t n = 0; n < this->positions.size(); n++) {
+					if (this->positions[n].CanFillPosition(a_positions[i].second, true)) {
+						compatibles[i].emplace_back(n, a_positions[i].first);
+					}
 				}
 			}
 			if (compatibles[i].empty()) {
@@ -637,28 +644,6 @@ namespace Registry
 			return std::nullopt;
 		}
 		return ret;
-	}
-
-	std::optional<std::vector<RE::Actor*>> Scene::SortActorsFallback(std::vector<std::pair<RE::Actor*, PositionFragment>> a_positions) const
-	{
-		if (auto ret = SortActors(a_positions))
-			return ret;
-		if (auto ret = SortActors(a_positions, true))
-			return ret;
-
-		for (auto&& [actor, fragment] : a_positions) {
-			auto e = stl::enumeration(fragment);
-			if (e.all(PositionFragment::Human, PositionFragment::Female) && e.none(PositionFragment::Male)) {
-				e.reset(PositionFragment::Female);
-				e.set(PositionFragment::Male);
-			}
-			fragment = e.get();
-			if (auto ret = SortActors(a_positions))
-				return ret;
-			if (auto ret = SortActors(a_positions, true))
-				return ret;
-		}
-		return std::nullopt;
 	}
 
 	size_t Scene::GetNumAdjacentStages(const Stage* a_stage) const

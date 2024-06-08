@@ -281,7 +281,7 @@ namespace Papyrus::SexLabRegistry
 			}
 			if (!scene->IsCompatibleTags(tagdetail))
 				continue;
-			if (!scene->SortActorsFallback(fragments))
+			if (!scene->SortActors(fragments, true))
 				continue;
 			ret.push_back(sceneid);
 		}
@@ -293,7 +293,7 @@ namespace Papyrus::SexLabRegistry
 		RE::reference_array<RE::Actor*> a_positions,
 		RE::Actor* a_victim,
 		std::string a_sceneid,
-		bool a_allowfallback)
+		bool a_vaguematching)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Array is empty or contains none", a_stackID);
@@ -307,7 +307,7 @@ namespace Papyrus::SexLabRegistry
 		}
 		std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
 		const auto fragments = Registry::MakeFragmentPair(positions, { a_victim });
-		const auto ret = a_allowfallback ? scene->SortActorsFallback(fragments) : scene->SortActors(fragments);
+		const auto ret = scene->SortActors(fragments, a_vaguematching);
 		if (!ret)
 			return false;
 
@@ -339,7 +339,7 @@ namespace Papyrus::SexLabRegistry
 		}
 		std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
 		const auto fragments = Registry::MakeFragmentPair(positions, a_victims);
-		const auto ret = a_allowfallback ? scene->SortActorsFallback(fragments) : scene->SortActors(fragments);
+		const auto ret = scene->SortActors(fragments, a_allowfallback);
 		if (!ret)
 			return false;
 
@@ -368,7 +368,7 @@ namespace Papyrus::SexLabRegistry
 			}
 			std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
 			const auto fragments = Registry::MakeFragmentPair(positions, { a_victim });
-			const auto result = a_allowfallback ? scene->SortActorsFallback(fragments) : scene->SortActors(fragments);
+			const auto result = scene->SortActors(fragments, a_allowfallback);
 			if (result) {
 				for (size_t n = 0; n < result->size(); n++) {
 					a_positions[n] = result->at(n);
@@ -402,7 +402,7 @@ namespace Papyrus::SexLabRegistry
 			}
 			std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
 			const auto fragments = Registry::MakeFragmentPair(positions, a_victims);
-			const auto result = a_allowfallback ? scene->SortActorsFallback(fragments) : scene->SortActors(fragments);
+			const auto result = scene->SortActors(fragments, a_allowfallback);
 			if (result) {
 				for (size_t n = 0; n < result->size(); n++) {
 					a_positions[n] = result->at(n);

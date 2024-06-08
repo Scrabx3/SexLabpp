@@ -65,9 +65,8 @@ namespace Registry
 		enum class Extra : uint8_t
 		{
 			Submissive = 1 << 0,
-			// Unused = 1 << 1,
-			Vamprie = 1 << 2,
-			Unconscious = 1 << 3
+			Vamprie = 1 << 1,
+			Unconscious = 1 << 2
 		};
 
 	public:
@@ -84,7 +83,7 @@ namespace Registry
 
 		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
 		_NODISCARD bool CanFillPosition(const PositionInfo& a_other) const;
-		_NODISCARD bool CanFillPosition(PositionFragment a_fragment, bool a_skipdead = false) const;
+		_NODISCARD bool CanFillPosition(stl::enumeration<PositionFragment> a_fragment, bool a_vague) const;
 		_NODISCARD std::vector<PositionFragment> MakeFragments() const;
 
 		_NODISCARD bool HasExtraCstm(const RE::BSFixedString& a_extra) const;
@@ -143,8 +142,7 @@ namespace Registry
 		_NODISCARD const PositionInfo* GetNthPosition(size_t n) const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const FragmentPair& a_positions, bool a_skipdead = false) const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFallback(FragmentPair a_positions) const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const FragmentPair& a_positions, bool a_vague = false) const;
 
 		_NODISCARD size_t GetNumStages() const;
 		_NODISCARD const std::vector<const Stage*> GetAllStages() const;

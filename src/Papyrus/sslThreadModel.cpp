@@ -40,6 +40,7 @@ namespace Papyrus::ThreadModel
 				switch (actor->actorState1.lifeState) {
 				case RE::ACTOR_LIFE_STATE::kUnconcious:
 					actor->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Unconscious);
+					break;
 				case RE::ACTOR_LIFE_STATE::kDying:
 				case RE::ACTOR_LIFE_STATE::kDead:
 					actor->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Dying);
@@ -262,7 +263,7 @@ namespace Papyrus::ThreadModel
 			a_vm->TraceStack("Result coordinates must have length 4", a_stackID);
 			return nullptr;
 		}
-		const auto [center, actor] = GetAliasRefs(a_qst);
+		const auto& [center, actor] = GetAliasRefs(a_qst);
 		if (!actor) {
 			a_vm->TraceStack("Quest must have some actor positions filled", a_stackID);
 			return nullptr;
@@ -392,7 +393,7 @@ namespace Papyrus::ThreadModel
 
 	bool UpdateBaseCoordinates(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::BSFixedString a_sceneid, RE::reference_array<float> a_out)
 	{
-		const auto [center, actor] = GetAliasRefs(a_qst);
+		const auto& [center, actor] = GetAliasRefs(a_qst);
 		if (!actor || !center) {
 			a_vm->TraceStack("Invalid aliases", a_stackID);
 			return false;
@@ -569,9 +570,7 @@ namespace Papyrus::ThreadModel
 			if (where == a_scenes.end()) {
 				a_scenes[0] = a_tofront;
 			} else {
-				auto tmp = a_scenes[0];
-				a_scenes[0] = a_tofront;
-				*where = tmp;
+				std::iter_swap(a_scenes.begin(), where);
 			}
 			start++;
 		}

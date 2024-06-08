@@ -219,6 +219,14 @@ namespace Registry
 		}
 		return 0;
 	}
+
+	template <typename E>
+	constexpr size_t CountFlagSize()
+	{
+		auto max = static_cast<size_t>(E::Total) - 1, ret = 0;
+		while ((1 << ret++) < max) {}
+		return ret;
+	}
 }
 
 #define DLLEXPORT __declspec(dllexport)
