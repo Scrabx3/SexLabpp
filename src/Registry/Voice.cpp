@@ -138,8 +138,9 @@ namespace Registry
 
 	void Voice::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)
 	{
+		auto v = GetVoice(a_voice);
 		std::unique_lock lock{ _m };
-		saved_voices.insert_or_assign(a_key, GetVoice(a_voice));
+		saved_voices.insert_or_assign(a_key, v);
 	}
 
 	void Voice::ClearVoice(RE::FormID a_key)
