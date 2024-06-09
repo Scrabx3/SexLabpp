@@ -27,22 +27,22 @@ namespace Registry
 		}
 		switch (a_racekey) {
 		case RaceKey::AshHopper:
-			a_absolutescale *= 0.5f;
+			// a_absolutescale *= 0.5f;
 			break;
 		case RaceKey::Chaurus:
 			a_absolutescale *= 0.5f;
 			break;
 		case RaceKey::ChaurusHunter:
-			a_absolutescale *= 0.69f;
+			// a_absolutescale *= 0.69f;
 			break;
 		case RaceKey::Chicken:
-			a_absolutescale *= 1.3f;
+			// a_absolutescale *= 1.3f;
 			break;
 		case RaceKey::Fox:
-			a_absolutescale *= 0.72f;
+			// a_absolutescale *= 0.72f;
 			break;
 		case RaceKey::FrostAtronach:
-			a_absolutescale *= 1.3f;
+			// a_absolutescale *= 1.3f;
 			break;
 		case RaceKey::Spider:
 			a_absolutescale *= 0.75f;
@@ -54,10 +54,10 @@ namespace Registry
 			a_absolutescale *= 1.9f;
 			break;
 		case RaceKey::Horker:
-			a_absolutescale *= 1.2f;
+			// a_absolutescale *= 1.2f;
 			break;
 		case RaceKey::Mudcrab:
-			a_absolutescale *= 0.75f;
+			// a_absolutescale *= 0.75f;
 			break;
 		default:
 			// a_absolutescale *= 1.0f;
