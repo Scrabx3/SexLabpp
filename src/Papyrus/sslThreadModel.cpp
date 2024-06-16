@@ -23,18 +23,28 @@ namespace Papyrus::ThreadModel
 			}
 			if (actor->IsPlayerRef()) {
 				RE::PlayerCharacter::GetSingleton()->SetAIDriven(true);
-				if (const auto queue = RE::UIMessageQueue::GetSingleton()) {
-					// force hide dialogue menu
-					queue->AddMessage(RE::DialogueMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kForceHide, nullptr);
-
-					// hide crosshair and activate prompt
-					auto msg = queue->CreateUIMessageData(RE::InterfaceStrings::GetSingleton()->hudData);
-					if (const auto data = static_cast<RE::HUDData*>(msg)) {
-						data->text = "";
-						data->type = RE::HUDData::Type::kActivateNoLabel;
-						queue->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kUpdate, data);
+				const auto ui = RE::UI::GetSingleton();
+				const auto interfacestr = RE::InterfaceStrings::GetSingleton();
+				if (ui->IsMenuOpen(interfacestr->dialogueMenu)) {
+					if (auto view = ui->GetMovieView(interfacestr->dialogueMenu)) {
+						RE::GFxValue arg{ interfacestr->dialogueMenu };
+						view->InvokeNoReturn("_global.skse.CloseMenu", &arg, 1);
 					}
 				}
+				// UI.InvokeString("Dialogue Menu", "_global.skse.CloseMenu", "Dialogue Menu")
+
+				// if (const auto queue = RE::UIMessageQueue::GetSingleton()) {
+				// 	// force hide dialogue menu
+				// 	queue->AddMessage(RE::DialogueMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kForceHide, nullptr);
+
+				// 	// hide crosshair and activate prompt
+				// 	auto msg = queue->CreateUIMessageData(RE::InterfaceStrings::GetSingleton()->hudData);
+				// 	if (const auto data = static_cast<RE::HUDData*>(msg)) {
+				// 		data->text = "";
+				// 		data->type = RE::HUDData::Type::kActivateNoLabel;
+				// 		queue->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kUpdate, data);
+				// 	}
+				// }
 				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
 			} else {
 				switch (actor->actorState1.lifeState) {
@@ -447,8 +457,7 @@ namespace Papyrus::ThreadModel
 		Registry::TagData tags{ a_tags };
 		std::vector<int> weights{};
 		int n = 0;
-		for (auto &&i : *adj)
-		{
+		for (auto&& i : *adj) {
 			auto c = i->tags.CountTags(tags);
 			weights.resize(weights.size() + c + 1, n++);
 		}
@@ -490,6 +499,7 @@ namespace Papyrus::ThreadModel
 			stage->positions[i].offset.Apply(coordinate);
 
 			actor->data.angle.z = coordinate.rotation;
+			actor->data.angle.x = actor->data.angle.y = 0.0f;
 			actor->SetPosition(coordinate.AsNiPoint(), true);
 			Registry::Scale::GetSingleton()->SetScale(actor, scene->positions[i].scale);
 
