@@ -88,7 +88,7 @@ namespace Registry
 
 	public:
 		std::vector<RE::BSFixedString> GetAllVoiceNames() const;
-		const VoiceObject* GetVoice(RE::Actor* a_actor, const TagDetails& tags) const;
+		const VoiceObject* GetVoice(RE::Actor* a_actor, const TagDetails& tags);
 		const VoiceObject* GetVoice(const TagDetails& tags) const;
 		const VoiceObject* GetVoice(RE::BSFixedString a_voice) const;
 		const VoiceObject* GetVoice(RaceKey a_race) const;
@@ -118,7 +118,7 @@ namespace Registry
 	private:
 		mutable std::shared_mutex _m{};
 		std::vector<VoiceObject> voices{};
-		mutable std::map<RE::FormID, const VoiceObject*> saved_voices{};
+		std::map<RE::FormID, const VoiceObject*> saved_voices{};
 	};
 
 }	 // namespace Registry::Voice

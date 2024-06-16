@@ -13,7 +13,7 @@ namespace Registry
 		return ret;
 	}
 
-	const Voice::VoiceObject* Voice::GetVoice(RE::Actor* a_actor, const TagDetails& tags) const
+	const Voice::VoiceObject* Voice::GetVoice(RE::Actor* a_actor, const TagDetails& tags)
 	{
 		std::shared_lock lock{ _m };
 		if (auto saved = GetSavedVoice(a_actor->GetFormID()))
@@ -140,7 +140,11 @@ namespace Registry
 	{
 		auto v = GetVoice(a_voice);
 		std::unique_lock lock{ _m };
-		saved_voices.insert_or_assign(a_key, v);
+		if (v) {
+			saved_voices.insert_or_assign(a_key, v);
+		} else {
+			saved_voices.erase(a_key);
+		}
 	}
 
 	void Voice::ClearVoice(RE::FormID a_key)
@@ -339,51 +343,46 @@ namespace Registry
 	{
 		std::shared_lock lock{ _m };
 		{
-			YAML::Node root{};
-			if (fs::exists(VOICESETTINGPATH))
+			YAML::Node root = []() {
 				try {
-					root = YAML::LoadFile(VOICESETTINGPATH);
+					if (fs::exists(VOICESETTINGPATH))
+						return YAML::LoadFile(VOICESETTINGPATH);
 				} catch (const std::exception& e) {
 					logger::error("Error while loading voice settings: {}. The file will be re-generated", e.what());
 				}
+				return YAML::Node{};
+			}();
 			for (auto&& it : voices) {
 				root[it.name.data()] = it.enabled;
 			}
 			std::ofstream fout(VOICESETTINGPATH);
 			fout << root;
-			logger::info("Finished saving voice settings");
+			logger::info("Saved {} Voices", root.size());
 		}
 		{
-			YAML::Node root{};
-			if (fs::exists(VOICE_NPCPATH))
+			YAML::Node root = []() {
 				try {
-					root = YAML::LoadFile(VOICE_NPCPATH);
+					if (fs::exists(VOICE_NPCPATH))
+						return YAML::LoadFile(VOICE_NPCPATH);
 				} catch (const std::exception& e) {
 					logger::error("Error while loading npc voices: {}. The file will be re-generated", e.what());
 				}
+				return YAML::Node{};
+			}();
 			for (auto&& [id, voice] : saved_voices) {
 				auto form = RE::TESForm::LookupByID<RE::Actor>(id);
-				if (form) {
-					if (form->IsPlayerRef()) {
-						root["20"] = voice->name.data();
-					} else {
-						if (auto base = form->GetActorBase()) {
-							if (!base->IsUnique())
-								continue;
-						}
-						auto str = FormToString(form);
-						if (str.empty()) {
-							logger::error("Form {:X} has no associated file", form->GetFormID());
-						} else {
-							root[str] = voice->name.data();
-						}
-					}
+				if (!form)
+					continue;
+				if (auto base = form->GetActorBase()) {
+					if (!base->IsUnique())
+						continue;
 				}
+				auto str = FormToString(form);
+				root[str] = voice->name.data();
 			}
-
 			std::ofstream fout(VOICE_NPCPATH);
 			fout << root;
-			logger::info("Finished saving npc voices");
+			logger::info("Saved {} NPC Voices", root.size());
 		}
 	}
 
@@ -510,15 +509,15 @@ namespace Registry
 														// key == "tags" ?
 														CONDITION::ConditionType::Tag;
 			if (con.second.IsScalar()) {
-				auto str = con.second.as<std::string>().c_str();
+				auto str = con.second.as<std::string>();
 				CONDITION::Condition ct{};
-				ct._bool = _strdup(str);
+				ct._string = _strdup(str.c_str());
 				conditions.emplace_back(contype, ct);
 			} else {
 				for (auto&& it : con.second) {
-					auto str = it.as<std::string>().c_str();
+					auto str = it.as<std::string>();
 					CONDITION::Condition ct{};
-					ct._bool = _strdup(str);
+					ct._string = _strdup(str.c_str());
 					conditions.emplace_back(contype, ct);
 				}
 			}
@@ -566,10 +565,12 @@ namespace Registry
 
 	RE::TESSound* VoiceSet::Get(uint32_t a_priority) const
 	{
-		for (size_t i = data.size() - 1; i >= 0; i--) {
+		auto count = std::min<size_t>(data.size() - 1, std::numeric_limits<int>::max());
+		for (int i = static_cast<int>(count); i >= 0; i--) {
 			auto& [voice, value] = data[i];
 			if (value <= a_priority)
 				return voice;
+
 		}
 		return nullptr;
 	}
