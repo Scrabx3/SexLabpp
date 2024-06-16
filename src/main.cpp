@@ -34,22 +34,14 @@
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
-	const auto init = []() {
-		Registry::Library::GetSingleton()->Initialize();
-		Registry::Library::GetSingleton()->Load();
-		Registry::Expression::GetSingleton()->Initialize();
-	};
 	switch (message->type) {
 	case SKSE::MessagingInterface::kPostLoad:
 		Settings::Initialize();
-#ifdef NDEBUG
-		init();
-#endif
+		Registry::Library::GetSingleton()->Initialize();
+		Registry::Library::GetSingleton()->Load();
+		Registry::Expression::GetSingleton()->Initialize();
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
-#ifndef NDEBUG
-		init();
-#endif
 		Registry::Voice::GetSingleton()->Initialize();
 		if (!GameForms::LoadData()) {
 			logger::critical("Unable to load esp objects");
