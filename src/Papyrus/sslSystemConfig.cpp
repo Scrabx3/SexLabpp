@@ -204,5 +204,9 @@ namespace Papyrus::SystemConfig
 		return ret;
 	}
 
+	float GetMinSetupTime(RE::StaticFunctionTag*)
+	{
+		return std::min<float>(Settings::fMinSetupTime, 0.1f);
+	}
 
 }	 // namespace Papyrus

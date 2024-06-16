@@ -112,6 +112,7 @@ void Settings::InitializeINI()
 	READINI("Animation", fScanRadius);
 	READINI("Animation", fMinScale);
 	READINI("Animation", bAllowDead);
+	READINI("Animation", fMinSetupTime);
 
 	// Creature
 	READINI("Creature", bAshHopper);

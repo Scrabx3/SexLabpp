@@ -2,6 +2,8 @@
 
 namespace Papyrus::SystemConfig
 {
+	float GetMinSetupTime(RE::StaticFunctionTag*);
+
 	int GetAnimationCount(RE::StaticFunctionTag*);
 	std::vector<float> GetEnjoymentFactors(RE::StaticFunctionTag*);
 	int GetEnjoymentSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_setting);
@@ -24,6 +26,8 @@ namespace Papyrus::SystemConfig
 
 	inline bool Register(VM* a_vm)
 	{
+		REGISTERFUNC(GetMinSetupTime, "sslSystemConfig", true);
+
 		REGISTERFUNC(GetAnimationCount, "sslSystemConfig", true);
 		REGISTERFUNC(GetEnjoymentFactors, "sslSystemConfig", true);
 		REGISTERFUNC(GetEnjoymentSettingInt, "sslSystemConfig", true);

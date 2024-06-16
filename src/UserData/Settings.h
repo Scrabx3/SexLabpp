@@ -99,6 +99,7 @@ struct Settings
 	static inline float fScanRadius{ 750.0f };				 // Radius used in FindCenter() in which to look for potential furniture refs
 	static inline float fMinScale{ 0.88f };						 // Min Scale for an actor be animated
 	static inline bool bAllowDead{ false };						 // if dead actors are allowed in the framework
+	static inline float fMinSetupTime{ 0.4f };
 
 	// Race
 	static inline bool bAshHopper{ true };
