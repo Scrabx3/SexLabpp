@@ -31,20 +31,6 @@ namespace Papyrus::ThreadModel
 						view->InvokeNoReturn("_global.skse.CloseMenu", &arg, 1);
 					}
 				}
-				// UI.InvokeString("Dialogue Menu", "_global.skse.CloseMenu", "Dialogue Menu")
-
-				// if (const auto queue = RE::UIMessageQueue::GetSingleton()) {
-				// 	// force hide dialogue menu
-				// 	queue->AddMessage(RE::DialogueMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kForceHide, nullptr);
-
-				// 	// hide crosshair and activate prompt
-				// 	auto msg = queue->CreateUIMessageData(RE::InterfaceStrings::GetSingleton()->hudData);
-				// 	if (const auto data = static_cast<RE::HUDData*>(msg)) {
-				// 		data->text = "";
-				// 		data->type = RE::HUDData::Type::kActivateNoLabel;
-				// 		queue->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kUpdate, data);
-				// 	}
-				// }
 				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
 			} else {
 				switch (actor->actorState1.lifeState) {
@@ -501,6 +487,7 @@ namespace Papyrus::ThreadModel
 			actor->data.angle.z = coordinate.rotation;
 			actor->data.angle.x = actor->data.angle.y = 0.0f;
 			actor->SetPosition(coordinate.AsNiPoint(), true);
+			actor->Update3DPosition(true);
 			Registry::Scale::GetSingleton()->SetScale(actor, scene->positions[i].scale);
 
 			const auto event = scene->GetNthAnimationEvent(stage, i);

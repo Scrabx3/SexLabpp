@@ -257,33 +257,34 @@ namespace Registry
 	bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
 	{
 		auto fragment = MakeFragmentFromActor(a_actor, true);
-		return CanFillPosition(fragment, true);
+		return CanFillPosition(fragment, MatchStrictness::Light);
 	}
 
-	bool PositionInfo::CanFillPosition(stl::enumeration<PositionFragment> a_fragment, bool a_vague) const
+	bool PositionInfo::CanFillPosition(stl::enumeration<PositionFragment> a_fragment, MatchStrictness a_strictness) const
 	{
-		if (a_vague) {
+		switch (a_strictness) {
+		case MatchStrictness::Strict:
+			if (a_fragment.all(PositionFragment::Futa)) {
+				if (!sex.all(Sex::Futa))
+					return false;
+			} else if (a_fragment.all(PositionFragment::Female) && !sex.all(Sex::Female)) {
+				return false;
+			}
+			__fallthrough;
+		case MatchStrictness::Standard:
+			if (a_fragment.all(PositionFragment::Unconscious) != extra.all(Extra::Unconscious))
+				return false;
+			if (a_fragment.all(PositionFragment::Submissive) != extra.all(Extra::Submissive))
+				return false;
+			__fallthrough;
+		case MatchStrictness::Light:
 			if (a_fragment.all(PositionFragment::Futa))
 				;
 			else if (a_fragment.all(PositionFragment::Male) && !sex.all(Sex::Male))
 				return false;
 			else if (a_fragment.all(PositionFragment::Female) && !sex.any(Sex::Male, Sex::Female))
 				return false;
-		} else {
-			if (a_fragment.all(PositionFragment::Futa)) {
-				if (!sex.all(Sex::Futa))
-					return false;
-			} else {
-				if (a_fragment.all(PositionFragment::Male) && !sex.all(Sex::Male))
-					return false;
-				if (a_fragment.all(PositionFragment::Female) && !sex.all(Sex::Female))
-					return false;
-			}
-
-			if (a_fragment.all(PositionFragment::Unconscious) != extra.all(Extra::Unconscious))
-				return false;
-			if (a_fragment.all(PositionFragment::Submissive) != extra.all(Extra::Submissive))
-				return false;
+			break;
 		}
 
 		if (a_fragment.all(PositionFragment::Human)) {
@@ -601,22 +602,19 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions, bool a_vague) const
+	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const FragmentPair& a_positions, PositionInfo::MatchStrictness a_strictness) const
 	{
 		if (a_positions.size() != this->positions.size())
 			return std::nullopt;
 
 		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
 		compatibles.resize(a_positions.size());
+		const auto strictness = static_cast<int>(a_strictness);
 		for (size_t i = 0; i < a_positions.size(); i++) {
 			for (size_t n = 0; n < this->positions.size(); n++) {
-				if (this->positions[n].CanFillPosition(a_positions[i].second, false)) {
-					compatibles[i].emplace_back(n, a_positions[i].first);
-				}
-			}
-			if (a_vague) {
-				for (size_t n = 0; n < this->positions.size(); n++) {
-					if (this->positions[n].CanFillPosition(a_positions[i].second, true)) {
+				for (int j = strictness; j >= 0; j--) {
+					const auto args = PositionInfo::MatchStrictness(j);
+					if (this->positions[n].CanFillPosition(a_positions[i].second, args)) {
 						compatibles[i].emplace_back(n, a_positions[i].first);
 					}
 				}

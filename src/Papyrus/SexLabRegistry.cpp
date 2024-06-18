@@ -281,7 +281,7 @@ namespace Papyrus::SexLabRegistry
 			}
 			if (!scene->IsCompatibleTags(tagdetail))
 				continue;
-			if (!scene->SortActors(fragments, true))
+			if (!scene->SortActors(fragments, Registry::PositionInfo::MatchStrictness::Light))
 				continue;
 			ret.push_back(sceneid);
 		}
@@ -293,7 +293,7 @@ namespace Papyrus::SexLabRegistry
 		RE::reference_array<RE::Actor*> a_positions,
 		RE::Actor* a_victim,
 		std::string a_sceneid,
-		bool a_vaguematching)
+		uint32_t a_strictness)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Array is empty or contains none", a_stackID);
@@ -305,9 +305,16 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id ", a_stackID);
 			return false;
 		}
+		using Strictness = Registry::PositionInfo::MatchStrictness;
+		Strictness strictness;
+		if (auto total = a_strictness >= static_cast<uint32_t>(Strictness::Total)) {
+			strictness = Strictness(total - 1);
+		} else {
+			strictness = Strictness(a_strictness);
+		}
 		std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
 		const auto fragments = Registry::MakeFragmentPair(positions, { a_victim });
-		const auto ret = scene->SortActors(fragments, a_vaguematching);
+		const auto ret = scene->SortActors(fragments, strictness);
 		if (!ret)
 			return false;
 
@@ -321,7 +328,7 @@ namespace Papyrus::SexLabRegistry
 		RE::reference_array<RE::Actor*> a_positions,
 		std::vector<RE::Actor*> a_victims,
 		std::string a_sceneid,
-		bool a_allowfallback)
+		uint32_t a_strictness)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Position Array is empty or contains none", a_stackID);
@@ -337,9 +344,16 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id ", a_stackID);
 			return false;
 		}
+		using Strictness = Registry::PositionInfo::MatchStrictness;
+		Strictness strictness;
+		if (auto total = a_strictness >= static_cast<uint32_t>(Strictness::Total)) {
+			strictness = Strictness(total - 1);
+		} else {
+			strictness = Strictness(a_strictness);
+		}
 		std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
 		const auto fragments = Registry::MakeFragmentPair(positions, a_victims);
-		const auto ret = scene->SortActors(fragments, a_allowfallback);
+		const auto ret = scene->SortActors(fragments, strictness);
 		if (!ret)
 			return false;
 
@@ -353,11 +367,18 @@ namespace Papyrus::SexLabRegistry
 		RE::reference_array<RE::Actor*> a_positions,
 		RE::Actor* a_victim,
 		std::vector<std::string> a_sceneids,
-		bool a_allowfallback)
+		uint32_t a_strictness)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Array is empty or contains none", a_stackID);
 			return -1;
+		}
+		using Strictness = Registry::PositionInfo::MatchStrictness;
+		Strictness strictness;
+		if (auto total = a_strictness >= static_cast<uint32_t>(Strictness::Total)) {
+			strictness = Strictness(total - 1);
+		} else {
+			strictness = Strictness(a_strictness);
 		}
 		const auto lib = Registry::Library::GetSingleton();
 		for (size_t i = 0; i < a_sceneids.size(); i++) {
@@ -368,7 +389,7 @@ namespace Papyrus::SexLabRegistry
 			}
 			std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
 			const auto fragments = Registry::MakeFragmentPair(positions, { a_victim });
-			const auto result = scene->SortActors(fragments, a_allowfallback);
+			const auto result = scene->SortActors(fragments, strictness);
 			if (result) {
 				for (size_t n = 0; n < result->size(); n++) {
 					a_positions[n] = result->at(n);
@@ -383,7 +404,7 @@ namespace Papyrus::SexLabRegistry
 		RE::reference_array<RE::Actor*> a_positions,
 		std::vector<RE::Actor*> a_victims,
 		std::vector<std::string> a_sceneids,
-		bool a_allowfallback)
+		uint32_t a_strictness)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Array is empty or contains none", a_stackID);
@@ -392,6 +413,13 @@ namespace Papyrus::SexLabRegistry
 		if (std::ranges::find(a_victims, nullptr) != a_victims.end()) {
 			a_vm->TraceStack("Array is empty or contains none", a_stackID);
 			return -1;
+		}
+		using Strictness = Registry::PositionInfo::MatchStrictness;
+		Strictness strictness;
+		if (auto total = a_strictness >= static_cast<uint32_t>(Strictness::Total)) {
+			strictness = Strictness(total - 1);
+		} else {
+			strictness = Strictness(a_strictness);
 		}
 		const auto lib = Registry::Library::GetSingleton();
 		for (size_t i = 0; i < a_sceneids.size(); i++) {
@@ -402,7 +430,7 @@ namespace Papyrus::SexLabRegistry
 			}
 			std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
 			const auto fragments = Registry::MakeFragmentPair(positions, a_victims);
-			const auto result = scene->SortActors(fragments, a_allowfallback);
+			const auto result = scene->SortActors(fragments, strictness);
 			if (result) {
 				for (size_t n = 0; n < result->size(); n++) {
 					a_positions[n] = result->at(n);

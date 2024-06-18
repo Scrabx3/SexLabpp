@@ -62,6 +62,15 @@ namespace Registry
 
 	struct PositionInfo
 	{
+		enum class MatchStrictness
+		{
+			Light,
+			Standard,
+			Strict,
+
+			Total
+		};
+
 		enum class Extra : uint8_t
 		{
 			Submissive = 1 << 0,
@@ -83,7 +92,7 @@ namespace Registry
 
 		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
 		_NODISCARD bool CanFillPosition(const PositionInfo& a_other) const;
-		_NODISCARD bool CanFillPosition(stl::enumeration<PositionFragment> a_fragment, bool a_vague) const;
+		_NODISCARD bool CanFillPosition(stl::enumeration<PositionFragment> a_fragment, MatchStrictness a_strictness) const;
 		_NODISCARD std::vector<PositionFragment> MakeFragments() const;
 
 		_NODISCARD bool HasExtraCstm(const RE::BSFixedString& a_extra) const;
@@ -142,7 +151,7 @@ namespace Registry
 		_NODISCARD const PositionInfo* GetNthPosition(size_t n) const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const FragmentPair& a_positions, bool a_vague = false) const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const FragmentPair& a_positions, PositionInfo::MatchStrictness a_strictness) const;
 
 		_NODISCARD size_t GetNumStages() const;
 		_NODISCARD const std::vector<const Stage*> GetAllStages() const;

@@ -38,6 +38,7 @@ struct Settings
 	static inline int32_t iOpenMouthSize{ 80 };
 	static inline int32_t iUseFade{ 1 };
 	static inline int32_t iClimaxType{ 0 };
+	static inline int32_t iFilterStrictness{ 1 };
 
 	// KeyBinds/Scene Control Related
 	static inline bool bAdjustTargetStage{ false };
@@ -279,5 +280,6 @@ struct Settings
 		ENTRY(sRequiredTags),
 		ENTRY(sExcludedTags),
 		ENTRY(sOptionalTags),
+		ENTRY(iFilterStrictness),
 	};
 };
