@@ -609,14 +609,10 @@ namespace Registry
 
 		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
 		compatibles.resize(a_positions.size());
-		const auto strictness = static_cast<int>(a_strictness);
 		for (size_t i = 0; i < a_positions.size(); i++) {
 			for (size_t n = 0; n < this->positions.size(); n++) {
-				for (int j = strictness; j >= 0; j--) {
-					const auto args = PositionInfo::MatchStrictness(j);
-					if (this->positions[n].CanFillPosition(a_positions[i].second, args)) {
-						compatibles[i].emplace_back(n, a_positions[i].first);
-					}
+				if (this->positions[n].CanFillPosition(a_positions[i].second, a_strictness)) {
+					compatibles[i].emplace_back(n, a_positions[i].first);
 				}
 			}
 			if (compatibles[i].empty()) {
