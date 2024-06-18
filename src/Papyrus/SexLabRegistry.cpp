@@ -27,14 +27,15 @@ namespace Papyrus::SexLabRegistry
 		return argRet;                                       \
 	}
 
-#define STRICTNESS()                                                \
-	using Strictness = Registry::PositionInfo::MatchStrictness;       \
-	auto s = Settings::iFilterStrictness;                             \
-	Strictness strictness;                                            \
-	if (auto total = s >= static_cast<uint32_t>(Strictness::Total)) { \
-		strictness = Strictness(total - 1);                             \
-	} else {                                                          \
-		strictness = Strictness(s);                                     \
+#define STRICTNESS()                                                           \
+	using Strictness = Registry::PositionInfo::MatchStrictness;                  \
+	Strictness strictness;                                                       \
+	if (a_strictness == -1)                                                      \
+		a_strictness = Settings::iFilterStrictness;                                \
+	if (auto total = a_strictness >= static_cast<uint32_t>(Strictness::Total)) { \
+		strictness = Strictness(total - 1);                                        \
+	} else {                                                                     \
+		strictness = Strictness(a_strictness);                                     \
 	}
 
 	int32_t GetRaceID(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
@@ -200,8 +201,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Cannot lookup animations without actors", a_stackID);
 			return {};
 		}
-		if (std::ranges::find(a_submissives, nullptr) != a_submissives.end())
-		{
+		if (std::ranges::find(a_submissives, nullptr) != a_submissives.end()) {
 			a_vm->TraceStack("None actor in submissives", a_stackID);
 			return {};
 		}
@@ -241,27 +241,27 @@ namespace Papyrus::SexLabRegistry
 	}
 
 	bool ValidateScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive)
+		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive, int32_t a_strictness)
 	{
 		auto argSubmissive{ a_submissive ? std::vector<RE::Actor*>{ a_submissive } : std::vector<RE::Actor*>{} };
-		return ValidateSceneA(a_vm, a_stackID, nullptr, a_sceneid, a_positions, a_tags, argSubmissive);
+		return ValidateSceneA(a_vm, a_stackID, nullptr, a_sceneid, a_positions, a_tags, argSubmissive, a_strictness);
 	}
 
 	bool ValidateSceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives)
+		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, int32_t a_strictness)
 	{
-		return !ValidateScenesA(a_vm, a_stackID, nullptr, { a_sceneid }, a_positions, a_tags, a_submissives).empty();
+		return !ValidateScenesA(a_vm, a_stackID, nullptr, { a_sceneid }, a_positions, a_tags, a_submissives, a_strictness).empty();
 	}
 
 	std::vector<RE::BSFixedString> ValidateScenes(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive)
+		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive, int32_t a_strictness)
 	{
 		auto argSubmissive{ a_submissive ? std::vector<RE::Actor*>{ a_submissive } : std::vector<RE::Actor*>{} };
-		return ValidateScenesA(a_vm, a_stackID, nullptr, a_sceneids, a_positions, a_tags, argSubmissive);
+		return ValidateScenesA(a_vm, a_stackID, nullptr, a_sceneids, a_positions, a_tags, argSubmissive, a_strictness);
 	}
 
 	std::vector<RE::BSFixedString> ValidateScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives)
+		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, int32_t a_strictness)
 	{
 		if (a_positions.empty()) {
 			a_vm->TraceStack("Cannot validate scenes against an empty position array", a_stackID);
@@ -303,7 +303,8 @@ namespace Papyrus::SexLabRegistry
 	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		RE::reference_array<RE::Actor*> a_positions,
 		RE::Actor* a_victim,
-		std::string a_sceneid)
+		std::string a_sceneid,
+		int32_t a_strictness)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Array is empty or contains none", a_stackID);
@@ -331,7 +332,8 @@ namespace Papyrus::SexLabRegistry
 	bool SortBySceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		RE::reference_array<RE::Actor*> a_positions,
 		std::vector<RE::Actor*> a_victims,
-		std::string a_sceneid)
+		std::string a_sceneid,
+		int32_t a_strictness)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Position Array is empty or contains none", a_stackID);
@@ -363,7 +365,8 @@ namespace Papyrus::SexLabRegistry
 	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		RE::reference_array<RE::Actor*> a_positions,
 		RE::Actor* a_victim,
-		std::vector<std::string> a_sceneids)
+		std::vector<std::string> a_sceneids,
+		int32_t a_strictness)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Array is empty or contains none", a_stackID);
@@ -393,7 +396,8 @@ namespace Papyrus::SexLabRegistry
 	int32_t SortBySceneExA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		RE::reference_array<RE::Actor*> a_positions,
 		std::vector<RE::Actor*> a_victims,
-		std::vector<std::string> a_sceneids)
+		std::vector<std::string> a_sceneids,
+		int32_t a_strictness)
 	{
 		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
 			a_vm->TraceStack("Array is empty or contains none", a_stackID);
