@@ -40,6 +40,10 @@ namespace Registry
 	static constexpr std::array SOSMID_ALT{ "RD 3"sv };
 	static constexpr std::array SOSTIP_ALT{ "RD 5"sv };
 
+	static constexpr std::array SCHLONG_ANGLES{
+		25.0f, 32.0f, 39.0f, 46.0f, 53.0f, 60.0f, 67.0f, 74.0f, 81.0f, 88.0f, 95.0f, 102.0f, 109.0f, 116.0f, 123.0f, 130.0f, 137.0f, 144.0f, 151.0f
+	};
+
 	class Physics :
 		public Singleton<Physics>
 	{
@@ -62,7 +66,6 @@ namespace Registry
 
 			RE::FormID _partner{ 0 };	 // actor performing type
 			Type _type{ Type::None };	 // action type performed by partner
-
 			float _velocity{ 0.0f };
 			float _distance{ 0.0f };
 		};
