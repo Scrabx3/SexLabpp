@@ -141,7 +141,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		return false;
 	}
 
-	// Hooks::Install();
 	// Registry::Console::Install();
 
 	const auto serialization = SKSE::GetSerializationInterface();
