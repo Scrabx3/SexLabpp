@@ -1,6 +1,10 @@
 #include "Physics.h"
 
 #include "Util/Premutation.h"
+#include "Util/RayCast/ObjectBound.h"
+#include "Registry/Node.h"
+
+using namespace Registry::Node;	// TODO: remove this <-
 
 namespace Registry
 {
@@ -140,7 +144,7 @@ namespace Registry
 			const auto vRot = headworld.rotate * vSchlong;
 			const auto dot = vRot.Dot(vSchlong);
 			const auto angle = RE::rad_to_deg(std::acosf(dot));
-			if (angle > Settings::fAngleMouth || angle < (180 - Settings::fAngleMouth)) {
+			if (angle < (180 - Settings::fAngleMouth)) {
 				return std::nullopt;
 			}
 		}
@@ -336,7 +340,7 @@ namespace Registry
 						return false;
 					});
 				for (size_t i = 0; i < _positions.size(); i++) {
-					_positions[i]._types = std::move(snapshots[i]->types);
+					_positions[i]._types = snapshots[i]->types;
 				}
 			}
 			std::this_thread::sleep_for(interval);

@@ -53,6 +53,7 @@ set(CXX_FILES
 	src/Registry/Library.cpp
 	src/Registry/Misc.h
 	src/Registry/Misc.cpp
+	src/Registry/Node.h
 	src/Registry/Physics.h
 	src/Registry/Physics.cpp
 	src/Registry/Stats.h
