@@ -2,9 +2,12 @@
 
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
+#include "Registry/Node.h"
 #include "Registry/Physics.h"
 #include "Registry/Stats.h"
 #include "Registry/Util/CellCrawler.h"
+#include "Registry/Util/RayCast.h"
+#include "Registry/Util/RayCast/ObjectBound.h"
 #include "Registry/Util/Scale.h"
 #include "UserData/StripData.h"
 
@@ -343,6 +346,25 @@ namespace Papyrus::ThreadModel
 			}
 		}
 
+		std::vector<std::pair<RE::TESObjectREFR*, glm::vec4>> thread_heads{};
+		a_qst->aliasAccessLock.LockForRead();
+		for (auto&& alias : a_qst->aliases) {
+			if (!alias)
+				continue;
+			const auto aliasref = skyrim_cast<RE::BGSRefAlias*>(alias);
+			if (!aliasref)
+				continue;
+			const auto ref = aliasref->GetReference();
+			if (!ref || ref == center)
+				continue;
+			auto head = ref->GetNodeByName(Registry::Node::HEAD);
+			if (!head)
+				continue;
+			auto& t = head->world.translate;
+			thread_heads.emplace_back(ref, glm::vec4{ t.x, t.y, t.z, 0.0f });
+		}
+		a_qst->aliasAccessLock.UnlockForRead();
+
 		std::vector<RE::TESObjectREFR*> used_furnitures{};
 		const auto processlist = RE::ProcessLists::GetSingleton();
 		for (auto&& ithandle : processlist->highActorHandles) {
@@ -357,14 +379,41 @@ namespace Papyrus::ThreadModel
 
 		std::vector<std::pair<RE::TESObjectREFR*, const Registry::FurnitureDetails*>> found_objects;
 		CellCrawler::ForEachObjectInRange(actor, Settings::fScanRadius, [&](RE::TESObjectREFR* a_ref) {
-			if (!a_ref || std::ranges::find(used_furnitures, a_ref) != used_furnitures.end()) {
+			if (!a_ref || std::ranges::contains(used_furnitures, a_ref)) {
 				return RE::BSContainer::ForEachResult::kContinue;
 			}
 			const auto details = library->GetFurnitureDetails(a_ref);
 			if (!details || !details->HasType(scene_map, [](auto& it) { return it.first; })) {
 				return RE::BSContainer::ForEachResult::kContinue;
 			}
-			found_objects.push_back(std::make_pair(a_ref, details));
+			auto obj = a_ref->Get3D();
+			auto node = obj ? obj->AsNode() : nullptr;
+			auto box = node ? ObjectBound::MakeBoundingBox(node) : std::nullopt;
+			if (!box) {
+				return RE::BSContainer::ForEachResult::kContinue;
+			}
+			auto center = box->GetCenterWorld();
+			auto end = glm::vec4(center, 0.0f);
+			for (auto&& it : thread_heads) {
+				auto startref = it.first;
+				auto start = it.second;
+				do {
+					auto res = Raycast::hkpCastRay(start, end, { a_ref, startref });
+					if (!res.hit) {
+						found_objects.emplace_back(a_ref, details);
+						goto __CONTINUE_NEXT;
+					}
+					auto hitref = res.hitObject ? res.hitObject->GetUserData() : nullptr;
+					auto base = hitref ? hitref->GetBaseObject() : nullptr;
+					if (!base || base->Is(RE::FormType::Static, RE::FormType::MovableStatic, RE::FormType::Furniture))
+						break;
+					if (base->Is(RE::FormType::Door) && hitref->IsLocked())
+						break;
+					startref = hitref;
+					start = res.hitPos;
+				} while (true);
+			}
+__CONTINUE_NEXT:
 			return RE::BSContainer::ForEachResult::kContinue;
 		});
 		std::vector<std::tuple<Registry::FurnitureType, Registry::Coordinate, RE::TESObjectREFR*>> coords{};
@@ -375,6 +424,7 @@ namespace Papyrus::ThreadModel
 			}
 		}
 		if (!coords.empty()) {
+			// IDEA: Give player an alphabetical list of all found options here
 			std::sort(coords.begin(), coords.end(), [&](auto& a, auto& b) {
 				return std::get<1>(a).GetDistance(actor) < std::get<1>(b).GetDistance(actor);
 			});
@@ -492,6 +542,8 @@ namespace Papyrus::ThreadModel
 
 			const auto event = scene->GetNthAnimationEvent(stage, i);
 			actor->NotifyAnimationGraph(event);
+			const auto schlong = fmt::format("SOSBend{}", stage->positions[i].schlong);
+			actor->NotifyAnimationGraph(schlong);
 		}
 
 		return stage->id;
