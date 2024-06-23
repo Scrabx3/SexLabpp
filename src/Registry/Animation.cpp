@@ -516,6 +516,11 @@ namespace Registry
 		return this->furnitures.furnitures != FurnitureType::None;
 	}
 
+	RE::BSFixedString Scene::GetPackageHash() const
+	{
+		return hash;
+	}
+
 	bool Scene::IsCompatibleFurniture(const RE::TESObjectREFR* a_reference) const
 	{
 		const auto details = Library::GetSingleton()->GetFurnitureDetails(a_reference);

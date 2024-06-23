@@ -20,6 +20,7 @@ namespace Registry
 		_NODISCARD Scene* GetSceneByID_Mutable(const RE::BSFixedString& a_id) const;
 		_NODISCARD size_t GetSceneCount() const;
 
+		void ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const;
 		void ForEachScene(std::function<bool(const Scene*)> a_visitor) const;
 
 	public:

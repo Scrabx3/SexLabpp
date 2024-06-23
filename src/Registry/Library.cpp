@@ -181,6 +181,15 @@ namespace Registry
 		return ret;
 	}
 
+	void Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const
+	{
+		std::shared_lock lock{ read_write_lock };
+		for (auto&& package : packages) {
+			if (a_visitor(package.get()))
+				break;
+		}
+	}
+
 	void Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const
 	{
 		std::shared_lock lock{ read_write_lock };

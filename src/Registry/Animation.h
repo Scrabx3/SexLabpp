@@ -139,6 +139,7 @@ namespace Registry
 		_NODISCARD bool IsPrivate() const;
 		_NODISCARD bool HasCreatures() const;
 		_NODISCARD bool UsesFurniture() const;
+		_NODISCARD RE::BSFixedString GetPackageHash() const;
 
 		_NODISCARD bool IsCompatibleTags(const TagData& a_tags) const;
 		_NODISCARD bool IsCompatibleTags(const TagDetails& a_details) const;
