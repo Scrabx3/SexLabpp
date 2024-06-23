@@ -98,6 +98,7 @@ namespace Registry
 		RE::TESSound* PickSound(RE::BSFixedString a_voice, uint32_t a_priority, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const;
 		RE::TESSound* GetOrgasmSound(RE::BSFixedString a_voice, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const;
 
+		std::vector<RE::Actor*> GetSavedActors() const;
 		const VoiceObject* GetSavedVoice(RE::FormID a_key) const;
 		void SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice);
 		void ClearVoice(RE::FormID a_key);

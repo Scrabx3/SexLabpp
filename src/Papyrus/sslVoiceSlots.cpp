@@ -181,6 +181,27 @@ namespace Papyrus::VoiceSlots
 		return Registry::Voice::GetSingleton()->GetAllVoiceNames();
 	}
 
+	std::vector<RE::Actor*> GetAllCachedUniqueActorsSorted(RE::StaticFunctionTag*, RE::Actor* a_sndprio)
+	{
+		auto saved = Registry::Voice::GetSingleton()->GetSavedActors();
+		std::erase_if(saved, [&](RE::Actor* it) {
+			if (it->IsPlayerRef() || it->formID == a_sndprio->formID)
+				return true;
+			auto base = it->GetActorBase();
+			return !base || !base->IsUnique();
+		});
+		std::ranges::sort(saved, [&](RE::Actor* a, RE::Actor* b) {
+			return std::strcmp(a->GetDisplayFullName(), b->GetDisplayFullName()) < 0;
+		});
+		std::vector<RE::Actor*> ret{ RE::PlayerCharacter::GetSingleton() };
+		if (auto base = a_sndprio ? a_sndprio->GetActorBase() : nullptr) {
+			if (base->IsUnique())
+				ret.push_back(a_sndprio);
+		}
+		ret.insert_range(ret.end(), saved);
+		return ret;
+	}
+
 	RE::BSFixedString SelectVoiceByRace(RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
 		auto v = Registry::Voice::GetSingleton()->GetVoice(Registry::RaceHandler::GetRaceKey(a_racekey));

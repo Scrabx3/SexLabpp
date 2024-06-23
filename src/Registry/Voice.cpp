@@ -129,6 +129,20 @@ namespace Registry
 		return PickSound(a_voice, 100, a_stage, a_info, a_context);
 	}
 
+	std::vector<RE::Actor*> Voice::GetSavedActors() const
+	{
+		std::shared_lock lock{ _m };
+		std::vector<RE::Actor*> ret{};
+		ret.reserve(saved_voices.size());
+		for (auto&& [key, _] : saved_voices) {
+			auto act = RE::TESForm::LookupByID<RE::Actor>(key);
+			if (!act)
+				continue;
+			ret.push_back(act);
+		}
+		return ret;
+	}
+
 	const Voice::VoiceObject* Voice::GetSavedVoice(RE::FormID a_key) const
 	{
 		std::shared_lock lock{ _m };

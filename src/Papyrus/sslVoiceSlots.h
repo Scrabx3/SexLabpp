@@ -52,6 +52,7 @@ namespace Papyrus::VoiceSlots
 	void DeleteVoice(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 
 	std::vector<RE::BSFixedString> GetAllVoices(RE::StaticFunctionTag*);
+	std::vector<RE::Actor*> GetAllCachedUniqueActorsSorted(RE::StaticFunctionTag*, RE::Actor* a_sndprio);
 	RE::BSFixedString SelectVoiceByRace(RE::StaticFunctionTag*, RE::BSFixedString a_racekey);
 
 	inline bool Register(VM* a_vm)
@@ -65,6 +66,7 @@ namespace Papyrus::VoiceSlots
 		REGISTERFUNC(DeleteVoice, "sslVoiceSlots", true);
 
 		REGISTERFUNC(GetAllVoices, "sslVoiceSlots", true);
+		REGISTERFUNC(GetAllCachedUniqueActorsSorted, "sslVoiceSlots", true);
 		REGISTERFUNC(SelectVoiceByRace, "sslVoiceSlots", true);
 
 		return BaseVoice::Register(a_vm);
