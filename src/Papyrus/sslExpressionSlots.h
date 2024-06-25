@@ -20,7 +20,8 @@ namespace Papyrus::ExpressionSlots
 		bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
 		void SetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_enabled);
 		std::vector<int32_t> GetLevelCounts(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
-		std::vector<float> GetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int a_level);
+		std::vector<float> GetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, float a_strength);
+		std::vector<float> GetNthValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int n);
 		void SetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values);
 
 		bool CreateEmptyProfile(RE::StaticFunctionTag*, RE::BSFixedString a_id);
@@ -38,6 +39,7 @@ namespace Papyrus::ExpressionSlots
 			REGISTERFUNC(SetEnabled, "sslBaseExpression", true);
 			REGISTERFUNC(GetLevelCounts, "sslBaseExpression", true);
 			REGISTERFUNC(GetValues, "sslBaseExpression", true);
+			REGISTERFUNC(GetNthValues, "sslBaseExpression", true);
 			REGISTERFUNC(SetValues, "sslBaseExpression", true);
 
 			REGISTERFUNC(CreateEmptyProfile, "sslBaseExpression", true);

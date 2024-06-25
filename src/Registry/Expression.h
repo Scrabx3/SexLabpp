@@ -32,6 +32,13 @@ namespace Registry
 				Total = 32
 			};
 
+			enum class Scaling
+			{
+				Linear,
+				Square,
+				Cubic,
+			};
+
 		public:
 			Profile(const RE::BSFixedString& a_id) :
 				id(a_id) { assert(!a_id.empty()); };
@@ -40,14 +47,17 @@ namespace Registry
 			Profile(const nlohmann::json& a_src);
 			~Profile() = default;
 
+			std::array<float, Total> GetData(RE::SEXES::SEX a_sex, float a_strength) const;
 			void Save() const;
 
 		public:
 			RE::BSFixedString id;
+			uint8_t version{ 0 };
 			bool enabled{ true };
 			mutable bool has_edits{ false };
 
 			TagData tags{};
+			Scaling scaling{ Scaling::Linear };
 			std::vector<std::array<float, Total>> data[RE::SEXES::kTotal]{};
 		};
 

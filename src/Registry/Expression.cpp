@@ -4,8 +4,10 @@ namespace Registry
 {
 	Expression::Profile::Profile(const YAML::Node& a_src) :
 		id(a_src["id"].IsDefined() ? a_src["id"].as<std::string>() : "Missing Name"),
+		version(a_src["version"].IsDefined() ? static_cast<uint8_t>(a_src["version"].as<uint32_t>()) : 0),
+		enabled(!a_src["enabled"].IsDefined() || a_src["enabled"].as<bool>()),
 		tags(a_src["tags"].IsDefined() ? a_src["tags"].as<std::vector<std::string>>() : std::vector<std::string>{}),
-		enabled(!a_src["enabled"].IsDefined() || a_src["enabled"].as<bool>())
+		scaling(a_src["scaling"].IsDefined() ? Scaling(a_src["scaling"].as<int32_t>()) : Scaling::Linear)
 	{
 		if (!a_src["data"].IsDefined())
 			throw std::exception("Missing data values");
@@ -188,6 +190,46 @@ namespace Registry
 		}
 	}
 
+	std::array<float, Expression::Profile::Total> Expression::Profile::GetData(RE::SEXES::SEX a_sex, float a_strength) const
+	{
+		if (version < 1) {
+			auto idx = std::floor(std::min<float>((a_strength / 100), 1.0f) * (data[a_sex].size() - 1));
+			assert(idx < data[a_sex].size() && idx >= 0);
+			return data[a_sex][idx];
+		} else if (data[a_sex].size() < 2) {
+			logger::error("Invalid Expression Profile, {}/2 Profiles present", data[a_sex].size());
+			auto ret = std::array<float, Total>{};
+			ret[MoodType] = 7;
+			return ret;
+		}
+		float multiplier;
+		switch (scaling) {
+		case Scaling::Linear:
+			multiplier = a_strength / 100.0f;
+			break;
+		case Scaling::Square:
+			multiplier = 0.0f;
+			for (float i = 0.0f; i <= a_strength / 100.0f; i += 0.07f) {
+				const auto f = pow(i - 0.55f, 2.0f) - 0.04f;
+				multiplier += std::max<float>(0.0f, f);
+			}
+			break;
+		case Scaling::Cubic:
+			multiplier = 0.0f;
+			for (float i = 0.0f; i <= a_strength / 100.0f; i += 0.05f) {
+				const auto f = 1.1f * pow(i - 0.6f, 3.0f) + 0.08f;
+				multiplier += std::max<float>(0.0f, f);
+			}
+			break;
+		}
+		multiplier = std::min(1.25f, multiplier);
+		std::array<float, Total> ret{};
+		for (size_t i = 0; i < ret.size(); i++) {
+			ret[i] = data[a_sex][0][i] + (data[a_sex][1][i] - data[a_sex][0][i]) * multiplier;
+		}
+		return ret;
+	}
+
 	void Expression::Profile::Save() const
 	{
 		if (!has_edits)
@@ -196,6 +238,8 @@ namespace Registry
 		has_edits = false;
 		YAML::Node file;
 		file["id"] = id.data();
+		file["version"] = static_cast<int32_t>(version);
+		file["scaling"] = static_cast<int32_t>(scaling);
 		for (auto&& tag : tags.AsVector()) {
 			file["tags"].push_back(tag.data());
 		}

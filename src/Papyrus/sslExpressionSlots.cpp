@@ -100,7 +100,8 @@ namespace Papyrus::ExpressionSlots
 			return { static_cast<int32_t>(profile->data[RE::SEXES::kMale].size()), static_cast<int32_t>(profile->data[RE::SEXES::kFemale].size()) };
 		}
 
-		std::vector<float> GetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int a_level)
+
+		std::vector<float> GetNthValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int n)
 		{
 			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
 			if (!profile) {
@@ -108,11 +109,22 @@ namespace Papyrus::ExpressionSlots
 				return std::vector<float>(Registry::Expression::Profile::Total);
 			}
 			auto& ret = profile->data[a_female];
-			if (ret.size() <= a_level) {
+			if (ret.size() <= n) {
 				a_vm->TraceStack("Invalid level", a_stackID);
 				return std::vector<float>(Registry::Expression::Profile::Total);
 			}
-			return { ret[a_level].begin(), ret[a_level].end() };
+			return { ret[n].begin(), ret[n].end() };
+		}
+
+		std::vector<float> GetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, float a_strength)
+		{
+			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			if (!profile) {
+				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
+				return std::vector<float>(Registry::Expression::Profile::Total);
+			}
+			auto ret = profile->GetData(a_female ? RE::SEXES::kFemale : RE::SEXES::kMale, a_strength);
+			return { ret.begin(), ret.end() };
 		}
 
 		void SetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
