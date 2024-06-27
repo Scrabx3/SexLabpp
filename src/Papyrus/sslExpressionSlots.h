@@ -36,10 +36,13 @@ namespace Papyrus::ExpressionSlots
 			REGISTERFUNC(GetPhoneme, "sslBaseExpression", true);
 			REGISTERFUNC(GetExpression, "sslBaseExpression", true);
 
+			REGISTERFUNC(GetVersion, "sslBaseExpression", true);
 			REGISTERFUNC(GetExpressionTags, "sslBaseExpression", true);
 			REGISTERFUNC(SetExpressionTags, "sslBaseExpression", true);
 			REGISTERFUNC(GetEnabled, "sslBaseExpression", true);
 			REGISTERFUNC(SetEnabled, "sslBaseExpression", true);
+			REGISTERFUNC(GetExpressionScaleMode, "sslBaseExpression", true);
+			REGISTERFUNC(SetExpressionScaleMode, "sslBaseExpression", true);
 			REGISTERFUNC(GetLevelCounts, "sslBaseExpression", true);
 			REGISTERFUNC(GetValues, "sslBaseExpression", true);
 			REGISTERFUNC(GetNthValues, "sslBaseExpression", true);
