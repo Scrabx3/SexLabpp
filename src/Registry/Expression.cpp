@@ -193,7 +193,7 @@ namespace Registry
 	std::array<float, Expression::Profile::Total> Expression::Profile::GetData(RE::SEXES::SEX a_sex, float a_strength) const
 	{
 		if (version < 1) {
-			auto idx = std::floor(std::min<float>((a_strength / 100), 1.0f) * (data[a_sex].size() - 1));
+			auto idx = static_cast<size_t>(std::floor(std::min<float>((a_strength / 100), 1.0f) * (data[a_sex].size() - 1)));
 			assert(idx < data[a_sex].size() && idx >= 0);
 			return data[a_sex][idx];
 		} else if (data[a_sex].size() < 2) {
@@ -308,6 +308,16 @@ namespace Registry
 
 		w->second.has_edits = true;
 		w->second.tags = a_newtags;
+	}
+
+	void Expression::SetScaling(RE::BSFixedString a_id, Profile::Scaling a_scaling)
+	{		
+		auto w = _profiles.find(a_id);
+		if (w == _profiles.end())
+			return;
+
+		w->second.has_edits = true;
+		w->second.scaling = a_scaling;
 	}
 
 	void Expression::SetEnabled(RE::BSFixedString a_id, bool a_enabled)

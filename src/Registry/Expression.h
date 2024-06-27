@@ -37,6 +37,8 @@ namespace Registry
 				Linear,
 				Square,
 				Cubic,
+
+				Total
 			};
 
 		public:
@@ -67,6 +69,7 @@ namespace Registry
 
 		void UpdateValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values);
 		void UpdateTags(RE::BSFixedString a_id, const TagData& a_newtags);
+		void SetScaling(RE::BSFixedString a_id, Profile::Scaling a_scaling);
 		void SetEnabled(RE::BSFixedString a_id, bool a_enabled);
 
 		bool CreateProfile(const RE::BSFixedString& a_id);

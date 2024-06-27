@@ -50,6 +50,16 @@ namespace Papyrus::ExpressionSlots
 			return 0.0f;
 		}
 
+		int GetVersion(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+		{
+			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			if (!profile) {
+				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
+				return {};
+			}
+			return profile->version;
+		}
+
 		std::vector<RE::BSFixedString> GetExpressionTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
@@ -90,6 +100,30 @@ namespace Papyrus::ExpressionSlots
 			expr->SetEnabled(a_id, a_enabled);
 		}
 
+		int GetExpressionScaleMode(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+		{
+			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			if (!profile) {
+				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
+				return false;
+			}
+			return static_cast<int>(profile->scaling);
+		}
+
+		void SetExpressionScaleMode(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_idx)
+		{
+			auto expr = Registry::Expression::GetSingleton();
+			if (!expr->GetProfile(a_id)) {
+				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
+				return;
+			}
+			if (a_idx < 0 || a_idx >= static_cast<int>(Registry::Expression::Profile::Scaling::Total)) {
+				a_vm->TraceStack("Invalid Scaling Index", a_stackID);
+				return;
+			}
+			expr->SetScaling(a_id, Registry::Expression::Profile::Scaling(a_idx));
+		}
+
 		std::vector<int32_t> GetLevelCounts(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
@@ -99,7 +133,6 @@ namespace Papyrus::ExpressionSlots
 			}
 			return { static_cast<int32_t>(profile->data[RE::SEXES::kMale].size()), static_cast<int32_t>(profile->data[RE::SEXES::kFemale].size()) };
 		}
-
 
 		std::vector<float> GetNthValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int n)
 		{
