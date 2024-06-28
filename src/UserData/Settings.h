@@ -62,7 +62,7 @@ struct Settings
 	static inline int32_t iTargetActor{ 49 };
 
 	// Floats
-	static inline float fCumTimer{ 120.0 };
+	static inline float fCumTimer{ 180.0 };
 	static inline float fShakeStrength{ 0.7 };
 	static inline float fAutoSUCSM{ 5.0 };
 	static inline float fMaleVoiceDelay{ 5.0 };
@@ -76,15 +76,13 @@ struct Settings
 	static inline std::string sExcludedTags{ ""s };
 	static inline std::string sOptionalTags{ ""s };
 
-	// Int Array
-	static inline std::vector<int> iStripForms{ 1032555423, 1, 1032555423, 1, 4719365, 1, 16901, 1, 3952148, 0, 83952148, 0, 352389654, 1, 352389654, 1 };
-
-	// Float Array
-	static inline std::vector<float> fTimers{ 10, 15, 25, 7 };
+	// Arrays
+	static inline std::vector<int> iStripForms{ 1032555423, 1, 1032555423, 1, 3952148, 0, 352389654, 1 };
+	static inline std::vector<float> fTimers{ 10.0f, 15.0f, 25.0f, 7.0f };
 
 	// Phoneme Related
 	static inline bool bLipsFixedValue{ true };
-	static inline int32_t iLipsSoundTime{ 0 };
+	static inline int32_t iLipsSoundTime{ 1 };
 
 	// --- INI
 	// Animation
