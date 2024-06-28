@@ -13,9 +13,9 @@ struct Settings
 
 	// --- MCM
 	// Booleans
+	static inline bool bDebugMode{ false };
 	static inline bool bCreatureGender{ false };
 	static inline bool bAllowCreatures{ false };
-	static inline bool bUseStrapons{ true };
 	static inline bool bRedressVictim{ true };
 	static inline bool bUseLipSync{ false };
 	static inline bool bUseExpressions{ false };
@@ -24,21 +24,20 @@ struct Settings
 	static inline bool bAutoTFC{ false };
 	static inline bool bAutoAdvance{ true };
 	static inline bool bOrgasmEffects{ false };
-	static inline bool bRestrictSameSex{ false };
 	static inline bool bShowInMap{ false };
 	static inline bool bDisableTeleport{ true };
 	static inline bool bDisableScale{ false };
 	static inline bool bUndressAnimation{ false };
 	static inline bool bSubmissivePlayer{ false };
 	static inline bool bSubmissiveTarget{ false };
+	static inline bool bMatchMakerActive{ false };
 
 	// Integers
 	static inline int32_t iAskBed{ 1 };
 	static inline int32_t iNPCBed{ 0 };
-	static inline int32_t iOpenMouthSize{ 80 };
 	static inline int32_t iUseFade{ 1 };
 	static inline int32_t iClimaxType{ 0 };
-	static inline int32_t iFilterStrictness{ 1 };
+	static inline int32_t iFilterStrictness{ 2 };
 
 	// KeyBinds/Scene Control Related
 	static inline bool bAdjustTargetStage{ false };
@@ -68,7 +67,6 @@ struct Settings
 	static inline float fAutoSUCSM{ 5.0 };
 	static inline float fMaleVoiceDelay{ 5.0 };
 	static inline float fFemaleVoiceDelay{ 4.0 };
-	static inline float fExpressionDelay{ 2.0 };
 	static inline float fVoiceVolume{ 1.0 };
 	static inline float fSFXDelay{ 3.0 };
 	static inline float fSFXVolume{ 1.0 };
@@ -82,17 +80,11 @@ struct Settings
 	static inline std::vector<int> iStripForms{ 1032555423, 1, 1032555423, 1, 4719365, 1, 16901, 1, 3952148, 0, 83952148, 0, 352389654, 1, 352389654, 1 };
 
 	// Float Array
-	static inline std::vector<float> fTimers{ 30, 20, 15, 15, 9, 10, 10, 10, 8, 8, 20, 15, 10, 10, 4 };
-	static inline std::vector<float> fOpenMouthMale{ 0, 0.8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16 };
-	static inline std::vector<float> fOpenMouthFemale{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16 };
+	static inline std::vector<float> fTimers{ 10, 15, 25, 7 };
 
 	// Phoneme Related
-	static inline int32_t iLipsPhoneme{ 1 };
 	static inline bool bLipsFixedValue{ true };
 	static inline int32_t iLipsSoundTime{ 0 };
-	static inline int32_t LipsMaxValue{ 20 };
-	static inline int32_t LipsSoundTime{ 50 };
-	static inline float fLipsMoveTime{ 0.2 };
 
 	// --- INI
 	// Animation
@@ -219,7 +211,6 @@ struct Settings
 	static inline std::map<std::string, std::variant<float*, std::string*, bool*, int*, std::vector<float>*, std::vector<int>*>, StringCmp> table{
 		ENTRY(bCreatureGender),
 		ENTRY(bAllowCreatures),
-		ENTRY(bUseStrapons),
 		ENTRY(bRedressVictim),
 		ENTRY(bUseLipSync),
 		ENTRY(bUseExpressions),
@@ -228,14 +219,12 @@ struct Settings
 		ENTRY(bAutoTFC),
 		ENTRY(bAutoAdvance),
 		ENTRY(bOrgasmEffects),
-		ENTRY(bRestrictSameSex),
 		ENTRY(bShowInMap),
 		ENTRY(bDisableTeleport),
 		ENTRY(bDisableScale),
 		ENTRY(bUndressAnimation),
 		ENTRY(iAskBed),
 		ENTRY(iNPCBed),
-		ENTRY(iOpenMouthSize),
 		ENTRY(iUseFade),
 		ENTRY(bAdjustTargetStage),
 		ENTRY(iAdjustStage),
@@ -260,20 +249,13 @@ struct Settings
 		ENTRY(fAutoSUCSM),
 		ENTRY(fMaleVoiceDelay),
 		ENTRY(fFemaleVoiceDelay),
-		ENTRY(fExpressionDelay),
 		ENTRY(fVoiceVolume),
 		ENTRY(fSFXDelay),
 		ENTRY(fSFXVolume),
 		ENTRY(iStripForms),
 		ENTRY(fTimers),
-		ENTRY(fOpenMouthMale),
-		ENTRY(fOpenMouthFemale),
-		ENTRY(iLipsPhoneme),
 		ENTRY(bLipsFixedValue),
 		ENTRY(iLipsSoundTime),
-		ENTRY(LipsMaxValue),
-		ENTRY(LipsSoundTime),
-		ENTRY(fLipsMoveTime),
 		ENTRY(iClimaxType),
 		ENTRY(bSubmissivePlayer),
 		ENTRY(bSubmissiveTarget),
@@ -281,5 +263,7 @@ struct Settings
 		ENTRY(sExcludedTags),
 		ENTRY(sOptionalTags),
 		ENTRY(iFilterStrictness),
+		ENTRY(bDebugMode),
+		ENTRY(bMatchMakerActive),
 	};
 };
