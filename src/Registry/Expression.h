@@ -37,6 +37,7 @@ namespace Registry
 				Linear,
 				Square,
 				Cubic,
+				Exponential,
 
 				Total
 			};

@@ -197,6 +197,13 @@ namespace Registry
 				multiplier += std::max<float>(0.0f, f);
 			}
 			break;
+		case Scaling::Exponential:
+			multiplier = 0.0f;
+			for (float i = 0.0f; i <= a_strength / 100.0f; i += 0.05f) {
+				const auto f = pow(2048, i - 1.1f);
+				multiplier += std::max<float>(0.0f, f);
+			}
+			break;
 		}
 		multiplier = std::min(1.25f, multiplier);
 		std::array<float, Total> ret{};
