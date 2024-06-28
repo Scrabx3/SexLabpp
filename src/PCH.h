@@ -52,21 +52,7 @@ constexpr auto INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
 #define VOICE_NPCPATH USERDATAPATH("Voices_NPC.yaml")
 #define SCENESETTINGPATH USERDATAPATH("Scenes")
 
-#ifndef NDEBUG
-template <class T>
-void ASSERTLOWERCASE(T string)
-{
-	assert(std::find_if_not(string.begin(), string.end(), ::islower) == string.end());
-}
-#else
-#define ASSERTLOWERCASE(expression) ((void)0)
-#endif
-
-#ifdef SKYRIMVR
-#define MESSAGEBOX SKSE::WinAPI::MessageBox
-#else
 #define MESSAGEBOX REX::W32::MessageBoxA
-#endif
 
 #ifdef SKYRIM_SUPPORT_AE
 #define OFFSET(SE, AE) AE

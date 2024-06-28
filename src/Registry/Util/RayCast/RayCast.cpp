@@ -9,6 +9,13 @@ SkyrimSE::bhkLinearCastCollector* getCastCollector() noexcept
 	return &collector;
 }
 
+#ifdef SKYRIMVR
+Raycast::RayResult Raycast::CastRay(glm::vec4, glm::vec4, float) noexcept
+{
+	logger::critical("No VR implementation for RayCast::CastRay");
+	return {};
+}
+#else
 Raycast::RayResult Raycast::CastRay(glm::vec4 start, glm::vec4 end, float traceHullSize) noexcept
 {
 	RayResult res;
@@ -38,6 +45,7 @@ Raycast::RayResult Raycast::CastRay(glm::vec4 start, glm::vec4 end, float traceH
 
 	return res;
 }
+#endif
 
 
 Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end) noexcept {
