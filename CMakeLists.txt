@@ -17,7 +17,7 @@ set(PAPYRUS_VR "14vr")
 # ---- Project ----
 project(
     SexLabUtil
-    VERSION 2.9.4.0
+    VERSION 2.10.0.0
     LANGUAGES CXX
 )
 
