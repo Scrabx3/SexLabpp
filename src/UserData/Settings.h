@@ -77,7 +77,7 @@ struct Settings
 	static inline std::string sOptionalTags{ ""s };
 
 	// Arrays
-	static inline std::vector<int> iStripForms{ 1032555423, 1, 1032555423, 1, 3952148, 0, 352389654, 1 };
+	static inline std::vector<int> iStripForms{ 1032555423, 1, 1032555423, 1, 806420, 0, 352928413, 1 };
 	static inline std::vector<float> fTimers{ 10.0f, 15.0f, 25.0f, 7.0f };
 
 	// Phoneme Related
