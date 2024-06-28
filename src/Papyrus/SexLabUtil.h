@@ -2,7 +2,6 @@
 
 namespace Papyrus::SexLabUtil
 {
-	int GetPluginVersion(RE::StaticFunctionTag*) { return Plugin::VERSION.pack(); }
 	bool HasKeywordSub(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form, std::string_view a_substring)
 	{
 		if (!a_form) {
@@ -110,7 +109,6 @@ namespace Papyrus::SexLabUtil
 
 	inline bool Register(VM* a_vm)
 	{
-		REGISTERFUNC(GetPluginVersion, "SexLabUtil", true);
 		REGISTERFUNC(HasKeywordSub, "SexLabUtil", true);
 		REGISTERFUNC(RemoveSubString, "SexLabUtil", true);
 		REGISTERFUNC(PrintConsole, "SexLabUtil", true);
