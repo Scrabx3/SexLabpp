@@ -2,7 +2,12 @@
 
 namespace Papyrus::SystemConfig
 {
+	float GetMinSetupTime(RE::StaticFunctionTag*);
+
 	int GetAnimationCount(RE::StaticFunctionTag*);
+	std::vector<float> GetEnjoymentFactors(RE::StaticFunctionTag*);
+	int GetEnjoymentSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_setting);
+	float GetEnjoymentSettingFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_setting);
 	std::vector<RE::TESForm*> GetStrippableItems(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target, bool a_wornonly);
 
 	int GetSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting);
@@ -21,7 +26,12 @@ namespace Papyrus::SystemConfig
 
 	inline bool Register(VM* a_vm)
 	{
+		REGISTERFUNC(GetMinSetupTime, "sslSystemConfig", true);
+
 		REGISTERFUNC(GetAnimationCount, "sslSystemConfig", true);
+		REGISTERFUNC(GetEnjoymentFactors, "sslSystemConfig", true);
+		REGISTERFUNC(GetEnjoymentSettingInt, "sslSystemConfig", true);
+		REGISTERFUNC(GetEnjoymentSettingFlt, "sslSystemConfig", true);
 		REGISTERFUNC(GetStrippableItems, "sslSystemConfig", true);
 
 		REGISTERFUNC(GetSettingInt, "sslSystemConfig", true);

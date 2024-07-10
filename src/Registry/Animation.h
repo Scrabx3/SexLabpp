@@ -27,7 +27,7 @@ namespace Registry
 		};
 
 	public:
-		Position(std::ifstream& a_stream);
+		Position(std::ifstream& a_stream, uint8_t a_version);
 		~Position() = default;
 
 		void Save(YAML::Node& a_node) const;
@@ -45,7 +45,7 @@ namespace Registry
 	struct Stage
 	{
 	public:
-		Stage(std::ifstream& a_stream);
+		Stage(std::ifstream& a_stream, uint8_t a_version);
 		~Stage() = default;
 
 		void Save(YAML::Node& a_node) const;
@@ -62,15 +62,20 @@ namespace Registry
 
 	struct PositionInfo
 	{
+		enum class MatchStrictness
+		{
+			Light,
+			Standard,
+			Strict,
+
+			Total
+		};
+
 		enum class Extra : uint8_t
 		{
 			Submissive = 1 << 0,
-			HandShackle = 1 << 1,
-			Vamprie = 1 << 2,
-			Unconscious = 1 << 3,
-			Yoke = 1 << 4,
-			Armbinder = 1 << 5,
-			Legbinder = 1 << 6,
+			Vamprie = 1 << 1,
+			Unconscious = 1 << 2
 		};
 
 	public:
@@ -87,7 +92,7 @@ namespace Registry
 
 		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
 		_NODISCARD bool CanFillPosition(const PositionInfo& a_other) const;
-		_NODISCARD bool CanFillPosition(PositionFragment a_fragment) const;
+		_NODISCARD bool CanFillPosition(stl::enumeration<PositionFragment> a_fragment, MatchStrictness a_strictness) const;
 		_NODISCARD std::vector<PositionFragment> MakeFragments() const;
 
 		_NODISCARD bool HasExtraCstm(const RE::BSFixedString& a_extra) const;
@@ -105,6 +110,8 @@ namespace Registry
 	class Scene
 	{
 	public:
+		using FragmentPair = std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>;
+
 		enum class NodeType
 		{
 			None = -1,
@@ -132,6 +139,7 @@ namespace Registry
 		_NODISCARD bool IsPrivate() const;
 		_NODISCARD bool HasCreatures() const;
 		_NODISCARD bool UsesFurniture() const;
+		_NODISCARD RE::BSFixedString GetPackageHash() const;
 
 		_NODISCARD bool IsCompatibleTags(const TagData& a_tags) const;
 		_NODISCARD bool IsCompatibleTags(const TagDetails& a_details) const;
@@ -144,12 +152,11 @@ namespace Registry
 		_NODISCARD const PositionInfo* GetNthPosition(size_t n) const;
 
 		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>& a_positions) const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActorsFallback(std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> a_positions) const;
+		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const FragmentPair& a_positions, PositionInfo::MatchStrictness a_strictness) const;
 
 		_NODISCARD size_t GetNumStages() const;
 		_NODISCARD const std::vector<const Stage*> GetAllStages() const;
-		_NODISCARD Stage* GetStageByKey_Mutable(const RE::BSFixedString& a_stage);
+		_NODISCARD Stage* GetStageByKey(const RE::BSFixedString& a_stage);
 		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_stage) const;
 		_NODISCARD std::vector<const Stage*> GetLongestPath(const Stage* a_src) const;
 		_NODISCARD std::vector<const Stage*> GetShortestPath(const Stage* a_src) const;
@@ -159,8 +166,9 @@ namespace Registry
 		_NODISCARD std::vector<const Stage*> GetEndingStages() const;
 		_NODISCARD std::vector<const Stage*> GetClimaxStages() const;
 		_NODISCARD std::vector<const Stage*> GetFixedLengthStages() const;
-		_NODISCARD size_t GetNumLinkedStages(const Stage* a_stage) const;
-		_NODISCARD const Stage* GetNthLinkedStage(const Stage* a_stage, size_t n) const;
+		_NODISCARD size_t GetNumAdjacentStages(const Stage* a_stage) const;
+		_NODISCARD const Stage* GetNthAdjacentStage(const Stage* a_stage, size_t n) const;
+		_NODISCARD const std::vector<const Stage*>* GetAdjacentStages(const Stage* a_stage) const;
 		_NODISCARD RE::BSFixedString GetNthAnimationEvent(const Stage* a_stage, size_t n) const;
 		_NODISCARD std::vector<RE::BSFixedString> GetAnimationEvents(const Stage* a_stage) const;
 

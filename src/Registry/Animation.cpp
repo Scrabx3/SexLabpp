@@ -19,6 +19,7 @@ namespace Registry
 		switch (version) {
 		case 1:
 		case 2:
+		case 3:
 			{
 				Decode::Read(stream, name);
 				Decode::Read(stream, author);
@@ -100,7 +101,7 @@ namespace Registry
 		stages.reserve(stage_count);
 		for (size_t i = 0; i < stage_count; i++) {
 			const auto& stage = stages.emplace_back(
-				std::make_unique<Stage>(a_stream));
+				std::make_unique<Stage>(a_stream, a_version));
 
 			tags.AddTag(stage->tags);
 			if (stage->id == startstage) {
@@ -165,7 +166,7 @@ namespace Registry
 		}
 	}
 
-	Stage::Stage(std::ifstream& a_stream)
+	Stage::Stage(std::ifstream& a_stream, uint8_t a_version)
 	{
 		id.resize(Decode::ID_SIZE);
 		a_stream.read(id.data(), Decode::ID_SIZE);
@@ -174,7 +175,7 @@ namespace Registry
 		Decode::Read(a_stream, position_count);
 		positions.reserve(position_count);
 		for (size_t i = 0; i < position_count; i++) {
-			positions.emplace_back(a_stream);
+			positions.emplace_back(a_stream, a_version);
 		}
 
 		Decode::Read(a_stream, fixedlength);
@@ -182,12 +183,12 @@ namespace Registry
 		tags = TagData{ a_stream };
 	}
 
-	Position::Position(std::ifstream& a_stream) :
+	Position::Position(std::ifstream& a_stream, uint8_t a_version) :
 		event(Decode::Read<decltype(event)>(a_stream)),
 		climax(Decode::Read<uint8_t>(a_stream) > 0),
 		offset(Transform(a_stream)),
 		strips(decltype(strips)::enum_type(Decode::Read<uint8_t>(a_stream))),
-		schlong(0) {}
+		schlong(a_version >= 3 ? Decode::Read<decltype(schlong)>(a_stream) : 0) {}
 
 	void Position::Save(YAML::Node& a_node) const
 	{
@@ -243,7 +244,7 @@ namespace Registry
 	void Scene::Load(const YAML::Node& a_node)
 	{
 		if (const auto enable = a_node["enabled"]; enable.IsDefined())
-			this->enabled = a_node["enabled"].as<bool>();
+			this->enabled = enable.as<bool>();
 
 		for (auto&& stage : stages) {
 			if (auto node = a_node[stage->id]; node.IsDefined()) {
@@ -255,61 +256,53 @@ namespace Registry
 
 	bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
 	{
-		auto fragment = stl::enumeration(MakeFragmentFromActor(a_actor, false));
-		if (CanFillPosition(fragment.get()))
-			return true;
-		
-		fragment.set(PositionFragment::Submissive);
-		return CanFillPosition(fragment.get());
+		auto fragment = MakeFragmentFromActor(a_actor, true);
+		return CanFillPosition(fragment, MatchStrictness::Light);
 	}
 
-	bool PositionInfo::CanFillPosition(PositionFragment a_fragment) const
+	bool PositionInfo::CanFillPosition(stl::enumeration<PositionFragment> a_fragment, MatchStrictness a_strictness) const
 	{
-		const auto fragment = stl::enumeration(a_fragment);
-		if (fragment.all(PositionFragment::Futa)) {
-			if (!this->sex.all(Sex::Futa))
+		switch (a_strictness) {
+		case MatchStrictness::Strict:
+			if (a_fragment.all(PositionFragment::Futa)) {
+				if (!sex.all(Sex::Futa))
+					return false;
+			} else if (a_fragment.all(PositionFragment::Female) && !sex.all(Sex::Female)) {
 				return false;
-		} else {
-			if (fragment.all(PositionFragment::Male) && !this->sex.all(Sex::Male))
+			}
+			__fallthrough;
+		case MatchStrictness::Standard:
+			if (a_fragment.all(PositionFragment::Unconscious) != extra.all(Extra::Unconscious))
 				return false;
-			if (fragment.all(PositionFragment::Female) && !this->sex.all(Sex::Female))
+			if (a_fragment.all(PositionFragment::Submissive) != extra.all(Extra::Submissive))
 				return false;
+			__fallthrough;
+		case MatchStrictness::Light:
+			if (a_fragment.all(PositionFragment::Futa))
+				;
+			else if (a_fragment.all(PositionFragment::Male) && !sex.all(Sex::Male))
+				return false;
+			else if (a_fragment.all(PositionFragment::Female) && !sex.any(Sex::Male, Sex::Female))
+				return false;
+			break;
 		}
 
-		if (fragment.all(PositionFragment::Unconscious) != this->extra.all(Extra::Unconscious))
-			return false;
-		if (fragment.all(PositionFragment::Submissive) != this->extra.all(Extra::Submissive))
-			return false;
-
-		if (fragment.all(PositionFragment::Human)) {
-			if (this->extra.all(Extra::Vamprie) && !fragment.all(PositionFragment::Vampire))
-				return false;
-			if (fragment.all(PositionFragment::HandShackle)) {
-				if (!extra.all(Extra::HandShackle))
-					return false;
-			} else {
-				if (extra.all(Extra::Armbinder) != fragment.all(PositionFragment::Arminder))
-					return false;
-				if (extra.all(Extra::Yoke) != fragment.all(PositionFragment::Yoke))
-					return false;
-			}
-			if (extra.any(Extra::Legbinder) != fragment.all(PositionFragment::LegsBound))
+		if (a_fragment.all(PositionFragment::Human)) {
+			if (this->extra.all(Extra::Vamprie) && !a_fragment.all(PositionFragment::Vampire))
 				return false;
 		} else {
 			const auto race_frag = RaceKeyAsFragment(race);
-			if (!fragment.all(race_frag)) {
+			if (!a_fragment.all(race_frag)) {
 				if (race == RaceKey::Canine) {
-					if (!fragment.all(RaceKeyAsFragment(RaceKey::Dog)) && 
-						!fragment.all(RaceKeyAsFragment(RaceKey::Wolf)) && 
-						!fragment.all(RaceKeyAsFragment(RaceKey::Fox)))
+					if (!a_fragment.all(RaceKeyAsFragment(RaceKey::Dog)) &&
+							!a_fragment.all(RaceKeyAsFragment(RaceKey::Wolf)) &&
+							!a_fragment.all(RaceKeyAsFragment(RaceKey::Fox)))
 						return false;
-				}
-				else if (race == RaceKey::Boar) {
-					if (!fragment.all(RaceKeyAsFragment(RaceKey::BoarMounted)) &&
-						!fragment.all(RaceKeyAsFragment(RaceKey::BoarSingle)))
+				} else if (race == RaceKey::Boar) {
+					if (!a_fragment.all(RaceKeyAsFragment(RaceKey::BoarMounted)) &&
+							!a_fragment.all(RaceKeyAsFragment(RaceKey::BoarSingle)))
 						return false;
-				}
-				else {
+				} else {
 					return false;
 				}
 			}
@@ -364,10 +357,9 @@ namespace Registry
 			fragments.emplace_back(PositionFragment::Female);
 		if (this->sex.all(Sex::Futa))
 			fragments.emplace_back(PositionFragment::Futa);
-
 		if (this->extra.all(Extra::Unconscious))
 			setFragmentBit(PositionFragment::Unconscious);
-		else if (this->extra.all(Extra::Submissive))
+		if (this->extra.all(Extra::Submissive))
 			setFragmentBit(PositionFragment::Submissive);
 
 		switch (this->race) {
@@ -378,14 +370,6 @@ namespace Registry
 					setFragmentBit(PositionFragment::Vampire);
 				} else {
 					addVariance(PositionFragment::Vampire);
-				}
-				if (this->extra.all(Extra::Armbinder)) {
-					setFragmentBit(PositionFragment::Arminder);
-				} else if (this->extra.all(Extra::Yoke)) {
-					setFragmentBit(PositionFragment::Yoke);
-				}
-				if (this->extra.all(Extra::Legbinder)) {
-					setFragmentBit(PositionFragment::LegsBound);
 				}
 			}
 			break;
@@ -401,11 +385,9 @@ namespace Registry
 			setRaceBit(this->race);
 			break;
 		}
-
 		std::vector<PositionFragment> ret{};
 		for (auto&& it : fragments)
 			ret.push_back(it.get());
-
 		return ret;
 	}
 
@@ -450,7 +432,7 @@ namespace Registry
 		return ret;
 	}
 
-	Stage* Scene::GetStageByKey_Mutable(const RE::BSFixedString& a_key)
+	Stage* Scene::GetStageByKey(const RE::BSFixedString& a_key)
 	{
 		if (a_key.empty()) {
 			return start_animation;
@@ -532,6 +514,11 @@ namespace Registry
 	bool Scene::UsesFurniture() const
 	{
 		return this->furnitures.furnitures != FurnitureType::None;
+	}
+
+	RE::BSFixedString Scene::GetPackageHash() const
+	{
+		return hash;
 	}
 
 	bool Scene::IsCompatibleFurniture(const RE::TESObjectREFR* a_reference) const
@@ -620,17 +607,16 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const std::vector<std::pair<RE::Actor*, PositionFragment>>& a_positions) const
+	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const FragmentPair& a_positions, PositionInfo::MatchStrictness a_strictness) const
 	{
 		if (a_positions.size() != this->positions.size())
 			return std::nullopt;
-		// Mark every position that every actor can be placed in
-		// logger::info("Sorting actors for scene {}", this->name);
+
 		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
 		compatibles.resize(a_positions.size());
 		for (size_t i = 0; i < a_positions.size(); i++) {
 			for (size_t n = 0; n < this->positions.size(); n++) {
-				if (this->positions[n].CanFillPosition(a_positions[i].second)) {
+				if (this->positions[n].CanFillPosition(a_positions[i].second, a_strictness)) {
 					compatibles[i].emplace_back(n, a_positions[i].first);
 				}
 			}
@@ -639,10 +625,8 @@ namespace Registry
 				return std::nullopt;
 			}
 		}
-		// Then find a combination of compatibles that consists exclusively of unique elements
-		std::vector<RE::Actor*> ret{};
+		std::vector<RE::Actor*> ret;
 		Combinatorics::ForEachCombination(compatibles, [&](auto it) {
-			// Iteration always use the same nth actor + some idx of a compatible position
 			std::vector<RE::Actor*> result(it.size(), nullptr);
 			for (auto&& current : it) {
 				const auto& [scene_idx, actor] = *current;
@@ -651,7 +635,7 @@ namespace Registry
 				}
 				result[scene_idx] = actor;
 			}
-			assert(std::find(result.begin(), result.end(), nullptr) == result.end());
+			assert(!std::ranges::contains(result, nullptr));
 			ret = result;
 			return Combinatorics::CResult::Stop;
 		});
@@ -661,25 +645,7 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<std::vector<RE::Actor*>> Scene::SortActorsFallback(std::vector<std::pair<RE::Actor*, PositionFragment>> a_positions) const
-	{
-		if (auto ret = SortActors(a_positions))
-			return ret;
-
-		for (auto&& [actor, fragment] : a_positions) {
-			auto e = stl::enumeration(fragment);
-			if (e.all(PositionFragment::Human, PositionFragment::Female) && e.none(PositionFragment::Male)) {
-				e.reset(PositionFragment::Female);
-				e.set(PositionFragment::Male);
-			}
-			fragment = e.get();
-			if (auto ret = SortActors(a_positions))
-				return ret;
-		}
-		return std::nullopt;
-	}
-
-	size_t Scene::GetNumLinkedStages(const Stage* a_stage) const
+	size_t Scene::GetNumAdjacentStages(const Stage* a_stage) const
 	{
 		const auto where = graph.find(a_stage);
 		if (where == graph.end())
@@ -688,7 +654,7 @@ namespace Registry
 		return where->second.size();
 	}
 
-	const Stage* Scene::GetNthLinkedStage(const Stage* a_stage, size_t n) const
+	const Stage* Scene::GetNthAdjacentStage(const Stage* a_stage, size_t n) const
 	{
 		const auto where = graph.find(a_stage);
 		if (where == graph.end())
@@ -698,6 +664,15 @@ namespace Registry
 			return 0;
 		
 		return where->second[n];
+	}
+
+	const std::vector<const Stage*>* Scene::GetAdjacentStages(const Stage* a_stage) const
+	{
+		const auto where = graph.find(a_stage);
+		if (where == graph.end())
+			return nullptr;
+
+		return &where->second;
 	}
 
 	RE::BSFixedString Scene::GetNthAnimationEvent(const Stage* a_stage, size_t n) const

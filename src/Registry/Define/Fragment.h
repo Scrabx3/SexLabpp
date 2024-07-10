@@ -16,10 +16,9 @@ namespace Registry
 
 		Human = 1 << 2,
 		Vampire = 1 << 3,
-		Yoke = 1 << 4,
-		Arminder = 1 << 5,
-		HandShackle = (Yoke | Arminder),
-		LegsBound = 1 << 6,
+		// Unused = 1 << 4,
+		// Unused = 1 << 5,
+		// Unused = 1 << 6,
 		// Unused = 1 << 7,
 		// Unused = 1 << 8,
 
@@ -34,7 +33,6 @@ namespace Registry
 		Unconscious = 1 << 10,
 	};
 	static inline constexpr size_t PositionFragmentSize = 11;
-
 	using FragmentHash = std::bitset<MAX_ACTOR_COUNT * PositionFragmentSize>;
 
 	RaceKey FragmentAsRaceKey(PositionFragment a_fragment);

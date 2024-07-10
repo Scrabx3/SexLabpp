@@ -1,17 +1,223 @@
 #include "sslThreadModel.h"
 
-#include "Papyrus/Sound.h"
-#include "Registry/Animation.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
+#include "Registry/Node.h"
+#include "Registry/Physics.h"
 #include "Registry/Stats.h"
 #include "Registry/Util/CellCrawler.h"
+#include "Registry/Util/RayCast.h"
+#include "Registry/Util/RayCast/ObjectBound.h"
 #include "Registry/Util/Scale.h"
+#include "UserData/StripData.h"
 
 using Offset = Registry::CoordinateType;
 
 namespace Papyrus::ThreadModel
 {
+	namespace ActorAlias
+	{
+		void LockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias)
+		{
+			const auto actor = a_alias->GetActorReference();
+			if (!actor) {
+				a_vm->TraceStack("Reference is empty or not an actor", a_stackID);
+				return;
+			}
+			if (actor->IsPlayerRef()) {
+				RE::PlayerCharacter::GetSingleton()->SetAIDriven(true);
+				const auto ui = RE::UI::GetSingleton();
+				const auto interfacestr = RE::InterfaceStrings::GetSingleton();
+				if (ui->IsMenuOpen(interfacestr->dialogueMenu)) {
+					if (auto view = ui->GetMovieView(interfacestr->dialogueMenu)) {
+						RE::GFxValue arg{ interfacestr->dialogueMenu };
+						view->InvokeNoReturn("_global.skse.CloseMenu", &arg, 1);
+					}
+				}
+				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
+			} else {
+				switch (actor->actorState1.lifeState) {
+				case RE::ACTOR_LIFE_STATE::kUnconcious:
+					actor->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Unconscious);
+					break;
+				case RE::ACTOR_LIFE_STATE::kDying:
+				case RE::ACTOR_LIFE_STATE::kDead:
+					actor->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Dying);
+					actor->Resurrect(false, true);
+					break;
+				}
+				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
+			}
+
+			if (actor->IsWeaponDrawn()) {
+				const auto factory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>();
+				if (const auto script = factory ? factory->Create() : nullptr) {
+					script->SetCommand("rae weaponsheathe");
+					script->CompileAndRun(actor);
+					if (!actor->IsPlayerRef() && actor->IsSneaking()) {
+						script->SetCommand("setforcesneak 0");
+						script->CompileAndRun(actor);
+					}
+					delete script;
+				}
+			}
+
+			actor->StopCombat();
+			actor->EndDialogue();
+			actor->InterruptCast(false);
+			actor->StopInteractingQuick(true);
+			actor->SetCollision(false);
+
+			if (const auto process = actor->currentProcess) {
+				process->ClearMuzzleFlashes();
+			}
+			actor->StopMoving(1.0f);
+		}
+
+		void UnlockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias)
+		{
+			const auto actor = a_alias->GetActorReference();
+			if (!actor) {
+				a_vm->TraceStack("Reference is empty or not an actor", a_stackID);
+				return;
+			}
+			Registry::Scale::GetSingleton()->RemoveScale(actor);
+			switch (static_cast<int32_t>(actor->GetActorValue(RE::ActorValue::kVariable05))) {
+			case STATUS05::Unconscious:
+				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kUnconcious;
+				break;
+			// case STATUS05::Dying:
+			// 	{
+			// 		const float hp = actor->GetActorValue(RE::ActorValue::kHealth);
+			// 		const auto killer = actor->myKiller.get().get();
+			// 		actor->KillImpl(killer, hp + 1, false, true);
+			// 	}
+			// 	break;
+			default:
+				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
+				break;
+			}
+			if (actor->IsPlayerRef()) {
+				RE::PlayerCharacter::GetSingleton()->SetAIDriven(false);
+			} else {
+				actor->SetActorValue(RE::ActorValue::kVariable05, 0.0f);
+			}
+			actor->SetCollision(true);
+		}
+
+		std::vector<RE::TESForm*> StripByData(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias,
+			Registry::Position::StripData a_stripdata, std::vector<uint32_t> a_defaults, std::vector<uint32_t> a_overwrite)
+		{
+			if (!a_alias) {
+				a_vm->TraceStack("Cannot call StripByData on a none alias", a_stackID);
+				return {};
+			}
+			return StripByDataEx(a_vm, a_stackID, a_alias, a_stripdata, a_defaults, a_overwrite, {});
+		}
+
+		std::vector<RE::TESForm*> StripByDataEx(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias,
+			Registry::Position::StripData a_stripdata,
+			std::vector<uint32_t> a_defaults,				// use if a_stripData == default
+			std::vector<uint32_t> a_overwrite,			// use if exists
+			std::vector<RE::TESForm*> a_mergewith)	// [HighHeelSpell, WeaponRight, WeaponLeft, Armor...]
+		{
+			using Strip = Registry::Position::StripData;
+			using SlotMask = RE::BIPED_MODEL::BipedObjectSlot;
+
+			enum MergeIDX
+			{
+				Spell = 0,
+				Right = 1,
+				Left = 2,
+			};
+
+			if (!a_alias) {
+				a_vm->TraceStack("Cannot call StripByDataEx on a none alias", a_stackID);
+				return a_mergewith;
+			}
+			const auto actor = a_alias->GetActorReference();
+			if (!actor) {
+				a_vm->TraceStack("ReferenceAlias must be filled with an actor reference", a_stackID);
+				return a_mergewith;
+			}
+			if (a_mergewith.size() < 3) {
+				a_mergewith.resize(3, nullptr);
+			}
+			if (a_stripdata == Strip::None) {
+				return a_mergewith;
+			}
+			uint32_t slots;
+			bool weapon;
+			if (a_overwrite.size() >= 2) {
+				slots = a_overwrite[0];
+				weapon = a_overwrite[1];
+			} else {
+				stl::enumeration<Strip> stripnum(a_stripdata);
+				if (stripnum.all(Strip::All)) {
+					slots = static_cast<uint32_t>(-1);
+					weapon = true;
+				} else {
+					if (stripnum.all(Strip::Default) && a_defaults.size() >= 2) {
+						slots = a_defaults[0];
+						weapon = a_defaults[1];
+					} else {
+						slots = 0;
+						weapon = 0;
+					}
+					if (stripnum.all(Strip::Boots)) {
+						slots |= static_cast<uint32_t>(SlotMask::kFeet);
+					}
+					if (stripnum.all(Strip::Gloves)) {
+						slots |= static_cast<uint32_t>(SlotMask::kHands);
+					}
+					if (stripnum.all(Strip::Helmet)) {
+						slots |= static_cast<uint32_t>(SlotMask::kHead);
+					}
+				}
+			}
+			const auto stripconfig = UserData::StripData::GetSingleton();
+			const auto manager = RE::ActorEquipManager::GetSingleton();
+			for (const auto& [form, data] : actor->GetInventory()) {
+				if (!data.second->IsWorn()) {
+					continue;
+				}
+				switch (stripconfig->CheckStrip(form)) {
+				case UserData::Strip::NoStrip:
+					continue;
+				case UserData::Strip::Always:
+					break;
+				case UserData::Strip::None:
+					if (form->IsWeapon() && !weapon) {
+						continue;
+					} else if (const auto biped = form->As<RE::BGSBipedObjectForm>()) {
+						const auto biped_slots = static_cast<uint32_t>(biped->GetSlotMask());
+						if ((biped_slots & slots) == 0) {
+							continue;
+						}
+					}
+					break;
+				}
+				if (form->IsWeapon() && actor->currentProcess) {
+					if (actor->currentProcess->GetEquippedRightHand() == form)
+						a_mergewith[Right] = form;
+					else
+						a_mergewith[Left] = form;
+				} else {
+					a_mergewith.push_back(form);
+				}
+				manager->UnequipObject(actor, form);
+			}
+			std::vector<RE::FormID> ids{};
+			ids.reserve(a_mergewith.size());
+			for (auto&& it : a_mergewith)
+				ids.push_back(it ? it->formID : 0);
+			logger::info("Stripping, Policy: {}, Stripped Equipment: [{:X}]", a_mergewith.size(), fmt::join(ids, ", "));
+			actor->Update3DModel();
+			return a_mergewith;
+		}
+
+	}	 // namespace ActorAlias
+
 	static inline std::pair<RE::TESObjectREFR*, RE::TESObjectREFR*> GetAliasRefs(RE::TESQuest* a_qst)
 	{
 		std::pair<RE::TESObjectREFR*, RE::TESObjectREFR*> ret{ nullptr, nullptr };
@@ -56,7 +262,7 @@ namespace Papyrus::ThreadModel
 			a_vm->TraceStack("Result coordinates must have length 4", a_stackID);
 			return nullptr;
 		}
-		const auto [center, actor] = GetAliasRefs(a_qst);
+		const auto& [center, actor] = GetAliasRefs(a_qst);
 		if (!actor) {
 			a_vm->TraceStack("Quest must have some actor positions filled", a_stackID);
 			return nullptr;
@@ -140,6 +346,25 @@ namespace Papyrus::ThreadModel
 			}
 		}
 
+		std::vector<std::pair<RE::TESObjectREFR*, glm::vec4>> thread_heads{};
+		a_qst->aliasAccessLock.LockForRead();
+		for (auto&& alias : a_qst->aliases) {
+			if (!alias)
+				continue;
+			const auto aliasref = skyrim_cast<RE::BGSRefAlias*>(alias);
+			if (!aliasref)
+				continue;
+			const auto ref = aliasref->GetReference();
+			if (!ref || ref == center)
+				continue;
+			auto head = ref->GetNodeByName(Registry::Node::HEAD);
+			if (!head)
+				continue;
+			auto& t = head->world.translate;
+			thread_heads.emplace_back(ref, glm::vec4{ t.x, t.y, t.z, 0.0f });
+		}
+		a_qst->aliasAccessLock.UnlockForRead();
+
 		std::vector<RE::TESObjectREFR*> used_furnitures{};
 		const auto processlist = RE::ProcessLists::GetSingleton();
 		for (auto&& ithandle : processlist->highActorHandles) {
@@ -154,14 +379,41 @@ namespace Papyrus::ThreadModel
 
 		std::vector<std::pair<RE::TESObjectREFR*, const Registry::FurnitureDetails*>> found_objects;
 		CellCrawler::ForEachObjectInRange(actor, Settings::fScanRadius, [&](RE::TESObjectREFR* a_ref) {
-			if (!a_ref || std::ranges::find(used_furnitures, a_ref) != used_furnitures.end()) {
+			if (!a_ref || std::ranges::contains(used_furnitures, a_ref)) {
 				return RE::BSContainer::ForEachResult::kContinue;
 			}
 			const auto details = library->GetFurnitureDetails(a_ref);
 			if (!details || !details->HasType(scene_map, [](auto& it) { return it.first; })) {
 				return RE::BSContainer::ForEachResult::kContinue;
 			}
-			found_objects.push_back(std::make_pair(a_ref, details));
+			auto obj = a_ref->Get3D();
+			auto node = obj ? obj->AsNode() : nullptr;
+			auto box = node ? ObjectBound::MakeBoundingBox(node) : std::nullopt;
+			if (!box) {
+				return RE::BSContainer::ForEachResult::kContinue;
+			}
+			auto center = box->GetCenterWorld();
+			auto end = glm::vec4(center, 0.0f);
+			for (auto&& it : thread_heads) {
+				auto startref = it.first;
+				auto start = it.second;
+				do {
+					auto res = Raycast::hkpCastRay(start, end, { a_ref, startref });
+					if (!res.hit) {
+						found_objects.emplace_back(a_ref, details);
+						goto __CONTINUE_NEXT;
+					}
+					auto hitref = res.hitObject ? res.hitObject->GetUserData() : nullptr;
+					auto base = hitref ? hitref->GetBaseObject() : nullptr;
+					if (!base || base->Is(RE::FormType::Static, RE::FormType::MovableStatic, RE::FormType::Furniture))
+						break;
+					if (base->Is(RE::FormType::Door) && hitref->IsLocked())
+						break;
+					startref = hitref;
+					start = res.hitPos;
+				} while (true);
+			}
+__CONTINUE_NEXT:
 			return RE::BSContainer::ForEachResult::kContinue;
 		});
 		std::vector<std::tuple<Registry::FurnitureType, Registry::Coordinate, RE::TESObjectREFR*>> coords{};
@@ -172,6 +424,7 @@ namespace Papyrus::ThreadModel
 			}
 		}
 		if (!coords.empty()) {
+			// IDEA: Give player an alphabetical list of all found options here
 			std::sort(coords.begin(), coords.end(), [&](auto& a, auto& b) {
 				return std::get<1>(a).GetDistance(actor) < std::get<1>(b).GetDistance(actor);
 			});
@@ -186,7 +439,7 @@ namespace Papyrus::ThreadModel
 
 	bool UpdateBaseCoordinates(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::BSFixedString a_sceneid, RE::reference_array<float> a_out)
 	{
-		const auto [center, actor] = GetAliasRefs(a_qst);
+		const auto& [center, actor] = GetAliasRefs(a_qst);
 		if (!actor || !center) {
 			a_vm->TraceStack("Invalid aliases", a_stackID);
 			return false;
@@ -219,6 +472,32 @@ namespace Papyrus::ThreadModel
 		Registry::Coordinate ret{ a_out };
 		scene->furnitures.offset.Apply(ret);
 		ret.ToContainer(a_out);
+	}
+
+	int SelectNextStage(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_scene, RE::BSFixedString a_stage, std::vector<RE::BSFixedString> a_tags)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return 0;
+		}
+		const auto stage = scene->GetStageByKey(a_stage);
+		if (!stage) {
+			a_vm->TraceStack("Invalid stage id", a_stackID);
+			return 0;
+		}
+		auto adj = scene->GetAdjacentStages(stage);
+		if (!adj || adj->empty()) {
+			return 0;
+		}
+		Registry::TagData tags{ a_tags };
+		std::vector<int> weights{};
+		int n = 0;
+		for (auto&& i : *adj) {
+			auto c = i->tags.CountTags(tags);
+			weights.resize(weights.size() + c + 1, n++);
+		}
+		return weights[Random::draw<size_t>(0, weights.size() - 1)];
 	}
 
 	RE::BSFixedString PlaceAndPlay(VM* a_vm, StackID a_stackID, RE::TESQuest*,
@@ -256,14 +535,15 @@ namespace Papyrus::ThreadModel
 			stage->positions[i].offset.Apply(coordinate);
 
 			actor->data.angle.z = coordinate.rotation;
+			actor->data.angle.x = actor->data.angle.y = 0.0f;
 			actor->SetPosition(coordinate.AsNiPoint(), true);
+			actor->Update3DPosition(true);
 			Registry::Scale::GetSingleton()->SetScale(actor, scene->positions[i].scale);
 
 			const auto event = scene->GetNthAnimationEvent(stage, i);
 			actor->NotifyAnimationGraph(event);
-			// NOTE: This does not work because SOS is too slow to equip the schlong
-			// const auto schlong = fmt::format("SOSBend{}", static_cast<int32_t>(stage->positions[i].schlong));
-			// actor->NotifyAnimationGraph(schlong);
+			const auto schlong = fmt::format("SOSBend{}", stage->positions[i].schlong);
+			actor->NotifyAnimationGraph(schlong);
 		}
 
 		return stage->id;
@@ -339,9 +619,7 @@ namespace Papyrus::ThreadModel
 			if (where == a_scenes.end()) {
 				a_scenes[0] = a_tofront;
 			} else {
-				auto tmp = a_scenes[0];
-				a_scenes[0] = a_tofront;
-				*where = tmp;
+				std::iter_swap(a_scenes.begin(), where);
 			}
 			start++;
 		}
@@ -350,27 +628,189 @@ namespace Papyrus::ThreadModel
 		std::ranges::shuffle(start, a_scenes.end(), gen);
 	}
 
-	bool RegisterSFX(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions)
+	bool IsPhysicsRegistered(RE::TESQuest* a_qst)
 	{
-		if (a_positions.empty() || std::ranges::find(a_positions, nullptr) != a_positions.end()) {
-			a_vm->TraceStack("Array is empty or contains none", a_stackID);
+		return Registry::Physics::GetSingleton()->IsRegistered(a_qst->formID);
+	}
+
+	void RegisterPhysics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene)
+	{
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_activescene);
+		if (!scene || scene->CountPositions() != a_positions.size()) {
+			a_vm->TraceStack("Invalid scene", a_stackID);
+			return;
+		}
+		Registry::Physics::GetSingleton()->Register(a_qst->formID, a_positions, scene);
+	}
+
+	void UnregisterPhysics(RE::TESQuest* a_qst)
+	{
+		Registry::Physics::GetSingleton()->Unregister(a_qst->formID);
+	}
+
+	std::vector<int> GetPhysicTypes(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
+	{
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return {};
+		}
+		std::vector<int> ret{};
+		for (auto&& p : data->_positions) {
+			if (a_position && p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_partner && type._partner != a_partner->formID)
+					continue;
+				ret.push_back(static_cast<int>(type._type));
+			}
+		}
+		return ret;
+	}
+
+	bool HasPhysicType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner)
+	{
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
 			return false;
 		}
-		return Sound::GetSingleton()->RegisterProcessing(a_qst->formID, a_positions);
-	}
-
-	void UnregisterSFX(RE::TESQuest* a_qst)
-	{
-		Sound::GetSingleton()->UnregisterProcessing(a_qst->formID);
-	}
-
-	uint32_t GetSFXType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst)
-	{
-		if (!a_qst) {
-			a_vm->TraceStack("Cannot call 'GetSFXType' on a none object", a_stackID);
-			return 0;
+		for (auto&& p : data->_positions) {
+			if (a_position && p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_partner && type._partner != a_partner->formID)
+					continue;
+				if (a_type != -1 && a_type != static_cast<int>(type._type))
+					continue;
+				return true;
+			}
 		}
-		return Sound::GetSingleton()->GetSoundType(a_qst->formID).underlying();
+		return false;
+	}
+
+	RE::Actor* GetPhysicPartnerByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	{
+		if (!a_position) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return nullptr;
+		}
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return nullptr;
+		}
+		for (auto&& p : data->_positions) {
+			if (p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_type != -1 && a_type != static_cast<int>(type._type))
+					continue;
+				if (auto ret = RE::TESForm::LookupByID<RE::Actor>(type._partner))
+					return ret;
+			}
+		}
+		return nullptr;
+	}
+
+	std::vector<RE::Actor*> GetPhysicPartnersByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	{
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return {};
+		}
+		std::vector<RE::Actor*> ret{};
+		for (auto&& p : data->_positions) {
+			if (a_position && p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_type != -1 && a_type != static_cast<int>(type._type))
+					continue;
+				if (auto it = RE::TESForm::LookupByID<RE::Actor>(type._partner))
+					ret.push_back(it);
+			}
+		}
+		return ret;
+	}
+
+	RE::Actor* GetPhysicPartnerByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	{
+		if (!a_position) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return {};
+		}
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return {};
+		}
+		for (auto&& p : data->_positions) {
+			auto it = RE::TESForm::LookupByID<RE::Actor>(p._owner);
+			if (!it)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_position->formID == type._partner) {
+					if (a_type == -1 || a_type == static_cast<int>(type._type))
+						return it;
+					break;
+				}
+			}
+		}
+		return nullptr;
+	}
+
+	std::vector<RE::Actor*> GetPhysicPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	{
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return {};
+		}
+		std::vector<RE::Actor*> ret{};
+		for (auto&& p : data->_positions) {
+			auto it = RE::TESForm::LookupByID<RE::Actor>(p._owner);
+			if (!it)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_position->formID == type._partner) {
+					if (a_type == -1 || a_type == static_cast<int>(type._type))
+						ret.push_back(it);
+					break;
+				}
+			}
+		}
+		return ret;
+	}
+
+	float GetPhysicVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type)
+	{
+		if (!a_position) {
+			a_vm->TraceStack("Actor is none", a_stackID);
+			return 0.0f;
+		}
+		if (a_type == -1) {
+			a_vm->TraceStack("Type cant be 'any' here", a_stackID);
+			return 0.0f;
+		}
+		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		if (!data) {
+			a_vm->TraceStack("Not registered", a_stackID);
+			return 0.0f;
+		}
+		std::vector<RE::Actor*> ret{};
+		for (auto&& p : data->_positions) {
+			if (p._owner != a_position->formID)
+				continue;
+			for (auto&& type : p._types) {
+				if (a_partner && a_partner->formID != type._partner)
+					continue;
+				if (a_type != static_cast<int>(type._type))
+					continue;
+				return type._velocity;
+			}
+		}
+		return 0.0f;
 	}
 
 	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest*, std::vector<RE::Actor*> a_positions,

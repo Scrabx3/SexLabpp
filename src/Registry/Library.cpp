@@ -10,32 +10,27 @@ namespace Registry
 		logger::info("Loading files..");
 		const auto t1 = std::chrono::high_resolution_clock::now();
 
-		const auto scenepath = fs::path{ CONFIGPATH("Registry") };
 		std::error_code ec{};
-		if (!fs::exists(scenepath, ec) || fs::is_empty(scenepath, ec)) {
+		if (!fs::exists(SCENEPATH, ec) || fs::is_empty(SCENEPATH, ec)) {
 			const auto msg = ec ? fmt::format("An error occured while initializing SexLab animations: {}", ec.message()) :
-														fmt::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", scenepath.string());
+														fmt::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", SCENEPATH);
 			logger::critical("{}", msg);
-			if (MessageBox(nullptr, fmt::format("{}\n\nExit game now?", msg).c_str(), "SexLab p+ Registry", 0x00000004) == 6)
+			if (MESSAGEBOX(nullptr, fmt::format("{}\n\nExit game now?", msg).c_str(), "SexLab p+ Registry", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
-
-		std::vector<std::thread> threads;
-		for (auto& file : fs::directory_iterator{ scenepath }) {
+		std::vector<std::thread> threads{};
+		for (auto& file : fs::directory_iterator{ SCENEPATH }) {
 			if (file.path().extension() != ".slr") {
 				continue;
 			}
-
 			threads.emplace_back([this, file]() {
 				try {
 					auto package = std::make_unique<AnimPackage>(file);
 					for (auto&& scene : package->scenes) {
-						// For each scene, find all viable hash locks and sort them into the library
 						const auto positionFragments = scene->MakeFragments();
 						Combinatorics::ForEachCombination<PositionFragment>(positionFragments, [&](const std::vector<std::vector<PositionFragment>::const_iterator>& it) {
-							// Create a copy of the current scene
-							std::vector<PositionFragment> argFragment;
+							std::vector<PositionFragment> argFragment{};
 							argFragment.reserve(it.size());
 							for (const auto& current : it) {
 								if (*current == PositionFragment::None) {
@@ -49,12 +44,8 @@ namespace Registry
 							const auto where = scenes.find(key);
 							if (where == scenes.end()) {
 								scenes[key] = { scene.get() };
-							} else {
-								// A scene containing similar positions may create identical hashes in different iterations
-								auto& vec = where->second;
-								if (std::find(vec.begin(), vec.end(), scene.get()) == vec.end()) {
-									vec.push_back(scene.get());
-								}
+							} else if (!std::ranges::contains(where->second, scene.get())) {
+								where->second.push_back(scene.get());
 							}
 							return Combinatorics::CResult::Next;
 						});
@@ -74,17 +65,16 @@ namespace Registry
 			thread.join();
 		}
 		const auto t2 = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms_double.count());
+		std::chrono::duration<double, std::milli> ms = t2 - t1;
+		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
 
-		const auto furniturepath = fs::path{ CONFIGPATH("Furniture") };
-		if (!fs::exists(scenepath, ec) || fs::is_empty(scenepath, ec)) {
+		if (!fs::exists(FURNITUREPATH, ec) || fs::is_empty(FURNITUREPATH, ec)) {
 			const auto msg = ec ? fmt::format("An error occured while attempting to read furniture info: {}", ec.message()) :
-														fmt::format("Unable to load furnitures. Folder {} is empty or does not exist.", scenepath.string());
+														fmt::format("Unable to load furnitures. Folder {} is empty or does not exist.", FURNITUREPATH);
 			logger::critical("{}", msg);
 		} else {
 			const std::unique_lock lock{ read_write_lock };
-			for (auto& file : fs::directory_iterator{ scenepath }) {
+			for (auto& file : fs::directory_iterator{ FURNITUREPATH }) {
 				if (auto ext = file.path().extension(); ext != ".yml" && ext != ".yaml") {
 					continue;
 				}
@@ -101,10 +91,10 @@ namespace Registry
 					logger::error("Unable to load furnitures in file {}; Error: {}", filename, e.what());
 				}
 			}
+			const auto t3 = std::chrono::high_resolution_clock::now();
+			ms = t3 - t2;
+			logger::info("Loaded {} Furnitures in {}ms", furnitures.size(), ms.count());
 		}
-		const auto t3 = std::chrono::high_resolution_clock::now();
-		ms_double = t3 - t2;
-		logger::info("Loaded {} Furnitures in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms_double.count());
 		logger::info("Initialized Data");
 	}
 
@@ -129,37 +119,37 @@ namespace Registry
 		std::thread _hashbuilder{ [&]() {
 			std::vector<PositionFragment> fragments;
 			for (auto&& position : a_actors) {
-				const auto submissive = std::find(a_submissives.begin(), a_submissives.end(), position) != a_submissives.end();
+				const auto submissive = std::ranges::contains(a_submissives, position);
 				const auto fragment = MakeFragmentFromActor(position, submissive);
 				fragments.push_back(fragment);
 			}
 			std::stable_sort(fragments.begin(), fragments.end());
 			hash = CombineFragments(fragments);
-		} };	// Thread this because building details can be quite expensive
+		} };
 		TagDetails tags{ a_tags };
+		const auto tagstr = a_tags.empty() ? "[]"s : fmt::format("[{}]", fmt::join(a_tags, ", "));
 		_hashbuilder.join();
 
 		const std::shared_lock lock{ read_write_lock };
 		const auto where = this->scenes.find(hash);
 		if (where == this->scenes.end()) {
-			logger::info("Invalid query: [{} | {} <{}>]; No animations for given actors", a_actors.size(), fmt::join(a_tags, ", "), a_tags.size());
+			logger::info("Invalid query: [{} | {}]; No animations for given actors", a_actors.size(), tagstr);
 			return {};
 		}
 		const auto& rawScenes = where->second;
 
-		std::vector<Scene*> ret;
+		std::vector<Scene*> ret{};
 		ret.reserve(rawScenes.size() / 2);
 		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
 			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
 		});
 		if (ret.empty()) {
-			logger::info("Invalid query: [{} | {} <{}>]; 0/{} animations use given tags", a_actors.size(), fmt::join(a_tags, ", "), a_tags.size(), where->second.size());
+			logger::info("Invalid query: [{} | {}]; 0/{} animations use requested tags", a_actors.size(), tagstr, where->second.size());
 			return {};
 		}
 		const auto t2 = std::chrono::high_resolution_clock::now();
-		// auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-		std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-		logger::info("Found {} scenes for query [{} | {} <{}>] actors in {}ms", ret.size(), a_actors.size(), fmt::join(a_tags, ", "), a_tags.size(), ms_double.count());
+		std::chrono::duration<double, std::milli> ms = t2 - t1;
+		logger::info("Found {} scenes for query [{} | {}] actors in {}ms", ret.size(), a_actors.size(), tagstr, ms.count());
 		return ret;
 	}
 
@@ -191,6 +181,15 @@ namespace Registry
 		return ret;
 	}
 
+	void Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const
+	{
+		std::shared_lock lock{ read_write_lock };
+		for (auto&& package : packages) {
+			if (a_visitor(package.get()))
+				break;
+		}
+	}
+
 	void Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const
 	{
 		std::shared_lock lock{ read_write_lock };
@@ -211,8 +210,8 @@ namespace Registry
 					auto node = data[scene->id];
 					scene->Save(node);
 				}
-				const auto path = fmt::format("Registry\\UserData\\Scenes\\{}_{}.yaml", p->GetName(), p->GetHash());
-				std::ofstream fout(CONFIGPATH(path));
+				const auto filepath = fmt::format("{}\\{}_{}.yaml", SCENESETTINGPATH, p->GetName(), p->GetHash());
+				std::ofstream fout(filepath);
 				fout << data;
 			});
 		}
@@ -224,12 +223,11 @@ namespace Registry
 
 	void Library::Load()
 	{
-		const auto path = fs::path{ CONFIGPATH("Registry\\UserData\\Scenes") };
-		if (!fs::exists(path))
+		if (!fs::exists(SCENESETTINGPATH))
 			return;
 
 		std::unique_lock lock{ read_write_lock };
-		for (auto& file : fs::directory_iterator{ path }) {
+		for (auto& file : fs::directory_iterator{ SCENESETTINGPATH }) {
 			if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
 				continue;
 			const auto filename = file.path().filename().string();
@@ -248,7 +246,7 @@ namespace Registry
 		}
 		logger::info("Finished loading registry settings");
 	}
-	
+
 	const FurnitureDetails* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const
 	{
 		if (a_ref->Is(RE::FormType::ActorCharacter)) {

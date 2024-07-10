@@ -6,7 +6,7 @@ namespace UserData
 	{
 		try {
 			const auto handler = RE::TESDataHandler::GetSingleton();
-			_root = YAML::LoadFile(CONFIGPATH("Stripping.yaml"));
+			_root = YAML::LoadFile(STRIPPINGPATH);
 			for (const auto&& mod : _root) {
 				const auto esp = mod.first.as<std::string>();
 				if (handler->LookupModByName(esp) == nullptr) {
@@ -45,7 +45,7 @@ namespace UserData
 				}
 				_root[entry.first][entry.second] = static_cast<int32_t>(strip);
 			}
-			std::ofstream{ CONFIGPATH("Stripping.yaml") } << _root;
+			std::ofstream{ STRIPPINGPATH } << _root;
 		} catch (const std::exception& e) {
 			logger::error("Unable to save StripConfig. Error: {}", e.what());
 		}

@@ -29,22 +29,22 @@ namespace Papyrus::SexLabRegistry
 	std::vector<RE::BSFixedString> LookupScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, FurniturePreference a_furniturepref, RE::TESObjectREFR* a_center);
 	bool ValidateScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive);
+		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive, int32_t a_strictness);
 	bool ValidateSceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives);
+		RE::BSFixedString a_sceneid, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, int32_t a_strictness);
 	std::vector<RE::BSFixedString> ValidateScenes(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive);
+		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive, int32_t a_strictness);
 	std::vector<RE::BSFixedString> ValidateScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives);
+		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, int32_t a_strictness);
 
 	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		RE::reference_array<RE::Actor*> a_positions, RE::Actor* a_victim, std::string a_sceneid, bool a_allowfallback);
+		RE::reference_array<RE::Actor*> a_positions, RE::Actor* a_victim, std::string a_sceneid, int32_t a_strictness);
 	bool SortBySceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		RE::reference_array<RE::Actor*> a_positions, std::vector<RE::Actor*> a_victims, std::string _sceneid, bool a_allowfallback);
+		RE::reference_array<RE::Actor*> a_positions, std::vector<RE::Actor*> a_victims, std::string _sceneid, int32_t a_strictness);
 	int32_t SortBySceneEx(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		RE::reference_array<RE::Actor*> a_positions, RE::Actor* a_victim, std::vector<std::string> a_sceneids, bool a_allowfallback);
+		RE::reference_array<RE::Actor*> a_positions, RE::Actor* a_victim, std::vector<std::string> a_sceneids, int32_t a_strictness);
 	int32_t SortBySceneExA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
-		RE::reference_array<RE::Actor*> a_positions, std::vector<RE::Actor*> a_victims, std::vector<std::string> a_sceneids, bool a_allowfallback);
+		RE::reference_array<RE::Actor*> a_positions, std::vector<RE::Actor*> a_victims, std::vector<std::string> a_sceneids, int32_t a_strictness);
 
 	bool SceneExists(RE::StaticFunctionTag*, RE::BSFixedString a_sceneid);
 	std::vector<RE::BSFixedString> SceneExistA(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_sceneids);

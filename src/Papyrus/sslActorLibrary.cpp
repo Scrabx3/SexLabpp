@@ -13,7 +13,6 @@ namespace Papyrus::ActorLibrary
 			return -1;
 		}
 		const auto code = Registry::IsValidActorImpl(a_actor);
-		// Gotta do some number tweaking to stay consistent on the papyrus sade
 		return code == 0 ? -2 : code;
 	}
 
@@ -100,7 +99,7 @@ namespace Papyrus::ActorLibrary
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return false;
 		}
-		return a_actor->GetActorRuntimeData().unk1E8;
+		return a_actor->unk1E8;
 	}
 
 }	 // namespace Papyrus::ActorLibrary

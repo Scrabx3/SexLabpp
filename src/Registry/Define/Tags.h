@@ -66,7 +66,12 @@ namespace Registry
 	class TagData
 	{
 	public:
-		TagData(const std::vector<std::string_view>& a_tags);
+		template <class T>
+		TagData(const std::vector<T>& a_tags)
+		{
+			for (auto&& it : a_tags)
+				AddTag(it);
+		}
 		TagData(std::ifstream& a_stream);
 		TagData() = default;
 		~TagData() = default;
@@ -87,6 +92,7 @@ namespace Registry
 
 		/// @brief Checks if this has any or all of the arguments tags
 		_NODISCARD bool HasTags(const TagData& a_tag, bool a_all) const;
+		_NODISCARD uint32_t CountTags(const TagData& a_tag) const;
 
 		/// @brief If this data contains any tags
 		_NODISCARD bool IsEmpty() const;

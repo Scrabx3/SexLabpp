@@ -71,18 +71,42 @@ namespace Papyrus::AnimationSlots
 		return ScenesToString(scenes);
 	}
 
-	std::vector<RE::BSFixedString> CreateProxyArray(RE::TESQuest*, uint32_t a_returnsize, uint32_t crt_specifier)
+	std::vector<RE::BSFixedString> GetAllPackages(RE::StaticFunctionTag*)
 	{
 		std::vector<RE::BSFixedString> ret{};
-		ret.reserve(a_returnsize);
-		Registry::Library::GetSingleton()->ForEachScene([&](const Registry::Scene* a_scene) {
+		Registry::Library::GetSingleton()->ForEachPackage([&](const Registry::AnimPackage* a_package) {
+			ret.push_back(a_package->GetName());
+			return false;
+		});
+		return ret;
+	}
+
+	std::vector<RE::BSFixedString> CreateProxyArray(RE::StaticFunctionTag*, uint32_t a_returnsize, uint32_t crt_specifier, RE::BSFixedString a_tags, RE::BSFixedString a_package)
+	{
+		std::vector<RE::BSFixedString> ret{};
+		if (a_returnsize > 0)
+			ret.reserve(a_returnsize);
+		auto tags = Registry::TagDetails{a_tags};
+		const auto lib = Registry::Library::GetSingleton();
+		RE::BSFixedString hash = "";
+		lib->ForEachPackage([&](const Registry::AnimPackage* package) {
+			if (package->GetName() == a_package) {
+				hash = package->GetHash();
+				return true;
+			}
+			return false;
+		});
+		lib->ForEachScene([&](const Registry::Scene* a_scene) {
 			if (crt_specifier == 0 && a_scene->HasCreatures())
 				return false;
-			else if (crt_specifier == 1 && !a_scene->HasCreatures())
+			if (crt_specifier == 1 && !a_scene->HasCreatures())
 				return false;
-
+			if (!a_scene->IsCompatibleTags(tags))
+				return false;
+			if (!hash.empty() && a_scene->GetPackageHash() != hash)
+				return false;
 			ret.push_back(a_scene->id);
-			return ret.size() == a_returnsize;
+			return a_returnsize > 0 && ret.size() == a_returnsize;
 		});
 		return ret;
 	}

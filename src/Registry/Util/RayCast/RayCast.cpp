@@ -9,6 +9,45 @@ SkyrimSE::bhkLinearCastCollector* getCastCollector() noexcept
 	return &collector;
 }
 
+#ifdef SKYRIMVR
+Raycast::RayResult Raycast::CastRay(glm::vec4, glm::vec4, float) noexcept
+{
+	logger::critical("No VR implementation for RayCast::CastRay");
+	return {};
+}
+#else
+Raycast::RayResult Raycast::CastRay(glm::vec4 start, glm::vec4 end, float traceHullSize) noexcept
+{
+	RayResult res;
+
+	const auto ply = RE::PlayerCharacter::GetSingleton();
+	const auto cam = RE::PlayerCamera::GetSingleton();
+	if (!ply->parentCell || !cam->unk120)
+		return res;
+
+	auto physicsWorld = ply->parentCell->GetbhkWorld();
+	if (physicsWorld) {
+		typedef bool(__fastcall * RayCastFunType)(
+			decltype(RE::PlayerCamera::unk120) physics, RE::bhkWorld * world, glm::vec4 & rayStart,
+			glm::vec4 & rayEnd, uint32_t * rayResultInfo, RE::NiAVObject * *hitActor, float traceHullSize);
+
+		static auto cameraCaster = REL::Relocation<RayCastFunType>(Offsets::CameraCaster);
+		res.hit = cameraCaster(
+			cam->unk120, physicsWorld,
+			start, end, static_cast<uint32_t*>(res.data), &res.hitObject,
+			traceHullSize);
+	}
+
+	if (res.hit) {
+		res.hitPos = end;
+		res.rayLength = glm::length(static_cast<glm::vec3>(res.hitPos) - static_cast<glm::vec3>(start));
+	}
+
+	return res;
+}
+#endif
+
+
 Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end) noexcept {
 	return hkpCastRay(start, end, {});
 }

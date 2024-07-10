@@ -292,6 +292,7 @@ namespace Registry::Statistics
 
 	std::vector<RE::Actor*> StatisticsData::GetTrackedActors() const
 	{
+		const std::shared_lock lock{ _m };
 		std::vector<RE::Actor*> ret{};
 		ret.reserve(_data.size());
 		for (auto&& [id, _] : _data) {
@@ -305,6 +306,7 @@ namespace Registry::Statistics
 
 	ActorStats& StatisticsData::GetStatistics(RE::Actor* a_key)
 	{
+		const std::shared_lock lock{ _m };
 		auto where = _data.find(a_key->GetFormID());
 		if (where == _data.end()) {
 			_data.insert(std::make_pair(a_key->GetFormID(), ActorStats{ a_key }));
@@ -329,6 +331,7 @@ namespace Registry::Statistics
 
 	void StatisticsData::DeleteStatistics(RE::FormID a_key)
 	{
+		const std::unique_lock lock{ _m };
 		_data.erase(a_key);
 		std::erase_if(_encounters, [&](auto& encounter) {
 			const auto [fst, snd] = encounter.GetParticipants();
@@ -338,6 +341,7 @@ namespace Registry::Statistics
 
 	bool StatisticsData::ForEachStatistic(std::function<bool(ActorStats&)> a_func)
 	{
+		const std::unique_lock lock{ _m };
 		for (auto&& [_, statistic] : _data) {
 			if (a_func(statistic))
 				return true;
@@ -347,6 +351,7 @@ namespace Registry::Statistics
 
 	bool StatisticsData::ForEachEncounter(std::function<bool(ActorEncounter&)> a_func)
 	{
+		const std::unique_lock lock{ _m };
 		for (auto&& encounter : _encounters) {
 			if (a_func(encounter))
 				return true;
@@ -356,6 +361,7 @@ namespace Registry::Statistics
 
 	void StatisticsData::AddEncounter(RE::Actor* fst, RE::Actor* snd, ActorEncounter::EncounterType a_type)
 	{
+		const std::unique_lock lock{ _m };
 		if (auto enc = GetEncounterIter(fst, snd); enc != _encounters.end()) {
 			if (enc->GetParticipants().first.id == snd->formID) {
 				switch (a_type) {
@@ -379,6 +385,9 @@ namespace Registry::Statistics
 
 	RE::Actor* StatisticsData::GetMostRecentEncounter(RE::Actor* a_actor, ActorEncounter::EncounterType a_type)
 	{
+		const std::shared_lock lock{ _m };
+		if (_encounters.empty())
+			return nullptr;
 		for (size_t i = _encounters.size() - 1; i >= 0; i--) {
 			const auto partnerobj = _encounters[i].GetPartner(a_actor);
 			const auto partner = partnerobj ? RE::TESForm::LookupByID<RE::Actor>(partnerobj->id) : nullptr;
@@ -428,6 +437,7 @@ namespace Registry::Statistics
 	}
 	int StatisticsData::GetNumberEncounters(RE::Actor* a_actor, ActorEncounter::EncounterType a_type, std::function<bool(const ActorEncounter::EncounterObj&)> a_pred)
 	{
+		const std::shared_lock lock{ _m };
 		int ret = 0;
 		for (auto&& encounter : _encounters) {
 			const auto partner = encounter.GetPartner(a_actor);
@@ -474,6 +484,7 @@ namespace Registry::Statistics
 
 	void StatisticsData::Save(SKSE::SerializationInterface* a_intfc)
 	{
+		const std::shared_lock lock{ _m };
 		if (!a_intfc->WriteRecordData(_data.size())) {
 			logger::error("Failed to save number of saved statistics ({})", _data.size());
 			return;
@@ -494,6 +505,7 @@ namespace Registry::Statistics
 
 	void StatisticsData::Load(SKSE::SerializationInterface* a_intfc)
 	{
+		const std::unique_lock lock{ _m };
 		_data.clear();
 		std::size_t numRegs;
 		a_intfc->ReadRecordData(numRegs);
@@ -512,6 +524,7 @@ namespace Registry::Statistics
 
 	void StatisticsData::Revert(SKSE::SerializationInterface*)
 	{
+		const std::unique_lock lock{ _m };
 		_data.clear();
 	}
 

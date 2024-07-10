@@ -32,17 +32,24 @@ using namespace std::literals;
 #include "UserData/Settings.h"
 
 #define ESPNAME "SexLab.esm"
-static constexpr auto CONFIGPATH = [](std::string file) -> std::string { return "Data\\SKSE\\SexLab\\"s + file; };
+constexpr auto LEGACY_CONFIG { "Data\\SKSE\\Plugins\\SexLab\\" };
+constexpr auto YAMLPATH{ "Data\\SKSE\\SexLab\\Settings.yaml" };
+constexpr auto INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
 
-#ifndef NDEBUG
-template <class T>
-void ASSERTLOWERCASE(T string)
-{
-	assert(std::find_if_not(string.begin(), string.end(), ::islower) == string.end());
-}
-#else
-#define ASSERTLOWERCASE(expression) ((void)0)
-#endif
+#define CONFIGPATH(path) "Data\\SKSE\\SexLab\\" path
+#define SCENEPATH CONFIGPATH("Registry")
+#define FURNITUREPATH CONFIGPATH("Furniture")
+#define VOICEPATH CONFIGPATH("Voices")
+#define EXPRESSIONPATH CONFIGPATH("Expressions")
+#define STRIPPINGPATH CONFIGPATH("Stripping.yaml")
+#define SCHLONGPATH CONFIGPATH("SchlongsOfSkyrim.yaml")
+
+#define USERDATAPATH(path) CONFIGPATH("UserData\\") path
+#define VOICESETTINGPATH USERDATAPATH("Voices.yaml")
+#define VOICE_NPCPATH USERDATAPATH("Voices_NPC.yaml")
+#define SCENESETTINGPATH USERDATAPATH("Scenes")
+
+#define MESSAGEBOX REX::W32::MessageBoxA
 
 #ifdef SKYRIM_SUPPORT_AE
 #define OFFSET(SE, AE) AE
@@ -194,6 +201,14 @@ namespace Registry
 			}
 		}
 		return 0;
+	}
+
+	template <typename E>
+	constexpr size_t CountFlagSize()
+	{
+		auto max = static_cast<size_t>(E::Total) - 1, ret = 0;
+		while ((1 << ret++) < max) {}
+		return ret;
 	}
 }
 

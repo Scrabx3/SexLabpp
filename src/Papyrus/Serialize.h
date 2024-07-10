@@ -3,11 +3,11 @@
 namespace Papyrus
 {
 	class Tracking :
-    public Singleton<Tracking>
+		public Singleton<Tracking>
 	{
 	public:
 		std::map<RE::FormID, std::vector<RE::BSFixedString>> _factions;
-    std::map<RE::FormID, std::vector<RE::BSFixedString>> _actors;
+		std::map<RE::FormID, std::vector<RE::BSFixedString>> _actors;
 
 	public:
 		void Add(std::map<RE::FormID, std::vector<RE::BSFixedString>>& a_list, RE::FormID a_keyvalue, const RE::BSFixedString& a_callback)
@@ -36,7 +36,7 @@ namespace Papyrus
 
 	public:
 		void Save(SKSE::SerializationInterface* a_intfc)
-    {
+		{
 			const auto save = [&]<class T>(const T& tosave) {
 				const size_t numRegs = tosave.size();
 				if (!a_intfc->WriteRecordData(numRegs)) {
@@ -101,10 +101,10 @@ namespace Papyrus
 		}
 
 		void Revert(SKSE::SerializationInterface*)
-    {
+		{
 			_factions.clear();
 			_actors.clear();
 		}
 	};
 
-} // namespace Papyrus
+}	 // namespace Papyrus

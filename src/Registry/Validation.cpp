@@ -12,16 +12,15 @@ int32_t Registry::IsValidActorImpl(RE::Actor* a_actor)
 {
 	if (!a_actor->Is3DLoaded())
 		return -12;
-	else if (a_actor->IsDisabled())
+	else if (a_actor->IsDisabled() || !a_actor->IsAIEnabled())
 		return -14;
-	
-	const auto actorState = a_actor->AsActorState();
-	const auto lifestate = actorState->GetLifeState();
+
+	const auto lifestate = a_actor->GetLifeState();
 	if (!Settings::bAllowDead && (lifestate == RE::ACTOR_LIFE_STATE::kDead || lifestate == RE::ACTOR_LIFE_STATE::kDying))
 		return -13;
-	else if (actorState->IsFlying())
+	else if (a_actor->IsFlying())
 		return -15;
-	else if (a_actor->IsOnMount())
+	else if (a_actor->IsOnMount() || a_actor->GetActorValue(RE::ActorValue::kVariable05) > 0)
 		return -16;
 
 	auto validfaction = 1;

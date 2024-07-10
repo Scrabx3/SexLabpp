@@ -1,37 +1,51 @@
-#include "Papyrus/SexLabRegistry.h"
-#include "Papyrus/SexLabUtil.h"
-#include "Papyrus/sslActorAlias.h"
-#include "Papyrus/sslActorLibrary.h"
-#include "Papyrus/sslActorStats.h"
-#include "Papyrus/sslAnimationSlots.h"
-#include "Papyrus/sslCreatureAnimationSlots.h"
-#include "Papyrus/sslSystemConfig.h"
-#include "Papyrus/sslThreadLibrary.h"
-#include "Papyrus/sslThreadModel.h"
+#include "Papyrus/Papyrus.h"
+#include "Registry/Expression.h"
 #include "Registry/Library.h"
 #include "Registry/Stats.h"
+#include "Registry/Util/Console.h"
+#include "Registry/Voice.h"
 #include "Serialization.h"
 #include "UserData/StripData.h"
+
+// class EventHandler :
+// 	public Singleton<EventHandler>,
+// 	public RE::BSTEventSink<RE::BSAnimationGraphEvent>
+// {
+// public:
+// 	using EventResult = RE::BSEventNotifyControl;
+
+// 	void Register()
+// 	{
+// 		RE::PlayerCharacter::GetSingleton()->AddAnimationGraphEventSink(this);
+// 	}
+
+// public:
+// 	EventResult ProcessEvent(const RE::BSAnimationGraphEvent* a_event, RE::BSTEventSource<RE::BSAnimationGraphEvent>*) override
+// 	{
+// 		if (!a_event || a_event->holder->IsNot(RE::FormType::ActorCharacter))
+// 			return EventResult::kContinue;
+
+// 		auto source = const_cast<RE::Actor*>(a_event->holder->As<RE::Actor>());
+// 		if (source->IsWeaponDrawn())
+// 			logger::info("Tag = {} | Payload = {}", a_event->tag, a_event->payload);
+// 		return EventResult::kContinue;
+// 	}
+// };
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
 	switch (message->type) {
 	case SKSE::MessagingInterface::kPostLoad:
-#ifdef NDEBUG
+		Settings::Initialize();
 		Registry::Library::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Load();
-		Settings::Initialize();
-#endif
+		Registry::Expression::GetSingleton()->Initialize();
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
-#ifndef NDEBUG
-		Registry::Library::GetSingleton()->Initialize();
-		Registry::Library::GetSingleton()->Load();
-		Settings::Initialize();
-#endif
+		Registry::Voice::GetSingleton()->Initialize();
 		if (!GameForms::LoadData()) {
 			logger::critical("Unable to load esp objects");
-			if (MessageBox(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
+			if (MESSAGEBOX(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
@@ -39,15 +53,40 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		Settings::InitializeData();
 		break;
 	case SKSE::MessagingInterface::kSaveGame:
-		Settings::Save();
-		Registry::Library::GetSingleton()->Save();
-		UserData::StripData::GetSingleton()->Save();
+		std::thread([]() {
+			Settings::Save();
+			Registry::Library::GetSingleton()->Save();
+			Registry::Expression::GetSingleton()->Save();
+			UserData::StripData::GetSingleton()->Save();
+			Registry::Voice::GetSingleton()->Save();
+		}).detach();
 		break;
-	case SKSE::MessagingInterface::kPreLoadGame:
+	case SKSE::MessagingInterface::kPostLoadGame:
+		// EventHandler::GetSingleton()->Register();
 		break;
 	}
 }
 
+#ifdef SKYRIM_SUPPORT_AE
+extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
+	SKSE::PluginVersionData v;
+	v.PluginVersion(Plugin::VERSION);
+	v.PluginName(Plugin::NAME);
+	v.AuthorName("Scrab Joséline"sv);
+	v.UsesAddressLibrary();
+	v.UsesUpdatedStructs();
+	v.CompatibleVersions({ SKSE::RUNTIME_LATEST });
+	return v;
+}();
+#else
+extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* a_info)
+{
+	a_info->infoVersion = SKSE::PluginInfo::kVersion;
+	a_info->name = Plugin::NAME.data();
+	a_info->version = Plugin::VERSION.pack();
+	return true;
+}
+#endif
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
@@ -97,23 +136,12 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		return false;
 	}
 
-	const auto papyrus = SKSE::GetPapyrusInterface();
-	if (!papyrus) {
-		logger::critical("Failed to get papyurs interface");
+	if (!Papyrus::Register()) {
+		logger::critical("Failed to register papyrus functions");
 		return false;
 	}
-	papyrus->Register(Papyrus::SexLabRegistry::Register);
-	papyrus->Register(Papyrus::ActorAlias::Register);
-	papyrus->Register(Papyrus::ActorLibrary::Register);
-	papyrus->Register(Papyrus::AnimationSlots::Register);
-	papyrus->Register(Papyrus::CreatureAnimationSlots::Register);
-	papyrus->Register(Papyrus::ThreadLibrary::Register);
-	papyrus->Register(Papyrus::ThreadModel::Register);
-	papyrus->Register(Papyrus::SystemConfig::Register);
-	papyrus->Register(Papyrus::ActorStats::Register);
-	papyrus->Register(Papyrus::SexLabUtil::Register);
 
-	// Hooks::Install();
+	// Registry::Console::Install();
 
 	const auto serialization = SKSE::GetSerializationInterface();
 	serialization->SetUniqueID('slpp');
@@ -126,23 +154,5 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	logger::info("Initialization complete");
 
-	return true;
-}
-
-extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() noexcept {
-	SKSE::PluginVersionData v;
-	v.PluginName(Plugin::NAME.data());
-	v.PluginVersion(Plugin::VERSION);
-	v.AuthorName("Scrab Joséline"sv);
-	v.UsesAddressLibrary(true);
-	v.UsesStructsPost629();
-	return v;
-}();
-
-extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, SKSE::PluginInfo* pluginInfo)
-{
-	pluginInfo->name = SKSEPlugin_Version.pluginName;
-	pluginInfo->infoVersion = SKSE::PluginInfo::kVersion;
-	pluginInfo->version = SKSEPlugin_Version.pluginVersion;
 	return true;
 }
