@@ -8,6 +8,8 @@
 
 #include <atomic>
 #include <glm/glm.hpp>
+#include <magic_enum.hpp>
+#include <nlohmann/json.hpp>
 #include <ranges>
 #include <unordered_map>
 #include <yaml-cpp/yaml.h>
@@ -49,7 +51,7 @@ constexpr auto INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
 #define VOICE_NPCPATH USERDATAPATH("Voices_NPC.yaml")
 #define SCENESETTINGPATH USERDATAPATH("Scenes")
 
-#define MESSAGEBOX REX::W32::MessageBoxA
+#define MESSAGEBOX WIN32::MessageBoxA
 
 #ifdef SKYRIM_SUPPORT_AE
 #define OFFSET(SE, AE) AE

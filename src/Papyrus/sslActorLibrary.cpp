@@ -99,7 +99,7 @@ namespace Papyrus::ActorLibrary
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return false;
 		}
-		return a_actor->unk1E8;
+		return a_actor->GetActorRuntimeData().unk1E8;
 	}
 
 }	 // namespace Papyrus::ActorLibrary

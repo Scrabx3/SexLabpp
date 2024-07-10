@@ -34,22 +34,22 @@ namespace Papyrus::ThreadModel
 						view->InvokeNoReturn("_global.skse.CloseMenu", &arg, 1);
 					}
 				}
-				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
+				actor->AsActorState()->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
 			} else {
-				switch (actor->actorState1.lifeState) {
+				switch (actor->AsActorState()->actorState1.lifeState) {
 				case RE::ACTOR_LIFE_STATE::kUnconcious:
-					actor->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Unconscious);
+					actor->GetActorBase()->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Unconscious);
 					break;
 				case RE::ACTOR_LIFE_STATE::kDying:
 				case RE::ACTOR_LIFE_STATE::kDead:
-					actor->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Dying);
+					actor->GetActorBase()->SetActorValue(RE::ActorValue::kVariable05, STATUS05::Dying);
 					actor->Resurrect(false, true);
 					break;
 				}
-				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
+				actor->AsActorState()->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kRestrained;
 			}
 
-			if (actor->IsWeaponDrawn()) {
+			if (actor->AsActorState()->IsWeaponDrawn()) {
 				const auto factory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>();
 				if (const auto script = factory ? factory->Create() : nullptr) {
 					script->SetCommand("rae weaponsheathe");
@@ -68,7 +68,7 @@ namespace Papyrus::ThreadModel
 			actor->StopInteractingQuick(true);
 			actor->SetCollision(false);
 
-			if (const auto process = actor->currentProcess) {
+			if (const auto process = actor->GetActorRuntimeData().currentProcess) {
 				process->ClearMuzzleFlashes();
 			}
 			actor->StopMoving(1.0f);
@@ -82,9 +82,9 @@ namespace Papyrus::ThreadModel
 				return;
 			}
 			Registry::Scale::GetSingleton()->RemoveScale(actor);
-			switch (static_cast<int32_t>(actor->GetActorValue(RE::ActorValue::kVariable05))) {
+			switch (static_cast<int32_t>(actor->GetActorBase()->GetActorValue(RE::ActorValue::kVariable05))) {
 			case STATUS05::Unconscious:
-				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kUnconcious;
+				actor->AsActorState()->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kUnconcious;
 				break;
 			// case STATUS05::Dying:
 			// 	{
@@ -94,13 +94,13 @@ namespace Papyrus::ThreadModel
 			// 	}
 			// 	break;
 			default:
-				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
+				actor->AsActorState()->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
 				break;
 			}
 			if (actor->IsPlayerRef()) {
 				RE::PlayerCharacter::GetSingleton()->SetAIDriven(false);
 			} else {
-				actor->SetActorValue(RE::ActorValue::kVariable05, 0.0f);
+				actor->GetActorBase()->SetActorValue(RE::ActorValue::kVariable05, 0.0f);
 			}
 			actor->SetCollision(true);
 		}
@@ -197,8 +197,8 @@ namespace Papyrus::ThreadModel
 					}
 					break;
 				}
-				if (form->IsWeapon() && actor->currentProcess) {
-					if (actor->currentProcess->GetEquippedRightHand() == form)
+				if (form->IsWeapon() && actor->GetActorRuntimeData().currentProcess) {
+					if (actor->GetActorRuntimeData().currentProcess->GetEquippedRightHand() == form)
 						a_mergewith[Right] = form;
 					else
 						a_mergewith[Left] = form;

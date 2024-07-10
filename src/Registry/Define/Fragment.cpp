@@ -41,7 +41,8 @@ namespace Registry
 			}
 			break;
 		}
-		if (a_actor->IsDead() || a_actor->IsUnconscious() || a_actor->GetActorValue(RE::ActorValue::kVariable05) < 0)
+		// TODO: a_actor->IsUnconscious()
+		if (a_actor->IsDead() || a_actor->AsActorState()->actorState1.lifeState == RE::ACTOR_LIFE_STATE::kUnconcious || a_actor->GetActorBase()->GetActorValue(RE::ActorValue::kVariable05) < 0)
 			ret.set(PositionFragment::Unconscious);
 		if (a_submissive)
 			ret.set(PositionFragment::Submissive);

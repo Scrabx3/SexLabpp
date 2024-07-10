@@ -15,6 +15,7 @@ namespace Registry
 			const auto msg = ec ? fmt::format("An error occured while initializing SexLab animations: {}", ec.message()) :
 														fmt::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", SCENEPATH);
 			logger::critical("{}", msg);
+	  // TODO: Fix MESSAGEBOX
 			if (MESSAGEBOX(nullptr, fmt::format("{}\n\nExit game now?", msg).c_str(), "SexLab p+ Registry", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
 			return;

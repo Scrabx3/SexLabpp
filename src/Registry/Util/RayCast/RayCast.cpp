@@ -22,18 +22,18 @@ Raycast::RayResult Raycast::CastRay(glm::vec4 start, glm::vec4 end, float traceH
 
 	const auto ply = RE::PlayerCharacter::GetSingleton();
 	const auto cam = RE::PlayerCamera::GetSingleton();
-	if (!ply->parentCell || !cam->unk120)
+	if (!ply->parentCell || !cam->GetRuntimeData().unk120)
 		return res;
 
 	auto physicsWorld = ply->parentCell->GetbhkWorld();
 	if (physicsWorld) {
 		typedef bool(__fastcall * RayCastFunType)(
-			decltype(RE::PlayerCamera::unk120) physics, RE::bhkWorld * world, glm::vec4 & rayStart,
+			decltype(RE::PlayerCamera::RUNTIME_DATA::unk120) physics, RE::bhkWorld * world, glm::vec4 & rayStart,
 			glm::vec4 & rayEnd, uint32_t * rayResultInfo, RE::NiAVObject * *hitActor, float traceHullSize);
 
 		static auto cameraCaster = REL::Relocation<RayCastFunType>(Offsets::CameraCaster);
 		res.hit = cameraCaster(
-			cam->unk120, physicsWorld,
+			cam->GetRuntimeData().unk120, physicsWorld,
 			start, end, static_cast<uint32_t*>(res.data), &res.hitObject,
 			traceHullSize);
 	}
