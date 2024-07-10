@@ -1,5 +1,7 @@
 #pragma once
 
+// https://gitlab.com/Shrimperator/skyrim-mod-betterthirdpersonselection/-/blob/main/src/SmoothCamStuff/RayCast.h?ref_type=heads
+
 /* From SmoothCam */
 namespace Raycast
 {

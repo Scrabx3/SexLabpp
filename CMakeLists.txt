@@ -7,7 +7,7 @@ set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 # ---- Project ----
 project(
     SexLabUtil
-    VERSION 2.5.1.0
+    VERSION 2.10.2.0
     LANGUAGES CXX
 )
 
@@ -56,6 +56,8 @@ add_subdirectory("./lib/CommonLibSSE-NG" CommonLibSSE)
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
 find_package(glm REQUIRED CONFIG)
+find_package(magic_enum REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 # ---- Add source files ----
 include(CMake/source-list.cmake)

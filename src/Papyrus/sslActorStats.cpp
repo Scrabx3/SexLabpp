@@ -18,12 +18,14 @@ namespace Papyrus::ActorStats
 			const auto base = act->GetActorBase();
 			return !base || !base->IsUnique();
 		});
+		if (tracked.empty()) {
+			return { RE::PlayerCharacter::GetSingleton() };
+		}
 		std::ranges::sort(tracked, [](RE::Actor* a, RE::Actor* b) {
 			if (a->IsPlayerRef())
 				return true;
 			if (b->IsPlayerRef())
 				return false;
-
 			return std::strcmp(a->GetDisplayFullName(), b->GetDisplayFullName()) < 0;
 		});
 		return tracked;

@@ -11,7 +11,9 @@
     "glm",
     "directxtk",
     "catch2",
-    "rapidcsv"
+    "rapidcsv",
+    "magic-enum",
+    "nlohmann-json"
   ],
   "overrides": [
     {

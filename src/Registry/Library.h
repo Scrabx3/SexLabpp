@@ -20,6 +20,7 @@ namespace Registry
 		_NODISCARD Scene* GetSceneByID_Mutable(const RE::BSFixedString& a_id) const;
 		_NODISCARD size_t GetSceneCount() const;
 
+		void ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const;
 		void ForEachScene(std::function<bool(const Scene*)> a_visitor) const;
 
 	public:
@@ -33,8 +34,8 @@ namespace Registry
 		mutable std::shared_mutex read_write_lock{};
 
 		FurnitureDetails offset_bedroll{ FurnitureType::BedRoll, Coordinate(std::vector{ 0.0f, 0.0f, 7.5f, 180.0f }) };
-		FurnitureDetails offset_bedsingle{ FurnitureType::BedSingle, Coordinate(std::vector{ 0.0f, -31.0f, 40.0f, 0.0f }) };
-		FurnitureDetails offset_beddouble{ FurnitureType::BedDouble, Coordinate(std::vector{ 0.0f, -31.0f, 40.0f, 0.0f }) };
+		FurnitureDetails offset_bedsingle{ FurnitureType::BedSingle, Coordinate(std::vector{ 0.0f, -31.0f, 42.5f, 0.0f }) };
+		FurnitureDetails offset_beddouble{ FurnitureType::BedDouble, Coordinate(std::vector{ 0.0f, -31.0f, 42.5f, 0.0f }) };
 		std::map<RE::BSFixedString, std::unique_ptr<FurnitureDetails>, FixedStringCompare> furnitures;	// custom furniture details
 
 		std::map<RE::BSFixedString, Scene*, FixedStringCompare> scene_map;	// Mapping every scene to their respective id for quick lookup

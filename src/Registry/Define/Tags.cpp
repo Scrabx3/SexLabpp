@@ -70,13 +70,6 @@ namespace Registry
 
 #undef MAPENTRY
 
-	TagData::TagData(const std::vector<std::string_view>& a_tags)
-	{
-		for (auto&& tag : a_tags) {
-			AddTag(tag);
-		}
-	}
-
 	TagData::TagData(std::ifstream& a_stream)
 	{
 		uint64_t tag_count;
@@ -150,24 +143,30 @@ namespace Registry
 	{		
 		if (a_all) {
 			if (!_basetags.all(a_tag._basetags.get()))
-				return false;	 // Want all but missing base
+				return false;
 		} else if (_basetags.any(a_tag._basetags.get())) {
-			return true;	// Want any and has at least 1 base match
+			return true;
 		}
 		for (auto&& tag : a_tag._extratags) {
 			bool has = HasTag(tag);
 			if (a_all) {
 				if (!has)
-					return false;	 // Wants all but misses at least one
+					return false;
 			} else if (has) {
-				return true;	// wants any and has at least one
+				return true;
 			}
 		}
-		// if here we either want all and havent found 1 missing
-		// or want any and havent found 1 matching
 		return a_all;
 	}
-
+	
+	uint32_t TagData::CountTags(const TagData& a_tag) const
+	{
+		uint32_t ret = 0;
+		for (auto&& tag : a_tag._extratags) {
+			ret += HasTag(tag);
+		}
+		return ret;
+	}
 
 	bool TagData::IsEmpty() const
 	{

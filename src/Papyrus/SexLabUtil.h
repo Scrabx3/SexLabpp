@@ -2,7 +2,6 @@
 
 namespace Papyrus::SexLabUtil
 {
-	int GetPluginVersion(RE::StaticFunctionTag*) { return Plugin::VERSION.pack(); }
 	bool HasKeywordSub(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESForm* a_form, std::string_view a_substring)
 	{
 		if (!a_form) {
@@ -20,7 +19,24 @@ namespace Papyrus::SexLabUtil
 		a_str.erase(where, a_substring.length());
 		return a_str;
 	}
-	void PrintConsole(RE::StaticFunctionTag*, std::string a_str) { Registry::PrintConsole(a_str.c_str()); }
+	void PrintConsole(RE::StaticFunctionTag*, std::string a_str)
+	{
+		if (a_str.empty())
+			return;
+		else if (a_str.size() < 1000)
+			Registry::PrintConsole(a_str.c_str());
+		else {	// Large strings printed to console crash the game - truncate it
+			size_t i = 0;
+			do
+			{
+				constexpr auto maxchar = 950;
+				auto print = a_str.substr(i, i + maxchar);
+				print += '\n';
+				i += maxchar;
+				Registry::PrintConsole(print.c_str());
+			} while (i < a_str.size());
+		}
+	}
 
 	int IntMinMaxIndex(RE::StaticFunctionTag*, std::vector<int> arr, bool findHighestValue)
   {
@@ -93,7 +109,6 @@ namespace Papyrus::SexLabUtil
 
 	inline bool Register(VM* a_vm)
 	{
-		REGISTERFUNC(GetPluginVersion, "SexLabUtil", true);
 		REGISTERFUNC(HasKeywordSub, "SexLabUtil", true);
 		REGISTERFUNC(RemoveSubString, "SexLabUtil", true);
 		REGISTERFUNC(PrintConsole, "SexLabUtil", true);

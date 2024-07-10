@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IPluginInterface.h"
+#include "Registry/Define/RaceKey.h"
 
 namespace Registry
 {
@@ -9,7 +10,6 @@ namespace Registry
 	{
 		static constexpr const char* namekey{ "SexLabRegistry" };
 		static constexpr const char* basenode{ "NPC" };
-		// NOTE: below isnt used, Im not sure if its necessary
 		static constexpr const char* extranode{ "NPC Root [Root]" };
 
 		enum ScaleModes
@@ -23,6 +23,7 @@ namespace Registry
 	public:
 		float GetScale(RE::TESObjectREFR* a_reference);
 		void SetScale(RE::Actor* a_reference, float a_absolutescale);
+		void SetScale(RE::Actor* a_reference, RaceKey a_racekey, float a_absolutescale);
 		void RemoveScale(RE::Actor* a_reference);
 
 	private:

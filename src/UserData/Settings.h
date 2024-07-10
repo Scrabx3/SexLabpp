@@ -2,23 +2,20 @@
 
 struct Settings
 {
-	static constexpr const char* YAMLPATH{ "Data\\SKSE\\SexLab\\Settings.yaml" };
-	static constexpr const char* INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
-
 	static constexpr float POPULATION_HETERO_DEFAULT{ 80.0f };
 	static constexpr float POPULATION_HOMO_DEFAULT{ 8.0f };
 
-	static void Initialize();			// Pre LoadData
+	static void Initialize();	 // Pre LoadData
 	static void InitializeYAML();
 	static void InitializeINI();
-	static void InitializeData();	// Post LoadData
+	static void InitializeData();	 // Post LoadData
 	static void Save();
 
 	// --- MCM
 	// Booleans
+	static inline bool bDebugMode{ false };
 	static inline bool bCreatureGender{ false };
 	static inline bool bAllowCreatures{ false };
-	static inline bool bUseStrapons{ true };
 	static inline bool bRedressVictim{ true };
 	static inline bool bUseLipSync{ false };
 	static inline bool bUseExpressions{ false };
@@ -27,21 +24,20 @@ struct Settings
 	static inline bool bAutoTFC{ false };
 	static inline bool bAutoAdvance{ true };
 	static inline bool bOrgasmEffects{ false };
-	static inline bool bLimitedStrip{ true };
-	static inline bool bRestrictSameSex{ false };
 	static inline bool bShowInMap{ false };
 	static inline bool bDisableTeleport{ true };
 	static inline bool bDisableScale{ false };
 	static inline bool bUndressAnimation{ false };
 	static inline bool bSubmissivePlayer{ false };
 	static inline bool bSubmissiveTarget{ false };
+	static inline bool bMatchMakerActive{ false };
 
 	// Integers
 	static inline int32_t iAskBed{ 1 };
 	static inline int32_t iNPCBed{ 0 };
-	static inline int32_t iOpenMouthSize{ 80 };
 	static inline int32_t iUseFade{ 1 };
 	static inline int32_t iClimaxType{ 0 };
+	static inline int32_t iFilterStrictness{ 2 };
 
 	// KeyBinds/Scene Control Related
 	static inline bool bAdjustTargetStage{ false };
@@ -66,12 +62,11 @@ struct Settings
 	static inline int32_t iTargetActor{ 49 };
 
 	// Floats
-	static inline float fCumTimer{ 120.0 };
+	static inline float fCumTimer{ 180.0 };
 	static inline float fShakeStrength{ 0.7 };
 	static inline float fAutoSUCSM{ 5.0 };
 	static inline float fMaleVoiceDelay{ 5.0 };
 	static inline float fFemaleVoiceDelay{ 4.0 };
-	static inline float fExpressionDelay{ 2.0 };
 	static inline float fVoiceVolume{ 1.0 };
 	static inline float fSFXDelay{ 3.0 };
 	static inline float fSFXVolume{ 1.0 };
@@ -81,21 +76,13 @@ struct Settings
 	static inline std::string sExcludedTags{ ""s };
 	static inline std::string sOptionalTags{ ""s };
 
-	// Int Array
-	static inline std::vector<int> iStripForms{ 1032555423, 1, 1032555423, 1, 4719365, 1, 16901, 1, 3952148, 0, 83952148, 0, 352389654, 1, 352389654, 1 };
-
-	// Float Array
-	static inline std::vector<float> fTimers{ 30, 20, 15, 15, 9, 10, 10, 10, 8, 8, 20, 15, 10, 10, 4 };
-	static inline std::vector<float> fOpenMouthMale{ 0, 0.8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16 };
-	static inline std::vector<float> fOpenMouthFemale{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16 };
+	// Arrays
+	static inline std::vector<int> iStripForms{ 1032555423, 1, 1032555423, 1, 806420, 0, 352928413, 1 };
+	static inline std::vector<float> fTimers{ 10.0f, 15.0f, 25.0f, 7.0f };
 
 	// Phoneme Related
-	static inline int32_t iLipsPhoneme{ 1 };
 	static inline bool bLipsFixedValue{ true };
-	static inline int32_t iLipsSoundTime{ 0 };
-	static inline int32_t LipsMaxValue{ 20 };
-	static inline int32_t LipsSoundTime{ 50 };
-	static inline float fLipsMoveTime{ 0.2 };
+	static inline int32_t iLipsSoundTime{ 1 };
 
 	// --- INI
 	// Animation
@@ -103,6 +90,7 @@ struct Settings
 	static inline float fScanRadius{ 750.0f };				 // Radius used in FindCenter() in which to look for potential furniture refs
 	static inline float fMinScale{ 0.88f };						 // Min Scale for an actor be animated
 	static inline bool bAllowDead{ false };						 // if dead actors are allowed in the framework
+	static inline float fMinSetupTime{ 0.4f };
 
 	// Race
 	static inline bool bAshHopper{ true };
@@ -163,14 +151,34 @@ struct Settings
 	static inline float fPercentageHomo{ POPULATION_HOMO_DEFAULT };
 
 	// --- Distances
-	static inline float fDistanceHead{ 14.7f };	 // distance from head node to lips = 9.3
-	static inline float fDistanceFoot{ 13.3f };	 // ~7.2 distance to foot middle
-	static inline float fDistanceHand{ 8.3f };	 // ~2.2 distance to surface
-	static inline float fDistanceCrotchFront{ 7.0f };
-	static inline float fDistanceCrotchBack{ 9.0f };
-	static inline float fDistanceCrotchBonus{ 10.0f };	// Additional distance if the measures are taken from
-	static inline float fAnglePenetration{ 35.0f };			// Angle relative to crotch area below which the schlong is no longer considered penetrating
-	static inline float fAngleMouth{ 30.0f };						// Angle of the cone from headnode to schlong that interprets the schlong in front of mouth
+	static inline float fDistanceHead{ 14.7f };			 // distance from head node to lips = 9.3
+	static inline float fDistanceFoot{ 13.3f };			 // ~7.2 distance to foot middle
+	static inline float fDistanceHand{ 8.3f };			 // ~2.2 distance to surface
+	static inline float fDistanceCrotch{ 18.0f };		 // Distance from Pelvis/Hip node to crotch
+	static inline float fAnglePenetration{ 35.0f };	 // Angle relative to crotch area below which the schlong is no longer considered penetrating
+	static inline float fAngleGrinding{ 30.0f };		 // angle for schlong and cortch to be considered "parallel"
+	static inline float fAngleMouth{ 20.0f };				 // Angle of the cone from headnode to schlong that interprets the schlong in front of mouth
+
+	// --- Enjoyment
+	static inline float fEnjGrinding{ 0.075 };
+	static inline float fEnjHandActive{ 0.375 };
+	static inline float fEnjHandPassive{ 0.475 };
+	static inline float fEnjFootActive{ 0.175 };
+	static inline float fEnjFootPassive{ 0.3 };
+	static inline float fEnjOralActive{ 0.525 };
+	static inline float fEnjOralPassive{ 0.575 };
+	static inline float fEnjVaginalActive{ 0.725 };
+	static inline float fEnjVaginalPassive{ 0.825 };
+	static inline float fEnjAnalActive{ 0.925 };
+	static inline float fEnjAnalPassive{ 1.025 };
+	static inline float fFactorNonInterEnjRaise{ 0.6 };
+	static inline float fFactorInterEnjRaise{ 1.2 };
+	static inline float fTimeMax{ 30.0 };
+	static inline float fRequiredXP{ 50.0 };
+	static inline float fBoostTime{ 30.0 };
+	static inline float fPenaltyTime{ 80.0 };
+	static inline uint8_t iMaxNoPainOrgasmsM{ 1 };
+	static inline uint8_t iMaxNoPainOrgasmsF{ 2 };
 
 	// --- Misc
 	static inline std::vector<RE::FormID> SOS_ExcludeFactions{};
@@ -201,7 +209,6 @@ struct Settings
 	static inline std::map<std::string, std::variant<float*, std::string*, bool*, int*, std::vector<float>*, std::vector<int>*>, StringCmp> table{
 		ENTRY(bCreatureGender),
 		ENTRY(bAllowCreatures),
-		ENTRY(bUseStrapons),
 		ENTRY(bRedressVictim),
 		ENTRY(bUseLipSync),
 		ENTRY(bUseExpressions),
@@ -210,15 +217,12 @@ struct Settings
 		ENTRY(bAutoTFC),
 		ENTRY(bAutoAdvance),
 		ENTRY(bOrgasmEffects),
-		ENTRY(bLimitedStrip),
-		ENTRY(bRestrictSameSex),
 		ENTRY(bShowInMap),
 		ENTRY(bDisableTeleport),
 		ENTRY(bDisableScale),
 		ENTRY(bUndressAnimation),
 		ENTRY(iAskBed),
 		ENTRY(iNPCBed),
-		ENTRY(iOpenMouthSize),
 		ENTRY(iUseFade),
 		ENTRY(bAdjustTargetStage),
 		ENTRY(iAdjustStage),
@@ -243,25 +247,21 @@ struct Settings
 		ENTRY(fAutoSUCSM),
 		ENTRY(fMaleVoiceDelay),
 		ENTRY(fFemaleVoiceDelay),
-		ENTRY(fExpressionDelay),
 		ENTRY(fVoiceVolume),
 		ENTRY(fSFXDelay),
 		ENTRY(fSFXVolume),
 		ENTRY(iStripForms),
 		ENTRY(fTimers),
-		ENTRY(fOpenMouthMale),
-		ENTRY(fOpenMouthFemale),
-		ENTRY(iLipsPhoneme),
 		ENTRY(bLipsFixedValue),
 		ENTRY(iLipsSoundTime),
-		ENTRY(LipsMaxValue),
-		ENTRY(LipsSoundTime),
-		ENTRY(fLipsMoveTime),
 		ENTRY(iClimaxType),
 		ENTRY(bSubmissivePlayer),
 		ENTRY(bSubmissiveTarget),
 		ENTRY(sRequiredTags),
 		ENTRY(sExcludedTags),
 		ENTRY(sOptionalTags),
+		ENTRY(iFilterStrictness),
+		ENTRY(bDebugMode),
+		ENTRY(bMatchMakerActive),
 	};
 };
