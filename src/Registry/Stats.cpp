@@ -386,10 +386,8 @@ namespace Registry::Statistics
 	RE::Actor* StatisticsData::GetMostRecentEncounter(RE::Actor* a_actor, ActorEncounter::EncounterType a_type)
 	{
 		const std::shared_lock lock{ _m };
-		if (_encounters.empty())
-			return nullptr;
-		for (size_t i = _encounters.size() - 1; i >= 0; i--) {
-			const auto partnerobj = _encounters[i].GetPartner(a_actor);
+		for (auto it = _encounters.rbegin(); it != _encounters.rend(); it++) {
+			const auto partnerobj = it->GetPartner(a_actor);
 			const auto partner = partnerobj ? RE::TESForm::LookupByID<RE::Actor>(partnerobj->id) : nullptr;
 			if (!partner)
 				continue;
@@ -397,27 +395,25 @@ namespace Registry::Statistics
 			case ActorEncounter::EncounterType::Any:
 				return partner;
 			case ActorEncounter::EncounterType::Victim:
-				if (_encounters[i].GetTimesVictim(a_actor->formID) > 0) {
+				if (it->GetTimesVictim(a_actor->formID) > 0) {
 					return partner;
 				}
 				break;
 			case ActorEncounter::EncounterType::Aggressor:
-				if (_encounters[i].GetTimesAssailant(a_actor->formID) > 0) {
+				if (it->GetTimesAssailant(a_actor->formID) > 0) {
 					return partner;
 				}
 				break;
 			case ActorEncounter::EncounterType::Submissive:
-				{
-					if (_encounters[i].GetTimesSubmissive(a_actor->formID) > 0) {
-						return partner;
-					}
+				if (it->GetTimesSubmissive(a_actor->formID) > 0) {
+					return partner;
 				}
+				break;
 			case ActorEncounter::EncounterType::Dominant:
-				{
-					if (_encounters[i].GetTimesDominant(a_actor->formID) > 0) {
-						return partner;
-					}
+				if (it->GetTimesDominant(a_actor->formID) > 0) {
+					return partner;
 				}
+				break;
 			}
 		}
 		return nullptr;
