@@ -144,6 +144,7 @@ namespace Papyrus::ThreadModel
 				a_mergewith.resize(3, nullptr);
 			}
 			if (a_stripdata == Strip::None) {
+				logger::info("Stripping, Policy: NONE");
 				return a_mergewith;
 			}
 			uint32_t slots;
@@ -161,6 +162,7 @@ namespace Papyrus::ThreadModel
 						slots = a_defaults[0];
 						weapon = a_defaults[1];
 					} else {
+						logger::error("Strip Policy uses faulty default settings");
 						slots = 0;
 						weapon = 0;
 					}
@@ -211,7 +213,7 @@ namespace Papyrus::ThreadModel
 			ids.reserve(a_mergewith.size());
 			for (auto&& it : a_mergewith)
 				ids.push_back(it ? it->formID : 0);
-			logger::info("Stripping, Policy: {}, Stripped Equipment: [{:X}]", a_mergewith.size(), fmt::join(ids, ", "));
+			logger::info("Stripping, Policy: [{:X}, {}], Stripped Equipment: [{:X}]", weapon, slots, fmt::join(ids, ", "));
 			actor->Update3DModel();
 			return a_mergewith;
 		}
