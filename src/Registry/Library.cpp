@@ -24,7 +24,7 @@ namespace Registry
 			if (file.path().extension() != ".slr") {
 				continue;
 			}
-#ifndef BUILD_SKYRIMVR
+#ifndef SKYRIMVR
 			threads.emplace_back([this, file]() {
 #endif
 				try {
@@ -61,7 +61,7 @@ namespace Registry
 					const auto filename = file.path().filename().string();
 					logger::critical("Unable to read registry file {}. The animation pack will NOT be added to the library. | Error: {}", filename, e.what());
 				}
-#ifndef BUILD_SKYRIMVR
+#ifndef SKYRIMVR
 			});
 #endif
 		}
