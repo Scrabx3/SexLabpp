@@ -4,13 +4,17 @@ namespace GameForms
 {
 #define LOOKUPMOD(form, formid, mod)                                                                             \
 	form = RE::TESDataHandler::GetSingleton()->LookupForm<std::remove_pointer<decltype(form)>::type>(formid, mod); \
-	if (!form)                                                                                                     \
-		return false;
+	if (!form) {                                                                                                   \
+		logger::critical("Failed to lookup form {} in {}", #form, mod);                                              \
+		return false;                                                                                                \
+	}
 
 #define LOOKUPGAME(form, formid)                                                     \
 	form = RE::TESForm::LookupByID<std::remove_pointer<decltype(form)>::type>(formid); \
-	if (!form)                                                                         \
-		return false;
+	if (!form) {                                                                       \
+		logger::critical("Failed to lookup form {}", #form);                             \
+		return false;                                                                    \
+	}
 
 	// Vanilla Forms
 	inline RE::BGSKeyword* Vampire;
