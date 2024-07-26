@@ -34,12 +34,11 @@ namespace GameForms
 		LOOKUPGAME(Vampire, 0xA82BB);
 		LOOKUPGAME(ActorTypeNPC, 0x13794);
 		LOOKUPGAME(FurnitureBedRoll, 0xE4AD6);
-		LOOKUPGAME(DLC2RieklingMountedKeyword, 0x0403A159);
+		LOOKUPMOD(DLC2RieklingMountedKeyword, 0x03A159, "Dragonborn.esm");
 
 		LOOKUPMOD(GenderFaction, 0x043A43, "SexLab.esm");
 		LOOKUPMOD(AnimatingFaction, 0xE50F, "SexLab.esm");
 		LOOKUPMOD(ForbiddenFaction, 0x049068, "SexLab.esm");
-
 		LOOKUPMOD(ConfigQuest, 0xD62, "SexLab.esm");
 
 		return true;
