@@ -32,6 +32,10 @@ set(CXX_FILES
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp
 
+	src/Registry/Interface/Interface.h
+	src/Registry/Interface/SceneMenu.h
+	src/Registry/Interface/SceneMenu.cpp
+
 	src/Registry/Define/Fragment.h
 	src/Registry/Define/Fragment.cpp
 	src/Registry/Define/Furniture.h
