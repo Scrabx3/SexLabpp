@@ -137,7 +137,7 @@ namespace Registry
 		const std::shared_lock lock{ read_write_lock };
 		const auto where = this->scenes.find(hash);
 		if (where == this->scenes.end()) {
-			logger::info("Invalid query: [{} | {}]; No animations for given actors", a_actors.size(), tagstr);
+			logger::info("Invalid query: [{} | {} | {}]; No animations for given actors", a_actors.size(), hash.to_string(), tagstr);
 			return {};
 		}
 		const auto& rawScenes = where->second;
@@ -148,12 +148,12 @@ namespace Registry
 			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
 		});
 		if (ret.empty()) {
-			logger::info("Invalid query: [{} | {}]; 0/{} animations use requested tags", a_actors.size(), tagstr, where->second.size());
+			logger::info("Invalid query: [{} | {} | {}]; 0/{} animations use requested tags", a_actors.size(), hash.to_string(), tagstr, where->second.size());
 			return {};
 		}
 		const auto t2 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ms = t2 - t1;
-		logger::info("Found {} scenes for query [{} | {}] actors in {}ms", ret.size(), a_actors.size(), tagstr, ms.count());
+		logger::info("Found {} scenes for query [{} | {} | {}] actors in {}ms", ret.size(), a_actors.size(), hash.to_string(), tagstr, ms.count());
 		return ret;
 	}
 
