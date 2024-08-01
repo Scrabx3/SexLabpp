@@ -18,10 +18,11 @@ namespace SAT
 		{
 			const auto center = box.GetCenterWorld();
 			const auto halfsize = glm::abs(box.worldBoundMax - center);
-			const auto x = origin->world.rotate.GetVectorX(), y = origin->world.rotate.GetVectorY(), z = origin->world.rotate.GetVectorZ();
-			const auto ex = halfsize.x * glm::vec3{x.x, x.y, x.z};
-			const auto ey = halfsize.y * glm::vec3{y.x, y.y, y.z};
-			const auto ez = halfsize.z * glm::vec3{z.x, z.y, z.z};
+			const auto& rotate = origin->world.rotate;
+			const auto x = rotate.GetVectorX(), y = rotate.GetVectorY(), z = rotate.GetVectorZ();
+			const auto ex = halfsize.x * glm::vec3{ x.x, x.y, x.z };
+			const auto ey = halfsize.y * glm::vec3{ y.x, y.y, y.z };
+			const auto ez = halfsize.z * glm::vec3{ z.x, z.y, z.z };
 
 			std::vector<glm::vec3> corners;
 			corners.push_back(center - ex - ey - ez);
