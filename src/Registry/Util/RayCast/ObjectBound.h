@@ -11,6 +11,7 @@ struct ObjectBound
 	~ObjectBound() = default;
 
 	glm::vec3 GetCenterWorld() const;
+	bool IsValid() const { return (boundMin.x - boundMax.x) != 0; }
 
 	glm::vec3 boundMin{ glm::vec3() };
 	glm::vec3 boundMax{ glm::vec3() };
