@@ -46,15 +46,14 @@ namespace SAT
 		glm::vec3 mtv_axis{};
 	};
 
-	std::vector<glm::vec3> GetAxes(const OrientedObjectBound& a_obb1, const OrientedObjectBound& a_obb2)
+	inline std::vector<glm::vec3> GetAxes(const OrientedObjectBound& a_obb1, const OrientedObjectBound& a_obb2)
 	{
 		const auto& rot1 = a_obb1.origin->world.rotate.entry;
 		const auto& rot2 = a_obb2.origin->world.rotate.entry;
 		std::array<std::array<glm::vec3, 3>, 2> rotations;
-		for (size_t n = 0; n < rotations.size(); n++) {
-			for (int i = 0; i < rotations[0].size(); i++) {
-				rotations[n][i] = glm::vec3(rot1[i][0], rot1[i][1], rot1[i][2]);
-			}
+		for (int i = 0; i < rotations[0].size(); i++) {
+			rotations[0][i] = glm::vec3(rot1[i][0], rot1[i][1], rot1[i][2]);
+			rotations[1][i] = glm::vec3(rot2[i][0], rot2[i][1], rot2[i][2]);
 		}
 
 		std::vector<glm::vec3> axes;
@@ -74,7 +73,7 @@ namespace SAT
 		return axes;
 	}
 
-	std::optional<SATResult> SAT(const OrientedObjectBound& a_obb1, const OrientedObjectBound& a_obb2)
+	inline std::optional<SATResult> SAT(const OrientedObjectBound& a_obb1, const OrientedObjectBound& a_obb2)
 	{
 		const auto corner1 = a_obb1.GetCorners(), corner2 = a_obb2.GetCorners();
 		const auto axes = GetAxes(a_obb1, a_obb2);
@@ -94,8 +93,8 @@ namespace SAT
 			const auto [start1, end1] = project(corner1);
 			const auto [start2, end2] = project(corner2);
 
-			const auto min = std::min(end1, end2), max = std::max(start1, start2);
-			const auto overlap = max - min;
+			const auto minend = std::min(end1, end2), maxstart = std::max(start1, start2);
+			const auto overlap = minend - maxstart;
 			if (overlap > 0)
 				return std::nullopt;
 
