@@ -54,7 +54,7 @@ Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& 
 
 Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end, std::initializer_list<const RE::TESObjectREFR*> a_filter) noexcept
 {
-	constexpr auto hkpScale = 0.0142875f;
+	const auto hkpScale = RE::bhkWorld::GetWorldScale();
 	const auto dif = end - start;
 
 	SkyrimSE::bhkRayCastInfo info;

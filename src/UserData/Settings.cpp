@@ -179,7 +179,6 @@ void Settings::InitializeINI()
 	}
 
 	// Distance
-	READINI("Distance", fDistanceHead);
 	READINI("Distance", fDistanceFoot);
 	READINI("Distance", fDistanceHand);
 	READINI("Distance", fDistanceCrotch);

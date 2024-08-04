@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Registry/Define/Sex.h"
 #include "Registry/Animation.h"
+#include "Registry/Define/Sex.h"
+#include "Util/RayCast/ObjectBound.h"
 
 namespace Registry
 {
@@ -38,7 +39,7 @@ namespace Registry
 				Nodes(const RE::Actor* a_actor, bool a_alternatenodes);
 				~Nodes() = default;
 
-				RE::NiPointer<RE::NiAVObject> head;
+				RE::NiPointer<RE::NiNode> head;
 				RE::NiPointer<RE::NiAVObject> pelvis;
 				RE::NiPointer<RE::NiAVObject> spine_lower;
 
@@ -88,7 +89,14 @@ namespace Registry
 				std::optional<TypeData> HasIntercourse(const WorkingData& a_partner) const;	 // a_partner penetrating this
 
 			public:
+				float GetHeadForwardDistance() const { return bHead.boundMax.y; }
+				std::optional<RE::NiPoint3> GetHeadForwardPoint(float distance) const;
+
+			public:
 				Position& _position;
+			  ObjectBound bHead;
+				RE::NiNode* niGenitals;
+
 				std::vector<TypeData> types{};
 				RE::NiPoint3 pGenitalReference{};
 				RE::NiPoint3 vCrotch{};

@@ -15,7 +15,8 @@ namespace Registry
 			const auto msg = fmt::format("Unable to retrieve 3D of actor {:X}", a_actor->GetFormID());
 			throw std::exception(msg.c_str());
 		}
-		head = RE::NiPointer{ obj->GetObjectByName(HEAD) };
+		const auto avhead = obj->GetObjectByName(HEAD);
+		head = RE::NiPointer{ avhead ? avhead->AsNode() : nullptr };
 		if (!head) {
 			logger::info("Actor {:X} is missing head node (This may be expected for creature actors)", a_actor->formID);
 		}
@@ -96,6 +97,22 @@ namespace Registry
 
 	Physics::PhysicsData::WorkingData::WorkingData(Position& a_position) :
 		_position(a_position),
+		bHead([&]() {
+			const auto nihead = a_position._nodes.head.get();
+			if (!nihead)
+				return ObjectBound{};
+			auto ret = ObjectBound::MakeBoundingBox(nihead);
+			return ret ? *ret : ObjectBound{};
+		}()),
+		niGenitals([&]() -> decltype(niGenitals) {
+			if (this->vSchlong == RE::NiPoint3::Zero()) {
+				if (this->_position._nodes.clitoris)
+					return this->_position._nodes.clitoris.get()->AsNode();
+			} else if (this->_position._nodes.sos_mid) {
+				return this->_position._nodes.sos_mid.get()->AsNode();
+			}
+			return nullptr;
+		}()),
 		pGenitalReference([&]() {
 			if (this->vSchlong == RE::NiPoint3::Zero()) {
 				if (this->_position._nodes.clitoris)
@@ -138,7 +155,7 @@ namespace Registry
 		if (pGenitalReference == RE::NiPoint3::Zero())
 			return std::nullopt;
 		auto distance = pGenitalReference.GetDistance(headworld.translate);
-		if (distance > Settings::fDistanceHead)
+		if (distance > a_partner.GetHeadForwardDistance())
 			return std::nullopt;
 		if (vSchlong != RE::NiPoint3::Zero()) {
 			const auto vRot = headworld.rotate * vSchlong;
@@ -268,6 +285,16 @@ namespace Registry
 		ret._distance = dA;
 		ret._type = TypeData::Type::AnalP;
 		return ret;
+	}
+
+	std::optional<RE::NiPoint3> Physics::PhysicsData::WorkingData::GetHeadForwardPoint(float distance) const
+	{
+		const auto& nihead = _position._nodes.head;
+		if (!nihead)
+			return std::nullopt;
+		const auto& headworld = nihead->world;
+		RE::NiPoint3 vforward{ headworld.rotate.entry[1][0], headworld.rotate.entry[1][1], headworld.rotate.entry[1][2] };
+		return (vforward * distance) + nihead->world.translate;
 	}
 
 	Physics::PhysicsData::PhysicsData(std::vector<RE::Actor*> a_positions, const Scene* a_scene) :
