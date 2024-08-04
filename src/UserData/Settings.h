@@ -25,6 +25,7 @@ struct Settings
 	static inline bool bAutoAdvance{ true };
 	static inline bool bOrgasmEffects{ false };
 	static inline bool bShowInMap{ false };
+	static inline bool bSetAnimSpeedByEnjoyment{ false };
 	static inline bool bDisableTeleport{ true };
 	static inline bool bDisableScale{ false };
 	static inline bool bUndressAnimation{ false };
@@ -218,6 +219,7 @@ struct Settings
 		ENTRY(bAutoAdvance),
 		ENTRY(bOrgasmEffects),
 		ENTRY(bShowInMap),
+		ENTRY(bSetAnimSpeedByEnjoyment),
 		ENTRY(bDisableTeleport),
 		ENTRY(bDisableScale),
 		ENTRY(bUndressAnimation),
