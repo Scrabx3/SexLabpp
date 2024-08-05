@@ -2,12 +2,12 @@
 
 #include "Registry/Animation.h"
 #include "Registry/Define/Sex.h"
-#include "Util/RayCast/ObjectBound.h"
+#include "Registry/Util/RayCast/ObjectBound.h"
 
 namespace Registry
 {
-	class Physics :
-		public Singleton<Physics>
+	class Collision :
+		public Singleton<Collision>
 	{
 		struct TypeData
 		{
@@ -66,7 +66,7 @@ namespace Registry
 			Position(RE::Actor* a_owner, Sex a_sex);
 			~Position() = default;
 
-			Physics::TypeData* GetType(TypeData& a_data);
+			Collision::TypeData* GetType(TypeData& a_data);
 
 		public:
 			RE::FormID _owner;
@@ -81,6 +81,8 @@ namespace Registry
 			{
 				WorkingData(Position& a_position);
 				~WorkingData() = default;
+
+				std::optional<TypeData> GetHeadInteraction(const WorkingData& a_partner) const; // get interactions this actor is performing with its head
 
 				std::optional<TypeData> GetsOral(const WorkingData& a_partner) const;				 // a_partner giving oral to this
 				std::optional<TypeData> GetsHandjob(const WorkingData& a_partner) const;		 // a_partner pleasuring this with hands

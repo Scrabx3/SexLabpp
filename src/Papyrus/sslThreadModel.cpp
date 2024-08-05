@@ -2,8 +2,8 @@
 
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
-#include "Registry/Node.h"
-#include "Registry/Physics.h"
+#include "Registry/NiNode/Node.h"
+#include "Registry/NiNode/Collision.h"
 #include "Registry/Stats.h"
 #include "Registry/Util/CellCrawler.h"
 #include "Registry/Util/RayCast.h"
@@ -632,7 +632,7 @@ __CONTINUE_NEXT:
 
 	bool IsPhysicsRegistered(RE::TESQuest* a_qst)
 	{
-		return Registry::Physics::GetSingleton()->IsRegistered(a_qst->formID);
+		return Registry::Collision::GetSingleton()->IsRegistered(a_qst->formID);
 	}
 
 	void RegisterPhysics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene)
@@ -642,17 +642,17 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Invalid scene", a_stackID);
 			return;
 		}
-		Registry::Physics::GetSingleton()->Register(a_qst->formID, a_positions, scene);
+		Registry::Collision::GetSingleton()->Register(a_qst->formID, a_positions, scene);
 	}
 
 	void UnregisterPhysics(RE::TESQuest* a_qst)
 	{
-		Registry::Physics::GetSingleton()->Unregister(a_qst->formID);
+		Registry::Collision::GetSingleton()->Unregister(a_qst->formID);
 	}
 
 	std::vector<int> GetPhysicTypes(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
 	{
-		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
 		if (!data) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -672,7 +672,7 @@ __CONTINUE_NEXT:
 
 	bool HasPhysicType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner)
 	{
-		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
 		if (!data) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return false;
@@ -697,7 +697,7 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return nullptr;
 		}
-		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
 		if (!data) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return nullptr;
@@ -717,7 +717,7 @@ __CONTINUE_NEXT:
 
 	std::vector<RE::Actor*> GetPhysicPartnersByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
 	{
-		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
 		if (!data) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -742,7 +742,7 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return {};
 		}
-		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
 		if (!data) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -764,7 +764,7 @@ __CONTINUE_NEXT:
 
 	std::vector<RE::Actor*> GetPhysicPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
 	{
-		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
 		if (!data) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -795,7 +795,7 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Type cant be 'any' here", a_stackID);
 			return 0.0f;
 		}
-		auto data = Registry::Physics::GetSingleton()->GetData(a_qst->formID);
+		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
 		if (!data) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return 0.0f;

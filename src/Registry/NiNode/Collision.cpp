@@ -8,7 +8,7 @@ using namespace Registry::Node;	// TODO: remove this <-
 
 namespace Registry
 {
-	Physics::Position::Nodes::Nodes(const RE::Actor* a_actor, bool a_alternatenodes)
+	Collision::Position::Nodes::Nodes(const RE::Actor* a_actor, bool a_alternatenodes)
 	{
 		const auto obj = a_actor->Get3D();
 		if (!obj) {
@@ -51,7 +51,7 @@ namespace Registry
 		}
 	}
 
-	RE::NiPoint3 Physics::Position::Nodes::ApproximateNode(float a_forward, float a_upward) const
+	RE::NiPoint3 Collision::Position::Nodes::ApproximateNode(float a_forward, float a_upward) const
 	{
 		Registry::Coordinate approx(std::vector{ a_forward, 0.0f, a_upward, 0.0f });
 		RE::NiPoint3 angle;
@@ -61,31 +61,31 @@ namespace Registry
 		return ret.AsNiPoint();
 	}
 
-	RE::NiPoint3 Physics::Position::Nodes::ApproximateTip() const
+	RE::NiPoint3 Collision::Position::Nodes::ApproximateTip() const
 	{
 		constexpr float forward = 20.0f;
 		constexpr float upward = -4.0f;
 		return ApproximateNode(forward, upward);
 	}
 
-	RE::NiPoint3 Physics::Position::Nodes::ApproximateMid() const
+	RE::NiPoint3 Collision::Position::Nodes::ApproximateMid() const
 	{
 		constexpr float forward = 15.0f;
 		constexpr float upward = -6.2f;
 		return ApproximateNode(forward, upward);
 	}
 
-	RE::NiPoint3 Physics::Position::Nodes::ApproximateBase() const
+	RE::NiPoint3 Collision::Position::Nodes::ApproximateBase() const
 	{
 		constexpr float forward = 10.0f;
 		constexpr float upward = -5.0f;
 		return ApproximateNode(forward, upward);
 	}
 
-	Physics::Position::Position(RE::Actor* a_owner, Sex a_sex) :
+	Collision::Position::Position(RE::Actor* a_owner, Sex a_sex) :
 		_owner(a_owner->GetFormID()), _sex(a_sex), _nodes(a_owner, false), _types({}) {}
 
-	Physics::TypeData* Physics::Position::GetType(TypeData& a_data){
+	Collision::TypeData* Collision::Position::GetType(TypeData& a_data){
 		auto where = std::ranges::find_if(_types, [&](auto& type) {
 			return a_data._type == type._type && a_data._partner == type._partner;
 		});
@@ -95,7 +95,7 @@ namespace Registry
 		return &(*where);
 	}
 
-	Physics::PhysicsData::WorkingData::WorkingData(Position& a_position) :
+	Collision::PhysicsData::WorkingData::WorkingData(Position& a_position) :
 		_position(a_position),
 		bHead([&]() {
 			const auto nihead = a_position._nodes.head.get();
@@ -147,7 +147,7 @@ namespace Registry
 		vSchlong.Unitize();
 	}
 
-	std::optional<Physics::TypeData> Physics::PhysicsData::WorkingData::GetsOral(const WorkingData& a_partner) const
+	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::GetHeadInteraction(const WorkingData& a_partner) const
 	{
 		if (!a_partner._position._nodes.head)
 			return std::nullopt;
@@ -172,7 +172,32 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<Physics::TypeData> Physics::PhysicsData::WorkingData::GetsHandjob(const WorkingData& a_partner) const
+	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::GetsOral(const WorkingData& a_partner) const
+	{
+		if (!a_partner._position._nodes.head)
+			return std::nullopt;
+		const auto& headworld = a_partner._position._nodes.head->world;
+		if (pGenitalReference == RE::NiPoint3::Zero())
+			return std::nullopt;
+		auto distance = pGenitalReference.GetDistance(headworld.translate);
+		if (distance > a_partner.GetHeadForwardDistance())
+			return std::nullopt;
+		if (vSchlong != RE::NiPoint3::Zero()) {
+			const auto vRot = headworld.rotate * vSchlong;
+			const auto dot = vRot.Dot(vSchlong);
+			const auto angle = RE::rad_to_deg(std::acosf(dot));
+			if (angle < (180 - Settings::fAngleMouth)) {
+				return std::nullopt;
+			}
+		}
+		TypeData ret{};
+		ret._distance = distance;
+		ret._partner = a_partner._position._owner;
+		ret._type = TypeData::Type::Oral;
+		return ret;
+	}
+
+	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::GetsHandjob(const WorkingData& a_partner) const
 	{
 		const auto& handL = a_partner._position._nodes.hand_left;
 		const auto& handR = a_partner._position._nodes.hand_right;
@@ -197,7 +222,7 @@ namespace Registry
 		return std::nullopt;
 	}
 
-	std::optional<Physics::TypeData> Physics::PhysicsData::WorkingData::GetsFootjob(const WorkingData& a_partner) const
+	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::GetsFootjob(const WorkingData& a_partner) const
 	{
 		const auto& footL = a_partner._position._nodes.foot_left;
 		const auto& footR = a_partner._position._nodes.foot_rigt;
@@ -222,7 +247,7 @@ namespace Registry
 		return std::nullopt;
 	}
 
-	std::optional<Physics::TypeData> Physics::PhysicsData::WorkingData::DoesGrinidng(const WorkingData& a_partner) const
+	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::DoesGrinidng(const WorkingData& a_partner) const
 	{
 		const auto& cT = _position._nodes.clitoris;
 		if (!cT)
@@ -252,7 +277,7 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<Physics::TypeData> Physics::PhysicsData::WorkingData::HasIntercourse(const WorkingData& a_partner) const
+	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::HasIntercourse(const WorkingData& a_partner) const
 	{
 		if (a_partner.vSchlong == RE::NiPoint3::Zero()) {
 			return std::nullopt;
@@ -287,7 +312,7 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<RE::NiPoint3> Physics::PhysicsData::WorkingData::GetHeadForwardPoint(float distance) const
+	std::optional<RE::NiPoint3> Collision::PhysicsData::WorkingData::GetHeadForwardPoint(float distance) const
 	{
 		const auto& nihead = _position._nodes.head;
 		if (!nihead)
@@ -297,9 +322,9 @@ namespace Registry
 		return (vforward * distance) + nihead->world.translate;
 	}
 
-	Physics::PhysicsData::PhysicsData(std::vector<RE::Actor*> a_positions, const Scene* a_scene) :
+	Collision::PhysicsData::PhysicsData(std::vector<RE::Actor*> a_positions, const Scene* a_scene) :
 		_positions([&]() {
-			std::vector<Physics::Position> v{};
+			std::vector<Collision::Position> v{};
 			v.reserve(a_positions.size());
 			for (size_t i = 0; i < a_positions.size(); i++) {
 				auto& it = a_positions[i];
@@ -308,15 +333,15 @@ namespace Registry
 			}
 			return v;
 		}()),
-		_tactive(true), _t(&Physics::PhysicsData::Update, this) {}
+		_tactive(true), _t(&Collision::PhysicsData::Update, this) {}
 
-	Physics::PhysicsData::~PhysicsData()
+	Collision::PhysicsData::~PhysicsData()
 	{
 		_tactive = false;
 		_t.join();
 	}
 
-	void Physics::PhysicsData::Update()
+	void Collision::PhysicsData::Update()
 	{
 		constexpr auto interval = 128ms;
 		const auto main = RE::Main::GetSingleton();
@@ -374,7 +399,7 @@ namespace Registry
 		}
 	}
 
-	void Physics::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept
+	void Collision::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept
 	{
 		try {
 			const auto where = std::ranges::find(_data, a_id, [](auto& it) { return it.first; });
@@ -388,7 +413,7 @@ namespace Registry
 		}
 	}
 
-	void Physics::Unregister(RE::FormID a_id) noexcept
+	void Collision::Unregister(RE::FormID a_id) noexcept
 	{
 		const auto where = std::ranges::find(_data, a_id, [](auto& it) { return it.first; });
 		if (where == _data.end()) {
@@ -398,12 +423,12 @@ namespace Registry
 		_data.erase(where);
 	}
 
-	bool Physics::IsRegistered(RE::FormID a_id) const noexcept
+	bool Collision::IsRegistered(RE::FormID a_id) const noexcept
 	{
 		return std::ranges::contains(_data, a_id, [](auto& it) { return it.first; });
 	}
 
-	const Physics::PhysicsData* Physics::GetData(RE::FormID a_id) const
+	const Collision::PhysicsData* Collision::GetData(RE::FormID a_id) const
 	{
 		const auto where = std::ranges::find(_data, a_id, [](auto& it) { return it.first; });
 		return where == _data.end() ? nullptr : where->second.get();
