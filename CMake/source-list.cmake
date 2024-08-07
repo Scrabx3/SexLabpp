@@ -34,6 +34,7 @@ set(CXX_FILES
 	src/Registry/Util/Scale.cpp
 
 	src/Registry/NiNode/Node.h
+	src/Registry/NiNode/Node.cpp
 	src/Registry/NiNode/Collision.h
 	src/Registry/NiNode/Collision.cpp
 
