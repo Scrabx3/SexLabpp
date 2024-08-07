@@ -1,6 +1,6 @@
 #include "ObjectBound.h"
-#include "bhkRigidBodyT.h"
 #include "Math.h"
+#include "bhkRigidBodyT.h"
 
 RE::NiPointer<RE::NiCollisionObject> ObjectBound::GetCollisionNodeRecurse(RE::NiNode* a_node, size_t a_recurse)
 {
@@ -137,11 +137,21 @@ glm::vec3 ObjectBound::GetCenterWorld() const
 	return worldBoundMin + (worldBoundMax - worldBoundMin) / 2.0f;
 }
 
+bool ObjectBound::IsPointInside(float a_x, float a_y, float a_z) const
+{
+	return (a_x >= worldBoundMin.x && a_x <= worldBoundMax.x &&
+					a_y >= worldBoundMin.y && a_y <= worldBoundMax.y &&
+					a_z >= worldBoundMin.z && a_z <= worldBoundMax.z);
+}
+
 bool ObjectBound::IsPointInside(const glm::vec3& a_point) const
 {
-	return (a_point.x >= worldBoundMin.x && a_point.x <= worldBoundMax.x &&
-					a_point.y >= worldBoundMin.y && a_point.y <= worldBoundMax.y &&
-					a_point.z >= worldBoundMin.z && a_point.z <= worldBoundMax.z);
+	return IsPointInside(a_point.x, a_point.y, a_point.z);
+}
+
+bool ObjectBound::IsPointInside(const RE::NiPoint3& a_point) const
+{
+	return IsPointInside(a_point.x, a_point.y, a_point.z);
 }
 
 bool ObjectBound::IsValid() const

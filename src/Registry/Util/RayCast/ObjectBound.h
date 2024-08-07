@@ -13,7 +13,9 @@ public:
 
 public:
 	glm::vec3 GetCenterWorld() const;
+	bool IsPointInside(float a_x, float a_y, float a_z) const;
 	bool IsPointInside(const glm::vec3& a_point) const;
+	bool IsPointInside(const RE::NiPoint3& a_point) const;
 	bool IsValid() const;
 
 	glm::vec3 boundMin{ glm::vec3() };
