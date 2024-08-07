@@ -13,24 +13,19 @@ namespace Registry::Node
 			throw std::exception(msg.c_str());
 		}
 		const auto racekey = RaceHandler::GetRaceKey(a_actor);
-		if (racekey == RaceKey::None) {
-			const auto msg = fmt::format("Unable to retrieve race of actor {:X}", a_actor->GetFormID());
-			throw std::exception(msg.c_str());
-		}
-		const auto racestr = RaceHandler::AsString(racekey);
+		const auto racestr = racekey == RaceKey::None ? "?" : RaceHandler::AsString(racekey);
 		const auto get = [&](auto str, auto& target, bool log) {
 			auto node = obj->GetObjectByName(str);
 			auto ninode = node ? node->AsNode() : nullptr;
 			if (!ninode) {
 				if (log)
 					logger::info("Actor {:X} (Race: {}) is missing Node {} (This may be expected)", a_actor->GetFormID(), racestr, str);
-				return;
+				return false;
 			}
 			target = RE::NiPointer{ ninode };
+			return true;
 		};
-		get(PELVIS, pelvis, true);
-		get(SPINELOWER, spine_lower, true);
-		if (!pelvis || !spine_lower) {
+		if (!get(PELVIS, pelvis, true) || !get(SPINELOWER, spine_lower, true)) {
 			throw std::exception("Missing mandatory 3d object (body)");
 		}
 		get(HEAD, head, true);
@@ -39,18 +34,13 @@ namespace Registry::Node
 		get(FOOTLEFT, foot_left, true);
 		get(FOOTRIGHT, foot_rigt, true);
 		get(CLITORIS, clitoris, true);
-		const auto schlong = [&]<typename T>(const T& a_list, auto& out) {
-			decltype(head) tmp;
-			for (auto&& it : a_list) {
-				get(it, tmp, false);
-				if (tmp) {
-					out.push_back(tmp);
-				}
-			}
-		};
-		schlong(SOSSTART, sos_base);
-		schlong(SOSMID, sos_mid);
-		schlong(SOSTIP, sos_front);
+		for (auto&& it : SCHLONG_NODES) {
+			SchlongData tmp(it.rot);
+			int s = get(it.base, tmp.base, false) + get(it.mid, tmp.mid, false) + get(it.tip, tmp.tip, false);
+			if (s == 0)
+				continue;
+			schlongs.push_back(tmp);
+		}
 	}
 
 	RE::NiPoint3 NodeData::ApproximateNode(float a_forward, float a_upward) const
@@ -82,5 +72,44 @@ namespace Registry::Node
 		constexpr float forward = 10.0f;
 		constexpr float upward = -5.0f;
 		return ApproximateNode(forward, upward);
+	}
+	
+	std::vector<RE::NiPoint3> NodeData::GetSchlongReferencePoints(bool a_approximateifempty) const
+	{
+		std::vector<RE::NiPoint3> ret{};
+		for (auto&& s : schlongs) {
+			assert(s.base);
+			if (s.tip)
+				ret.push_back(s.tip->world.translate);
+			else if (s.mid)
+				ret.push_back(s.mid->world.translate);
+			else
+				ret.push_back(s.base->world.translate);
+		}
+		if (ret.empty() && a_approximateifempty)
+			ret.push_back(ApproximateMid());
+		return ret;
+	}
+
+	std::vector<RE::NiPoint3> NodeData::GetSchlongReferenceVectors(bool a_approximateifempty) const
+	{
+		std::vector<RE::NiPoint3> ret{};
+		for (auto&& s : schlongs) {
+			assert(s.base);
+			RE::NiPoint3 refpoint = s.base->world.translate;
+			if (s.mid) {
+				ret.push_back(s.mid->world.translate - refpoint);
+			} else if (s.tip) {
+				ret.push_back(s.mid->world.translate - refpoint);
+			} else {
+				auto translate = s.rot * s.mid->world.rotate;
+				ret.push_back(translate.GetVectorY());
+			}
+		}
+		if (ret.empty() && a_approximateifempty) {
+			const auto approxMid = ApproximateMid(), approxbase = ApproximateBase();
+			ret.push_back(approxMid - approxbase);
+		}
+		return ret;
 	}
 }
