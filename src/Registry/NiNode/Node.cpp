@@ -34,6 +34,9 @@ namespace Registry::Node
 		get(FOOTLEFT, foot_left, true);
 		get(FOOTRIGHT, foot_rigt, true);
 		get(CLITORIS, clitoris, true);
+		get(VAGINADEEP, vaginadeep, true);
+		get(VAGINALLEFT, vaginaleft, true);
+		get(VAGINALRIGHT, vaginaright, true);
 		for (auto&& it : SCHLONG_NODES) {
 			SchlongData tmp(it.rot);
 			int s = get(it.base, tmp.base, false) + get(it.mid, tmp.mid, false) + get(it.tip, tmp.tip, false);
