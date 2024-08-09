@@ -96,11 +96,14 @@ namespace Registry::Node
 
 		RE::NiPointer<RE::NiNode> clitoris;
 		RE::NiPointer<RE::NiNode> vaginadeep;
+		RE::NiPointer<RE::NiNode> vaginaleft;
+		RE::NiPointer<RE::NiNode> vaginaright;
 		std::vector<SchlongData> schlongs;
 
 	public:
 		std::vector<RE::NiPoint3> GetSchlongTipReferencePoints(bool a_approximateifempty) const;
 		std::vector<RE::NiPoint3> GetSchlongReferenceVectors(bool a_approximateifempty) const;
+		std::optional<RE::NiPoint3> GetVaginalVector() const;
 
 	private:
 		RE::NiPoint3 ApproximateTip() const;

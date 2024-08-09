@@ -114,7 +114,16 @@ namespace Registry::Node
 		}
 		return ret;
 	}
-	
+
+	std::optional<RE::NiPoint3> NodeData::GetVaginalVector() const
+	{
+		if (!vaginadeep || !vaginaleft || !vaginaright)
+			return std::nullopt;
+
+		auto vagmid = (vaginaleft->world.translate + vaginaright->world.translate) / 2;
+		return vagmid - vaginadeep->world.translate;
+	}
+
 	RE::NiPoint3 NodeData::SchlongData::GetTipReferencePoint() const
 	{
 		assert(base);
@@ -138,5 +147,5 @@ namespace Registry::Node
 		auto translate = rot * base->world.rotate;
 		return translate.GetVectorY();
 	}
-	
+
 }
