@@ -12,7 +12,7 @@ namespace Registry::Node
 	static constexpr std::string_view FOOTRIGHT{ "NPC R Foot [Rft ]"sv };
 
 	static constexpr std::string_view CLITORIS{ "Clitoral1"sv };
-	static constexpr std::string_view VAGINA{ "VaginaDeep1"sv };
+	static constexpr std::string_view VAGINADEEP{ "VaginaDeep1"sv };
 	static constexpr std::string_view VAGINALLEFT{ "NPC L Pussy02"sv };
 	static constexpr std::string_view VAGINALRIGHT{ "NPC R Pussy02"sv };
 	static constexpr std::string_view ANAL{ "NPC Anus Deep2"sv };
@@ -70,6 +70,10 @@ namespace Registry::Node
 			SchlongData(glm::mat3 a_rot) :
 				rot({ a_rot[0].x, a_rot[0].y, a_rot[0].z }, { a_rot[1].x, a_rot[1].y, a_rot[1].z }, { a_rot[2].x, a_rot[2].y, a_rot[2].z }) {}
 
+			RE::NiPoint3 GetTipReferencePoint() const;
+			RE::NiPoint3 GetTipReferenceVector() const;
+
+		public:
 			RE::NiPointer<RE::NiNode> base{ nullptr };
 			RE::NiPointer<RE::NiNode> mid{ nullptr };
 			RE::NiPointer<RE::NiNode> tip{ nullptr };
@@ -91,10 +95,11 @@ namespace Registry::Node
 		RE::NiPointer<RE::NiNode> foot_rigt;
 
 		RE::NiPointer<RE::NiNode> clitoris;
+		RE::NiPointer<RE::NiNode> vaginadeep;
 		std::vector<SchlongData> schlongs;
 
 	public:
-		std::vector<RE::NiPoint3> GetSchlongReferencePoints(bool a_approximateifempty) const;
+		std::vector<RE::NiPoint3> GetSchlongTipReferencePoints(bool a_approximateifempty) const;
 		std::vector<RE::NiPoint3> GetSchlongReferenceVectors(bool a_approximateifempty) const;
 
 	private:

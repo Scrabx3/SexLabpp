@@ -73,21 +73,23 @@ namespace Registry::Node
 		constexpr float upward = -5.0f;
 		return ApproximateNode(forward, upward);
 	}
-	
-	std::vector<RE::NiPoint3> NodeData::GetSchlongReferencePoints(bool a_approximateifempty) const
+
+	std::vector<RE::NiPoint3> NodeData::GetSchlongTipReferencePoints(bool a_approximateifempty) const
 	{
 		std::vector<RE::NiPoint3> ret{};
 		for (auto&& s : schlongs) {
 			assert(s.base);
-			if (s.tip)
+			if (s.tip) {
 				ret.push_back(s.tip->world.translate);
-			else if (s.mid)
-				ret.push_back(s.mid->world.translate);
-			else
-				ret.push_back(s.base->world.translate);
+			} else {
+				const auto& world = s.base->world;
+				const auto vforward = world.rotate.GetVectorY();
+				const auto approximate = (vforward * 20.0f) + world.translate;
+				ret.push_back(approximate);
+			}
 		}
 		if (ret.empty() && a_approximateifempty)
-			ret.push_back(ApproximateMid());
+			ret.push_back(ApproximateTip());
 		return ret;
 	}
 
@@ -112,4 +114,29 @@ namespace Registry::Node
 		}
 		return ret;
 	}
+	
+	RE::NiPoint3 NodeData::SchlongData::GetTipReferencePoint() const
+	{
+		assert(base);
+		if (tip) {
+			return tip->world.translate;
+		}
+		auto vforward = GetTipReferenceVector();
+		vforward.Unitize();
+		return (vforward * 20.0f) + base->world.translate;
+	}
+
+	RE::NiPoint3 NodeData::SchlongData::GetTipReferenceVector() const
+	{
+		assert(base);
+		const auto& refpoint = base->world.translate;
+		if (mid) {
+			return mid->world.translate - refpoint;
+		} else if (tip) {
+			return mid->world.translate - refpoint;
+		}
+		auto translate = rot * base->world.rotate;
+		return translate.GetVectorY();
+	}
+	
 }
