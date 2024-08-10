@@ -20,168 +20,94 @@ namespace Registry::Collision
 		vCrotch.Unitize();
 	}
 
-	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::GetHeadInteraction(const WorkingData& a_partner) const
+	std::vector<Position::Interaction> Position::Snapshot::GetHeadInteractions(const Snapshot& a_partner) const
 	{
-		if (!a_partner._position._nodes.head)
-			return std::nullopt;
-		const auto& headworld = a_partner._position._nodes.head->world;
-		if (pGenitalReference == RE::NiPoint3::Zero())
-			return std::nullopt;
-		auto distance = pGenitalReference.GetDistance(headworld.translate);
-		if (distance > a_partner.GetHeadForwardDistance())
-			return std::nullopt;
-		if (vSchlong != RE::NiPoint3::Zero()) {
-			const auto vRot = headworld.rotate * vSchlong;
-			const auto dot = vRot.Dot(vSchlong);
-			const auto angle = RE::rad_to_deg(std::acosf(dot));
-			if (angle < (180 - Settings::fAngleMouth)) {
-				return std::nullopt;
+		if (!bHead.IsValid())
+			return {};
+		assert(position.nodes.head);
+		auto& headworld = position.nodes.head->world;
+		auto& partnernodes = a_partner.position.nodes;
+		const auto mouthstart = GetHeadForwardPoint(bHead.boundMax.y);
+		const auto vMyHead = *mouthstart - headworld.translate;
+		assert(mouthstart);
+		std::vector<Position::Interaction> ret{};
+		if (a_partner.position.sex.any(Sex::Female, Sex::Futa)) {
+			auto vVaginal = partnernodes.GetVaginalVector();
+			assert(!vVaginal || partnernodes.clitoris);
+			if (vVaginal && bHead.IsPointInside(partnernodes.clitoris->world.translate)) {
+				auto dot = (*vVaginal).Dot(vMyHead);
+				auto angle = RE::rad_to_deg(std::acosf(dot));
+				if ((angle - 180) < Settings::fAngleMouth * 2) {
+					float distance = partnernodes.clitoris->world.translate.GetDistance(*mouthstart);
+					Interaction act{ a_partner.position.actor, Interaction::Action::Oral, distance };
+					ret.push_back(act);
+				}
 			}
-		}
-		TypeData ret{};
-		ret._distance = distance;
-		ret._partner = a_partner._position._owner;
-		ret._type = TypeData::Type::Oral;
-		return ret;
-	}
-
-	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::GetsOral(const WorkingData& a_partner) const
-	{
-		if (!a_partner._position._nodes.head)
-			return std::nullopt;
-		const auto& headworld = a_partner._position._nodes.head->world;
-		if (pGenitalReference == RE::NiPoint3::Zero())
-			return std::nullopt;
-		auto distance = pGenitalReference.GetDistance(headworld.translate);
-		if (distance > a_partner.GetHeadForwardDistance())
-			return std::nullopt;
-		if (vSchlong != RE::NiPoint3::Zero()) {
-			const auto vRot = headworld.rotate * vSchlong;
-			const auto dot = vRot.Dot(vSchlong);
-			const auto angle = RE::rad_to_deg(std::acosf(dot));
-			if (angle < (180 - Settings::fAngleMouth)) {
-				return std::nullopt;
-			}
-		}
-		TypeData ret{};
-		ret._distance = distance;
-		ret._partner = a_partner._position._owner;
-		ret._type = TypeData::Type::Oral;
-		return ret;
-	}
-
-	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::GetsHandjob(const WorkingData& a_partner) const
-	{
-		const auto& handL = a_partner._position._nodes.hand_left;
-		const auto& handR = a_partner._position._nodes.hand_right;
-		if (pGenitalReference == RE::NiPoint3::Zero())
-			return std::nullopt;
-		const auto make = [&](decltype(handL)& hand) -> std::optional<TypeData> {
-			if (!hand)
-				return std::nullopt;
-			const auto d = hand->world.translate.GetDistance(pGenitalReference);
-			if (d > Settings::fDistanceHand)
-				return std::nullopt;
-			TypeData ret{};
-			ret._distance = d;
-			ret._partner = a_partner._position._owner;
-			ret._type = TypeData::Type::Hand;
-			return ret;
-		};
-		if (auto ret = make(handL))
-			return ret;
-		if (auto ret = make(handR))
-			return ret;
-		return std::nullopt;
-	}
-
-	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::GetsFootjob(const WorkingData& a_partner) const
-	{
-		const auto& footL = a_partner._position._nodes.foot_left;
-		const auto& footR = a_partner._position._nodes.foot_rigt;
-		if (pGenitalReference == RE::NiPoint3::Zero())
-			return std::nullopt;
-		const auto make = [&](decltype(footL)& foot) -> std::optional<TypeData> {
-			if (!foot)
-				return std::nullopt;
-			const auto d = foot->world.translate.GetDistance(pGenitalReference);
-			if (d > Settings::fDistanceFoot)
-				return std::nullopt;
-			TypeData ret{};
-			ret._distance = d;
-			ret._partner = a_partner._position._owner;
-			ret._type = TypeData::Type::Foot;
-			return ret;
-		};
-		if (auto ret = make(footL))
-			return ret;
-		if (auto ret = make(footR))
-			return ret;
-		return std::nullopt;
-	}
-
-	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::DoesGrinidng(const WorkingData& a_partner) const
-	{
-		const auto& cT = _position._nodes.clitoris;
-		if (!cT)
-			return std::nullopt;
-		float d;
-		if (a_partner.vSchlong != RE::NiPoint3::Zero()) {
-			const auto& dot = vCrotch.Dot(a_partner.vSchlong);
-			const auto deg = RE::rad_to_deg(std::acosf(dot));
-			if (deg < (180 - Settings::fAngleGrinding) || deg > Settings::fAngleGrinding) {
-				return std::nullopt;
-			}
-			const auto& sPtr = a_partner._position._nodes.sos_mid;
-			const auto refP = sPtr ? sPtr->world.translate : a_partner._position._nodes.ApproximateMid();
-			d = cT->world.translate.GetDistance(refP);
-		} else {
-			const auto& cPtr = a_partner._position._nodes.clitoris;
-			if (!cPtr)
-				return std::nullopt;
-			d = cT->world.translate.GetDistance(cPtr->world.translate);
-		}
-		if (d > Settings::fDistanceCrotch / 2)
-			return std::nullopt;
-		TypeData ret{};
-		ret._distance = d;
-		ret._partner = a_partner._position._owner;
-		ret._type = TypeData::Type::Grinding;
-		return ret;
-	}
-
-	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::HasIntercourse(const WorkingData& a_partner) const
-	{
-		if (a_partner.vSchlong == RE::NiPoint3::Zero()) {
-			return std::nullopt;
-		}
-		const auto dot = vCrotch.Dot(a_partner.vSchlong);
-		const auto deg = RE::rad_to_deg(std::acosf(dot));
-		if (deg < (90 - Settings::fAnglePenetration) || deg > (90 + Settings::fAnglePenetration)) {
-			return std::nullopt;
-		}
-		assert(_position._nodes.pelvis && _position._nodes.spine_lower);
-		const auto& refTA = _position._nodes.spine_lower->world.translate;
-		const auto& refP = a_partner._position._nodes.sos_mid ?
-												 a_partner._position._nodes.sos_mid->world.translate :
-												 a_partner._position._nodes.ApproximateMid();
-		const auto dA = refTA.GetDistance(refP);
-		if (dA > Settings::fDistanceCrotch) {
-			return std::nullopt;
-		}
-		TypeData ret{};
-		ret._partner = a_partner._position._owner;
-		if (_position._sex != Sex::Male) {
-			const auto& refTV = _position._nodes.pelvis->world.translate;
-			const auto dV = refTV.GetDistance(refP);
-			if (dV < Settings::fDistanceCrotch) {
-				ret._distance = dV < dA ? dV : dA;
-				ret._type = dV < dA ? TypeData::Type::VaginalP : TypeData::Type::AnalP;
+			if (!ret.empty()) {
 				return ret;
 			}
 		}
-		ret._distance = dA;
-		ret._type = TypeData::Type::AnalP;
+		if (a_partner.position.sex.any(Sex::Male, Sex::Futa)) {
+			for (auto&& p : partnernodes.schlongs) {
+				assert(p.base);
+				const auto& base = p.base->world;
+				const auto vBaseToHead = headworld.translate - base.translate;
+				const auto pTip = p.GetTipReferencePoint();
+				const auto vSchlong = p.GetTipReferenceVector();
+				const auto angle_front = vBaseToHead.Dot(vSchlong);
+				const auto dCenter = headworld.translate.GetDistance(pTip);
+				const auto penetrating_skull = dCenter < ((std::abs(angle_front - 90) < 60 ? bHead.boundMax.x : bHead.boundMax.y) * 0.8);
+				if (angle_front < 0) {
+					if (!penetrating_skull) {
+						Interaction act{ a_partner.position.actor, Interaction::Action::Facial, dCenter };
+						ret.push_back(act);
+					}
+					const auto distance_mouth = vBaseToHead.Dot(vSchlong) / base.translate.SqrLength();
+					if (distance_mouth < (bHead.boundMax.x / 2)) {
+						auto vRot = headworld.rotate * vSchlong;
+						auto dot = vRot.Dot(vSchlong);
+						auto angle = RE::rad_to_deg(std::acosf(dot));
+						if (std::abs(angle - 180) < Settings::fAngleMouth) {
+							Interaction act{ a_partner.position.actor, Interaction::Action::Oral, dCenter };
+							ret.push_back(act);
+							assert(partnernodes.pelvis);
+							const auto tip_throat = pTip.GetDistance(headworld.translate) < bHead.boundMax.y * 0.1;
+							const auto pelvis_head = partnernodes.pelvis->world.translate.GetDistance(headworld.translate) <= bHead.boundMax.y;
+							if (tip_throat || pelvis_head) {
+								Interaction act{ a_partner.position.actor, Interaction::Action::Deepthroat, dCenter };
+								ret.push_back(act);
+							} else if (std::abs(angle - 90) < Settings::fAngleMouth) {
+								Interaction act{ a_partner.position.actor, Interaction::Action::LickingShaft, dCenter };
+								ret.push_back(act);
+							}
+						} else if (penetrating_skull) {
+							goto __MAKE_SKULLFUCK;
+						}
+					} else if (penetrating_skull) {
+__MAKE_SKULLFUCK:
+						Interaction act{ a_partner.position.actor, Interaction::Action::Skullfuck, dCenter };
+						ret.push_back(act);
+					}
+				}
+				if (!ret.empty()) {
+					return ret;
+				}
+			}
+		}
+		const auto pmouthstart = a_partner.GetHeadForwardPoint(a_partner.bHead.boundMax.y);
+		if (pmouthstart) {
+			assert(partnernodes.head);
+			auto vPartnerHead = *pmouthstart - partnernodes.head->world.translate;
+			auto dot = vMyHead.Dot(vPartnerHead);
+			auto angle = RE::rad_to_deg(std::acosf(dot));
+			if (std::abs(angle - 180) < Settings::fAngleMouth) {
+				if (bHead.IsPointInside(*pmouthstart) || a_partner.bHead.IsPointInside(*mouthstart)) {
+					float distance = pmouthstart->GetDistance(*mouthstart);
+					Interaction act{ a_partner.position.actor, Interaction::Action::Kissing, distance };
+					ret.push_back(act);
+				}
+			}
+		}
 		return ret;
 	}
 
