@@ -30,15 +30,20 @@ namespace Registry::Node
 		}
 		get(HEAD, head, true);
 		get(HANDLEFT, hand_left, true);
-		get(HANDRIGHT, hand_right, true);
+		get(HANDRIGHT, hand_right, false);
+		get(FINGERLEFT, finger_left, false);
+		get(FINGERRIGHT, finger_right, false);
 		get(FOOTLEFT, foot_left, true);
-		get(FOOTRIGHT, foot_right, true);
+		get(FOOTRIGHT, foot_right, false);
 		get(TOELEFT, toe_left, true);
 		get(TOERIGHT, toe_right, true);
 		get(CLITORIS, clitoris, true);
 		get(VAGINADEEP, vaginadeep, true);
-		get(VAGINALLEFT, vaginaleft, true);
-		get(VAGINALRIGHT, vaginaright, true);
+		get(VAGINALLEFT, vaginaleft, false);
+		get(VAGINALRIGHT, vaginaright, false);
+		get(ANALDEEP, analdeep, true);
+		get(ANALLEFT, analleft, false);
+		get(ANALRIGHT, analright, false);
 		for (auto&& it : SCHLONG_NODES) {
 			SchlongData tmp(it.rot);
 			int s = get(it.base, tmp.base, false) + get(it.mid, tmp.mid, false) + get(it.tip, tmp.tip, false);
@@ -125,8 +130,33 @@ namespace Registry::Node
 		if (!vaginadeep || !vaginaleft || !vaginaright)
 			return std::nullopt;
 
-		auto vagmid = (vaginaleft->world.translate + vaginaright->world.translate) / 2;
-		return vagmid - vaginadeep->world.translate;
+		auto vagmid = GetVaginalStart();
+		assert(vagmid);
+		return *vagmid - vaginadeep->world.translate;
+	}
+
+	std::optional<RE::NiPoint3> NodeData::GetVaginalStart() const
+	{
+		if (!vaginaleft || !vaginaright)
+			return std::nullopt;
+		return (vaginaleft->world.translate + vaginaright->world.translate) / 2;
+	}
+
+	std::optional<RE::NiPoint3> NodeData::GetAnalVector() const
+	{
+		if (!analdeep || !analleft || !analright)
+			return std::nullopt;
+		
+		auto analmid = GetAnalStart();
+		assert(analmid);
+		return *analmid - analdeep->world.translate;
+	}
+
+	std::optional<RE::NiPoint3> NodeData::GetAnalStart() const
+	{
+		if (!analleft || !analright)
+			return std::nullopt;
+		return (analleft->world.translate + analright->world.translate) / 2;
 	}
 
 	std::optional<RE::NiPoint3> NodeData::GetToeVectorLeft() const
@@ -141,6 +171,20 @@ namespace Registry::Node
 		if (!foot_right || !toe_right)
 			return std::nullopt;
 		return toe_right->world.translate - foot_right->world.translate;
+	}
+	
+	std::optional<RE::NiPoint3> NodeData::GetHandVectorLeft() const
+	{
+		if (!hand_left || !finger_left)
+			return std::nullopt;
+		return finger_left->world.translate - hand_left->world.translate;
+	}
+
+	std::optional<RE::NiPoint3> NodeData::GetHandVectorRight() const
+	{
+		if (!hand_right || !finger_right)
+			return std::nullopt;
+		return finger_right->world.translate - hand_right->world.translate;
 	}
 
 	RE::NiPoint3 NodeData::GetCrotchVector() const
@@ -171,6 +215,12 @@ namespace Registry::Node
 		}
 		auto translate = rot * base->world.rotate;
 		return translate.GetVectorY();
+	}
+
+	inline float GetVectorAngle(const RE::NiPoint3& v1, const RE::NiPoint3& v2)
+	{
+		const auto dot = v1.Dot(v2);
+		return RE::rad_to_deg(std::acosf(dot));
 	}
 
 }

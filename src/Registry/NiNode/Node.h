@@ -6,18 +6,20 @@ namespace Registry::Node
 	static constexpr std::string_view PELVIS{ "NPC Pelvis [Pelv]"sv };		 // bottom mid (front)
 	static constexpr std::string_view SPINELOWER{ "NPC Spine [Spn0]"sv };	 // bottom mid (back)
 
-	static constexpr std::string_view HANDLEFT{ "NPC L Finger20 [LF20]"sv };	// Base of middle finger
-	static constexpr std::string_view HANDRIGHT{ "NPC R Finger20 [RF20]"sv };
+	static constexpr std::string_view HANDLEFT{ "NPC L Hand [LHnd]"sv };	// Base hand
+	static constexpr std::string_view HANDRIGHT{ "NPC R Hand [RHnd]"sv };
+	static constexpr std::string_view FINGERLEFT{ "NPC L Finger20 [LF20]"sv };	// Base of the midd
+	static constexpr std::string_view FINGERRIGHT{ "NPC R Finger20 [RF20]"sv };
 	static constexpr std::string_view FOOTLEFT{ "NPC L Foot [Lft ]"sv };	// Ankle
 	static constexpr std::string_view FOOTRIGHT{ "NPC R Foot [Rft ]"sv };
-	static constexpr std::string_view TOELEFT{ "NPC L Toe0 [LToe]"sv };
+	static constexpr std::string_view TOELEFT{ "NPC L Toe0 [LToe]"sv };	 // base of middle toe
 	static constexpr std::string_view TOERIGHT{ "NPC R Toe0 [RToe]"sv };
 
 	static constexpr std::string_view CLITORIS{ "Clitoral1"sv };
 	static constexpr std::string_view VAGINADEEP{ "VaginaDeep1"sv };
 	static constexpr std::string_view VAGINALLEFT{ "NPC L Pussy02"sv };
 	static constexpr std::string_view VAGINALRIGHT{ "NPC R Pussy02"sv };
-	static constexpr std::string_view ANAL{ "NPC Anus Deep2"sv };
+	static constexpr std::string_view ANALDEEP{ "NPC Anus Deep2"sv };
 	static constexpr std::string_view ANALLEFT{ "NPC LB Anus2"sv };
 	static constexpr std::string_view ANALRIGHT{ "NPC RB Anus2"sv };
 	struct SchlongInfo
@@ -93,6 +95,8 @@ namespace Registry::Node
 
 		RE::NiPointer<RE::NiNode> hand_left;
 		RE::NiPointer<RE::NiNode> hand_right;
+		RE::NiPointer<RE::NiNode> finger_left;
+		RE::NiPointer<RE::NiNode> finger_right;
 		RE::NiPointer<RE::NiNode> foot_left;
 		RE::NiPointer<RE::NiNode> foot_right;
 		RE::NiPointer<RE::NiNode> toe_left;
@@ -102,20 +106,32 @@ namespace Registry::Node
 		RE::NiPointer<RE::NiNode> vaginadeep;
 		RE::NiPointer<RE::NiNode> vaginaleft;
 		RE::NiPointer<RE::NiNode> vaginaright;
+		RE::NiPointer<RE::NiNode> analdeep;
+		RE::NiPointer<RE::NiNode> analleft;
+		RE::NiPointer<RE::NiNode> analright;
 		std::vector<SchlongData> schlongs;
 
 	public:
 		std::vector<RE::NiPoint3> GetSchlongTipReferencePoints(bool a_approximateifempty) const;
 		std::vector<RE::NiPoint3> GetSchlongReferenceVectors(bool a_approximateifempty) const;
 		std::optional<RE::NiPoint3> GetVaginalVector() const;
+		std::optional<RE::NiPoint3> GetVaginalStart() const;
+		std::optional<RE::NiPoint3> GetAnalVector() const;
+		std::optional<RE::NiPoint3> GetAnalStart() const;
 		std::optional<RE::NiPoint3> GetToeVectorLeft() const;
 		std::optional<RE::NiPoint3> GetToeVectorRight() const;
+		std::optional<RE::NiPoint3> GetHandVectorLeft() const;
+		std::optional<RE::NiPoint3> GetHandVectorRight() const;
 		RE::NiPoint3 GetCrotchVector() const;
 
-	private:
+	public:
 		RE::NiPoint3 ApproximateTip() const;
 		RE::NiPoint3 ApproximateMid() const;
 		RE::NiPoint3 ApproximateBase() const;
+	
+	private:
 		RE::NiPoint3 ApproximateNode(float a_forward, float a_upward) const;
 	};
+
+	inline float GetVectorAngle(const RE::NiPoint3& v1, const RE::NiPoint3& v2);
 }
