@@ -198,39 +198,40 @@ __MAKE_SKULLFUCK:
 		}
 	}
 
-	void Collision::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept
+
+	void Handler::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept
 	{
 		try {
-			const auto where = std::ranges::find(_data, a_id, [](auto& it) { return it.first; });
-			if (where != _data.end()) {
-				_data.erase(where);
+			const auto where = std::ranges::find(processes, a_id, [](auto& it) { return it.first; });
+			if (where != processes.end()) {
+				processes.erase(where);
 			}
-			auto process = std::make_unique<PhysicsData>(a_positions, a_scene);
-			_data.emplace_back(a_id, std::move(process));
+			auto process = std::make_unique<Process>(a_positions, a_scene);
+			processes.emplace_back(a_id, std::move(process));
 		} catch (const std::exception& e) {
 			logger::error("Cannot register sound processing unit, Error: {}", e.what());
 		}
 	}
 
-	void Collision::Unregister(RE::FormID a_id) noexcept
+	void Handler::Unregister(RE::FormID a_id) noexcept
 	{
-		const auto where = std::ranges::find(_data, a_id, [](auto& it) { return it.first; });
-		if (where == _data.end()) {
+		const auto where = std::ranges::find(processes, a_id, [](auto& it) { return it.first; });
+		if (where == processes.end()) {
 			logger::error("No object registered using ID {:X}", a_id);
 			return;
 		}
-		_data.erase(where);
+		processes.erase(where);
 	}
 
-	bool Collision::IsRegistered(RE::FormID a_id) const noexcept
+	bool Handler::IsRegistered(RE::FormID a_id) const noexcept
 	{
-		return std::ranges::contains(_data, a_id, [](auto& it) { return it.first; });
+		return std::ranges::contains(processes, a_id, [](auto& it) { return it.first; });
 	}
 
-	const Collision::PhysicsData* Collision::GetData(RE::FormID a_id) const
+	const Handler::Process* Handler::GetProcess(RE::FormID a_id) const
 	{
 		const auto where = std::ranges::find(_data, a_id, [](auto& it) { return it.first; });
 		return where == _data.end() ? nullptr : where->second.get();
 	}
 
-}	 // namespace Registry
+}	 // namespace Registry::Collision
