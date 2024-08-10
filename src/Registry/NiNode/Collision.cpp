@@ -1,150 +1,23 @@
-#include "Physics.h"
+#include "Collision.h"
 
-#include "Util/Premutation.h"
-#include "Util/RayCast/ObjectBound.h"
-#include "Registry/Node.h"
+#include "Registry/Util/Premutation.h"
+#include "Registry/Util/RayCast/ObjectBound.h"
 
-using namespace Registry::Node;	// TODO: remove this <-
-
-namespace Registry
+namespace Registry::Collision
 {
-	Collision::Position::Nodes::Nodes(const RE::Actor* a_actor, bool a_alternatenodes)
-	{
-		const auto obj = a_actor->Get3D();
-		if (!obj) {
-			const auto msg = fmt::format("Unable to retrieve 3D of actor {:X}", a_actor->GetFormID());
-			throw std::exception(msg.c_str());
-		}
-		const auto avhead = obj->GetObjectByName(HEAD);
-		head = RE::NiPointer{ avhead ? avhead->AsNode() : nullptr };
-		if (!head) {
-			logger::info("Actor {:X} is missing head node (This may be expected for creature actors)", a_actor->formID);
-		}
-		pelvis = RE::NiPointer{ obj->GetObjectByName(PELVIS) };
-		spine_lower = RE::NiPointer{ obj->GetObjectByName(SPINELOWER) };
-		if (!pelvis || !spine_lower) {
-			throw std::exception("Missing mandatory 3d object (body)");
-		}
-		hand_left = RE::NiPointer{ obj->GetObjectByName(HANDLEFT) };
-		hand_right = RE::NiPointer{ obj->GetObjectByName(HANDRIGHT) };
-		foot_left = RE::NiPointer{ obj->GetObjectByName(FOOTLEFT) };
-		foot_rigt = RE::NiPointer{ obj->GetObjectByName(FOOTRIGHT) };
-		if (!hand_left || !hand_right || !foot_left || !foot_rigt) {
-			logger::info("Actor {:X} is missing limb nodes (This may be expected for creature actors)", a_actor->formID);
-		}
-		clitoris = RE::NiPointer{ obj->GetObjectByName(CLITORIS) };
-		const auto findschlong = [&]<typename T>(const T& a_list) -> RE::NiAVObject* {
-			for (auto&& it : a_list) {
-				if (const auto ret = obj->GetObjectByName(it))
-					return ret;
-			}
-			return nullptr;
-		};
-		if (a_alternatenodes) {
-			sos_base = RE::NiPointer{ findschlong(SOSSTART_ALT) };
-			sos_mid = RE::NiPointer{ findschlong(SOSMID_ALT) };
-			sos_front = RE::NiPointer{ findschlong(SOSTIP_ALT) };
-		} else {
-			sos_base = RE::NiPointer{ findschlong(SOSSTART) };
-			sos_mid = RE::NiPointer{ findschlong(SOSMID) };
-			sos_front = RE::NiPointer{ findschlong(SOSTIP) };
-		}
-	}
 
-	RE::NiPoint3 Collision::Position::Nodes::ApproximateNode(float a_forward, float a_upward) const
-	{
-		Registry::Coordinate approx(std::vector{ a_forward, 0.0f, a_upward, 0.0f });
-		RE::NiPoint3 angle;
-		pelvis->world.rotate.ToEulerAnglesXYZ(angle);
-		Registry::Coordinate ret{ pelvis->world.translate, angle.z };
-		approx.Apply(ret);
-		return ret.AsNiPoint();
-	}
-
-	RE::NiPoint3 Collision::Position::Nodes::ApproximateTip() const
-	{
-		constexpr float forward = 20.0f;
-		constexpr float upward = -4.0f;
-		return ApproximateNode(forward, upward);
-	}
-
-	RE::NiPoint3 Collision::Position::Nodes::ApproximateMid() const
-	{
-		constexpr float forward = 15.0f;
-		constexpr float upward = -6.2f;
-		return ApproximateNode(forward, upward);
-	}
-
-	RE::NiPoint3 Collision::Position::Nodes::ApproximateBase() const
-	{
-		constexpr float forward = 10.0f;
-		constexpr float upward = -5.0f;
-		return ApproximateNode(forward, upward);
-	}
-
-	Collision::Position::Position(RE::Actor* a_owner, Sex a_sex) :
-		_owner(a_owner->GetFormID()), _sex(a_sex), _nodes(a_owner, false), _types({}) {}
-
-	Collision::TypeData* Collision::Position::GetType(TypeData& a_data){
-		auto where = std::ranges::find_if(_types, [&](auto& type) {
-			return a_data._type == type._type && a_data._partner == type._partner;
-		});
-		if (where == _types.end()) {
-			return nullptr;
-		}
-		return &(*where);
-	}
-
-	Collision::PhysicsData::WorkingData::WorkingData(Position& a_position) :
-		_position(a_position),
+	Position::Snapshot::Snapshot(Position& a_position) :
+		position(a_position),
 		bHead([&]() {
-			const auto nihead = a_position._nodes.head.get();
+			const auto nihead = a_position.nodes.head.get();
 			if (!nihead)
 				return ObjectBound{};
 			auto ret = ObjectBound::MakeBoundingBox(nihead);
 			return ret ? *ret : ObjectBound{};
 		}()),
-		niGenitals([&]() -> decltype(niGenitals) {
-			if (this->vSchlong == RE::NiPoint3::Zero()) {
-				if (this->_position._nodes.clitoris)
-					return this->_position._nodes.clitoris.get()->AsNode();
-			} else if (this->_position._nodes.sos_mid) {
-				return this->_position._nodes.sos_mid.get()->AsNode();
-			}
-			return nullptr;
-		}()),
-		pGenitalReference([&]() {
-			if (this->vSchlong == RE::NiPoint3::Zero()) {
-				if (this->_position._nodes.clitoris)
-					return this->_position._nodes.clitoris->world.translate;
-			} else {
-				return this->_position._nodes.sos_mid ?
-								 this->_position._nodes.sos_mid->world.translate :
-								 this->_position._nodes.ApproximateMid();
-			}
-			return RE::NiPoint3::Zero();
-		}()),
-		vCrotch(a_position._nodes.pelvis->world.translate - a_position._nodes.spine_lower->world.translate),
-		vSchlong([&]() {
-			const auto& nodes = a_position._nodes;
-			if (!nodes.sos_mid) {
-				if (a_position._sex.any(Sex::Male, Sex::Futa)) {
-					const auto mid = a_position._nodes.ApproximateMid();
-					const auto base = a_position._nodes.ApproximateBase();
-					return mid - base;
-				}
-				return RE::NiPoint3::Zero();
-			}
-			if (nodes.sos_base) {
-				return nodes.sos_mid->world.translate - nodes.sos_base->world.translate;
-			} else if (nodes.sos_front) {
-				return nodes.sos_front->world.translate - nodes.sos_mid->world.translate;
-			}
-			return RE::NiPoint3::Zero();
-		}())
+		vCrotch(a_position.nodes.pelvis->world.translate - a_position.nodes.spine_lower->world.translate)
 	{
 		vCrotch.Unitize();
-		vSchlong.Unitize();
 	}
 
 	std::optional<Collision::TypeData> Collision::PhysicsData::WorkingData::GetHeadInteraction(const WorkingData& a_partner) const
