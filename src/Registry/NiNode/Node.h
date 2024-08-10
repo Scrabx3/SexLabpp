@@ -10,6 +10,8 @@ namespace Registry::Node
 	static constexpr std::string_view HANDRIGHT{ "NPC R Finger20 [RF20]"sv };
 	static constexpr std::string_view FOOTLEFT{ "NPC L Foot [Lft ]"sv };	// Ankle
 	static constexpr std::string_view FOOTRIGHT{ "NPC R Foot [Rft ]"sv };
+	static constexpr std::string_view TOELEFT{ "NPC L Toe0 [LToe]"sv };
+	static constexpr std::string_view TOERIGHT{ "NPC R Toe0 [RToe]"sv };
 
 	static constexpr std::string_view CLITORIS{ "Clitoral1"sv };
 	static constexpr std::string_view VAGINADEEP{ "VaginaDeep1"sv };
@@ -92,7 +94,9 @@ namespace Registry::Node
 		RE::NiPointer<RE::NiNode> hand_left;
 		RE::NiPointer<RE::NiNode> hand_right;
 		RE::NiPointer<RE::NiNode> foot_left;
-		RE::NiPointer<RE::NiNode> foot_rigt;
+		RE::NiPointer<RE::NiNode> foot_right;
+		RE::NiPointer<RE::NiNode> toe_left;
+		RE::NiPointer<RE::NiNode> toe_right;
 
 		RE::NiPointer<RE::NiNode> clitoris;
 		RE::NiPointer<RE::NiNode> vaginadeep;
@@ -104,6 +108,9 @@ namespace Registry::Node
 		std::vector<RE::NiPoint3> GetSchlongTipReferencePoints(bool a_approximateifempty) const;
 		std::vector<RE::NiPoint3> GetSchlongReferenceVectors(bool a_approximateifempty) const;
 		std::optional<RE::NiPoint3> GetVaginalVector() const;
+		std::optional<RE::NiPoint3> GetToeVectorLeft() const;
+		std::optional<RE::NiPoint3> GetToeVectorRight() const;
+		RE::NiPoint3 GetCrotchVector() const;
 
 	private:
 		RE::NiPoint3 ApproximateTip() const;

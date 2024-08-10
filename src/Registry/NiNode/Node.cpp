@@ -32,7 +32,9 @@ namespace Registry::Node
 		get(HANDLEFT, hand_left, true);
 		get(HANDRIGHT, hand_right, true);
 		get(FOOTLEFT, foot_left, true);
-		get(FOOTRIGHT, foot_rigt, true);
+		get(FOOTRIGHT, foot_right, true);
+		get(TOELEFT, toe_left, true);
+		get(TOERIGHT, toe_right, true);
 		get(CLITORIS, clitoris, true);
 		get(VAGINADEEP, vaginadeep, true);
 		get(VAGINALLEFT, vaginaleft, true);
@@ -125,6 +127,26 @@ namespace Registry::Node
 
 		auto vagmid = (vaginaleft->world.translate + vaginaright->world.translate) / 2;
 		return vagmid - vaginadeep->world.translate;
+	}
+
+	std::optional<RE::NiPoint3> NodeData::GetToeVectorLeft() const
+	{
+		if (!foot_left || !toe_left)
+			return std::nullopt;
+		return toe_left->world.translate - foot_left->world.translate;
+	}
+
+	std::optional<RE::NiPoint3> NodeData::GetToeVectorRight() const
+	{
+		if (!foot_right || !toe_right)
+			return std::nullopt;
+		return toe_right->world.translate - foot_right->world.translate;
+	}
+
+	RE::NiPoint3 NodeData::GetCrotchVector() const
+	{
+		assert(pelvis && spine_lower);
+		return spine_lower->world.translate - pelvis->world.translate;
 	}
 
 	RE::NiPoint3 NodeData::SchlongData::GetTipReferencePoint() const
