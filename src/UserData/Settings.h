@@ -158,6 +158,7 @@ struct Settings
 	static inline float fAnglePenetration{ 35.0f };	 // Angle relative to crotch area below which the schlong is no longer considered penetrating
 	static inline float fAngleGrinding{ 30.0f };		 // angle for schlong and cortch to be considered "parallel"
 	static inline float fAngleMouth{ 20.0f };				 // Angle of the cone from headnode to schlong that interprets the schlong in front of mouth
+	static inline float fHeadPenetrationRatio{ 0.8f };	 // At which head boundary ratio the schlong tip is considered penetrating
 
 	// --- Enjoyment
 	static inline float fEnjGrinding{ 0.075 };
