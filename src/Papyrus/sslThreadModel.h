@@ -56,7 +56,7 @@ namespace Papyrus::ThreadModel
 	bool IsCollisionRegistered(RE::TESQuest* a_qst);
 	void RegisterCollision(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene);
 	void UnregisterCollision(RE::TESQuest* a_qst);
-	std::vector<int> GetCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner);
+	std::vector<int> GetCollisionActions(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner);
 	bool HasCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner);
 	RE::Actor* GetPartnerByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
 	std::vector<RE::Actor*> GetPartnersByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
@@ -85,7 +85,7 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(IsCollisionRegistered, "sslThreadModel", true);
 		REGISTERFUNC(RegisterCollision, "sslThreadModel", true);
 		REGISTERFUNC(UnregisterCollision, "sslThreadModel", true);
-		REGISTERFUNC(GetCollisionAction, "sslThreadModel", true);
+		REGISTERFUNC(GetCollisionActions, "sslThreadModel", true);
 		REGISTERFUNC(HasCollisionAction, "sslThreadModel", true);
 		REGISTERFUNC(GetPartnerByAction, "sslThreadModel", true);
 		REGISTERFUNC(GetPartnersByAction, "sslThreadModel", true);

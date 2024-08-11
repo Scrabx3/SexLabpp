@@ -650,7 +650,7 @@ __CONTINUE_NEXT:
 		Registry::Collision::Handler::GetSingleton()->Unregister(a_qst->formID);
 	}
 
-	std::vector<int> GetCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
+	std::vector<int> GetCollisionActions(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
 	{
 		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
 		if (!process) {
