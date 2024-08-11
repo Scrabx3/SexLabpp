@@ -53,16 +53,16 @@ namespace Papyrus::ThreadModel
 	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext);
 	void ShuffleScenes(RE::TESQuest*, RE::reference_array<RE::BSFixedString> a_scenes, RE::BSFixedString a_tofront);
 
-	bool IsPhysicsRegistered(RE::TESQuest* a_qst);
-	void RegisterPhysics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene);
-	void UnregisterPhysics(RE::TESQuest* a_qst);
-	std::vector<int> GetPhysicTypes(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner);
-	bool HasPhysicType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner);
-	RE::Actor* GetPhysicPartnerByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
-	std::vector<RE::Actor*> GetPhysicPartnersByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
-	RE::Actor* GetPhysicPartnerByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
-	std::vector<RE::Actor*> GetPhysicPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
-	float GetPhysicVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type);
+	bool IsCollisionRegistered(RE::TESQuest* a_qst);
+	void RegisterCollision(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene);
+	void UnregisterCollision(RE::TESQuest* a_qst);
+	std::vector<int> GetCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner);
+	bool HasCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner);
+	RE::Actor* GetPartnerByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
+	std::vector<RE::Actor*> GetPartnersByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
+	RE::Actor* GetPartnerByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
+	std::vector<RE::Actor*> GetPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
+	float GetActionVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type);
 
 	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions,
 		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages);
@@ -82,16 +82,16 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
 		REGISTERFUNC(ShuffleScenes, "sslThreadModel", true);
 
-		REGISTERFUNC(IsPhysicsRegistered, "sslThreadModel", true);
-		REGISTERFUNC(RegisterPhysics, "sslThreadModel", true);
-		REGISTERFUNC(UnregisterPhysics, "sslThreadModel", true);
-		REGISTERFUNC(GetPhysicTypes, "sslThreadModel", true);
-		REGISTERFUNC(HasPhysicType, "sslThreadModel", true);
-		REGISTERFUNC(GetPhysicPartnerByType, "sslThreadModel", true);
-		REGISTERFUNC(GetPhysicPartnersByType, "sslThreadModel", true);
-		REGISTERFUNC(GetPhysicPartnerByTypeRev, "sslThreadModel", true);
-		REGISTERFUNC(GetPhysicPartnersByTypeRev, "sslThreadModel", true);
-		REGISTERFUNC(GetPhysicVelocity, "sslThreadModel", true);
+		REGISTERFUNC(IsCollisionRegistered, "sslThreadModel", true);
+		REGISTERFUNC(RegisterCollision, "sslThreadModel", true);
+		REGISTERFUNC(UnregisterCollision, "sslThreadModel", true);
+		REGISTERFUNC(GetCollisionAction, "sslThreadModel", true);
+		REGISTERFUNC(HasCollisionAction, "sslThreadModel", true);
+		REGISTERFUNC(GetPartnerByAction, "sslThreadModel", true);
+		REGISTERFUNC(GetPartnersByAction, "sslThreadModel", true);
+		REGISTERFUNC(GetPartnerByTypeRev, "sslThreadModel", true);
+		REGISTERFUNC(GetPartnersByTypeRev, "sslThreadModel", true);
+		REGISTERFUNC(GetActionVelocity, "sslThreadModel", true);
 
 		REGISTERFUNC(AddExperience, "sslThreadModel", true);
 		REGISTERFUNC(UpdateStatistics, "sslThreadModel", true);

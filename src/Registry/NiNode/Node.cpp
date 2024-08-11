@@ -217,7 +217,7 @@ namespace Registry::Node
 		return translate.GetVectorY();
 	}
 
-	inline float GetVectorAngle(const RE::NiPoint3& v1, const RE::NiPoint3& v2)
+	float GetVectorAngle(const RE::NiPoint3& v1, const RE::NiPoint3& v2)
 	{
 		const auto dot = v1.Dot(v2);
 		return RE::rad_to_deg(std::acosf(dot));

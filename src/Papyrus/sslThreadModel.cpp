@@ -630,60 +630,60 @@ __CONTINUE_NEXT:
 		std::ranges::shuffle(start, a_scenes.end(), gen);
 	}
 
-	bool IsPhysicsRegistered(RE::TESQuest* a_qst)
+	bool IsCollisionRegistered(RE::TESQuest* a_qst)
 	{
-		return Registry::Collision::GetSingleton()->IsRegistered(a_qst->formID);
+		return Registry::Collision::Handler::GetSingleton()->IsRegistered(a_qst->formID);
 	}
 
-	void RegisterPhysics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene)
+	void RegisterCollision(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene)
 	{
 		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_activescene);
 		if (!scene || scene->CountPositions() != a_positions.size()) {
 			a_vm->TraceStack("Invalid scene", a_stackID);
 			return;
 		}
-		Registry::Collision::GetSingleton()->Register(a_qst->formID, a_positions, scene);
+		Registry::Collision::Handler::GetSingleton()->Register(a_qst->formID, a_positions, scene);
 	}
 
-	void UnregisterPhysics(RE::TESQuest* a_qst)
+	void UnregisterCollision(RE::TESQuest* a_qst)
 	{
-		Registry::Collision::GetSingleton()->Unregister(a_qst->formID);
+		Registry::Collision::Handler::GetSingleton()->Unregister(a_qst->formID);
 	}
 
-	std::vector<int> GetPhysicTypes(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
+	std::vector<int> GetCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
 	{
-		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
-		if (!data) {
+		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
 		}
 		std::vector<int> ret{};
-		for (auto&& p : data->_positions) {
-			if (a_position && p._owner != a_position->formID)
+		for (auto&& p : process->GetPositions()) {
+			if (a_position && p.actor->formID != a_position->formID)
 				continue;
-			for (auto&& type : p._types) {
-				if (a_partner && type._partner != a_partner->formID)
+			for (auto&& type : p.interactions) {
+				if (a_partner && type.partner->formID != a_partner->formID)
 					continue;
-				ret.push_back(static_cast<int>(type._type));
+				ret.push_back(static_cast<int>(type.action));
 			}
 		}
 		return ret;
 	}
 
-	bool HasPhysicType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner)
+	bool HasCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner)
 	{
-		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
-		if (!data) {
+		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return false;
 		}
-		for (auto&& p : data->_positions) {
-			if (a_position && p._owner != a_position->formID)
+		for (auto&& p : process->GetPositions()) {
+			if (a_position && p.actor->formID != a_position->formID)
 				continue;
-			for (auto&& type : p._types) {
-				if (a_partner && type._partner != a_partner->formID)
+			for (auto&& type : p.interactions) {
+				if (a_partner && type.partner->formID != a_partner->formID)
 					continue;
-				if (a_type != -1 && a_type != static_cast<int>(type._type))
+				if (a_type != -1 && a_type != static_cast<int>(type.action))
 					continue;
 				return true;
 			}
@@ -691,70 +691,65 @@ __CONTINUE_NEXT:
 		return false;
 	}
 
-	RE::Actor* GetPhysicPartnerByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	RE::Actor* GetPartnerByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
 	{
 		if (!a_position) {
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return nullptr;
 		}
-		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
-		if (!data) {
+		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return nullptr;
 		}
-		for (auto&& p : data->_positions) {
-			if (p._owner != a_position->formID)
+		for (auto&& p : process->GetPositions()) {
+			if (p.actor->formID != a_position->formID)
 				continue;
-			for (auto&& type : p._types) {
-				if (a_type != -1 && a_type != static_cast<int>(type._type))
+			for (auto&& type : p.interactions) {
+				if (a_type != -1 && a_type != static_cast<int>(type.action))
 					continue;
-				if (auto ret = RE::TESForm::LookupByID<RE::Actor>(type._partner))
-					return ret;
+				return type.partner.get();
 			}
 		}
 		return nullptr;
 	}
 
-	std::vector<RE::Actor*> GetPhysicPartnersByType(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	std::vector<RE::Actor*> GetPartnersByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
 	{
-		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
-		if (!data) {
+		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
 		}
 		std::vector<RE::Actor*> ret{};
-		for (auto&& p : data->_positions) {
-			if (a_position && p._owner != a_position->formID)
+		for (auto&& p : process->GetPositions()) {
+			if (a_position && p.actor->formID != a_position->formID)
 				continue;
-			for (auto&& type : p._types) {
-				if (a_type != -1 && a_type != static_cast<int>(type._type))
+			for (auto&& type : p.interactions) {
+				if (a_type != -1 && a_type != static_cast<int>(type.action))
 					continue;
-				if (auto it = RE::TESForm::LookupByID<RE::Actor>(type._partner))
-					ret.push_back(it);
+				ret.push_back(type.partner.get());
 			}
 		}
 		return ret;
 	}
 
-	RE::Actor* GetPhysicPartnerByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	RE::Actor* GetPartnerByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
 	{
 		if (!a_position) {
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return {};
 		}
-		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
-		if (!data) {
+		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
 		}
-		for (auto&& p : data->_positions) {
-			auto it = RE::TESForm::LookupByID<RE::Actor>(p._owner);
-			if (!it)
-				continue;
-			for (auto&& type : p._types) {
-				if (a_position->formID == type._partner) {
-					if (a_type == -1 || a_type == static_cast<int>(type._type))
-						return it;
+		for (auto&& p : process->GetPositions()) {
+			for (auto&& type : p.interactions) {
+				if (a_position->formID == type.partner->formID) {
+					if (a_type == -1 || a_type == static_cast<int>(type.action))
+						return p.actor.get();
 					break;
 				}
 			}
@@ -762,22 +757,19 @@ __CONTINUE_NEXT:
 		return nullptr;
 	}
 
-	std::vector<RE::Actor*> GetPhysicPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	std::vector<RE::Actor*> GetPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
 	{
-		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
-		if (!data) {
+		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
 		}
 		std::vector<RE::Actor*> ret{};
-		for (auto&& p : data->_positions) {
-			auto it = RE::TESForm::LookupByID<RE::Actor>(p._owner);
-			if (!it)
-				continue;
-			for (auto&& type : p._types) {
-				if (a_position->formID == type._partner) {
-					if (a_type == -1 || a_type == static_cast<int>(type._type))
-						ret.push_back(it);
+		for (auto&& p : process->GetPositions()) {
+			for (auto&& type : p.interactions) {
+				if (!a_position || a_position->formID == type.partner->formID) {
+					if (a_type == -1 || a_type == static_cast<int>(type.action))
+						ret.push_back(p.actor.get());
 					break;
 				}
 			}
@@ -785,7 +777,7 @@ __CONTINUE_NEXT:
 		return ret;
 	}
 
-	float GetPhysicVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type)
+	float GetActionVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type)
 	{
 		if (!a_position) {
 			a_vm->TraceStack("Actor is none", a_stackID);
@@ -795,21 +787,21 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Type cant be 'any' here", a_stackID);
 			return 0.0f;
 		}
-		auto data = Registry::Collision::GetSingleton()->GetData(a_qst->formID);
-		if (!data) {
+		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return 0.0f;
 		}
 		std::vector<RE::Actor*> ret{};
-		for (auto&& p : data->_positions) {
-			if (p._owner != a_position->formID)
+		for (auto&& p : process->GetPositions()) {
+			if (p.actor->formID != a_position->formID)
 				continue;
-			for (auto&& type : p._types) {
-				if (a_partner && a_partner->formID != type._partner)
+			for (auto&& type : p.interactions) {
+				if (a_partner && a_partner->formID != type.partner->formID)
 					continue;
-				if (a_type != static_cast<int>(type._type))
+				if (a_type != static_cast<int>(type.action))
 					continue;
-				return type._velocity;
+				return type.velocity;
 			}
 		}
 		return 0.0f;

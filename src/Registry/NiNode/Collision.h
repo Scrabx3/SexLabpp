@@ -41,9 +41,10 @@ namespace Registry::Collision
 			Action action{ Action::None };
 			float distance{ 0.0f };
 			float velocity{ 0.0f };
-		
+
 		public:
 			bool operator==(const Interaction& a_rhs) const { return a_rhs.partner == partner && a_rhs.action == action; }
+			bool operator<(const Interaction& a_rhs) const { return a_rhs.partner->GetFormID() < partner->GetFormID() || a_rhs.action < action; }
 		};
 
 		struct Snapshot
@@ -51,12 +52,12 @@ namespace Registry::Collision
 			Snapshot(Position& a_position);
 			~Snapshot() = default;
 
-			std::vector<Interaction> GetHeadHeadInteractions(const Snapshot& a_other) const;			// This head on other head
-			std::vector<Interaction> GetHeadVaginaInteractions(const Snapshot& a_other) const;		// This head on other vagina
-			std::vector<Interaction> GetHeadPenisInteractions(const Snapshot& a_other) const;			// This head on other penis
-			std::vector<Interaction> GetCrotchPenisInteractions(const Snapshot& a_other) const;		// This crotch/vagina on other penis
-			std::vector<Interaction> GetVaginaVaginaInteractions(const Snapshot& a_other) const;	// This vagina on other vagina
-			std::vector<Interaction> GetGenitalLimbInteractions(const Snapshot& a_other) const;		// This vagina on other limbs
+			void GetHeadHeadInteractions(const Snapshot& a_other);			// This head on other head
+			void GetHeadVaginaInteractions(const Snapshot& a_other);		// This head on other vagina
+			void GetHeadPenisInteractions(const Snapshot& a_other);			// This head on other penis
+			void GetCrotchPenisInteractions(const Snapshot& a_other);		// This crotch/vagina on other penis
+			void GetVaginaVaginaInteractions(const Snapshot& a_other);	// This vagina on other vagina
+			void GetGenitalLimbInteractions(const Snapshot& a_other);		// This vagina on other limbs
 
 		public:
 			std::optional<RE::NiPoint3> GetHeadForwardPoint(float distance) const;
@@ -65,7 +66,7 @@ namespace Registry::Collision
 			Position& position;
 			ObjectBound bHead;
 
-			std::map<std::pair<RE::FormID, Interaction::Action>, Interaction> interactions{};
+			std::vector<Interaction> interactions{};
 		};
 
 	public:
@@ -77,7 +78,7 @@ namespace Registry::Collision
 		RE::ActorPtr actor;
 		Node::NodeData nodes;
 		stl::enumeration<Sex> sex;
-		std::vector<Interaction> interactions{};
+		std::set<Interaction> interactions{};
 	};
 
 	class Handler :
@@ -88,6 +89,8 @@ namespace Registry::Collision
 		public:
 			Process(const std::vector<RE::Actor*>& a_positions, const Scene* a_scene);
 			~Process();
+
+			const auto& GetPositions() const { return positions; }
 
 		private:
 			void Update();

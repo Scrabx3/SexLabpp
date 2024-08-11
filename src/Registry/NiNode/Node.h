@@ -133,5 +133,5 @@ namespace Registry::Node
 		RE::NiPoint3 ApproximateNode(float a_forward, float a_upward) const;
 	};
 
-	inline float GetVectorAngle(const RE::NiPoint3& v1, const RE::NiPoint3& v2);
+	float GetVectorAngle(const RE::NiPoint3& v1, const RE::NiPoint3& v2);
 }
