@@ -14,96 +14,105 @@ namespace Registry::Collision
 				return ObjectBound{};
 			auto ret = ObjectBound::MakeBoundingBox(nihead);
 			return ret ? *ret : ObjectBound{};
-		}()),
-		vCrotch(a_position.nodes.pelvis->world.translate - a_position.nodes.spine_lower->world.translate)
-	{
-		vCrotch.Unitize();
-	}
+		}()) {}
 
-	std::vector<Position::Interaction> Position::Snapshot::GetHeadInteractions(const Snapshot& a_partner) const
+	std::vector<Position::Interaction> Position::Snapshot::GetHeadHeadInteractions(const Snapshot& a_partner) const
 	{
 		if (!bHead.IsValid())
 			return {};
 		assert(position.nodes.head);
-		auto& headworld = position.nodes.head->world;
+		const auto& headworld = position.nodes.head->world;
+		const auto mouthstart = GetHeadForwardPoint(bHead.boundMax.y);
+		const auto pmouthstart = a_partner.GetHeadForwardPoint(a_partner.bHead.boundMax.y);
+		if (!pmouthstart || !mouthstart)
+			return {};
 		auto& partnernodes = a_partner.position.nodes;
+		assert(partnernodes.head);
+		const auto vMyHead = *mouthstart - headworld.translate;
+		const auto vPartnerHead = *pmouthstart - partnernodes.head->world.translate;
+		std::vector<Position::Interaction> ret{};
+		auto angle = Node::GetVectorAngle(vMyHead, vPartnerHead);
+		if (std::abs(angle - 180) < Settings::fAngleMouth) {
+			if (bHead.IsPointInside(*pmouthstart) || a_partner.bHead.IsPointInside(*mouthstart)) {
+				float distance = pmouthstart->GetDistance(*mouthstart);
+				Interaction act{ a_partner.position.actor, Interaction::Action::Kissing, distance };
+				ret.push_back(act);
+			}
+		}
+		return ret;
+	}
+
+	std::vector<Position::Interaction> Position::Snapshot::GetHeadVaginaInteractions(const Snapshot& a_partner) const
+	{
+		if (!bHead.IsValid())
+			return {};
+		if (a_partner.position.sex.none(Sex::Female, Sex::Futa))
+			return {};
+		assert(position.nodes.head);
+		auto& headworld = position.nodes.head->world;
 		const auto mouthstart = GetHeadForwardPoint(bHead.boundMax.y);
 		const auto vMyHead = *mouthstart - headworld.translate;
-		assert(mouthstart);
+		auto& partnernodes = a_partner.position.nodes;
+		auto vVaginal = partnernodes.GetVaginalVector();
+		if (!vVaginal || !partnernodes.clitoris || !mouthstart)
+			return {};
+		if (!bHead.IsPointInside(partnernodes.clitoris->world.translate))
+			return {};
+		auto angle = Node::GetVectorAngle(*vVaginal, vMyHead);
+		if ((angle - 180) < Settings::fAngleMouth * 2) {
+			float distance = partnernodes.clitoris->world.translate.GetDistance(*mouthstart);
+			return { Interaction{ a_partner.position.actor, Interaction::Action::Oral, distance } };
+		}
+		return {};
+	}
+
+	std::vector<Position::Interaction> Position::Snapshot::GetHeadPenisInteractions(const Snapshot& a_partner) const
+	{
+		if (!bHead.IsValid())
+			return {};
+		if (a_partner.position.sex.none(Sex::Male, Sex::Futa))
+			return {};
+		assert(position.nodes.head);
+		auto& headworld = position.nodes.head->world;
+		auto& partnernodes = a_partner.position.nodes;
 		std::vector<Position::Interaction> ret{};
-		if (a_partner.position.sex.any(Sex::Female, Sex::Futa)) {
-			auto vVaginal = partnernodes.GetVaginalVector();
-			assert(!vVaginal || partnernodes.clitoris);
-			if (vVaginal && bHead.IsPointInside(partnernodes.clitoris->world.translate)) {
-				auto dot = (*vVaginal).Dot(vMyHead);
-				auto angle = RE::rad_to_deg(std::acosf(dot));
-				if ((angle - 180) < Settings::fAngleMouth * 2) {
-					float distance = partnernodes.clitoris->world.translate.GetDistance(*mouthstart);
-					Interaction act{ a_partner.position.actor, Interaction::Action::Oral, distance };
+		for (auto&& p : partnernodes.schlongs) {
+			assert(p.base);
+			const auto& base = p.base->world;
+			const auto vBaseToHead = headworld.translate - base.translate;
+			const auto pTip = p.GetTipReferencePoint();
+			const auto vSchlong = p.GetTipReferenceVector();
+			const auto angle_front = vBaseToHead.Dot(vSchlong);
+			const auto dCenter = headworld.translate.GetDistance(pTip);
+			const auto penetrating_skull = dCenter < ((std::abs(angle_front - 90) < 60 ? bHead.boundMax.x : bHead.boundMax.y) * Settings::fHeadPenetrationRatio);
+			if (angle_front < 0) {
+				if (!penetrating_skull) {
+					Interaction act{ a_partner.position.actor, Interaction::Action::Facial, dCenter };
 					ret.push_back(act);
 				}
-			}
-			if (!ret.empty()) {
-				return ret;
-			}
-		}
-		if (a_partner.position.sex.any(Sex::Male, Sex::Futa)) {
-			for (auto&& p : partnernodes.schlongs) {
-				assert(p.base);
-				const auto& base = p.base->world;
-				const auto vBaseToHead = headworld.translate - base.translate;
-				const auto pTip = p.GetTipReferencePoint();
-				const auto vSchlong = p.GetTipReferenceVector();
-				const auto angle_front = vBaseToHead.Dot(vSchlong);
-				const auto dCenter = headworld.translate.GetDistance(pTip);
-				const auto penetrating_skull = dCenter < ((std::abs(angle_front - 90) < 60 ? bHead.boundMax.x : bHead.boundMax.y) * 0.8);
-				if (angle_front < 0) {
-					if (!penetrating_skull) {
-						Interaction act{ a_partner.position.actor, Interaction::Action::Facial, dCenter };
+				const auto distance_mouth = vBaseToHead.Dot(vSchlong) / vBaseToHead.SqrLength();
+				if (distance_mouth < (bHead.boundMax.x / 2)) {
+					auto vRot = headworld.rotate * vSchlong;
+					auto angle = Node::GetVectorAngle(vRot, vSchlong);
+					if (std::abs(angle - 180) < Settings::fAngleMouth) {
+						Interaction act{ a_partner.position.actor, Interaction::Action::Oral, dCenter };
 						ret.push_back(act);
-					}
-					const auto distance_mouth = vBaseToHead.Dot(vSchlong) / base.translate.SqrLength();
-					if (distance_mouth < (bHead.boundMax.x / 2)) {
-						auto vRot = headworld.rotate * vSchlong;
-						auto dot = vRot.Dot(vSchlong);
-						auto angle = RE::rad_to_deg(std::acosf(dot));
-						if (std::abs(angle - 180) < Settings::fAngleMouth) {
-							Interaction act{ a_partner.position.actor, Interaction::Action::Oral, dCenter };
+						assert(partnernodes.pelvis);
+						const auto tip_throat = pTip.GetDistance(headworld.translate) < bHead.boundMax.y * 0.1;
+						const auto pelvis_head = partnernodes.pelvis->world.translate.GetDistance(headworld.translate) <= bHead.boundMax.y;
+						if (tip_throat || pelvis_head) {
+							Interaction act{ a_partner.position.actor, Interaction::Action::Deepthroat, dCenter };
 							ret.push_back(act);
-							assert(partnernodes.pelvis);
-							const auto tip_throat = pTip.GetDistance(headworld.translate) < bHead.boundMax.y * 0.1;
-							const auto pelvis_head = partnernodes.pelvis->world.translate.GetDistance(headworld.translate) <= bHead.boundMax.y;
-							if (tip_throat || pelvis_head) {
-								Interaction act{ a_partner.position.actor, Interaction::Action::Deepthroat, dCenter };
-								ret.push_back(act);
-							} else if (std::abs(angle - 90) < Settings::fAngleMouth) {
-								Interaction act{ a_partner.position.actor, Interaction::Action::LickingShaft, dCenter };
-								ret.push_back(act);
-							}
-						} else if (penetrating_skull) {
-							goto __MAKE_SKULLFUCK;
+						} else if (std::abs(angle - 90) < Settings::fAngleMouth) {
+							Interaction act{ a_partner.position.actor, Interaction::Action::LickingShaft, dCenter };
+							ret.push_back(act);
 						}
 					} else if (penetrating_skull) {
-__MAKE_SKULLFUCK:
-						Interaction act{ a_partner.position.actor, Interaction::Action::Skullfuck, dCenter };
-						ret.push_back(act);
+						goto __MAKE_SKULLFUCK;
 					}
-				}
-				if (!ret.empty()) {
-					return ret;
-				}
-			}
-		}
-		const auto pmouthstart = a_partner.GetHeadForwardPoint(a_partner.bHead.boundMax.y);
-		if (pmouthstart) {
-			assert(partnernodes.head);
-			auto vPartnerHead = *pmouthstart - partnernodes.head->world.translate;
-			auto dot = vMyHead.Dot(vPartnerHead);
-			auto angle = RE::rad_to_deg(std::acosf(dot));
-			if (std::abs(angle - 180) < Settings::fAngleMouth) {
-				if (bHead.IsPointInside(*pmouthstart) || a_partner.bHead.IsPointInside(*mouthstart)) {
-					float distance = pmouthstart->GetDistance(*mouthstart);
-					Interaction act{ a_partner.position.actor, Interaction::Action::Kissing, distance };
+				} else if (penetrating_skull) {
+__MAKE_SKULLFUCK:
+					Interaction act{ a_partner.position.actor, Interaction::Action::Skullfuck, dCenter };
 					ret.push_back(act);
 				}
 			}
@@ -111,13 +120,124 @@ __MAKE_SKULLFUCK:
 		return ret;
 	}
 
-	std::optional<RE::NiPoint3> Collision::PhysicsData::WorkingData::GetHeadForwardPoint(float distance) const
+	std::vector<Position::Interaction> Position::Snapshot::GetCrotchPenisInteractions(const Snapshot& a_other) const
 	{
-		const auto& nihead = _position._nodes.head;
+		if (a_other.position.sex.none(Sex::Male, Sex::Futa))
+			return {};
+		const auto vVaginal = position.nodes.GetVaginalVector();
+		const auto vAnal = position.nodes.GetAnalVector();
+		const auto pVaginal = position.nodes.GetVaginalStart();
+		const auto pAnal = position.nodes.GetAnalStart();
+		const auto vCrotch = position.nodes.GetCrotchVector();
+		std::vector<Interaction> ret{};
+		for (auto&& p : a_other.position.nodes.schlongs) {
+			const auto vSchlong = p.GetTipReferenceVector();
+			assert(p.base && position.nodes.pelvis);
+			const auto vPelvisToBase = p.base->world.translate - position.nodes.pelvis->world.translate;
+			const auto dSchlongToPelvisLine = vPelvisToBase.Dot(vSchlong) / vPelvisToBase.SqrLength();
+			if (dSchlongToPelvisLine > Settings::fDistanceCrotch)
+				continue;
+			const auto angleCrotch = Node::GetVectorAngle(vCrotch, vSchlong);
+			if (vVaginal && vAnal && position.nodes.clitoris) {	// female
+				assert(pVaginal && pAnal);
+				const float dVag = pVaginal->GetDistance(p.base->world.translate), dAnal = pAnal->GetDistance(p.base->world.translate);
+				const float anglePen = Node::GetVectorAngle(dVag <= dAnal ? *vVaginal : *vAnal, vSchlong);
+				if (std::abs(anglePen - 180) < Settings::fAnglePenetration) {
+					const auto act = dVag <= dAnal ? Interaction::Action::Vaginal : Interaction::Action::Anal;
+					ret.emplace_back(a_other.position.actor, act, dSchlongToPelvisLine);
+				} else if (std::abs(angleCrotch - 180) < Settings::fAngleGrinding) {
+					const auto distance = position.nodes.clitoris->world.translate.GetDistance(p.base->world.translate);
+					ret.emplace_back(a_other.position.actor, Interaction::Action::Grinding, distance);
+				}
+			} else {	 // male/no 3ba
+				if (std::abs(angleCrotch - 90) < Settings::fAnglePenetration) {
+					ret.emplace_back(a_other.position.actor, Interaction::Action::Anal, dSchlongToPelvisLine);
+				} else if (std::abs(angleCrotch - 180) < Settings::fAngleGrinding) {
+					float distance;
+					if (const auto& c = position.nodes.clitoris) {
+						distance = c->world.translate.GetDistance(p.base->world.translate);
+					} else {
+						const auto& v = position.nodes.schlongs;
+						if (v.empty()) {
+							const auto base = position.nodes.ApproximateBase();
+							distance = base.GetDistance(p.base->world.translate);
+						} else {
+							distance = std::numeric_limits<float>::max();
+							for (auto&& i : v) {
+								distance = std::min(distance, i.base->world.translate.GetDistance(p.base->world.translate));
+							}
+						}
+					}
+					ret.emplace_back(a_other.position.actor, Interaction::Action::Grinding, distance);
+				}
+			}
+		}
+		return ret;
+	}
+
+	std::vector<Position::Interaction> Position::Snapshot::GetVaginaVaginaInteractions(const Snapshot& a_other) const
+	{
+		if (position.sex.none(Sex::Female, Sex::Futa) || a_other.position.sex.none(Sex::Female, Sex::Futa))
+			return {};
+		const auto &c1 = position.nodes.clitoris, &c2 = a_other.position.nodes.clitoris;
+		if (!c1 || !c2)
+			return {};
+		const auto distance = c1->world.translate.GetDistance(c2->world.translate);
+		if (distance > Settings::fDistanceCrotch)
+			return {};
+		auto vVaginal = position.nodes.GetVaginalVector();
+		auto vVaginalPartner = a_other.position.nodes.GetVaginalVector();
+		if (!vVaginal || !vVaginalPartner)
+			return {};
+		const auto angle = Node::GetVectorAngle(*vVaginal, *vVaginalPartner);
+		if (std::abs(angle - 180) > Settings::fAngleGrinding)
+			return {};
+		return { Interaction{ a_other.position.actor, Interaction::Action::Grinding, distance } };
+	}
+
+	std::vector<Position::Interaction> Position::Snapshot::GetGenitalLimbInteractions(const Snapshot& a_other) const
+	{
+		const auto& othernodes = a_other.position.nodes;
+		std::vector<Position::Interaction> ret{};
+		const auto impl = [&](const decltype(othernodes.hand_left)& activePoint, auto action) {
+			const auto make = [&](RE::NiPoint3 refPoint) {
+				const auto d = activePoint->world.translate.GetDistance(refPoint);
+				if (d > Settings::fDistanceHand)
+					return false;
+				auto act = Interaction{ a_other.position.actor, action, d };
+				ret.push_back(act);
+				return true;
+			};
+			if (!activePoint)
+				return false;
+			for (auto&& p : position.nodes.schlongs) {
+				const auto& refpoint = p.mid ? p.mid->world.translate : position.nodes.ApproximateMid();
+				if (make(refpoint))
+					return true;
+			}
+			if (const auto& c = position.nodes.clitoris) {
+				if (make(c->world.translate))
+					return true;
+			}
+			return false;
+		};
+		for (auto&& node : { othernodes.hand_left, othernodes.hand_right }) {
+			if (impl(node, Interaction::Action::HandJob))
+				break;
+		}
+		for (auto&& node : { othernodes.foot_left, othernodes.foot_right }) {
+			if (impl(node, Interaction::Action::FootJob))
+				break;
+		}
+		return ret;
+	}
+
+	std::optional<RE::NiPoint3> Position::Snapshot::GetHeadForwardPoint(float distance) const
+	{
+		const auto& nihead = position.nodes.head;
 		if (!nihead)
 			return std::nullopt;
-		const auto& headworld = nihead->world;
-		RE::NiPoint3 vforward{ headworld.rotate.entry[1][0], headworld.rotate.entry[1][1], headworld.rotate.entry[1][2] };
+		const auto vforward = nihead->world.rotate.GetVectorY();
 		return (vforward * distance) + nihead->world.translate;
 	}
 

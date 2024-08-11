@@ -16,21 +16,18 @@ namespace Registry::Collision
 			enum class Action
 			{
 				None = 0,
-				Vaginal,
-				Anal,
+				Vaginal,			 // This being penetrated
+				Anal,					 // This being penetrated
+				Oral,					 // This licking/sucking other
+				Grinding,			 // This being grinded against by other
+				Deepthroat,		 // Oral, with other close to/at maximum depth
+				Skullfuck,		 // This head penetration that isnt Oral
+				LickingShaft,	 // This licking others shaft
 
-				FootJob,
-				HandJob,
-				Grinding,
-
-				Cunnilingius,
-				Oral,
-				Deepthroat,
-				Skullfuck,
-				LickingShaft,
-
-				Kissing,
-				Facial,
+				FootJob,	// This being pleasured by other
+				HandJob,	// This being pleasured by other
+				Kissing,	// This kissing partner
+				Facial,		// Other penis in front of this face
 
 				Total,
 			};
@@ -39,10 +36,14 @@ namespace Registry::Collision
 				partner(a_partner), action(a_action), distance(a_distance) {}
 			~Interaction() = default;
 
+		public:
 			RE::ActorPtr partner{ 0 };
 			Action action{ Action::None };
 			float distance{ 0.0f };
 			float velocity{ 0.0f };
+		
+		public:
+			bool operator==(const Interaction& a_rhs) const { return a_rhs.partner == partner && a_rhs.action == action; }
 		};
 
 		struct Snapshot
@@ -50,8 +51,12 @@ namespace Registry::Collision
 			Snapshot(Position& a_position);
 			~Snapshot() = default;
 
-			std::vector<Interaction> GetHeadInteractions(const Snapshot& a_other) const;	// get interactions this actor is performing with its head
-			std::vector<Interaction> GetVaginalInteractions(const Snapshot& a_other) const;	// get interactions this actor is performing with its head
+			std::vector<Interaction> GetHeadHeadInteractions(const Snapshot& a_other) const;			// This head on other head
+			std::vector<Interaction> GetHeadVaginaInteractions(const Snapshot& a_other) const;		// This head on other vagina
+			std::vector<Interaction> GetHeadPenisInteractions(const Snapshot& a_other) const;			// This head on other penis
+			std::vector<Interaction> GetCrotchPenisInteractions(const Snapshot& a_other) const;		// This crotch/vagina on other penis
+			std::vector<Interaction> GetVaginaVaginaInteractions(const Snapshot& a_other) const;	// This vagina on other vagina
+			std::vector<Interaction> GetGenitalLimbInteractions(const Snapshot& a_other) const;		// This vagina on other limbs
 
 		public:
 			std::optional<RE::NiPoint3> GetHeadForwardPoint(float distance) const;
@@ -60,10 +65,7 @@ namespace Registry::Collision
 			Position& position;
 			ObjectBound bHead;
 
-			std::vector<Interaction> interactions{};
-			RE::NiPoint3 pGenitalReference{};
-			RE::NiPoint3 vCrotch{};
-			RE::NiPoint3 vSchlong{};
+			std::map<std::pair<RE::FormID, Interaction::Action>, Interaction> interactions{};
 		};
 
 	public:
