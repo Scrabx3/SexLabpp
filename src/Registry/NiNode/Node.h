@@ -22,6 +22,11 @@ namespace Registry::Node
 	static constexpr std::string_view ANALDEEP{ "NPC Anus Deep2"sv };
 	static constexpr std::string_view ANALLEFT{ "NPC LB Anus2"sv };
 	static constexpr std::string_view ANALRIGHT{ "NPC RB Anus2"sv };
+
+	static constexpr std::string_view ANIMOBJECTA{ "AnimObjectA"sv };
+	static constexpr std::string_view ANIMOBJECTB{ "AnimObjectB"sv };
+	static constexpr std::string_view ANIMOBJECTR{ "AnimObjectR"sv };
+	static constexpr std::string_view ANIMOBJECTL{ "AnimObjectL"sv };
 	struct SchlongInfo
 	{
 		constexpr SchlongInfo(std::string_view a_base, std::string_view a_mid, std::string_view a_tip) :
@@ -110,6 +115,11 @@ namespace Registry::Node
 		RE::NiPointer<RE::NiNode> analleft;
 		RE::NiPointer<RE::NiNode> analright;
 		std::vector<SchlongData> schlongs;
+
+		RE::NiPointer<RE::NiNode> animobj_a;
+		RE::NiPointer<RE::NiNode> animobj_b;
+		RE::NiPointer<RE::NiNode> animobj_l;
+		RE::NiPointer<RE::NiNode> animobj_r;
 
 	public:
 		std::vector<RE::NiPoint3> GetSchlongTipReferencePoints(bool a_approximateifempty) const;

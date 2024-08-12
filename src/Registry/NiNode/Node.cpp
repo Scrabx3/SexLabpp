@@ -44,6 +44,10 @@ namespace Registry::Node
 		get(ANALDEEP, analdeep, true);
 		get(ANALLEFT, analleft, false);
 		get(ANALRIGHT, analright, false);
+		get(ANIMOBJECTA, animobj_a, false);
+		get(ANIMOBJECTB, animobj_b, false);
+		get(ANIMOBJECTL, animobj_l, false);
+		get(ANIMOBJECTR, animobj_r, false);
 		for (auto&& it : SCHLONG_NODES) {
 			SchlongData tmp(it.rot);
 			int s = get(it.base, tmp.base, false) + get(it.mid, tmp.mid, false) + get(it.tip, tmp.tip, false);
