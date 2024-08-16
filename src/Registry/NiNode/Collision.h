@@ -29,6 +29,8 @@ namespace Registry::Collision
 				Kissing,	// This kissing partner
 				Facial,		// Other penis in front of this face
 
+				AnimObjFace,
+
 				Total,
 			};
 
@@ -55,6 +57,7 @@ namespace Registry::Collision
 			void GetHeadHeadInteractions(const Snapshot& a_other);			// This head on other head
 			void GetHeadVaginaInteractions(const Snapshot& a_other);		// This head on other vagina
 			void GetHeadPenisInteractions(const Snapshot& a_other);			// This head on other penis
+			void GetHeadAnimObjInteractions(const Snapshot& a_other);		// This head with either animobj
 			void GetCrotchPenisInteractions(const Snapshot& a_other);		// This crotch/vagina on other penis
 			void GetVaginaVaginaInteractions(const Snapshot& a_other);	// This vagina on other vagina
 			void GetGenitalLimbInteractions(const Snapshot& a_other);		// This vagina on other limbs

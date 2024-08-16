@@ -109,6 +109,31 @@ namespace Registry::Collision
 		}
 	}
 
+	void Position::Snapshot::GetHeadAnimObjInteractions(const Snapshot& a_other)
+	{
+		bool out;
+		a_other.position.actor->GetGraphVariableBool("bAnimObjectLoaded", out);
+		if (!out) {
+			return;
+		}
+		const auto point = GetHeadForwardPoint(bHead.boundMax.y);
+		if (!point)
+			return;
+		const auto getimpl = [&](auto pos) {
+			if (!pos)
+				return;
+			const auto d = pos->world.translate.GetDistance(*point);
+			if (d > Settings::fAnimObjDist)
+				return;
+			interactions.emplace_back(a_other.position.actor, Interaction::Action::AnimObjFace, d);
+		};
+		const auto& n = a_other.position.nodes;
+		getimpl(n.animobj_a);
+		getimpl(n.animobj_b);
+		getimpl(n.animobj_r);
+		getimpl(n.animobj_l);
+	}
+
 	void Position::Snapshot::GetCrotchPenisInteractions(const Snapshot& a_other)
 	{
 		if (a_other.position.sex.none(Sex::Male, Sex::Futa))
@@ -268,6 +293,7 @@ namespace Registry::Collision
 				auto shared = std::make_shared<Position::Snapshot>(it);
 				auto& obj = snapshots.emplace_back(shared);
 				obj->GetGenitalLimbInteractions(*obj);
+				obj->GetHeadAnimObjInteractions(*obj);
 			}
 			if (positions.size() >= 2) {
 				Combinatorics::for_each_permutation(snapshots.begin(), snapshots.begin() + 2, snapshots.end(),
@@ -278,6 +304,7 @@ namespace Registry::Collision
 						fst.GetHeadHeadInteractions(snd);
 						fst.GetHeadVaginaInteractions(snd);
 						fst.GetHeadPenisInteractions(snd);
+						fst.GetHeadAnimObjInteractions(snd);
 						fst.GetCrotchPenisInteractions(snd);
 						fst.GetVaginaVaginaInteractions(snd);
 						fst.GetGenitalLimbInteractions(snd);
