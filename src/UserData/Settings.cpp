@@ -186,6 +186,7 @@ void Settings::InitializeINI()
 	READINI("Distance", fAngleGrinding);
 	READINI("Distance", fAngleMouth);
 	READINI("Distance", fHeadPenetrationRatio);
+	READINI("Distance", fAnimObjDist);
 
 	// Enjoyment
 	READINI("Enjoyment", fEnjGrinding);
