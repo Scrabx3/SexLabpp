@@ -68,8 +68,13 @@ namespace Registry::Collision
 			return;
 		if (a_partner.position.sex.none(Sex::Male, Sex::Futa))
 			return;
+		const auto pMouth = GetHeadForwardPoint(bHead.boundMax.y);
+		if (!pMouth)
+			return;
 		assert(position.nodes.head);
 		auto& headworld = position.nodes.head->world;
+		const auto vHead = headworld.rotate.GetVectorY();
+		Node::Segment sHead{ headworld.translate, *pMouth };
 		auto& partnernodes = a_partner.position.nodes;
 		for (auto&& p : partnernodes.schlongs) {
 			assert(p.base);
@@ -77,14 +82,18 @@ namespace Registry::Collision
 			const auto pTip = p.GetTipReferencePoint();
 			const auto vSchlong = p.GetTipReferenceVector();
 			const auto vBaseToHead = headworld.translate - base.translate;
-			const auto vRot = headworld.rotate * vSchlong;
-			const auto aBaseToMouth = Node::GetVectorAngle(vRot, vSchlong);
-			// const auto aBaseToHead = Node::GetVectorAngle(vBaseToHead, vSchlong);
+			//const auto vRot = headworld.rotate * vSchlong;
+			const auto aBaseToMouth = Node::GetVectorAngle(vHead, vSchlong);
+			const auto aBaseToHead = Node::GetVectorAngle(vHead, vBaseToHead);
 			const auto dCenter = headworld.translate.GetDistance(pTip);
-			const auto dMouth = vBaseToHead.Dot(vSchlong) / vBaseToHead.SqrLength();
+			const auto dMouth = [&]() {
+				Node::Segment sSchlong{ base.translate, pTip };
+				const auto seg = Node::ClosestSegmentBetweenSegments(sHead, sSchlong);
+				return seg.first.GetDistance(seg.second);
+			}();
 			const auto in_front_of_head = std::abs(aBaseToMouth - 180) < Settings::fAngleMouth;
 			const auto at_side_of_head = std::abs(aBaseToMouth - 90) < 45.0f;
-			const auto close_to_mouth = dMouth < (bHead.boundMax.x / 2);
+			const auto close_to_mouth = dMouth < bHead.boundMax.x;
 			const auto penetrating_skull = dCenter < ((at_side_of_head ? bHead.boundMax.x : bHead.boundMax.y) * Settings::fHeadPenetrationRatio);
 
 			if (penetrating_skull) {
@@ -99,12 +108,10 @@ namespace Registry::Collision
 				} else {
 					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
 				}
-			} else if (in_front_of_head) {
-				if (close_to_mouth && std::abs(aBaseToMouth - 90) < Settings::fAngleMouth) {
-					interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, dCenter);
-				} else {
-					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, dCenter);
-				}
+			} else if (at_side_of_head && close_to_mouth) {
+				interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, dCenter);
+			} else if (aBaseToHead > 120.0f && pTip.GetDistance(headworld.translate) < bHead.boundMax.y * (1 / Settings::fHeadPenetrationRatio)) {
+				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, dCenter);
 			}
 		}
 	}
