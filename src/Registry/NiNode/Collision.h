@@ -74,7 +74,7 @@ namespace Registry::Collision
 
 	public:
 		Position(RE::Actor* a_owner, Sex a_sex) :
-			actor(a_owner), nodes(a_owner), sex(a_sex) {}
+			actor(a_owner), nodes(a_owner), sex(a_sex), desired_skew(nodes.schlongs.size(), std::nullopt) {}
 		~Position() = default;
 
 	public:
@@ -82,6 +82,7 @@ namespace Registry::Collision
 		Node::NodeData nodes;
 		stl::enumeration<Sex> sex;
 		std::set<Interaction> interactions{};
+		std::vector<std::optional<RE::NiMatrix3>> desired_skew;	// skew[i].refers_to(nodes.schlong[i])
 	};
 
 	class Handler :
@@ -108,8 +109,16 @@ namespace Registry::Collision
 		bool IsRegistered(RE::FormID a_id) const noexcept;
 		const Process* GetProcess(RE::FormID a_id) const;
 
+	// protected:
+		// Handler();
+
 	private:
 		std::vector<std::pair<RE::FormID, std::unique_ptr<Process>>> processes;
+
+		static void UpdatePlayer(RE::Character* a_this, float a_delta);
+		static void UpdateCharacter(RE::Character* a_this, float a_delta);
+		static inline REL::Relocation<decltype(UpdatePlayer)> _UpdatePlayer;
+		static inline REL::Relocation<decltype(UpdateCharacter)> _UpdateCharacter;
 	};
 
 }	 // namespace Registry
