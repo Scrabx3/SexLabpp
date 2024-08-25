@@ -19,7 +19,7 @@ namespace Registry::Collision
 
 			std::scoped_lock lk{ _m };
 			for (auto&& [node, skew] : skews) {
-				node->local.rotate = skew;
+				node->local.rotate = node->local.rotate * skew;
 				node->Update(data);
 			}
 		}

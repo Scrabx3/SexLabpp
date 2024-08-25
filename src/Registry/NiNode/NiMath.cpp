@@ -50,7 +50,7 @@ namespace Registry::Collision::NiMath
 	{
 		vector.Unitize();
 		vIdeal.Unitize();
-		const auto cross = vIdeal.Cross(vector);
+		const auto cross = vector.Cross(vIdeal);
 		const auto cos_theta = vIdeal.Dot(vector);
 		const auto theta = std::acos(cos_theta);
 		if (cross.SqrLength() < FLT_EPSILON)

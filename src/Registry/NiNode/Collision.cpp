@@ -7,7 +7,6 @@
 
 namespace Registry::Collision
 {
-
 	Position::Snapshot::Snapshot(Position& a_position) :
 		position(a_position),
 		bHead([&]() {
@@ -92,35 +91,37 @@ namespace Registry::Collision
 				const auto seg = NiMath::ClosestSegmentBetweenSegments(sHead, sSchlong);
 				return seg.first.GetDistance(seg.second);
 			}();
-			const auto in_front_of_head = std::abs(aBaseToHead - 180) < 60.0f;
+			const auto in_front_of_head = std::abs(aBaseToHead - 180) < Settings::fAngleMouth;
 			const auto at_side_of_head = std::abs(aBaseToHead - 90) < 60.0f;
 			const auto close_to_mouth = dMouth < bHead.boundMax.x;
 			const auto penetrating_skull = dCenter < ((at_side_of_head ? bHead.boundMax.x : bHead.boundMax.y) * Settings::fHeadPenetrationRatio);
 
-			if (penetrating_skull) {
-				if (in_front_of_head && close_to_mouth) {
-					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, dCenter);
-					assert(partnernodes.pelvis);
+			if (in_front_of_head && close_to_mouth) {
+				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, dCenter);
+				assert(partnernodes.pelvis);
+				if (penetrating_skull) {
 					const auto tip_throat = pTip.GetDistance(headworld.translate) < bHead.boundMax.y * 0.3;
 					const auto pelvis_head = bHead.IsPointInside(partnernodes.pelvis->world.translate);
 					if (tip_throat || pelvis_head) {
 						interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, dCenter);
 					}
-					auto rodrigue = NiMath::Rodrigue(vSchlong, vHead);
-					NodeUpdate::AddOrUpdateSkew(p.base, rodrigue);
-				} else {
-					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
 				}
-			} else {
+				auto rodrigue = NiMath::Rodrigue(vSchlong, -vHead);
+				NodeUpdate::AddOrUpdateSkew(p.base, rodrigue);
+				continue;
+			} else if (penetrating_skull) {
+				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
+			} else if (at_side_of_head) {
 				const auto vBaseToMouth = *pMouth - base.translate;
 				const auto aBaseToMouth = NiMath::GetVectorAngle(vHead, vBaseToMouth);
 				const auto vertical_to_shaft = std::abs(aBaseToMouth - 90) < 55.0f;
 				if (vertical_to_shaft && close_to_mouth) {
 					interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, dCenter);
-				} else if (aBaseToHead > 120.0f && pTip.GetDistance(headworld.translate) < bHead.boundMax.y * (1 / Settings::fHeadPenetrationRatio)) {
-					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, dCenter);
 				}
+			} else if (aBaseToHead > 120.0f && pTip.GetDistance(headworld.translate) < bHead.boundMax.y * (1 / Settings::fHeadPenetrationRatio)) {
+				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, dCenter);
 			}
+			NodeUpdate::DeleteSkew(p.base);
 		}
 	}
 
@@ -305,9 +306,6 @@ namespace Registry::Collision
 			std::vector<std::shared_ptr<Position::Snapshot>> snapshots{};
 			snapshots.reserve(positions.size());
 			for (auto&& it : positions) {
-				for (auto&& skew : it.desired_skew) {
-					skew = std::nullopt;
-				}
 				auto shared = std::make_shared<Position::Snapshot>(it);
 				auto& obj = snapshots.emplace_back(shared);
 				obj->GetGenitalLimbInteractions(*obj);
@@ -330,9 +328,6 @@ namespace Registry::Collision
 					});
 			}
 			assert(positions.size() == snapshots.size());
-			std::condition_variable cv{};
-			std::mutex _m{};
-			int _count = 0;
 			for (size_t i = 0; i < positions.size(); i++) {
 				auto& pos = positions[i];
 				for (auto&& act : snapshots[i]->interactions) {
@@ -344,29 +339,7 @@ namespace Registry::Collision
 					act.velocity = (where->velocity + (delta_dist / INTERVAL.count())) / 2;
 				}
 				positions[i].interactions = { snapshots[i]->interactions.begin(), snapshots[i]->interactions.end() };
-				for (size_t k = 0; k < pos.desired_skew.size(); k++) {
-					auto& skew = pos.desired_skew[k];
-					if (!skew)
-						continue;
-					auto& schlong = pos.nodes.schlongs[k];
-					_count++;
-					SKSE::GetTaskInterface()->AddTask([&] {
-						std::unique_lock lk(_m);
-						assert(skew && schlong.base);
-						RE::NiUpdateData updateData{
-							0.f,
-							RE::NiUpdateData::Flag::kNone
-						};
-						schlong.base->local.rotate = (*skew) * schlong.base->local.rotate;
-						schlong.base->Update(updateData);
-						_count--;
-						lk.unlock();
-						cv.notify_one();
-					});
-				}
 			}
-			std::unique_lock lk(_m);
-			cv.wait(lk, [&_count] { return _count == 0; });
 		}
 	}
 
@@ -404,16 +377,5 @@ namespace Registry::Collision
 		const auto where = std::ranges::find(processes, a_id, [](auto& it) { return it.first; });
 		return where == processes.end() ? nullptr : where->second.get();
 	}
-
-	// Handler::Handler()
-	// {
-	// 	// REL::Relocation<std::uintptr_t> pl_vt{ RE::PlayerCharacter::VTABLE[0] };
-	// 	// _UpdatePlayer = pl_vt.write_vfunc(0xAD, UpdatePlayer);
-	// }
-
-	// void Handler::UpdatePlayer(RE::Character* a_this, float a_delta)
-	// {
-	// 	return _UpdatePlayer(a_this, a_delta);
-	// }
 
 }	 // namespace Registry::Collision

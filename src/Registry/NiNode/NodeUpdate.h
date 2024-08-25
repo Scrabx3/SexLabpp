@@ -19,4 +19,5 @@ namespace Registry::Collision
 		static inline std::mutex _m{};
 		static inline std::vector<std::pair<RE::NiPointer<RE::NiNode>, RE::NiMatrix3>> skews{};
 	};
-} // namespace Registry::Collision
+
+}	 // namespace Registry::Collision
