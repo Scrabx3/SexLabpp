@@ -33,7 +33,7 @@ namespace Registry::Collision
 	}
 
 	void NodeUpdate::AddOrUpdateSkew(std::pair<RE::NiPointer<RE::NiNode>, RE::NiMatrix3> a_skew)
-  {
+	{
 		std::scoped_lock lk{ _m };
 		auto w = std::ranges::find_if(skews, [&](auto it) { return it.first == a_skew.first; });
 		if (w == skews.end()) {

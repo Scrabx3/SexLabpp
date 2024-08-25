@@ -8,7 +8,7 @@ namespace Registry::Collision::NiMath
 		const auto lU = vU.SqrLength(), lV = vV.SqrLength();
 		const bool isPointU = lU <= FLT_EPSILON, isPointV = lV <= FLT_EPSILON;
 
-		if (isPointU &&  isPointV) {
+		if (isPointU && isPointV) {
 			return std::make_pair(u.first, v.first);
 		}
 		const auto vUvR = vU.Dot(vR), vVvR = vV.Dot(vR);
@@ -43,7 +43,7 @@ namespace Registry::Collision::NiMath
 	RE::NiMatrix3 Rodrigue(RE::NiPoint3 start, RE::NiPoint3 end, RE::NiPoint3 vIdeal)
 	{
 		auto vRef = end - start;
-    return Rodrigue(vRef, vIdeal);
+		return Rodrigue(vRef, vIdeal);
 	}
 
 	RE::NiMatrix3 Rodrigue(RE::NiPoint3 vector, RE::NiPoint3 vIdeal)
