@@ -1,6 +1,7 @@
 #include "Collision.h"
 
 #include "Registry/NiNode/NiMath.h"
+#include "Registry/NiNode/NodeUpdate.h"
 #include "Registry/Util/Premutation.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 
@@ -105,21 +106,8 @@ namespace Registry::Collision
 					if (tip_throat || pelvis_head) {
 						interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, dCenter);
 					}
-					auto _vHead = -vHead, _vSchlong{ vSchlong };
-					_vHead.Unitize();
-					_vSchlong.Unitize();
-					const auto cross = _vHead.Cross(vSchlong);
-					const auto cos_theta = _vHead.Dot(_vSchlong);
-					const auto theta = std::acos(cos_theta);
-					if (cross.SqrLength() > FLT_EPSILON) {
-						RE::NiMatrix3 u{
-							{0.0f, cross.z, -cross.y},
-							{-cross.z, 0.0f, cross.x},
-							{cross.y, -cross.x, 0.0f}
-						}, I = RE::NiMatrix3{};
-						const auto rodrigue = I + (u * sin(theta)) + (u * u * (1 - cos_theta));
-						a_partner.position.desired_skew[i] = rodrigue;
-					}
+					auto rodrigue = NiMath::Rodrigue(vSchlong, vHead);
+					NodeUpdate::AddOrUpdateSkew(p.base, rodrigue);
 				} else {
 					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
 				}

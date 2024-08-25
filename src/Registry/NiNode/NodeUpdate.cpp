@@ -24,18 +24,23 @@ namespace Registry::Collision
 		return func(a_obj, updateData);
 	}
 
-	void NodeUpdate::AddOrUpdateSkew(const std::pair<RE::NiPointer<RE::NiNode*>, RE::NiMatrix3>& a_skew)
+	void NodeUpdate::AddOrUpdateSkew(RE::NiPointer<RE::NiNode> a_node, RE::NiMatrix3 a_skew)
+	{
+		auto arg = std::make_pair(a_node, a_skew);
+		return AddOrUpdateSkew(arg);
+	}
+
+	void NodeUpdate::AddOrUpdateSkew(std::pair<RE::NiPointer<RE::NiNode>, RE::NiMatrix3> a_skew)
   {
 		auto w = std::ranges::find_if(skews, [&](auto it) { return it.first == a_skew.first; });
     if (w == skews.end()) {
-			auto copy{ a_skew };
-			skews.emplace_back(a_skew.first, a_skew.second);
+			skews.push_back(a_skew);
 		} else {
 			w->second = a_skew.second;
 		}
 	}
 
-	void NodeUpdate::DeleteSkew(const RE::NiPointer<RE::NiNode*>& a_skew)
+	void NodeUpdate::DeleteSkew(const RE::NiPointer<RE::NiNode>& a_skew)
 	{
 		auto w = std::ranges::find_if(skews, [&](auto it) { return it.first == a_skew; });
 		if (w != skews.end()) {
