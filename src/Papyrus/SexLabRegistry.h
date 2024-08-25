@@ -36,6 +36,7 @@ namespace Papyrus::SexLabRegistry
 		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, RE::Actor* a_submissive, int32_t a_strictness);
 	std::vector<RE::BSFixedString> ValidateScenesA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		std::vector<RE::BSFixedString> a_sceneids, std::vector<RE::Actor*> a_positions, std::string a_tags, std::vector<RE::Actor*> a_submissives, int32_t a_strictness);
+	RE::BSFixedString GetSceneByName(RE::StaticFunctionTag*, RE::BSFixedString a_name);
 
 	bool SortByScene(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		RE::reference_array<RE::Actor*> a_positions, RE::Actor* a_victim, std::string a_sceneid, int32_t a_strictness);
@@ -130,6 +131,7 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(ValidateSceneA, "SexLabRegistry", true);
 		REGISTERFUNC(ValidateScenes, "SexLabRegistry", true);
 		REGISTERFUNC(ValidateScenesA, "SexLabRegistry", true);
+		REGISTERFUNC(GetSceneByName, "SexLabRegistry", true);
 
 		REGISTERFUNC(SortByScene, "SexLabRegistry", true);
 		REGISTERFUNC(SortBySceneA, "SexLabRegistry", true);

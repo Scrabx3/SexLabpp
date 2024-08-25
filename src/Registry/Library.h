@@ -17,7 +17,9 @@ namespace Registry
 		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
 
 		_NODISCARD const Scene* GetSceneByID(const RE::BSFixedString& a_id) const;
-		_NODISCARD Scene* GetSceneByID_Mutable(const RE::BSFixedString& a_id) const;
+		_NODISCARD Scene* GetSceneByID(const RE::BSFixedString& a_id);
+		_NODISCARD const Scene* GetSceneByName(const RE::BSFixedString& a_id) const;
+		_NODISCARD Scene* GetSceneByName(const RE::BSFixedString& a_id);
 		_NODISCARD size_t GetSceneCount() const;
 
 		void ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const;

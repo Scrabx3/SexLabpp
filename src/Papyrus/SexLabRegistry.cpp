@@ -329,6 +329,12 @@ namespace Papyrus::SexLabRegistry
 		return true;
 	}
 
+	RE::BSFixedString GetSceneByName(RE::StaticFunctionTag*, RE::BSFixedString a_name)
+	{
+		auto ret = Registry::Library::GetSingleton()->GetSceneByName(a_name);
+		return ret ? ret->name : "";
+	}
+
 	bool SortBySceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
 		RE::reference_array<RE::Actor*> a_positions,
 		std::vector<RE::Actor*> a_victims,
@@ -460,7 +466,7 @@ namespace Papyrus::SexLabRegistry
 
 	void SetSceneEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_enabled)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
@@ -780,7 +786,7 @@ namespace Papyrus::SexLabRegistry
 
 	void UpdateOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::CoordinateType a_idx)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
@@ -807,7 +813,7 @@ namespace Papyrus::SexLabRegistry
 
 	void UpdateOffsetA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
@@ -835,7 +841,7 @@ namespace Papyrus::SexLabRegistry
 
 	void ResetOffset(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
@@ -852,7 +858,7 @@ namespace Papyrus::SexLabRegistry
 
 	void ResetOffsetA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
@@ -889,7 +895,7 @@ namespace Papyrus::SexLabRegistry
 
 	void SetSchlongAngle(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, int a_value)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID_Mutable(a_id);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;

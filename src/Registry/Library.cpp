@@ -108,12 +108,32 @@ namespace Registry
 		return where != scene_map.end() ? where->second : nullptr;
 	}
 
-	Scene* Library::GetSceneByID_Mutable(const RE::BSFixedString& a_id) const
+	Scene* Library::GetSceneByID(const RE::BSFixedString& a_id)
 	{
-		std::string id{ a_id.data() };
-		Registry::ToLower(id);
-		const auto where = scene_map.find(id);
+		const auto where = scene_map.find(a_id);
 		return where != scene_map.end() ? where->second : nullptr;
+	}
+
+	const Scene* Library::GetSceneByName(const RE::BSFixedString& a_name) const
+	{
+		for (auto&& package : packages) {
+			for (auto&& scene : package->scenes) {
+				if (a_name == RE::BSFixedString(scene->name))
+					return scene.get();
+			}
+		}
+		return nullptr;
+	}
+
+	Scene* Library::GetSceneByName(const RE::BSFixedString& a_name)
+	{
+		for (auto&& package : packages) {
+			for (auto&& scene : package->scenes) {
+				if (a_name == RE::BSFixedString(scene->name))
+					return scene.get();
+			}
+		}
+		return nullptr;
 	}
 
 	std::vector<Scene*> Library::LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
