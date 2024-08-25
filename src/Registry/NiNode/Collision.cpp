@@ -1,5 +1,6 @@
 #include "Collision.h"
 
+#include "Registry/NiNode/NiMath.h"
 #include "Registry/Util/Premutation.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 
@@ -30,7 +31,7 @@ namespace Registry::Collision
 		assert(partnernodes.head);
 		const auto vMyHead = *mouthstart - headworld.translate;
 		const auto vPartnerHead = *pmouthstart - partnernodes.head->world.translate;
-		auto angle = Node::GetVectorAngle(vMyHead, vPartnerHead);
+		auto angle = NiMath::GetVectorAngle(vMyHead, vPartnerHead);
 		if (std::abs(angle - 180) < Settings::fAngleMouth) {
 			if (bHead.IsPointInside(*pmouthstart) || a_partner.bHead.IsPointInside(*mouthstart)) {
 				float distance = pmouthstart->GetDistance(*mouthstart);
@@ -55,7 +56,7 @@ namespace Registry::Collision
 			return;
 		if (!bHead.IsPointInside(partnernodes.clitoris->world.translate))
 			return;
-		auto angle = Node::GetVectorAngle(*vVaginal, vMyHead);
+		auto angle = NiMath::GetVectorAngle(*vVaginal, vMyHead);
 		if ((angle - 180) > Settings::fAngleMouth * 2)
 			return;
 		float distance = partnernodes.clitoris->world.translate.GetDistance(*mouthstart);
@@ -74,7 +75,7 @@ namespace Registry::Collision
 		assert(position.nodes.head);
 		auto& headworld = position.nodes.head->world;
 		const auto vHead = headworld.rotate.GetVectorY();
-		Node::Segment sHead{ headworld.translate, *pMouth };
+		NiMath::Segment sHead{ headworld.translate, *pMouth };
 		auto& partnernodes = a_partner.position.nodes;
 		for (size_t i = 0; i < partnernodes.schlongs.size(); i++)
 		{
@@ -83,11 +84,11 @@ namespace Registry::Collision
 			const auto pTip = p.GetTipReferencePoint();
 			const auto vSchlong = p.GetTipReferenceVector();
 			const auto vBaseToHead = headworld.translate - base.translate;
-			const auto aBaseToHead = Node::GetVectorAngle(vHead, vBaseToHead);
+			const auto aBaseToHead = NiMath::GetVectorAngle(vHead, vBaseToHead);
 			const auto dCenter = headworld.translate.GetDistance(pTip);
 			const auto dMouth = [&]() {
-				Node::Segment sSchlong{ base.translate, pTip };
-				const auto seg = Node::ClosestSegmentBetweenSegments(sHead, sSchlong);
+				NiMath::Segment sSchlong{ base.translate, pTip };
+				const auto seg = NiMath::ClosestSegmentBetweenSegments(sHead, sSchlong);
 				return seg.first.GetDistance(seg.second);
 			}();
 			const auto in_front_of_head = std::abs(aBaseToHead - 180) < 60.0f;
@@ -124,7 +125,7 @@ namespace Registry::Collision
 				}
 			} else {
 				const auto vBaseToMouth = *pMouth - base.translate;
-				const auto aBaseToMouth = Node::GetVectorAngle(vHead, vBaseToMouth);
+				const auto aBaseToMouth = NiMath::GetVectorAngle(vHead, vBaseToMouth);
 				const auto vertical_to_shaft = std::abs(aBaseToMouth - 90) < 55.0f;
 				if (vertical_to_shaft && close_to_mouth) {
 					interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, dCenter);
@@ -176,11 +177,11 @@ namespace Registry::Collision
 			const auto dSchlongToPelvisLine = vPelvisToBase.Dot(vSchlong) / vPelvisToBase.SqrLength();
 			if (dSchlongToPelvisLine > Settings::fDistanceCrotch)
 				continue;
-			const auto angleCrotch = Node::GetVectorAngle(vCrotch, vSchlong);
+			const auto angleCrotch = NiMath::GetVectorAngle(vCrotch, vSchlong);
 			if (vVaginal && vAnal && position.nodes.clitoris) {	// female
 				assert(pVaginal && pAnal);
 				const float dVag = pVaginal->GetDistance(p.base->world.translate), dAnal = pAnal->GetDistance(p.base->world.translate);
-				const float anglePen = Node::GetVectorAngle(dVag <= dAnal ? *vVaginal : *vAnal, vSchlong);
+				const float anglePen = NiMath::GetVectorAngle(dVag <= dAnal ? *vVaginal : *vAnal, vSchlong);
 				if (std::abs(anglePen - 180) < Settings::fAnglePenetration) {
 					const auto act = dVag <= dAnal ? Interaction::Action::Vaginal : Interaction::Action::Anal;
 					interactions.emplace_back(a_other.position.actor, act, dSchlongToPelvisLine);
@@ -227,7 +228,7 @@ namespace Registry::Collision
 		auto vVaginalPartner = a_other.position.nodes.GetVaginalVector();
 		if (!vVaginal || !vVaginalPartner)
 			return;
-		const auto angle = Node::GetVectorAngle(*vVaginal, *vVaginalPartner);
+		const auto angle = NiMath::GetVectorAngle(*vVaginal, *vVaginalPartner);
 		if (std::abs(angle - 180) > Settings::fAngleGrinding)
 			return;
 		interactions.emplace_back(a_other.position.actor, Interaction::Action::Grinding, distance);
