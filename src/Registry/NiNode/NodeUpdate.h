@@ -16,6 +16,7 @@ namespace Registry::Collision
 		static inline REL::Relocation<decltype(thunk)> func;
 		static inline constexpr std::size_t size{ 5 };
 
-		static inline std::vector<std::pair<RE::NiPointer<RE::NiNode>, RE::NiMatrix3>> skews;
+		static inline std::mutex _m{};
+		static inline std::vector<std::pair<RE::NiPointer<RE::NiNode>, RE::NiMatrix3>> skews{};
 	};
 } // namespace Registry::Collision

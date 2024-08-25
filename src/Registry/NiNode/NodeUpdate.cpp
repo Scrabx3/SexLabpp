@@ -11,16 +11,18 @@ namespace Registry::Collision
 
 	void NodeUpdate::thunk(RE::NiAVObject* a_obj, RE::NiUpdateData* updateData)
 	{
-		RE::NiUpdateData data{
-			0.f,
-			RE::NiUpdateData::Flag::kNone
-		};
+		{
+			RE::NiUpdateData data{
+				0.f,
+				RE::NiUpdateData::Flag::kNone
+			};
 
-		for (auto&& [node, skew] : skews) {
-			node->local.rotate = skew;
-			node->Update(data);
+			std::scoped_lock lk{ _m };
+			for (auto&& [node, skew] : skews) {
+				node->local.rotate = skew;
+				node->Update(data);
+			}
 		}
-
 		return func(a_obj, updateData);
 	}
 
@@ -32,8 +34,9 @@ namespace Registry::Collision
 
 	void NodeUpdate::AddOrUpdateSkew(std::pair<RE::NiPointer<RE::NiNode>, RE::NiMatrix3> a_skew)
   {
+		std::scoped_lock lk{ _m };
 		auto w = std::ranges::find_if(skews, [&](auto it) { return it.first == a_skew.first; });
-    if (w == skews.end()) {
+		if (w == skews.end()) {
 			skews.push_back(a_skew);
 		} else {
 			w->second = a_skew.second;
@@ -42,6 +45,7 @@ namespace Registry::Collision
 
 	void NodeUpdate::DeleteSkew(const RE::NiPointer<RE::NiNode>& a_skew)
 	{
+		std::scoped_lock lk{ _m };
 		auto w = std::ranges::find_if(skews, [&](auto it) { return it.first == a_skew; });
 		if (w != skews.end()) {
 			skews.erase(w);
