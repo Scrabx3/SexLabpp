@@ -93,12 +93,13 @@ namespace Registry::Collision
 			Process(const std::vector<RE::Actor*>& a_positions, const Scene* a_scene);
 			~Process();
 
-			const auto& GetPositions() const { return positions; }
+			bool VisitPositions(std::function<bool(const Position&)> a_visitor) const;
 
 		private:
 			void Update();
 			std::vector<Position> positions;
 			std::atomic<bool> active;
+			std::mutex _m;
 			std::thread _t;
 		};
 

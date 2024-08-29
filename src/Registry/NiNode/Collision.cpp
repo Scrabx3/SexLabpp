@@ -285,6 +285,16 @@ namespace Registry::Collision
 		_t.join();
 	}
 
+	bool Handler::Process::VisitPositions(std::function<bool(const Position&)> a_visitor) const
+	{
+		std::scoped_lock lk{ _m };
+		for (auto&& pos : positions) {
+			if (a_visitor(pos))
+				return true;
+		}
+		return false;
+	}
+
 	void Handler::Process::Update()
 	{
 		const auto main = RE::Main::GetSingleton();

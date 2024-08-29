@@ -359,7 +359,7 @@ namespace Papyrus::ThreadModel
 			const auto ref = aliasref->GetReference();
 			if (!ref || ref == center)
 				continue;
-			auto head = ref->GetNodeByName(Registry::Node::HEAD);
+			auto head = ref->GetNodeByName(Registry::Collision::Node::HEAD);
 			if (!head)
 				continue;
 			auto& t = head->world.translate;
@@ -658,15 +658,16 @@ __CONTINUE_NEXT:
 			return {};
 		}
 		std::vector<int> ret{};
-		for (auto&& p : process->GetPositions()) {
+		process->VisitPositions([&](auto& p) {
 			if (a_position && p.actor->formID != a_position->formID)
-				continue;
+				return false;
 			for (auto&& type : p.interactions) {
 				if (a_partner && type.partner->formID != a_partner->formID)
 					continue;
 				ret.push_back(static_cast<int>(type.action));
 			}
-		}
+			return false;
+		});
 		return ret;
 	}
 
@@ -677,9 +678,9 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Not registered", a_stackID);
 			return false;
 		}
-		for (auto&& p : process->GetPositions()) {
+		return process->VisitPositions([&](auto& p) {
 			if (a_position && p.actor->formID != a_position->formID)
-				continue;
+				return false;
 			for (auto&& type : p.interactions) {
 				if (a_partner && type.partner->formID != a_partner->formID)
 					continue;
@@ -687,8 +688,8 @@ __CONTINUE_NEXT:
 					continue;
 				return true;
 			}
-		}
-		return false;
+			return false;
+		});
 	}
 
 	RE::Actor* GetPartnerByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
@@ -702,16 +703,19 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Not registered", a_stackID);
 			return nullptr;
 		}
-		for (auto&& p : process->GetPositions()) {
+		RE::Actor* ret = nullptr;
+		process->VisitPositions([&](auto& p) {
 			if (p.actor->formID != a_position->formID)
-				continue;
+				return false;
 			for (auto&& type : p.interactions) {
 				if (a_type != -1 && a_type != static_cast<int>(type.action))
 					continue;
-				return type.partner.get();
+				ret = type.partner.get();
+				return true;
 			}
-		}
-		return nullptr;
+			return false;
+		});
+		return ret;
 	}
 
 	std::vector<RE::Actor*> GetPartnersByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
@@ -722,15 +726,16 @@ __CONTINUE_NEXT:
 			return {};
 		}
 		std::vector<RE::Actor*> ret{};
-		for (auto&& p : process->GetPositions()) {
+		process->VisitPositions([&](auto& p) {
 			if (a_position && p.actor->formID != a_position->formID)
-				continue;
+				return false;
 			for (auto&& type : p.interactions) {
 				if (a_type != -1 && a_type != static_cast<int>(type.action))
 					continue;
 				ret.push_back(type.partner.get());
 			}
-		}
+			return false;
+		});
 		return ret;
 	}
 
@@ -745,16 +750,20 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
 		}
-		for (auto&& p : process->GetPositions()) {
+		RE::Actor* ret = nullptr;
+		process->VisitPositions([&](auto& p) {
 			for (auto&& type : p.interactions) {
 				if (a_position->formID == type.partner->formID) {
-					if (a_type == -1 || a_type == static_cast<int>(type.action))
-						return p.actor.get();
+					if (a_type == -1 || a_type == static_cast<int>(type.action)) {
+						ret = p.actor.get();
+						return true;
+					}
 					break;
 				}
 			}
-		}
-		return nullptr;
+			return false;
+		});
+		return ret;
 	}
 
 	std::vector<RE::Actor*> GetPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
@@ -765,7 +774,7 @@ __CONTINUE_NEXT:
 			return {};
 		}
 		std::vector<RE::Actor*> ret{};
-		for (auto&& p : process->GetPositions()) {
+		process->VisitPositions([&](auto& p) {
 			for (auto&& type : p.interactions) {
 				if (!a_position || a_position->formID == type.partner->formID) {
 					if (a_type == -1 || a_type == static_cast<int>(type.action))
@@ -773,7 +782,8 @@ __CONTINUE_NEXT:
 					break;
 				}
 			}
-		}
+			return false;
+		});
 		return ret;
 	}
 
@@ -784,7 +794,7 @@ __CONTINUE_NEXT:
 			return 0.0f;
 		}
 		if (a_type == -1) {
-			a_vm->TraceStack("Type cant be 'any' here", a_stackID);
+			a_vm->TraceStack("Type cant be 'any'", a_stackID);
 			return 0.0f;
 		}
 		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
@@ -792,19 +802,21 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Not registered", a_stackID);
 			return 0.0f;
 		}
-		std::vector<RE::Actor*> ret{};
-		for (auto&& p : process->GetPositions()) {
+		float ret = 0.0f;
+		process->VisitPositions([&](auto& p) {
 			if (p.actor->formID != a_position->formID)
-				continue;
+				return false;
 			for (auto&& type : p.interactions) {
 				if (a_partner && a_partner->formID != type.partner->formID)
 					continue;
 				if (a_type != static_cast<int>(type.action))
 					continue;
-				return type.velocity;
+				ret = type.velocity;
+				return true;
 			}
-		}
-		return 0.0f;
+			return false;
+		});
+		return ret;
 	}
 
 	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest*, std::vector<RE::Actor*> a_positions,
