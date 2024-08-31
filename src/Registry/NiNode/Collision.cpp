@@ -31,7 +31,7 @@ namespace Registry::Collision
 		assert(partnernodes.head);
 		const auto vMyHead = *mouthstart - headworld.translate;
 		const auto vPartnerHead = *pmouthstart - partnernodes.head->world.translate;
-		auto angle = NiMath::GetVectorAngle(vMyHead, vPartnerHead);
+		auto angle = NiMath::GetAngleDegree(vMyHead, vPartnerHead);
 		if (std::abs(angle - 180) < Settings::fAngleMouth) {
 			if (bHead.IsPointInside(*pmouthstart) || a_partner.bHead.IsPointInside(*mouthstart)) {
 				float distance = pmouthstart->GetDistance(*mouthstart);
@@ -56,7 +56,7 @@ namespace Registry::Collision
 			return;
 		if (!bHead.IsPointInside(partnernodes.clitoris->world.translate))
 			return;
-		auto angle = NiMath::GetVectorAngle(*vVaginal, vMyHead);
+		auto angle = NiMath::GetAngleDegree(*vVaginal, vMyHead);
 		if ((angle - 180) > Settings::fAngleMouth * 2)
 			return;
 		float distance = partnernodes.clitoris->world.translate.GetDistance(*mouthstart);
@@ -80,23 +80,33 @@ namespace Registry::Collision
 		for (size_t i = 0; i < partnernodes.schlongs.size(); i++)
 		{
 			auto& p = partnernodes.schlongs[i];
-			const auto& base = p.base->world;
-			const auto pTip = p.GetTipReferencePoint();
-			const auto vSchlong = p.GetTipReferenceVector();
-			const auto vBaseToHead = headworld.translate - base.translate;
-			const auto aBaseToHead = NiMath::GetVectorAngle(vHead, vBaseToHead);
+			const auto niBase = p->GetBaseReferenceNode();
+			const auto& base = niBase->world;
+			const auto pTip = p->GetTipReferencePoint();
+			const auto aBaseToHead = [&]() {
+				auto vMouth = *pMouth - headworld.translate;
+				auto vBaseToHead = headworld.translate - base.translate;
+				/*const auto even = [&](float& x, float& y) {
+					if (std::abs(x - y) < bHead.boundMax.x) {
+						x = y = 0;
+					}
+				};*/
+				//even(vBaseToHead.z, vMouth.z);
+				//even(vBaseToHead.x, vMouth.x);
+				//even(vBaseToHead.y, vMouth.y);
+				return NiMath::GetAngleDegree(vMouth, vBaseToHead);
+			}();
 			const auto dCenter = headworld.translate.GetDistance(pTip);
-			const auto dMouth = [&]() {
+			const auto in_front_of_head = std::abs(aBaseToHead - 180) < 30.0f;
+			const auto at_side_of_head = std::abs(aBaseToHead - 90) < 60.0f;
+			const auto close_to_mouth = [&]() {
 				NiMath::Segment sSchlong{ base.translate, pTip };
 				const auto seg = NiMath::ClosestSegmentBetweenSegments(sHead, sSchlong);
-				return seg.first.GetDistance(seg.second);
+				return seg.first.GetDistance(seg.second) < bHead.boundMax.x;
 			}();
-			const auto in_front_of_head = std::abs(aBaseToHead - 180) < Settings::fAngleMouth;
-			const auto at_side_of_head = std::abs(aBaseToHead - 90) < 60.0f;
-			const auto close_to_mouth = dMouth < bHead.boundMax.x;
 			const auto penetrating_skull = dCenter < ((at_side_of_head ? bHead.boundMax.x : bHead.boundMax.y) * Settings::fHeadPenetrationRatio);
 
-			if (in_front_of_head && close_to_mouth) {
+			if (close_to_mouth && in_front_of_head) {
 				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, dCenter);
 				assert(partnernodes.pelvis);
 				if (penetrating_skull) {
@@ -106,22 +116,23 @@ namespace Registry::Collision
 						interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, dCenter);
 					}
 				}
-				auto rodrigue = NiMath::Rodrigue(vSchlong, -vHead);
-				NodeUpdate::AddOrUpdateSkew(p.base, rodrigue);
+				// auto cw = bHead.GetCenterWorld();
+				// auto ideal = RE::NiPoint3{ cw.x, cw.y, cw.z } - *pMouth;
+				NodeUpdate::AddOrUpdateSkew(p, -vHead);
 				continue;
 			} else if (penetrating_skull) {
 				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
 			} else if (at_side_of_head) {
 				const auto vBaseToMouth = *pMouth - base.translate;
-				const auto aBaseToMouth = NiMath::GetVectorAngle(vHead, vBaseToMouth);
-				const auto vertical_to_shaft = std::abs(aBaseToMouth - 90) < 55.0f;
+				const auto aBaseToMouth = NiMath::GetAngleDegree(vHead, vBaseToMouth);
+				const auto vertical_to_shaft = std::abs(aBaseToMouth - 90) < 30.0f;
 				if (vertical_to_shaft && close_to_mouth) {
 					interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, dCenter);
 				}
 			} else if (aBaseToHead > 120.0f && pTip.GetDistance(headworld.translate) < bHead.boundMax.y * (1 / Settings::fHeadPenetrationRatio)) {
 				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, dCenter);
 			}
-			NodeUpdate::DeleteSkew(p.base);
+			// NodeUpdate::DeleteSkew(p.base);
 		}
 	}
 
@@ -160,22 +171,23 @@ namespace Registry::Collision
 		const auto pAnal = position.nodes.GetAnalStart();
 		const auto vCrotch = position.nodes.GetCrotchVector();
 		for (auto&& p : a_other.position.nodes.schlongs) {
-			const auto vSchlong = p.GetTipReferenceVector();
-			assert(p.base && position.nodes.pelvis);
-			const auto vPelvisToBase = p.base->world.translate - position.nodes.pelvis->world.translate;
+			const auto vSchlong = p->GetTipReferenceVector();
+			const auto niBase = p->GetBaseReferenceNode();
+			const auto& base = niBase->world;
+			const auto vPelvisToBase = base.translate - position.nodes.pelvis->world.translate;
 			const auto dSchlongToPelvisLine = vPelvisToBase.Dot(vSchlong) / vPelvisToBase.SqrLength();
 			if (dSchlongToPelvisLine > Settings::fDistanceCrotch)
 				continue;
-			const auto angleCrotch = NiMath::GetVectorAngle(vCrotch, vSchlong);
+			const auto angleCrotch = NiMath::GetAngleDegree(vCrotch, vSchlong);
 			if (vVaginal && vAnal && position.nodes.clitoris) {	// female
 				assert(pVaginal && pAnal);
-				const float dVag = pVaginal->GetDistance(p.base->world.translate), dAnal = pAnal->GetDistance(p.base->world.translate);
-				const float anglePen = NiMath::GetVectorAngle(dVag <= dAnal ? *vVaginal : *vAnal, vSchlong);
+				const float dVag = pVaginal->GetDistance(base.translate), dAnal = pAnal->GetDistance(base.translate);
+				const float anglePen = NiMath::GetAngleDegree(dVag <= dAnal ? *vVaginal : *vAnal, vSchlong);
 				if (std::abs(anglePen - 180) < Settings::fAnglePenetration) {
 					const auto act = dVag <= dAnal ? Interaction::Action::Vaginal : Interaction::Action::Anal;
 					interactions.emplace_back(a_other.position.actor, act, dSchlongToPelvisLine);
 				} else if (std::abs(angleCrotch - 180) < Settings::fAngleGrinding) {
-					const auto distance = position.nodes.clitoris->world.translate.GetDistance(p.base->world.translate);
+					const auto distance = position.nodes.clitoris->world.translate.GetDistance(base.translate);
 					interactions.emplace_back(a_other.position.actor, Interaction::Action::Grinding, distance);
 				}
 			} else {	 // male/no 3ba
@@ -184,16 +196,16 @@ namespace Registry::Collision
 				} else if (std::abs(angleCrotch - 180) < Settings::fAngleGrinding) {
 					float distance;
 					if (const auto& c = position.nodes.clitoris) {
-						distance = c->world.translate.GetDistance(p.base->world.translate);
+						distance = c->world.translate.GetDistance(base.translate);
 					} else {
 						const auto& v = position.nodes.schlongs;
 						if (v.empty()) {
-							const auto base = position.nodes.ApproximateBase();
-							distance = base.GetDistance(p.base->world.translate);
+							const auto thisbase = position.nodes.ApproximateBase();
+							distance = thisbase.GetDistance(base.translate);
 						} else {
 							distance = std::numeric_limits<float>::max();
 							for (auto&& i : v) {
-								distance = std::min(distance, i.base->world.translate.GetDistance(p.base->world.translate));
+								distance = std::min(distance, i->GetBaseReferenceNode()->world.translate.GetDistance(base.translate));
 							}
 						}
 					}
@@ -217,7 +229,7 @@ namespace Registry::Collision
 		auto vVaginalPartner = a_other.position.nodes.GetVaginalVector();
 		if (!vVaginal || !vVaginalPartner)
 			return;
-		const auto angle = NiMath::GetVectorAngle(*vVaginal, *vVaginalPartner);
+		const auto angle = NiMath::GetAngleDegree(*vVaginal, *vVaginalPartner);
 		if (std::abs(angle - 180) > Settings::fAngleGrinding)
 			return;
 		interactions.emplace_back(a_other.position.actor, Interaction::Action::Grinding, distance);
@@ -237,7 +249,7 @@ namespace Registry::Collision
 			if (!activePoint)
 				return false;
 			for (auto&& p : position.nodes.schlongs) {
-				const auto& refpoint = p.mid ? p.mid->world.translate : position.nodes.ApproximateMid();
+				const auto& refpoint = p->GetTipReferenceVector();
 				if (make(refpoint))
 					return true;
 			}
@@ -277,10 +289,11 @@ namespace Registry::Collision
 			}
 			return v;
 		}()),
-		active(true), _t(&Handler::Process::Update, this) {}
+		active(true), _m(), _t(&Handler::Process::Update, this) {}
 
 	Handler::Process::~Process()
 	{
+		NodeUpdate::DeleteSkews();
 		active = false;
 		_t.join();
 	}
@@ -303,16 +316,6 @@ namespace Registry::Collision
 			do {
 				std::this_thread::sleep_for(INTERVAL);
 			} while (main->freezeTime || ui->numPausesGame > 0);
-			const auto getVelocity = [](std::vector<Position::Interaction>& interactions, const Position& pos) {
-				for (auto&& i : interactions) {
-					auto where = pos.interactions.find(i);
-					if (where == pos.interactions.end()) {
-						continue;
-					}
-					const float delta_dist = i.distance - where->distance;
-					i.velocity = (where->velocity + (delta_dist / INTERVAL.count())) / 2;
-				}
-			};
 			std::vector<std::shared_ptr<Position::Snapshot>> snapshots{};
 			snapshots.reserve(positions.size());
 			for (auto&& it : positions) {
@@ -337,6 +340,7 @@ namespace Registry::Collision
 						return false;
 					});
 			}
+			std::scoped_lock lk{ _m };
 			assert(positions.size() == snapshots.size());
 			for (size_t i = 0; i < positions.size(); i++) {
 				auto& pos = positions[i];

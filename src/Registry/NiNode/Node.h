@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Registry::Node
+namespace Registry::Collision::Node
 {
 	static constexpr std::string_view HEAD{ "NPC Head [Head]"sv };				 // Back of throat
 	static constexpr std::string_view PELVIS{ "NPC Pelvis [Pelv]"sv };		 // bottom mid (front)
@@ -71,23 +71,26 @@ namespace Registry::Node
 	static constexpr std::array SCHLONG_ANGLES{
 		25.0f, 32.0f, 39.0f, 46.0f, 53.0f, 60.0f, 67.0f, 74.0f, 81.0f, 88.0f, 95.0f, 102.0f, 109.0f, 116.0f, 123.0f, 130.0f, 137.0f, 144.0f, 151.0f
 	};
+	static constexpr float MIN_SCHLONG_LEN{ 20.0f };
 
 	struct NodeData
 	{
 		struct SchlongData
 		{
-			SchlongData(glm::mat3 a_rot) :
-				rot({ a_rot[0].x, a_rot[0].y, a_rot[0].z }, { a_rot[1].x, a_rot[1].y, a_rot[1].z }, { a_rot[2].x, a_rot[2].y, a_rot[2].z }) {}
+			static std::optional<SchlongData> CreateSchlongData(RE::NiAVObject* a_root, std::string_view a_basenode, const glm::mat3& a_rot);
 
+			RE::NiPointer<RE::NiNode> GetBaseReferenceNode() const;
 			RE::NiPoint3 GetTipReferencePoint() const;
 			RE::NiPoint3 GetTipReferenceVector() const;
 
-		public:
-			RE::NiPointer<RE::NiNode> base{ nullptr };
-			RE::NiPointer<RE::NiNode> mid{ nullptr };
-			RE::NiPointer<RE::NiNode> tip{ nullptr };
+		private:
+			SchlongData(RE::NiPointer<RE::NiNode> a_basenode, const glm::mat3& a_rot);
 
+			std::vector<RE::NiPointer<RE::NiNode>> nodes{};
 			RE::NiMatrix3 rot;
+		
+		public:
+			bool operator==(const SchlongData& a_rhs) const { return this->nodes.size() == a_rhs.nodes.size() && this->nodes.front() == a_rhs.nodes.front(); }
 		};
 
 	public:
@@ -114,7 +117,7 @@ namespace Registry::Node
 		RE::NiPointer<RE::NiNode> analdeep;
 		RE::NiPointer<RE::NiNode> analleft;
 		RE::NiPointer<RE::NiNode> analright;
-		std::vector<SchlongData> schlongs;
+		std::vector<std::shared_ptr<SchlongData>> schlongs;
 
 		RE::NiPointer<RE::NiNode> animobj_a;
 		RE::NiPointer<RE::NiNode> animobj_b;

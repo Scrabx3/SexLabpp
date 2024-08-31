@@ -1,9 +1,10 @@
 #include "Node.h"
 
+#include "NiMath.h"
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Define/Transform.h"
 
-namespace Registry::Node
+namespace Registry::Collision::Node
 {
 	NodeData::NodeData(RE::Actor* a_actor)
 	{
@@ -49,11 +50,11 @@ namespace Registry::Node
 		get(ANIMOBJECTL, animobj_l, false);
 		get(ANIMOBJECTR, animobj_r, false);
 		for (auto&& it : SCHLONG_NODES) {
-			SchlongData tmp(it.rot);
-			int s = get(it.base, tmp.base, false) + get(it.mid, tmp.mid, false) + get(it.tip, tmp.tip, false);
-			if (s == 0)
+			auto data = SchlongData::CreateSchlongData(obj, it.base, it.rot);
+			if (!data)
 				continue;
-			schlongs.push_back(tmp);
+			auto ptr = std::make_shared<SchlongData>(*data);
+			schlongs.push_back(ptr);
 		}
 	}
 
@@ -92,15 +93,8 @@ namespace Registry::Node
 	{
 		std::vector<RE::NiPoint3> ret{};
 		for (auto&& s : schlongs) {
-			assert(s.base);
-			if (s.tip) {
-				ret.push_back(s.tip->world.translate);
-			} else {
-				const auto& world = s.base->world;
-				const auto vforward = world.rotate.GetVectorY();
-				const auto approximate = (vforward * 20.0f) + world.translate;
-				ret.push_back(approximate);
-			}
+			auto it = s->GetTipReferencePoint();
+			ret.push_back(it);
 		}
 		if (ret.empty() && a_approximateifempty)
 			ret.push_back(ApproximateTip());
@@ -111,16 +105,8 @@ namespace Registry::Node
 	{
 		std::vector<RE::NiPoint3> ret{};
 		for (auto&& s : schlongs) {
-			assert(s.base);
-			RE::NiPoint3 refpoint = s.base->world.translate;
-			if (s.mid) {
-				ret.push_back(s.mid->world.translate - refpoint);
-			} else if (s.tip) {
-				ret.push_back(s.mid->world.translate - refpoint);
-			} else {
-				auto translate = s.rot * s.mid->world.rotate;
-				ret.push_back(translate.GetVectorY());
-			}
+			auto it = s->GetTipReferenceVector();
+			ret.push_back(it);
 		}
 		if (ret.empty() && a_approximateifempty) {
 			const auto approxMid = ApproximateMid(), approxbase = ApproximateBase();
@@ -150,7 +136,7 @@ namespace Registry::Node
 	{
 		if (!analdeep || !analleft || !analright)
 			return std::nullopt;
-		
+
 		auto analmid = GetAnalStart();
 		assert(analmid);
 		return *analmid - analdeep->world.translate;
@@ -176,7 +162,7 @@ namespace Registry::Node
 			return std::nullopt;
 		return toe_right->world.translate - foot_right->world.translate;
 	}
-	
+
 	std::optional<RE::NiPoint3> NodeData::GetHandVectorLeft() const
 	{
 		if (!hand_left || !finger_left)
@@ -197,28 +183,99 @@ namespace Registry::Node
 		return spine_lower->world.translate - pelvis->world.translate;
 	}
 
+	std::optional<NodeData::SchlongData> NodeData::SchlongData::CreateSchlongData(RE::NiAVObject* a_root, std::string_view a_basenode, const glm::mat3& a_rot)
+	{
+		auto obj = a_root->GetObjectByName(a_basenode);
+		auto niobj = obj ? obj->AsNode() : nullptr;
+		if (!niobj)
+			return std::nullopt;
+		return SchlongData(RE::NiPointer{ niobj }, a_rot);
+	}
+
+	NodeData::SchlongData::SchlongData(RE::NiPointer<RE::NiNode> a_basenode, const glm::mat3& a_rot) :
+		rot({ a_rot[0].x, a_rot[0].y, a_rot[0].z }, { a_rot[1].x, a_rot[1].y, a_rot[1].z }, { a_rot[2].x, a_rot[2].y, a_rot[2].z }),
+		nodes({ a_basenode })
+	{
+		assert(a_basenode);
+		do {
+			auto& parent = nodes.back();
+			auto& childs = parent->children;
+			switch (childs.size()) {
+			case 0:
+				break;
+			case 1:
+				if (auto niobj = childs.front()->AsNode())
+					nodes.emplace_back(niobj);
+				break;
+			default:
+				{
+					auto v1 = nodes.size() < 2 ? parent->world.rotate.GetVectorY() : parent->world.translate - a_basenode->world.translate;
+					if (v1.SqrLength() > FLT_EPSILON) {
+						for (auto&& child : childs) {
+							auto nichild = child->AsNode();
+							if (!nichild)
+								continue;
+							auto v2 = nichild->world.translate - a_basenode->world.translate;
+							auto angle = NiMath::GetAngleDegree(v1, v2);
+							if (angle <= 90.0f) {
+								nodes.emplace_back(nichild);
+								break;
+							}
+						}
+					} else {
+						auto user = a_basenode->GetUserData();
+						auto id = user ? user->GetFormID() : 0;
+						logger::error("Ambiguous Skeleton Structure for user {:X} at node depth {}", id, nodes.size());
+					}
+				}
+				break;
+			}
+			if (nodes.back() == parent)
+				break;
+		} while (true);
+	}
+
+	RE::NiPointer<RE::NiNode> NodeData::SchlongData::GetBaseReferenceNode() const
+	{
+		switch (nodes.size()) {
+		case 0:
+			assert(false);
+			return nullptr;
+		default:
+			return nodes.front();
+		}
+	}
+
 	RE::NiPoint3 NodeData::SchlongData::GetTipReferencePoint() const
 	{
-		assert(base);
-		if (tip) {
-			return tip->world.translate;
+		switch (nodes.size()) {
+		case 0:
+			assert(false);
+			return RE::NiPoint3::Zero();
+		case 1:
+			{
+				auto vforward = GetTipReferenceVector();
+				vforward.Unitize();
+				return (vforward * MIN_SCHLONG_LEN) + nodes.front()->world.translate;
+			}
+		default:
+			return nodes.back()->world.translate;
 		}
-		auto vforward = GetTipReferenceVector();
-		vforward.Unitize();
-		return (vforward * 20.0f) + base->world.translate;
 	}
 
 	RE::NiPoint3 NodeData::SchlongData::GetTipReferenceVector() const
 	{
-		assert(base);
-		const auto& refpoint = base->world.translate;
-		if (mid) {
-			return mid->world.translate - refpoint;
-		} else if (tip) {
-			return mid->world.translate - refpoint;
+		switch (nodes.size()) {
+		case 0:
+			assert(false);
+			return RE::NiPoint3::Zero();
+		case 1:
+			{
+				auto translate = rot * nodes.front()->world.rotate;
+				return translate.GetVectorY();
+			}
+		default:
+			return nodes.back()->world.translate - nodes.front()->world.translate;
 		}
-		auto translate = rot * base->world.rotate;
-		return translate.GetVectorY();
 	}
-
 }

@@ -1,7 +1,52 @@
 #include "NodeUpdate.h"
 
+#include "NiMath.h"
+
 namespace Registry::Collision
 {
+	void RotationData::ApplyRotation()
+	{
+		// X -> Pitch (Schlong Angle Axis on Humans)
+		// Y -> Roll
+		// Z -> Yaw
+		auto node = schlong->GetBaseReferenceNode();
+		auto& local = node->local.rotate;
+
+		auto vS = schlong->GetTipReferenceVector();
+		vS.Unitize();
+
+		auto s = NiMath::ToEigen(vS), i = NiMath::ToEigen(vIdeal);
+		// Eigen::Matrix3f localEigen = NiMath::ToEigen(local);
+		// Eigen::AngleAxisf align = NiMath::AlignAxis(localEigen.col(1), s);
+		// Eigen::Matrix3f localAligned = align * localEigen;
+
+		// Eigen::AngleAxisf alignIdeal = NiMath::AlignAxis(localAligned.col(1), i);
+		// Eigen::Matrix3f localIdeal = alignIdeal.inverse() * localAligned;
+
+		// Eigen::Matrix3f localEigenRev = align.inverse() * localIdeal;
+		// auto niRot = NiMath::AsNiMatrix(localEigenRev);
+		// local = niRot;
+
+		auto transform = NiMath::Rodrigue(s, i);
+		auto euler = transform.eulerAngles(0, 1, 2);
+		auto rot = Eigen::AngleAxisf(-euler[0], Eigen::Vector3f::UnitX()) *
+							 Eigen::AngleAxisf(euler[2], Eigen::Vector3f::UnitZ());
+		auto niRot = NiMath::AsNiMatrix(rot.toRotationMatrix());
+		local = niRot * local;
+
+		RE::NiUpdateData data{
+			0.f,
+			RE::NiUpdateData::Flag::kNone
+		};
+		node->Update(data);
+	}
+
+	void RotationData::Update(const RE::NiPoint3& a_newIdeal)
+	{
+		vIdeal = a_newIdeal;
+		vIdeal.Unitize();
+	}
+
 	void NodeUpdate::Install()
 	{
 		// UpdateThirdPerson
@@ -12,44 +57,31 @@ namespace Registry::Collision
 	void NodeUpdate::thunk(RE::NiAVObject* a_obj, RE::NiUpdateData* updateData)
 	{
 		{
-			RE::NiUpdateData data{
-				0.f,
-				RE::NiUpdateData::Flag::kNone
-			};
-
 			std::scoped_lock lk{ _m };
-			for (auto&& [node, skew] : skews) {
-				node->local.rotate = node->local.rotate * skew;
-				node->Update(data);
+			for (auto& rot : skews) {
+				rot.ApplyRotation();
 			}
 		}
 		return func(a_obj, updateData);
 	}
 
-	void NodeUpdate::AddOrUpdateSkew(RE::NiPointer<RE::NiNode> a_node, RE::NiMatrix3 a_skew)
-	{
-		auto arg = std::make_pair(a_node, a_skew);
-		return AddOrUpdateSkew(arg);
-	}
-
-	void NodeUpdate::AddOrUpdateSkew(std::pair<RE::NiPointer<RE::NiNode>, RE::NiMatrix3> a_skew)
+	void NodeUpdate::AddOrUpdateSkew(const std::shared_ptr<Schlong>& a_node, const RE::NiPoint3& vIdeal)
 	{
 		std::scoped_lock lk{ _m };
-		auto w = std::ranges::find_if(skews, [&](auto it) { return it.first == a_skew.first; });
+		auto w = std::ranges::find_if(skews, [&](auto& it) { return it == a_node; });
 		if (w == skews.end()) {
-			skews.push_back(a_skew);
+			skews.emplace_back(a_node, vIdeal);
 		} else {
-			w->second = a_skew.second;
+			w->Update(vIdeal);
 		}
 	}
 
-	void NodeUpdate::DeleteSkew(const RE::NiPointer<RE::NiNode>& a_skew)
+	void NodeUpdate::DeleteSkew(const std::shared_ptr<Schlong>& a_node)
 	{
 		std::scoped_lock lk{ _m };
-		auto w = std::ranges::find_if(skews, [&](auto it) { return it.first == a_skew; });
-		if (w != skews.end()) {
+		auto w = std::ranges::find_if(skews, [&](auto& it) { return it == a_node; });
+		if (w != skews.end())
 			skews.erase(w);
-		}
 	}
 
 }	 // namespace Registry::Collision

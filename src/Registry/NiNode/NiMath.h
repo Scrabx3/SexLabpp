@@ -24,6 +24,12 @@ namespace Registry::Collision::NiMath
 	RE::NiMatrix3 Rodrigue(const RE::NiPoint3& v, const RE::NiPoint3& i);
 	Eigen::Matrix3f Rodrigue(const Eigen::Vector3f& v, const Eigen::Vector3f& i);
 
+	/// @brief Perform least squares on the given set of points
+	/// @param a_points The points to perform the analysis on
+	/// @return A best-fit segment reaching from the first point and ending at the last
+	Eigen::Matrix3f LeastSquares(const std::vector<RE::NiPoint3>& a_points);
+	Eigen::Matrix3f LeastSquares(const std::vector<Eigen::Vector3f>& a_points);
+
 	/// @brief Compute the Angle between v1 and v2, in radians
 	/// @param v1 The first vector
 	/// @param v2 The second vector

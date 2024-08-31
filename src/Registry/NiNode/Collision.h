@@ -46,7 +46,12 @@ namespace Registry::Collision
 
 		public:
 			bool operator==(const Interaction& a_rhs) const { return a_rhs.partner == partner && a_rhs.action == action; }
-			bool operator<(const Interaction& a_rhs) const { return a_rhs.partner->GetFormID() < partner->GetFormID() || a_rhs.action < action; }
+			bool operator<(const Interaction& a_rhs) const
+			{
+				if (partner->GetFormID() != a_rhs.partner->GetFormID())
+					return partner->GetFormID() < a_rhs.partner->GetFormID();
+				return action < a_rhs.action;
+			}
 		};
 
 		struct Snapshot
@@ -99,7 +104,7 @@ namespace Registry::Collision
 			void Update();
 			std::vector<Position> positions;
 			std::atomic<bool> active;
-			std::mutex _m;
+			mutable std::mutex _m;
 			std::thread _t;
 		};
 
