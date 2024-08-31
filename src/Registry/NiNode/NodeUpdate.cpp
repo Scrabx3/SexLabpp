@@ -12,21 +12,10 @@ namespace Registry::Collision
 		auto node = schlong->GetBaseReferenceNode();
 		auto& local = node->local.rotate;
 
-		auto vS = schlong->GetTipReferenceVector();
+		auto vS = schlong->GetSchlongVector();
 		vS.Unitize();
 
 		auto s = NiMath::ToEigen(vS), i = NiMath::ToEigen(vIdeal);
-		// Eigen::Matrix3f localEigen = NiMath::ToEigen(local);
-		// Eigen::AngleAxisf align = NiMath::AlignAxis(localEigen.col(1), s);
-		// Eigen::Matrix3f localAligned = align * localEigen;
-
-		// Eigen::AngleAxisf alignIdeal = NiMath::AlignAxis(localAligned.col(1), i);
-		// Eigen::Matrix3f localIdeal = alignIdeal.inverse() * localAligned;
-
-		// Eigen::Matrix3f localEigenRev = align.inverse() * localIdeal;
-		// auto niRot = NiMath::AsNiMatrix(localEigenRev);
-		// local = niRot;
-
 		auto transform = NiMath::Rodrigue(s, i);
 		auto euler = transform.eulerAngles(0, 1, 2);
 		auto rot = Eigen::AngleAxisf(-euler[0], Eigen::Vector3f::UnitX()) *

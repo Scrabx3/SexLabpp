@@ -171,7 +171,7 @@ namespace Registry::Collision
 		const auto pAnal = position.nodes.GetAnalStart();
 		const auto vCrotch = position.nodes.GetCrotchVector();
 		for (auto&& p : a_other.position.nodes.schlongs) {
-			const auto vSchlong = p->GetTipReferenceVector();
+			const auto vSchlong = p->GetSchlongVector();
 			const auto niBase = p->GetBaseReferenceNode();
 			const auto& base = niBase->world;
 			const auto vPelvisToBase = base.translate - position.nodes.pelvis->world.translate;
@@ -249,7 +249,7 @@ namespace Registry::Collision
 			if (!activePoint)
 				return false;
 			for (auto&& p : position.nodes.schlongs) {
-				const auto& refpoint = p->GetTipReferenceVector();
+				const auto& refpoint = p->GetSchlongVector();
 				if (make(refpoint))
 					return true;
 			}

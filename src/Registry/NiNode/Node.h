@@ -81,7 +81,7 @@ namespace Registry::Collision::Node
 
 			RE::NiPointer<RE::NiNode> GetBaseReferenceNode() const;
 			RE::NiPoint3 GetTipReferencePoint() const;
-			RE::NiPoint3 GetTipReferenceVector() const;
+			RE::NiPoint3 GetSchlongVector() const;
 
 		private:
 			SchlongData(RE::NiPointer<RE::NiNode> a_basenode, const glm::mat3& a_rot);

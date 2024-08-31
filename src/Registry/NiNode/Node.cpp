@@ -105,7 +105,7 @@ namespace Registry::Collision::Node
 	{
 		std::vector<RE::NiPoint3> ret{};
 		for (auto&& s : schlongs) {
-			auto it = s->GetTipReferenceVector();
+			auto it = s->GetSchlongVector();
 			ret.push_back(it);
 		}
 		if (ret.empty() && a_approximateifempty) {
@@ -254,7 +254,7 @@ namespace Registry::Collision::Node
 			return RE::NiPoint3::Zero();
 		case 1:
 			{
-				auto vforward = GetTipReferenceVector();
+				auto vforward = GetSchlongVector();
 				vforward.Unitize();
 				return (vforward * MIN_SCHLONG_LEN) + nodes.front()->world.translate;
 			}
@@ -263,7 +263,7 @@ namespace Registry::Collision::Node
 		}
 	}
 
-	RE::NiPoint3 NodeData::SchlongData::GetTipReferenceVector() const
+	RE::NiPoint3 NodeData::SchlongData::GetSchlongVector() const
 	{
 		switch (nodes.size()) {
 		case 0:
@@ -272,10 +272,22 @@ namespace Registry::Collision::Node
 		case 1:
 			{
 				auto translate = rot * nodes.front()->world.rotate;
-				return translate.GetVectorY();
+				return translate.GetVectorY() * MIN_SCHLONG_LEN;
 			}
 		default:
-			return nodes.back()->world.translate - nodes.front()->world.translate;
+			{
+				std::vector<Eigen::Vector3f> argV{};
+				argV.reserve(nodes.size());
+				for (auto&& node : nodes) {
+					if (!node)
+						continue;
+					auto argT = NiMath::ToEigen(node->world.translate);
+					argV.push_back(argT);
+				}
+				auto seg = NiMath::LeastSquares(argV, MIN_SCHLONG_LEN);
+				return seg.second - seg.first;
+			}
+			// return nodes.back()->world.translate - nodes.front()->world.translate;
 		}
 	}
 }
