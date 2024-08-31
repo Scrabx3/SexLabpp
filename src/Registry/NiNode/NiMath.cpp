@@ -52,6 +52,11 @@ namespace Registry::Collision::NiMath
 		};
 	}
 
+	RE::NiPoint3 AsNiPoint(const Eigen::Vector3f& a_point)
+	{
+		return { a_point[0], a_point[1], a_point[2] };
+	}
+
 	RE::NiMatrix3 AsNiMatrix(const Eigen::Matrix3f& a_mat)
 	{
 		return RE::NiMatrix3{
@@ -68,6 +73,43 @@ namespace Registry::Collision::NiMath
 		Eigen::AngleAxisf rotation{ angle, rotationAxis.normalized() };
 		return rotation;
 	}
+
+	Segment LeastSquares(const std::vector<RE::NiPoint3>& a_points, float a_minlen)
+	{
+		std::vector<Eigen::Vector3f> points{};
+		points.reserve(a_points.size());
+		for (auto&& point : a_points) {
+			points.push_back(ToEigen(point));
+		}
+		return LeastSquares(points, a_minlen);
+	}
+
+	Segment LeastSquares(const std::vector<Eigen::Vector3f>& a_points, float a_minlen)
+	{
+		Eigen::MatrixXf A(3, a_points.size());
+		for (size_t i = 0; i < a_points.size(); ++i) {
+			A.col(i) = a_points[i];
+		}
+		const Eigen::Vector3f a = A.rowwise().mean();
+		const auto centered = A.colwise() - a;
+		const auto covariance = centered * centered.transpose();
+		Eigen::JacobiSVD<Eigen::Matrix3f> svd{ covariance, Eigen::ComputeFullU };
+		const Eigen::Vector3f b = svd.matrixU().col(0);
+
+		const auto f = [&](float x) -> Eigen::Vector3f { return a + b * x; };
+		auto s1 = f(centered.col(0).dot(b));
+		auto s2 = f(centered.col(a_points.size() - 1).dot(b));
+
+		const auto vS = s2 - s1;
+		if (const auto dif = a_minlen - vS.norm(); dif > 0.0f) {
+			s2 += vS.normalized() * dif;
+		}
+
+		[[maybe_unused]] auto angle = RE::rad_to_deg(GetAngle(vS, a_points.back() - a_points.front()));
+
+		return Segment{ AsNiPoint(s1), AsNiPoint(s2) };
+	}
+
 
 	RE::NiMatrix3 Rodrigue(const RE::NiPoint3& v, const RE::NiPoint3& i)
 	{

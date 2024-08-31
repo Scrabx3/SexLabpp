@@ -9,6 +9,7 @@ namespace Registry::Collision::NiMath
 
 	Eigen::Vector3f ToEigen(const RE::NiPoint3& a_point);
 	Eigen::Matrix3f ToEigen(const RE::NiMatrix3& a_point);
+	RE::NiPoint3 AsNiPoint(const Eigen::Vector3f& a_point);
 	RE::NiMatrix3 AsNiMatrix(const Eigen::Matrix3f& a_mat);
 
 	/// @brief Obtain an angle s.t. ret * vector aligns with ideal (0°)
@@ -26,9 +27,10 @@ namespace Registry::Collision::NiMath
 
 	/// @brief Perform least squares on the given set of points
 	/// @param a_points The points to perform the analysis on
+	/// @param a_minlen The returned segments minimum norm
 	/// @return A best-fit segment reaching from the first point and ending at the last
-	Eigen::Matrix3f LeastSquares(const std::vector<RE::NiPoint3>& a_points);
-	Eigen::Matrix3f LeastSquares(const std::vector<Eigen::Vector3f>& a_points);
+	Segment LeastSquares(const std::vector<RE::NiPoint3>& a_points, float a_minlen);
+	Segment LeastSquares(const std::vector<Eigen::Vector3f>& a_points, float a_minlen);
 
 	/// @brief Compute the Angle between v1 and v2, in radians
 	/// @param v1 The first vector
