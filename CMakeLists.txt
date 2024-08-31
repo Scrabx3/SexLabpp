@@ -87,6 +87,7 @@ endif()
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
 find_package(glm REQUIRED CONFIG)
+find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(magic_enum REQUIRED)
 
 # ---- Add source files ----
@@ -158,6 +159,7 @@ target_link_libraries(
     spdlog::spdlog
     yaml-cpp
     magic_enum::magic_enum
+    Eigen3::Eigen
 )
 
 target_precompile_headers("${PROJECT_NAME}"

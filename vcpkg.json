@@ -10,7 +10,8 @@
     "yaml-cpp",
     "nlohmann-json",
     "magic-enum",
-    "glm"
+    "glm",
+    "eigen3"
   ],
   "overrides": [
     {
