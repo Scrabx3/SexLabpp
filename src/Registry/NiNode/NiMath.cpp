@@ -28,11 +28,9 @@ namespace Registry::Collision::NiMath
 				s = std::clamp(vUvR / lU, 0.0f, 1.0f);
 				t = 0.0f;
 			} else {
-				s = std::clamp((vUvR * lV - vVvR * vUvR) / det, 0.0f, 1.0f);
-				t = std::clamp((vUvR * vUvR - vVvR * lU) / det, 0.0f, 1.0f);
+				s = std::clamp((vUvR * lV - vVvR * vUvV) / det, 0.0f, 1.0f);
+				t = std::clamp((vUvR + s * vUvV) / lV, 0.0f, 1.0f);
 			}
-			s = std::clamp((t * vUvR + vUvR) / lU, 0.0f, 1.0f);
-			t = std::clamp((s * vUvR - vVvR) / lV, 0.0f, 1.0f);
 		}
 
 		const auto c1 = u.first + (vU * s);
@@ -40,32 +38,84 @@ namespace Registry::Collision::NiMath
 		return std::make_pair(c1, c2);
 	}
 
-	RE::NiMatrix3 Rodrigue(RE::NiPoint3 start, RE::NiPoint3 end, RE::NiPoint3 vIdeal)
+	Eigen::Vector3f ToEigen(const RE::NiPoint3& a_point)
 	{
-		auto vRef = end - start;
-		return Rodrigue(vRef, vIdeal);
+		return { a_point.x, a_point.y, a_point.z };
 	}
 
-	RE::NiMatrix3 Rodrigue(RE::NiPoint3 vector, RE::NiPoint3 vIdeal)
+	Eigen::Matrix3f ToEigen(const RE::NiMatrix3& a_mat)
 	{
-		vector.Unitize();
-		vIdeal.Unitize();
-		const auto cross = vector.Cross(vIdeal);
-		const auto cos_theta = vIdeal.Dot(vector);
-		const auto theta = std::acos(cos_theta);
-		if (cross.SqrLength() < FLT_EPSILON)
-			return RE::NiMatrix3{};
-
-		RE::NiMatrix3 I{}, u{
-			{ 0.0f, cross.z, -cross.y },
-			{ -cross.z, 0.0f, cross.x },
-			{ cross.y, -cross.x, 0.0f }
+		return Eigen::Matrix3f{
+			{ a_mat.entry[0][0], a_mat.entry[1][0], a_mat.entry[2][0] },
+			{ a_mat.entry[0][1], a_mat.entry[1][1], a_mat.entry[2][1] },
+			{ a_mat.entry[0][2], a_mat.entry[1][2], a_mat.entry[2][2] },
 		};
-		auto result = I + (u * sin(theta)) + ((u * u) * (1 - cos_theta));
-		return result;
 	}
 
-	float GetVectorAngle(const RE::NiPoint3& v1, const RE::NiPoint3& v2)
+	RE::NiMatrix3 AsNiMatrix(const Eigen::Matrix3f& a_mat)
+	{
+		return RE::NiMatrix3{
+			{ a_mat(0, 0), a_mat(1, 0), a_mat(2, 0) },
+			{ a_mat(0, 1), a_mat(1, 1), a_mat(2, 1) },
+			{ a_mat(0, 2), a_mat(1, 2), a_mat(2, 2) },
+		};
+	}
+
+	Eigen::AngleAxisf AlignAxis(const Eigen::Vector3f& vector, const Eigen::Vector3f& ideal)
+	{
+		const auto rotationAxis = vector.cross(ideal);
+		const auto angle = GetAngle(vector, ideal);
+		Eigen::AngleAxisf rotation{ angle, rotationAxis.normalized() };
+		return rotation;
+	}
+
+	RE::NiMatrix3 Rodrigue(const RE::NiPoint3& v, const RE::NiPoint3& i)
+	{
+		RE::NiPoint3 cross = v.Cross(i);
+		const auto sin_theta = cross.Length();
+		const auto cos_theta = v.Dot(i);
+		cross.Unitize();
+
+		RE::NiMatrix3 skew{
+			{ 0, cross.z, -cross.y },
+			{ -cross.z, 0, cross.x },
+			{ cross.y, -cross.x, 0 },
+		};
+
+		RE::NiMatrix3 transform = RE::NiMatrix3{} + (skew * sin_theta) + (skew * skew * (1 - cos_theta));
+		if (cos_theta < 0) {
+			transform = transform * -1;
+		}
+		return transform;
+	}
+
+	Eigen::Matrix3f Rodrigue(const Eigen::Vector3f& v, const Eigen::Vector3f& i)
+	{
+		Eigen::Vector3f cross = v.cross(i);
+		const auto sin_theta = cross.norm();
+		const auto cos_theta = v.dot(i);
+		cross.normalize();
+
+		Eigen::Matrix3f skew{
+			{ 0, -cross.z(), cross.y() },
+			{ cross.z(), 0, -cross.x() },
+			{ -cross.y(), cross.x(), 0 },
+		};
+
+		Eigen::Matrix3f transform = Eigen::Matrix3f::Identity() + (skew * sin_theta) + (skew * skew * (1 - cos_theta));
+		if (cos_theta < 0) {
+			transform = -transform;
+		}
+		return transform;
+	}
+
+	float GetAngle(const Eigen::Vector3f& v1, const Eigen::Vector3f& v2)
+	{
+		const auto cos_theta = v1.dot(v2);
+		return acos(cos_theta / (v1.norm() * v2.norm()));
+	}
+
+	float GetAngleDegree(const RE::NiPoint3& v1, const RE::NiPoint3& v2)
 	{
 		const auto dot = v1.Dot(v2);
 		const auto l = v1.Length() * v2.Length();
