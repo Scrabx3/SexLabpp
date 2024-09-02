@@ -57,7 +57,7 @@ namespace Registry::Collision::NiMath
 		return { a_point[0], a_point[1], a_point[2] };
 	}
 
-	RE::NiMatrix3 AsNiMatrix(const Eigen::Matrix3f& a_mat)
+	RE::NiMatrix3 ToNiMatrix(const Eigen::Matrix3f& a_mat)
 	{
 		return RE::NiMatrix3{
 			{ a_mat(0, 0), a_mat(1, 0), a_mat(2, 0) },
@@ -163,6 +163,33 @@ namespace Registry::Collision::NiMath
 		const auto l = v1.Length() * v2.Length();
 		const auto x = dot / l;
 		return RE::rad_to_deg(std::acosf(x));
+	}
+
+	float GetAngleXY(const RE::NiMatrix3& rot)
+	{
+		return std::atan2(rot.entry[0][1], rot.entry[0][0]);
+	}
+	float GetAngleXY(const Eigen::Matrix3f& rot)
+	{
+		return std::atan2(rot(1, 0), rot(0, 0));
+	}
+
+	float GetAngleXZ(const RE::NiMatrix3& rot)
+	{
+		return std::atan2(rot.entry[0][2], rot.entry[0][0]);
+	}
+	float GetAngleXZ(const Eigen::Matrix3f& rot)
+	{
+		return std::atan2(rot(2, 0), rot(0, 0));
+	}
+
+	float GetAngleYZ(const RE::NiMatrix3& rot)
+	{
+		return std::atan2(rot.entry[1][2], rot.entry[1][1]);
+	}
+	float GetAngleYZ(const Eigen::Matrix3f& rot)
+	{
+		return std::atan2(rot(2, 1), rot(0, 0));
 	}
 
 }	 // namespace Registry::Collision::NiMath

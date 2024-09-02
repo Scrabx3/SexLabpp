@@ -10,14 +10,14 @@ namespace Registry::Collision::NiMath
 	Eigen::Vector3f ToEigen(const RE::NiPoint3& a_point);
 	Eigen::Matrix3f ToEigen(const RE::NiMatrix3& a_point);
 	RE::NiPoint3 AsNiPoint(const Eigen::Vector3f& a_point);
-	RE::NiMatrix3 AsNiMatrix(const Eigen::Matrix3f& a_mat);
+	RE::NiMatrix3 ToNiMatrix(const Eigen::Matrix3f& a_mat);
 
 	/// @brief Obtain an angle s.t. ret * vector aligns with ideal (0°)
 	/// @param vector The vector to align
 	/// @param ideal The ideal rotation
 	/// @return A rotation to transform vector with
 	Eigen::AngleAxisf AlignAxis(const Eigen::Vector3f& vector, const Eigen::Vector3f& ideal);
-	
+
 	/// @brief Create a rotation matrix using Rodrigues Formula
 	/// @param v The vector to align, normalized
 	/// @param i The ideal rotation of the vector, normalized
@@ -37,11 +37,23 @@ namespace Registry::Collision::NiMath
 	/// @param v2 The second vector
 	/// @return The angle, in radians
 	float GetAngle(const Eigen::Vector3f& v1, const Eigen::Vector3f& v2);
-
-	/// @brief Get the angle between v1 and v2
-	/// @param v1 The first vector
-	/// @param v2 The second vector
-	/// @return Angle, in degree
 	float GetAngleDegree(const RE::NiPoint3& v1, const RE::NiPoint3& v2);
+
+	/// @brief Get the angle when projecting the matrix onto a specific plane
+	/// @param rot The rotation matrix to extract the angle from
+	/// @return The rotation when viewed from the specified plane
+	float GetAngleXZ(const Eigen::Matrix3f& rot);
+	float GetAngleXY(const Eigen::Matrix3f& rot);
+	float GetAngleYZ(const Eigen::Matrix3f& rot);
+	float GetAngleXZ(const RE::NiMatrix3& rot);
+	float GetAngleXY(const RE::NiMatrix3& rot);
+	float GetAngleYZ(const RE::NiMatrix3& rot);
+
+	/// @brief constexpr ceil() function
+	constexpr int IntCeil(float f)
+	{
+		const int i = static_cast<int>(f);
+		return f > i ? i + 1 : i;
+	}
 
 }	 // namespace Registry::Collision::NiMath
