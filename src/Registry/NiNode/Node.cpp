@@ -204,14 +204,21 @@ namespace Registry::Collision::Node
 			case 0:
 				break;
 			case 1:
-				if (auto niobj = childs.front()->AsNode())
-					nodes.emplace_back(niobj);
+				{
+					auto& child = childs.front();
+					auto niobj = child ? child->AsNode() : nullptr;
+					if (niobj) {
+						nodes.emplace_back(niobj);
+					}
+				}
 				break;
 			default:
 				{
 					auto v1 = nodes.size() < 2 ? parent->world.rotate.GetVectorY() : parent->world.translate - a_basenode->world.translate;
 					if (v1.SqrLength() > FLT_EPSILON) {
 						for (auto&& child : childs) {
+							if (!child)
+								continue;
 							auto nichild = child->AsNode();
 							if (!nichild)
 								continue;
