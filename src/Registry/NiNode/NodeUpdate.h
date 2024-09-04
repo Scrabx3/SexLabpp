@@ -19,8 +19,8 @@ namespace Registry::Collision
 
 	private:
 		std::shared_ptr<Schlong> schlong;
-		RE::NiPoint3 vIdeal;
-	
+		Eigen::Vector3f vIdeal;
+
 	public:
 		bool operator==(const RotationData& a_rhs) const { return this->schlong == a_rhs.schlong; }
 		bool operator==(const std::shared_ptr<Schlong>& a_rhs) const { return this->schlong == a_rhs; }
@@ -34,7 +34,7 @@ namespace Registry::Collision
 		static void DeleteSkew(const std::shared_ptr<Schlong>& a_node);
 		static void DeleteSkews()
 		{
-			std::scoped_lock lk{_m};
+			std::scoped_lock lk{ _m };
 			skews.clear();
 		}
 

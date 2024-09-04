@@ -13,18 +13,34 @@ namespace Registry::Collision
 		auto& local = node->local.rotate;
 
 		auto vS = schlong->GetSchlongVector();
-		vS.Unitize();
+		Eigen::Vector3f s = NiMath::ToEigen(vS).normalized();
+		Eigen::Vector3f s_XY = Eigen::Vector3f(s.x(), s.y(), 0);
+		Eigen::Vector3f i_XY = Eigen::Vector3f(vIdeal.x(), vIdeal.y(), 0);
+		float i_yaw = std::atan2(s_XY.cross(i_XY).z(), s_XY.dot(i_XY));
 
-		auto s = NiMath::ToEigen(vS), i = NiMath::ToEigen(vIdeal);
-		auto transform = NiMath::Rodrigue(s, i);
-		auto euler = transform.eulerAngles(0, 1, 2);
-		auto rot = Eigen::AngleAxisf(-euler[0], Eigen::Vector3f::UnitX()) *
-							 Eigen::AngleAxisf(euler[2], Eigen::Vector3f::UnitZ());
-		auto niRot = NiMath::AsNiMatrix(rot.toRotationMatrix());
-		local = niRot * local;
+		Eigen::Vector3f s_YZ = Eigen::Vector3f(0, s.y(), s.z());
+		Eigen::Vector3f i_YZ = Eigen::Vector3f(0, vIdeal.y(), vIdeal.z());
+		float i_pitch = std::atan2(s_YZ.cross(i_YZ).x(), s_YZ.dot(i_YZ));
+		constexpr auto angle_tolerance = glm::radians(5.0f);
+		if (i_yaw < angle_tolerance && i_pitch < angle_tolerance) {
+			return;
+		}
+		Eigen::Matrix3f l = NiMath::ToEigen(local);
+
+		const float yaw = NiMath::GetAngleXY(node->world.rotate) + RE::NI_PI;
+		const auto neutralizeYaw = Eigen::AngleAxisf(-yaw, Eigen::Vector3f::UnitZ());
+		auto tmpL = neutralizeYaw * l;
+
+		auto pitchYaw = Eigen::AngleAxisf(i_yaw, Eigen::Vector3f::UnitZ());
+		auto pitchRot = Eigen::AngleAxisf(i_pitch, Eigen::Vector3f::UnitX());
+		tmpL = pitchYaw * pitchRot * tmpL;
+
+		auto reapplyYaw = Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
+		l = reapplyYaw * tmpL;
+		local = NiMath::ToNiMatrix(l);
 
 		RE::NiUpdateData data{
-			0.f,
+			0.5f,
 			RE::NiUpdateData::Flag::kNone
 		};
 		node->Update(data);
@@ -32,8 +48,7 @@ namespace Registry::Collision
 
 	void RotationData::Update(const RE::NiPoint3& a_newIdeal)
 	{
-		vIdeal = a_newIdeal;
-		vIdeal.Unitize();
+		vIdeal = NiMath::ToEigen(a_newIdeal).normalized();
 	}
 
 	void NodeUpdate::Install()

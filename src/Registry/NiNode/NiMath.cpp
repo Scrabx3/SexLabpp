@@ -176,20 +176,20 @@ namespace Registry::Collision::NiMath
 
 	float GetAngleXZ(const RE::NiMatrix3& rot)
 	{
-		return std::atan2(rot.entry[0][2], rot.entry[0][0]);
+		return std::atan2(-rot.entry[0][2], rot.entry[0][0]);
 	}
 	float GetAngleXZ(const Eigen::Matrix3f& rot)
 	{
-		return std::atan2(rot(2, 0), rot(0, 0));
+		return std::atan2(-rot(2, 0), rot(0, 0));
 	}
 
 	float GetAngleYZ(const RE::NiMatrix3& rot)
 	{
-		return std::atan2(rot.entry[1][2], rot.entry[1][1]);
+		return std::atan2(-rot.entry[1][2], rot.entry[1][1]);
 	}
 	float GetAngleYZ(const Eigen::Matrix3f& rot)
 	{
-		return std::atan2(rot(2, 1), rot(0, 0));
+		return std::atan2(-rot(2, 1), rot(0, 0));
 	}
 
 }	 // namespace Registry::Collision::NiMath

@@ -86,14 +86,6 @@ namespace Registry::Collision
 			const auto aBaseToHead = [&]() {
 				auto vMouth = *pMouth - headworld.translate;
 				auto vBaseToHead = headworld.translate - base.translate;
-				/*const auto even = [&](float& x, float& y) {
-					if (std::abs(x - y) < bHead.boundMax.x) {
-						x = y = 0;
-					}
-				};*/
-				//even(vBaseToHead.z, vMouth.z);
-				//even(vBaseToHead.x, vMouth.x);
-				//even(vBaseToHead.y, vMouth.y);
 				return NiMath::GetAngleDegree(vMouth, vBaseToHead);
 			}();
 			const auto dCenter = headworld.translate.GetDistance(pTip);
@@ -116,8 +108,23 @@ namespace Registry::Collision
 						interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, dCenter);
 					}
 				}
-				// auto cw = bHead.GetCenterWorld();
-				// auto ideal = RE::NiPoint3{ cw.x, cw.y, cw.z } - *pMouth;
+				// const auto vPelvis = partnernodes.pelvis->world.rotate.GetVectorZ();
+				// const auto rot = NiMath::Rodrigue(-vHead, vPelvis);
+				// const auto deg = RE::rad_to_deg(NiMath::GetAngleYZ(rot));
+				// for (size_t k = 0; k < NodeUpdate::SCHLONG_ANGLES.size(); k++) {
+				// 	if (NodeUpdate::SCHLONG_ANGLES[k] < deg)
+				// 		continue;
+				// 	auto idx = -1 * (static_cast<int>(k) - 1 - static_cast<int>(NodeUpdate::SCHLONG_ANGLES.size()) / 2);
+				// 	auto a_actor = a_partner.position.actor;
+				// 	SKSE::GetTaskInterface()->AddTask([idx, a_actor] {
+				// 		auto evt = fmt::format("SOSBend{}", idx);
+				// 		a_actor->NotifyAnimationGraph(evt);
+				// 	});
+				// 	break;
+				// }
+				// const auto pCenter = (headworld.rotate.GetVectorZ() * (bHead.boundMax.z / 3)) + headworld.translate;
+				// const auto vCenter = pCenter - *pMouth;
+				// NodeUpdate::Update(a_partner.position.actor, partnernodes, p, -vHead, vCenter);
 				NodeUpdate::AddOrUpdateSkew(p, -vHead);
 				continue;
 			} else if (penetrating_skull) {
