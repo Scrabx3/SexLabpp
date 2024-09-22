@@ -3,7 +3,6 @@
   "version-string": "0.0.1",
   "description": "performance patch for sl",
   "dependencies": [
-    "boost-stl-interfaces",
     "rsm-binary-io",
     "spdlog",
     "simpleini",
@@ -19,5 +18,5 @@
       "version": "9.1.0"
     }
   ],
-  "builtin-baseline": "b7dba7f9aad09a56900f21cd78cfda1258e54e38"
+  "builtin-baseline": "3508985146f1b1d248c67ead13f8f54be5b4f5da"
 }

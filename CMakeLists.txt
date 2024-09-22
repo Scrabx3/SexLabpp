@@ -62,6 +62,7 @@ else()
 endif()
 
 # ---- Dependencies ----
+add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 if(BUILD_SKYRIMVR)
     add_compile_definitions(SKYRIMVR)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
@@ -157,7 +158,7 @@ target_link_libraries(
     PUBLIC
     ${CommonLibName}::${CommonLibName}
     spdlog::spdlog
-    yaml-cpp
+    yaml-cpp::yaml-cpp
     magic_enum::magic_enum
     Eigen3::Eigen
 )

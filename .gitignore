@@ -4,3 +4,5 @@
 build/
 /vcpkg_installed
 
+xmake.lua
+.xmake
