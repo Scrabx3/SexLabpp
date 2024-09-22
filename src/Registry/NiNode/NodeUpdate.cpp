@@ -13,16 +13,19 @@ namespace Registry::Collision
 		auto& local = node->local.rotate;
 
 		auto vS = schlong->GetSchlongVector();
+		auto vT = proj() - node->world.translate;
+
 		Eigen::Vector3f s = NiMath::ToEigen(vS).normalized();
+		Eigen::Vector3f v = NiMath::ToEigen(vT).normalized();
 		Eigen::Vector3f s_XY = Eigen::Vector3f(s.x(), s.y(), 0);
-		Eigen::Vector3f i_XY = Eigen::Vector3f(vIdeal.x(), vIdeal.y(), 0);
+		Eigen::Vector3f i_XY = Eigen::Vector3f(v.x(), v.y(), 0);
 		float i_yaw = std::atan2(s_XY.cross(i_XY).z(), s_XY.dot(i_XY));
 
 		Eigen::Vector3f s_YZ = Eigen::Vector3f(0, s.y(), s.z());
-		Eigen::Vector3f i_YZ = Eigen::Vector3f(0, vIdeal.y(), vIdeal.z());
+		Eigen::Vector3f i_YZ = Eigen::Vector3f(0, v.y(), v.z());
 		float i_pitch = std::atan2(s_YZ.cross(i_YZ).x(), s_YZ.dot(i_YZ));
-		constexpr auto angle_tolerance = glm::radians(5.0f);
-		if (i_yaw < angle_tolerance && i_pitch < angle_tolerance) {
+		constexpr auto angle_tolerance = glm::radians(fAngleToleranceDegree);
+		if (std::abs(i_yaw) < angle_tolerance && std::abs(i_pitch) < angle_tolerance) {
 			return;
 		}
 		Eigen::Matrix3f l = NiMath::ToEigen(local);
@@ -40,15 +43,17 @@ namespace Registry::Collision
 		local = NiMath::ToNiMatrix(l);
 
 		RE::NiUpdateData data{
-			0.5f,
+			0.0f,
 			RE::NiUpdateData::Flag::kNone
 		};
 		node->Update(data);
 	}
 
-	void RotationData::Update(const RE::NiPoint3& a_newIdeal)
+	void RotationData::Update(const RE::NiPointer<RE::NiNode>& a_target)
 	{
-		vIdeal = NiMath::ToEigen(a_newIdeal).normalized();
+		proj = [a_target]() {
+			return a_target->world.translate;
+		};
 	}
 
 	void NodeUpdate::Install()
@@ -69,7 +74,7 @@ namespace Registry::Collision
 		return func(a_obj, updateData);
 	}
 
-	void NodeUpdate::AddOrUpdateSkew(const std::shared_ptr<Schlong>& a_node, const RE::NiPoint3& vIdeal)
+	void NodeUpdate::AddOrUpdateSkew(const std::shared_ptr<Schlong>& a_node, const RE::NiPointer<RE::NiNode>& vIdeal)
 	{
 		std::scoped_lock lk{ _m };
 		auto w = std::ranges::find_if(skews, [&](auto& it) { return it == a_node; });

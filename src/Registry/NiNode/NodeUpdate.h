@@ -10,16 +10,16 @@ namespace Registry::Collision
 
 	struct RotationData
 	{
-		static inline constexpr float fMaxAngleStepSize = 0.035f;
-		RotationData(std::shared_ptr<Schlong> a_schlong, const RE::NiPoint3& a_ideal) :
+		static inline constexpr float fAngleToleranceDegree = 5.0f;
+		RotationData(std::shared_ptr<Schlong> a_schlong, const RE::NiPointer<RE::NiNode>& a_ideal) :
 			schlong(a_schlong) { Update(a_ideal); }
 
 		void ApplyRotation();
-		void Update(const RE::NiPoint3& a_newIdeal);
+		void Update(const RE::NiPointer<RE::NiNode>& a_target);
 
 	private:
 		std::shared_ptr<Schlong> schlong;
-		Eigen::Vector3f vIdeal;
+		std::function<RE::NiPoint3()> proj;
 
 	public:
 		bool operator==(const RotationData& a_rhs) const { return this->schlong == a_rhs.schlong; }
@@ -30,7 +30,7 @@ namespace Registry::Collision
 	{
 		static void Install();
 
-		static void AddOrUpdateSkew(const std::shared_ptr<Schlong>& a_node, const RE::NiPoint3& vIdeal);
+		static void AddOrUpdateSkew(const std::shared_ptr<Schlong>& a_node, const RE::NiPointer<RE::NiNode>& vIdeal);
 		static void DeleteSkew(const std::shared_ptr<Schlong>& a_node);
 		static void DeleteSkews()
 		{
