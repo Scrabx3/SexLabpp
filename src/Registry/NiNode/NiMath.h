@@ -49,6 +49,12 @@ namespace Registry::Collision::NiMath
 	float GetAngleXY(const RE::NiMatrix3& rot);
 	float GetAngleYZ(const RE::NiMatrix3& rot);
 
+	/// @brief Compute the projected component of U relative to V
+	RE::NiPoint3 ProjectedComponent(RE::NiPoint3 U, RE::NiPoint3 V);
+
+	/// @brief Compute the orthogonal component of U relative to V
+	RE::NiPoint3 OrthogonalComponent(RE::NiPoint3 U, RE::NiPoint3 V);
+
 	/// @brief constexpr ceil() function
 	constexpr int IntCeil(float f)
 	{

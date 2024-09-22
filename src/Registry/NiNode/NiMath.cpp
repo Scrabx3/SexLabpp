@@ -161,7 +161,7 @@ namespace Registry::Collision::NiMath
 	{
 		const auto dot = v1.Dot(v2);
 		const auto l = v1.Length() * v2.Length();
-		const auto x = dot / l;
+		const auto x = std::clamp(dot / l, -1.0f, 1.0f);
 		return RE::rad_to_deg(std::acosf(x));
 	}
 
@@ -190,6 +190,16 @@ namespace Registry::Collision::NiMath
 	float GetAngleYZ(const Eigen::Matrix3f& rot)
 	{
 		return std::atan2(-rot(2, 1), rot(0, 0));
+	}
+	
+	RE::NiPoint3 ProjectedComponent(RE::NiPoint3 U, RE::NiPoint3 V)
+	{
+		return V * (U.Dot(V) / V.SqrLength());
+	}
+
+	RE::NiPoint3 OrthogonalComponent(RE::NiPoint3 U, RE::NiPoint3 V)
+	{
+		return U - ProjectedComponent(U, V);
 	}
 
 }	 // namespace Registry::Collision::NiMath
