@@ -75,71 +75,55 @@ namespace Registry::Collision
 		assert(position.nodes.head);
 		auto& headworld = position.nodes.head->world;
 		const auto vHead = headworld.rotate.GetVectorY();
-		NiMath::Segment sHead{ headworld.translate, *pMouth };
 		auto& partnernodes = a_partner.position.nodes;
-		for (size_t i = 0; i < partnernodes.schlongs.size(); i++)
-		{
+		for (size_t i = 0; i < partnernodes.schlongs.size(); i++) {
 			auto& p = partnernodes.schlongs[i];
 			const auto niBase = p->GetBaseReferenceNode();
 			const auto& base = niBase->world;
-			const auto pTip = p->GetTipReferencePoint();
+			NiMath::Segment sSchlong{ base.translate, p->GetTipReferencePoint() };
 			const auto aBaseToHead = [&]() {
-				auto vMouth = *pMouth - headworld.translate;
 				auto vBaseToHead = headworld.translate - base.translate;
-				return NiMath::GetAngleDegree(vMouth, vBaseToHead);
+				auto v1 = NiMath::ProjectedComponent(vBaseToHead, vHead);
+				return NiMath::GetAngleDegree(vHead, v1);
 			}();
-			const auto dCenter = headworld.translate.GetDistance(pTip);
+			const auto dCenter = [&]() {
+				auto res = NiMath::ClosestSegmentBetweenSegments({ headworld.translate, headworld.translate }, sSchlong);
+				return res.first.GetDistance(res.second);
+			}();
 			const auto in_front_of_head = std::abs(aBaseToHead - 180) < 30.0f;
 			const auto at_side_of_head = std::abs(aBaseToHead - 90) < 60.0f;
-			const auto close_to_mouth = [&]() {
-				NiMath::Segment sSchlong{ base.translate, pTip };
-				const auto seg = NiMath::ClosestSegmentBetweenSegments(sHead, sSchlong);
-				return seg.first.GetDistance(seg.second) < bHead.boundMax.x;
-			}();
-			const auto penetrating_skull = dCenter < ((at_side_of_head ? bHead.boundMax.x : bHead.boundMax.y) * Settings::fHeadPenetrationRatio);
-
-			if (close_to_mouth && in_front_of_head) {
-				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, dCenter);
-				assert(partnernodes.pelvis);
-				if (penetrating_skull) {
-					const auto tip_throat = pTip.GetDistance(headworld.translate) < bHead.boundMax.y * 0.3;
+			const auto penetrating_skull = dCenter < (at_side_of_head ? bHead.boundMax.x : bHead.boundMax.y);
+			if (penetrating_skull) {
+				if (in_front_of_head) {
+					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, dCenter);
+					assert(partnernodes.pelvis);
+					const auto tip_throat = dCenter < bHead.boundMax.y * 0.25;
 					const auto pelvis_head = bHead.IsPointInside(partnernodes.pelvis->world.translate);
 					if (tip_throat || pelvis_head) {
 						interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, dCenter);
 					}
+					NodeUpdate::AddOrUpdateSkew(p, position.nodes.head);
+				} else {
+					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
 				}
-				// const auto vPelvis = partnernodes.pelvis->world.rotate.GetVectorZ();
-				// const auto rot = NiMath::Rodrigue(-vHead, vPelvis);
-				// const auto deg = RE::rad_to_deg(NiMath::GetAngleYZ(rot));
-				// for (size_t k = 0; k < NodeUpdate::SCHLONG_ANGLES.size(); k++) {
-				// 	if (NodeUpdate::SCHLONG_ANGLES[k] < deg)
-				// 		continue;
-				// 	auto idx = -1 * (static_cast<int>(k) - 1 - static_cast<int>(NodeUpdate::SCHLONG_ANGLES.size()) / 2);
-				// 	auto a_actor = a_partner.position.actor;
-				// 	SKSE::GetTaskInterface()->AddTask([idx, a_actor] {
-				// 		auto evt = fmt::format("SOSBend{}", idx);
-				// 		a_actor->NotifyAnimationGraph(evt);
-				// 	});
-				// 	break;
-				// }
-				// const auto pCenter = (headworld.rotate.GetVectorZ() * (bHead.boundMax.z / 3)) + headworld.translate;
-				// const auto vCenter = pCenter - *pMouth;
-				// NodeUpdate::Update(a_partner.position.actor, partnernodes, p, -vHead, vCenter);
-				NodeUpdate::AddOrUpdateSkew(p, -vHead);
-				continue;
-			} else if (penetrating_skull) {
-				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
 			} else if (at_side_of_head) {
-				const auto vBaseToMouth = *pMouth - base.translate;
-				const auto aBaseToMouth = NiMath::GetAngleDegree(vHead, vBaseToMouth);
-				const auto vertical_to_shaft = std::abs(aBaseToMouth - 90) < 30.0f;
+				const auto close_to_mouth = [&]() {
+					const auto seg = NiMath::ClosestSegmentBetweenSegments({ *pMouth, *pMouth }, sSchlong);
+					const auto d = seg.first.GetDistance(seg.second);
+					return d < bHead.boundMax.x && d < dCenter;
+				}();
+				const auto vertical_to_shaft = [&]() {
+					const auto vBaseToMouth = *pMouth - base.translate;
+					const auto vBaseToMouthProj = NiMath::ProjectedComponent(vBaseToMouth, vHead);
+					const auto aBaseToMouth = NiMath::GetAngleDegree(vHead, vBaseToMouthProj);
+					return std::abs(aBaseToMouth - 90) < 30.0f;
+				}();
 				if (vertical_to_shaft && close_to_mouth) {
 					interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, dCenter);
 				}
-			} else if (aBaseToHead > 120.0f && pTip.GetDistance(headworld.translate) < bHead.boundMax.y * (1 / Settings::fHeadPenetrationRatio)) {
+			} else if (in_front_of_head) {
 				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, dCenter);
 			}
-			// NodeUpdate::DeleteSkew(p.base);
 		}
 	}
 
@@ -186,7 +170,7 @@ namespace Registry::Collision
 			if (dSchlongToPelvisLine > Settings::fDistanceCrotch)
 				continue;
 			const auto angleCrotch = NiMath::GetAngleDegree(vCrotch, vSchlong);
-			if (vVaginal && vAnal && position.nodes.clitoris) {	// female
+			if (vVaginal && vAnal && position.nodes.clitoris) {	 // female
 				assert(pVaginal && pAnal);
 				const float dVag = pVaginal->GetDistance(base.translate), dAnal = pAnal->GetDistance(base.translate);
 				const float anglePen = NiMath::GetAngleDegree(dVag <= dAnal ? *vVaginal : *vAnal, vSchlong);
@@ -197,7 +181,7 @@ namespace Registry::Collision
 					const auto distance = position.nodes.clitoris->world.translate.GetDistance(base.translate);
 					interactions.emplace_back(a_other.position.actor, Interaction::Action::Grinding, distance);
 				}
-			} else {	 // male/no 3ba
+			} else {	// male/no 3ba
 				if (std::abs(angleCrotch - 90) < Settings::fAnglePenetration) {
 					interactions.emplace_back(a_other.position.actor, Interaction::Action::Anal, dSchlongToPelvisLine);
 				} else if (std::abs(angleCrotch - 180) < Settings::fAngleGrinding) {
