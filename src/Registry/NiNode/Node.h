@@ -71,7 +71,7 @@ namespace Registry::Collision::Node
 	static constexpr std::array SCHLONG_ANGLES{
 		25.0f, 32.0f, 39.0f, 46.0f, 53.0f, 60.0f, 67.0f, 74.0f, 81.0f, 88.0f, 95.0f, 102.0f, 109.0f, 116.0f, 123.0f, 130.0f, 137.0f, 144.0f, 151.0f
 	};
-	static constexpr float MIN_SCHLONG_LEN{ 20.0f };
+	static constexpr float MIN_SCHLONG_LEN{ 15.0f };
 
 	struct NodeData
 	{
