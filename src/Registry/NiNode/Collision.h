@@ -59,13 +59,15 @@ namespace Registry::Collision
 			Snapshot(Position& a_position);
 			~Snapshot() = default;
 
-			void GetHeadHeadInteractions(const Snapshot& a_other);			// This head on other head
-			void GetHeadVaginaInteractions(const Snapshot& a_other);		// This head on other vagina
-			void GetHeadPenisInteractions(const Snapshot& a_other);			// This head on other penis
-			void GetHeadAnimObjInteractions(const Snapshot& a_other);		// This head with either animobj
-			void GetCrotchPenisInteractions(const Snapshot& a_other);		// This crotch/vagina on other penis
-			void GetVaginaVaginaInteractions(const Snapshot& a_other);	// This vagina on other vagina
-			void GetGenitalLimbInteractions(const Snapshot& a_other);		// This vagina on other limbs
+			bool GetHeadPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::SchlongData> a_schlong);
+
+			// void GetHeadHeadInteractions(const Snapshot& a_other);			// This head on other head
+			// void GetHeadVaginaInteractions(const Snapshot& a_other);		// This head on other vagina
+			// void GetHeadPenisInteractions(const Snapshot& a_other);			// This head on other penis
+			// void GetHeadAnimObjInteractions(const Snapshot& a_other);		// This head with either animobj
+			// void GetCrotchPenisInteractions(const Snapshot& a_other);		// This crotch/vagina on other penis
+			// void GetVaginaVaginaInteractions(const Snapshot& a_other);	// This vagina on other vagina
+			// void GetGenitalLimbInteractions(const Snapshot& a_other);		// This vagina on other limbs
 
 		public:
 			std::optional<RE::NiPoint3> GetHeadForwardPoint(float distance) const;
