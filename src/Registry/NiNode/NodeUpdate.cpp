@@ -6,46 +6,42 @@ namespace Registry::Collision
 {
 	void RotationData::ApplyRotation()
 	{
+		constexpr auto angle_tolerance = glm::radians(2.5f);
 		// X -> Pitch (Schlong Angle Axis on Humans)
 		// Y -> Roll
 		// Z -> Yaw
 		auto node = schlong->GetBaseReferenceNode();
 		auto& local = node->local.rotate;
 
-		auto vS = schlong->GetSchlongVector();
-		auto vT = proj() - node->world.translate;
-
+		const auto vS = schlong->GetSchlongVector();
+		const auto vT = proj() - node->world.translate;
 		Eigen::Vector3f s = NiMath::ToEigen(vS).normalized();
 		Eigen::Vector3f v = NiMath::ToEigen(vT).normalized();
-		Eigen::Vector3f s_XY = Eigen::Vector3f(s.x(), s.y(), 0);
-		Eigen::Vector3f i_XY = Eigen::Vector3f(v.x(), v.y(), 0);
-		float i_yaw = std::atan2(s_XY.cross(i_XY).z(), s_XY.dot(i_XY));
 
-		Eigen::Vector3f s_YZ = Eigen::Vector3f(0, s.y(), s.z());
-		Eigen::Vector3f i_YZ = Eigen::Vector3f(0, v.y(), v.z());
-		float i_pitch = std::atan2(s_YZ.cross(i_YZ).x(), s_YZ.dot(i_YZ));
-		constexpr auto angle_tolerance = glm::radians(fAngleToleranceDegree);
-		if (std::abs(i_yaw) < angle_tolerance && std::abs(i_pitch) < angle_tolerance) {
-			return;
+		const Eigen::Quaternionf worldQuat(NiMath::ToEigen(node->world.rotate));
+		const Eigen::Quaternionf localQuat(NiMath::ToEigen(local));
+		auto tmpQuat = worldQuat.conjugate() * localQuat;
+
+		Eigen::Vector3f sXZ = Eigen::Vector3f(s.x(), 0, s.z());
+		Eigen::Vector3f vXZ = Eigen::Vector3f(v.x(), 0, v.z());
+		float aRoll = std::atan2(sXZ.cross(vXZ).x(), sXZ.dot(vXZ));
+		if (std::abs(aRoll) > angle_tolerance) {
+			const auto rotRoll = Eigen::AngleAxisf(-aRoll, Eigen::Vector3f::UnitX());
+			tmpQuat = rotRoll * tmpQuat;
 		}
-		Eigen::Matrix3f l = NiMath::ToEigen(local);
 
-		const float yaw = NiMath::GetAngleXY(node->world.rotate) + RE::NI_PI;
-		const auto neutralizeYaw = Eigen::AngleAxisf(-yaw, Eigen::Vector3f::UnitZ());
-		auto tmpL = neutralizeYaw * l;
+		Eigen::Vector3f sXY = Eigen::Vector3f(s.x(), s.y(), 0);
+		Eigen::Vector3f vXY = Eigen::Vector3f(v.x(), v.y(), 0);
+		float aYaw = std::atan2(sXY.cross(vXY).z(), sXY.dot(vXY));
+		if (std::abs(aYaw) > angle_tolerance) {
+			const auto rotYaw = Eigen::AngleAxisf(-aYaw, Eigen::Vector3f::UnitZ());
+			tmpQuat = rotYaw * tmpQuat;
+		}
 
-		auto pitchYaw = Eigen::AngleAxisf(i_yaw, Eigen::Vector3f::UnitZ());
-		auto pitchRot = Eigen::AngleAxisf(i_pitch, Eigen::Vector3f::UnitX());
-		tmpL = pitchYaw * pitchRot * tmpL;
+		Eigen::Quaternionf finalQuat = worldQuat * tmpQuat;
+		local = NiMath::ToNiMatrix(finalQuat.toRotationMatrix());
 
-		auto reapplyYaw = Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
-		l = reapplyYaw * tmpL;
-		local = NiMath::ToNiMatrix(l);
-
-		RE::NiUpdateData data{
-			0.0f,
-			RE::NiUpdateData::Flag::kNone
-		};
+		RE::NiUpdateData data{ 0.5f, RE::NiUpdateData::Flag::kNone };
 		node->Update(data);
 	}
 
@@ -54,6 +50,11 @@ namespace Registry::Collision
 		proj = [a_target]() {
 			return a_target->world.translate;
 		};
+	}
+
+	void RotationData::Update(const std::function<RE::NiPoint3()>& a_proj)
+	{
+		proj = a_proj;
 	}
 
 	void NodeUpdate::Install()
@@ -72,17 +73,6 @@ namespace Registry::Collision
 			}
 		}
 		return func(a_obj, updateData);
-	}
-
-	void NodeUpdate::AddOrUpdateSkew(const std::shared_ptr<Schlong>& a_node, const RE::NiPointer<RE::NiNode>& vIdeal)
-	{
-		std::scoped_lock lk{ _m };
-		auto w = std::ranges::find_if(skews, [&](auto& it) { return it == a_node; });
-		if (w == skews.end()) {
-			skews.emplace_back(a_node, vIdeal);
-		} else {
-			w->Update(vIdeal);
-		}
 	}
 
 	void NodeUpdate::DeleteSkew(const std::shared_ptr<Schlong>& a_node)

@@ -10,12 +10,13 @@ namespace Registry::Collision
 
 	struct RotationData
 	{
-		static inline constexpr float fAngleToleranceDegree = 5.0f;
-		RotationData(std::shared_ptr<Schlong> a_schlong, const RE::NiPointer<RE::NiNode>& a_ideal) :
+		template <class T>
+		RotationData(std::shared_ptr<Schlong> a_schlong, const T& a_ideal) :
 			schlong(a_schlong) { Update(a_ideal); }
 
 		void ApplyRotation();
 		void Update(const RE::NiPointer<RE::NiNode>& a_target);
+		void Update(const std::function<RE::NiPoint3()>& a_proj);
 
 	private:
 		std::shared_ptr<Schlong> schlong;
@@ -30,7 +31,20 @@ namespace Registry::Collision
 	{
 		static void Install();
 
-		static void AddOrUpdateSkew(const std::shared_ptr<Schlong>& a_node, const RE::NiPointer<RE::NiNode>& vIdeal);
+		static void RegisterSchlong(const std::shared_ptr<Schlong>& schlong, std::vector<Node::NodeData>& partners);
+
+		template <class T>
+		static void AddOrUpdateSkew(const std::shared_ptr<Schlong>& a_node, const T& a_ideal)
+		{
+			std::scoped_lock lk{ _m };
+			auto w = std::ranges::find_if(skews, [&](auto& it) { return it == a_node; });
+			if (w == skews.end()) {
+				skews.emplace_back(a_node, a_ideal);
+			} else {
+				w->Update(a_ideal);
+			}
+		}
+
 		static void DeleteSkew(const std::shared_ptr<Schlong>& a_node);
 		static void DeleteSkews()
 		{
