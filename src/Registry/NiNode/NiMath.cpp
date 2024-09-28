@@ -4,20 +4,18 @@ namespace Registry::Collision::NiMath
 {
 	Segment ClosestSegmentBetweenSegments(const Segment& u, const Segment& v)
 	{
+		if (u.isPoint && v.isPoint) {
+			return Segment{ u.first, v.first };
+		}
 		const auto vU = u.second - u.first, vV = v.second - v.first, vR = v.first - u.first;
 		const auto lU = vU.SqrLength(), lV = vV.SqrLength();
-		const bool isPointU = lU <= FLT_EPSILON, isPointV = lV <= FLT_EPSILON;
-
-		if (isPointU && isPointV) {
-			return std::make_pair(u.first, v.first);
-		}
 		const auto vUvR = vU.Dot(vR), vVvR = vV.Dot(vR);
 
 		float s, t;
-		if (isPointU) {
+		if (u.isPoint) {
 			s = 0.0f;
 			t = std::clamp(-vVvR / lV, 0.0f, 1.0f);
-		} else if (isPointV) {
+		} else if (v.isPoint) {
 			s = std::clamp(vUvR / lU, 0.0f, 1.0f);
 			t = 0.0f;
 		} else {
@@ -35,7 +33,7 @@ namespace Registry::Collision::NiMath
 
 		const auto c1 = u.first + (vU * s);
 		const auto c2 = v.first + (vV * t);
-		return std::make_pair(c1, c2);
+		return Segment { c1, c2 };
 	}
 
 	Eigen::Vector3f ToEigen(const RE::NiPoint3& a_point)
