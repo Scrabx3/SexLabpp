@@ -4,7 +4,18 @@
 
 namespace Registry::Collision::NiMath
 {
-	using Segment = std::pair<RE::NiPoint3, RE::NiPoint3>;
+	struct Segment {
+		Segment(RE::NiPoint3 fst, RE::NiPoint3 snd) :
+			first(fst), second(snd), isPoint(fst == snd) {}
+		Segment(RE::NiPoint3 fst) :
+			first(fst), second(fst), isPoint(true) {}
+
+		float Length() const { return first.GetDistance(second); }
+		RE::NiPoint3 Vector() const { return second - first; }
+
+		RE::NiPoint3 first, second;
+		bool isPoint;
+	};
 	Segment ClosestSegmentBetweenSegments(const Segment& u, const Segment& v);
 
 	Eigen::Vector3f ToEigen(const RE::NiPoint3& a_point);
