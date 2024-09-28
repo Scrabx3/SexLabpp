@@ -1,6 +1,5 @@
 #include "Node.h"
 
-#include "NiMath.h"
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Define/Transform.h"
 
@@ -87,32 +86,6 @@ namespace Registry::Collision::Node
 		constexpr float forward = 10.0f;
 		constexpr float upward = -5.0f;
 		return ApproximateNode(forward, upward);
-	}
-
-	std::vector<RE::NiPoint3> NodeData::GetSchlongTipReferencePoints(bool a_approximateifempty) const
-	{
-		std::vector<RE::NiPoint3> ret{};
-		for (auto&& s : schlongs) {
-			auto it = s->GetTipReferencePoint();
-			ret.push_back(it);
-		}
-		if (ret.empty() && a_approximateifempty)
-			ret.push_back(ApproximateTip());
-		return ret;
-	}
-
-	std::vector<RE::NiPoint3> NodeData::GetSchlongReferenceVectors(bool a_approximateifempty) const
-	{
-		std::vector<RE::NiPoint3> ret{};
-		for (auto&& s : schlongs) {
-			auto it = s->GetSchlongVector();
-			ret.push_back(it);
-		}
-		if (ret.empty() && a_approximateifempty) {
-			const auto approxMid = ApproximateMid(), approxbase = ApproximateBase();
-			ret.push_back(approxMid - approxbase);
-		}
-		return ret;
 	}
 
 	std::optional<RE::NiPoint3> NodeData::GetVaginalVector() const
@@ -242,31 +215,43 @@ namespace Registry::Collision::Node
 		} while (true);
 	}
 
+	NiMath::Segment NodeData::SchlongData::GetReferenceSegment() const
+	{
+		switch (nodes.size()) {
+		case 0:
+			assert(false);
+			throw std::invalid_argument("Schlong Data without any Nodes?");
+		case 1:
+			{
+				auto vforward = GetSchlongVector();
+				vforward.Unitize();
+				auto s1 = nodes.front()->world.translate;
+				auto s2 = (vforward * MIN_SCHLONG_LEN) + s1;
+				return NiMath::Segment(s1, s2);
+			}
+		default:
+			{
+				std::vector<Eigen::Vector3f> argV{};
+				argV.reserve(nodes.size());
+				for (auto&& node : nodes) {
+					if (!node)
+						continue;
+					auto argT = NiMath::ToEigen(node->world.translate);
+					argV.push_back(argT);
+				}
+				return NiMath::LeastSquares(argV, MIN_SCHLONG_LEN);
+			}
+		}
+	}
+
 	RE::NiPointer<RE::NiNode> NodeData::SchlongData::GetBaseReferenceNode() const
 	{
 		switch (nodes.size()) {
 		case 0:
 			assert(false);
-			return nullptr;
+			throw std::invalid_argument("Schlong Data without any Nodes?");
 		default:
 			return nodes.front();
-		}
-	}
-
-	RE::NiPoint3 NodeData::SchlongData::GetTipReferencePoint() const
-	{
-		switch (nodes.size()) {
-		case 0:
-			assert(false);
-			return RE::NiPoint3::Zero();
-		case 1:
-			{
-				auto vforward = GetSchlongVector();
-				vforward.Unitize();
-				return (vforward * MIN_SCHLONG_LEN) + nodes.front()->world.translate;
-			}
-		default:
-			return nodes.back()->world.translate;
 		}
 	}
 
@@ -283,18 +268,9 @@ namespace Registry::Collision::Node
 			}
 		default:
 			{
-				std::vector<Eigen::Vector3f> argV{};
-				argV.reserve(nodes.size());
-				for (auto&& node : nodes) {
-					if (!node)
-						continue;
-					auto argT = NiMath::ToEigen(node->world.translate);
-					argV.push_back(argT);
-				}
-				auto seg = NiMath::LeastSquares(argV, MIN_SCHLONG_LEN);
+				auto seg = GetReferenceSegment();
 				return seg.second - seg.first;
 			}
-			// return nodes.back()->world.translate - nodes.front()->world.translate;
 		}
 	}
 }

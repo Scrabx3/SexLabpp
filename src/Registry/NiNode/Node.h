@@ -1,5 +1,7 @@
 #pragma once
 
+#include "NiMath.h"
+
 namespace Registry::Collision::Node
 {
 	static constexpr std::string_view HEAD{ "NPC Head [Head]"sv };				 // Back of throat
@@ -71,7 +73,7 @@ namespace Registry::Collision::Node
 	static constexpr std::array SCHLONG_ANGLES{
 		25.0f, 32.0f, 39.0f, 46.0f, 53.0f, 60.0f, 67.0f, 74.0f, 81.0f, 88.0f, 95.0f, 102.0f, 109.0f, 116.0f, 123.0f, 130.0f, 137.0f, 144.0f, 151.0f
 	};
-	static constexpr float MIN_SCHLONG_LEN{ 15.0f };
+	static constexpr float MIN_SCHLONG_LEN{ 13.0f };
 
 	struct NodeData
 	{
@@ -79,8 +81,8 @@ namespace Registry::Collision::Node
 		{
 			static std::optional<SchlongData> CreateSchlongData(RE::NiAVObject* a_root, std::string_view a_basenode, const glm::mat3& a_rot);
 
+			NiMath::Segment GetReferenceSegment() const;
 			RE::NiPointer<RE::NiNode> GetBaseReferenceNode() const;
-			RE::NiPoint3 GetTipReferencePoint() const;
 			RE::NiPoint3 GetSchlongVector() const;
 
 		private:
@@ -125,8 +127,6 @@ namespace Registry::Collision::Node
 		RE::NiPointer<RE::NiNode> animobj_r;
 
 	public:
-		std::vector<RE::NiPoint3> GetSchlongTipReferencePoints(bool a_approximateifempty) const;
-		std::vector<RE::NiPoint3> GetSchlongReferenceVectors(bool a_approximateifempty) const;
 		std::optional<RE::NiPoint3> GetVaginalVector() const;
 		std::optional<RE::NiPoint3> GetVaginalStart() const;
 		std::optional<RE::NiPoint3> GetAnalVector() const;
