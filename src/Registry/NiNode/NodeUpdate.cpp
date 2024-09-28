@@ -24,7 +24,7 @@ namespace Registry::Collision
 
 		Eigen::Vector3f sXZ = Eigen::Vector3f(s.x(), 0, s.z());
 		Eigen::Vector3f vXZ = Eigen::Vector3f(v.x(), 0, v.z());
-		float aRoll = std::atan2(sXZ.cross(vXZ).x(), sXZ.dot(vXZ));
+		float aRoll = std::atan2(sXZ.cross(vXZ).y(), sXZ.dot(vXZ));
 		if (std::abs(aRoll) > angle_tolerance) {
 			const auto rotRoll = Eigen::AngleAxisf(-aRoll, Eigen::Vector3f::UnitX());
 			tmpQuat = rotRoll * tmpQuat;
