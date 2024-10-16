@@ -1,6 +1,6 @@
 #include "NiMath.h"
 
-namespace Registry::Collision::NiMath
+namespace Registry::NiNode::NiMath
 {
 	Segment ClosestSegmentBetweenSegments(const Segment& u, const Segment& v)
 	{
@@ -200,4 +200,4 @@ namespace Registry::Collision::NiMath
 		return U - ProjectedComponent(U, V);
 	}
 
-}	 // namespace Registry::Collision::NiMath
+}	 // namespace Registry::NiNode::NiMath

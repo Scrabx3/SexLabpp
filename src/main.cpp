@@ -2,7 +2,7 @@
 #include "Registry/Expression.h"
 #include "Registry/Interface/SceneMenu.h"
 #include "Registry/Library.h"
-#include "Registry/NiNode/NodeUpdate.h"
+#include "Registry/NiNode/NiUpdate.h"
 #include "Registry/Stats.h"
 #include "Registry/Util/Console.h"
 #include "Registry/Voice.h"
@@ -144,7 +144,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	}
 
 	Registry::Interface::SceneMenu::Register();
-	Registry::Collision::NodeUpdate::Install();
+	Registry::NiNode::NiUpdate::Install();
 
 	const auto serialization = SKSE::GetSerializationInterface();
 	serialization->SetUniqueID('slpp');

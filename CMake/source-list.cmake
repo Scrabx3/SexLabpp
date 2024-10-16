@@ -33,14 +33,14 @@ set(CXX_FILES
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp
 
-	src/Registry/NiNode/Collision.h
-	src/Registry/NiNode/Collision.cpp
 	src/Registry/NiNode/NiMath.h
 	src/Registry/NiNode/NiMath.cpp
+	src/Registry/NiNode/NiPosition.h
+	src/Registry/NiNode/NiPosition.cpp
+	src/Registry/NiNode/NiUpdate.h
+	src/Registry/NiNode/NiUpdate.cpp
 	src/Registry/NiNode/Node.h
 	src/Registry/NiNode/Node.cpp
-	src/Registry/NiNode/NodeUpdate.h
-	src/Registry/NiNode/NodeUpdate.cpp
 
 	src/Registry/Interface/Interface.h
 	src/Registry/Interface/SceneMenu.h

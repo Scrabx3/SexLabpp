@@ -2,7 +2,7 @@
 
 #include "NiMath.h"
 
-namespace Registry::Collision::Node
+namespace Registry::NiNode::Node
 {
 	static constexpr std::string_view HEAD{ "NPC Head [Head]"sv };				 // Back of throat
 	static constexpr std::string_view PELVIS{ "NPC Pelvis [Pelv]"sv };		 // bottom mid (front)

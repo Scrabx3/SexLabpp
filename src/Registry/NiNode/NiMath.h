@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 
-namespace Registry::Collision::NiMath
+namespace Registry::NiNode::NiMath
 {
 	struct Segment {
 		Segment(RE::NiPoint3 fst, RE::NiPoint3 snd) :
@@ -73,4 +73,4 @@ namespace Registry::Collision::NiMath
 		return f > i ? i + 1 : i;
 	}
 
-}	 // namespace Registry::Collision::NiMath
+}	 // namespace Registry::NiNode::NiMath

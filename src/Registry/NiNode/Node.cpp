@@ -3,7 +3,7 @@
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Define/Transform.h"
 
-namespace Registry::Collision::Node
+namespace Registry::NiNode::Node
 {
 	NodeData::NodeData(RE::Actor* a_actor)
 	{
@@ -153,7 +153,7 @@ namespace Registry::Collision::Node
 	RE::NiPoint3 NodeData::GetCrotchVector() const
 	{
 		assert(pelvis && spine_lower);
-		return spine_lower->world.translate - pelvis->world.translate;
+		return pelvis->world.translate - spine_lower->world.translate;
 	}
 
 	std::optional<NodeData::SchlongData> NodeData::SchlongData::CreateSchlongData(RE::NiAVObject* a_root, std::string_view a_basenode, const glm::mat3& a_rot)

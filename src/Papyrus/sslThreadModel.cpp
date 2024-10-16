@@ -3,7 +3,7 @@
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
 #include "Registry/NiNode/Node.h"
-#include "Registry/NiNode/Collision.h"
+#include "Registry/NiNode/NiUpdate.h"
 #include "Registry/Stats.h"
 #include "Registry/Util/CellCrawler.h"
 #include "Registry/Util/RayCast.h"
@@ -359,7 +359,7 @@ namespace Papyrus::ThreadModel
 			const auto ref = aliasref->GetReference();
 			if (!ref || ref == center)
 				continue;
-			auto head = ref->GetNodeByName(Registry::Collision::Node::HEAD);
+			auto head = ref->GetNodeByName(Registry::NiNode::Node::HEAD);
 			if (!head)
 				continue;
 			auto& t = head->world.translate;
@@ -632,7 +632,7 @@ __CONTINUE_NEXT:
 
 	bool IsCollisionRegistered(RE::TESQuest* a_qst)
 	{
-		return Registry::Collision::Handler::GetSingleton()->IsRegistered(a_qst->formID);
+		return Registry::NiNode::NiUpdate::IsRegistered(a_qst->formID);
 	}
 
 	void RegisterCollision(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene)
@@ -642,17 +642,17 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Invalid scene", a_stackID);
 			return;
 		}
-		Registry::Collision::Handler::GetSingleton()->Register(a_qst->formID, a_positions, scene);
+		Registry::NiNode::NiUpdate::Register(a_qst->formID, a_positions, scene);
 	}
 
 	void UnregisterCollision(RE::TESQuest* a_qst)
 	{
-		Registry::Collision::Handler::GetSingleton()->Unregister(a_qst->formID);
+		Registry::NiNode::NiUpdate::Unregister(a_qst->formID);
 	}
 
 	std::vector<int> GetCollisionActions(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
 	{
-		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		auto process = Registry::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -673,7 +673,7 @@ __CONTINUE_NEXT:
 
 	bool HasCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner)
 	{
-		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		auto process = Registry::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return false;
@@ -698,7 +698,7 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return nullptr;
 		}
-		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		auto process = Registry::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return nullptr;
@@ -720,7 +720,7 @@ __CONTINUE_NEXT:
 
 	std::vector<RE::Actor*> GetPartnersByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
 	{
-		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		auto process = Registry::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -745,7 +745,7 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return {};
 		}
-		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		auto process = Registry::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -768,7 +768,7 @@ __CONTINUE_NEXT:
 
 	std::vector<RE::Actor*> GetPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
 	{
-		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		auto process = Registry::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -797,7 +797,7 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Type cant be 'any'", a_stackID);
 			return 0.0f;
 		}
-		auto process = Registry::Collision::Handler::GetSingleton()->GetProcess(a_qst->formID);
+		auto process = Registry::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return 0.0f;
