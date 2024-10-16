@@ -32,17 +32,16 @@ namespace Registry::NiNode
 		if (!lk.try_lock()) {
 			return;
 		}
-		std::vector<std::shared_ptr<NiPosition::Snapshot>> snapshots{};
+		std::vector<NiPosition::Snapshot> snapshots{};
 		snapshots.reserve(positions.size());
 		for (auto&& it : positions) {
-			auto shared = std::make_shared<NiPosition::Snapshot>(it);
-			snapshots.emplace_back(shared);
+			snapshots.emplace_back(it);
 		}
 		for (auto&& fst : snapshots) {
 			for (auto&& snd : snapshots) {
 				// Schlong Related Data
-				for (auto&& schlong : snd->position.nodes.schlongs) {
-					if (fst->GetHeadPenisInteractions(*snd, schlong)) {
+				for (auto&& schlong : snd.position.nodes.schlongs) {
+					if (fst.GetHeadPenisInteractions(snd, schlong)) {
 						break;
 					}
 					// fst.GetCrotchPenisInteractions(snd);
@@ -60,7 +59,7 @@ namespace Registry::NiNode
 		assert(positions.size() == snapshots.size());
 		for (size_t i = 0; i < positions.size(); i++) {
 			auto& pos = positions[i];
-			for (auto&& act : snapshots[i]->interactions) {
+			for (auto&& act : snapshots[i].interactions) {
 				auto where = pos.interactions.find(act);
 				if (where == pos.interactions.end()) {
 					continue;
@@ -68,7 +67,7 @@ namespace Registry::NiNode
 				const float delta_dist = act.distance - where->distance;
 				act.velocity = (where->velocity + (delta_dist / a_delta)) / 2;
 			}
-			positions[i].interactions = { snapshots[i]->interactions.begin(), snapshots[i]->interactions.end() };
+			positions[i].interactions = { snapshots[i].interactions.begin(), snapshots[i].interactions.end() };
 		}
 	}
 
