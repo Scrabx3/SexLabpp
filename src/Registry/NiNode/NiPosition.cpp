@@ -7,35 +7,34 @@
 
 namespace Registry::NiNode
 {
-	void RotateSchlong(std::shared_ptr<Node::NodeData::SchlongData> a_schlong, const RE::NiPoint3& a_target)
+	void RotateNode(RE::NiPointer<RE::NiNode> niNode, const NiMath::Segment& sNode, const RE::NiPoint3& pTarget, float maxAngleAdjust)
 	{
-		auto node = a_schlong->GetBaseReferenceNode();
-		auto& local = node->local.rotate;
+		auto& local = niNode->local.rotate;
+		const auto vTarget = pTarget - sNode.first;
+		Eigen::Vector3f s = NiMath::ToEigen(sNode.Vector()).normalized();
+		Eigen::Vector3f v = NiMath::ToEigen(vTarget).normalized();
 
-		const auto vS = a_schlong->GetSchlongVector();
-		const auto vT = a_target - node->world.translate;
-		Eigen::Vector3f s = NiMath::ToEigen(vS).normalized();
-		Eigen::Vector3f v = NiMath::ToEigen(vT).normalized();
-
-		const Eigen::Quaternionf worldQuat(NiMath::ToEigen(node->world.rotate));
+		const Eigen::Quaternionf worldQuat(NiMath::ToEigen(niNode->world.rotate));
 		const Eigen::Quaternionf localQuat(NiMath::ToEigen(local));
 		auto tmpQuat = worldQuat.conjugate() * localQuat;
 
 		auto rotation_axis = s.cross(v);
-		if (rotation_axis.norm() > 1e-6) {
+		if (rotation_axis.norm() > FLT_EPSILON) {
 			rotation_axis.normalize();
 			float cos_angle = std::clamp(s.dot(v), -1.0f, 1.0f);
 			float angle = std::acos(cos_angle);
-			const auto rotation = Eigen::AngleAxisf{ angle, rotation_axis };
-			Eigen::Quaternionf rotation_quat{ rotation.inverse() };
-			tmpQuat = rotation_quat * tmpQuat;
+			if (angle <= maxAngleAdjust && angle > FLT_EPSILON) {
+				const auto rotation = Eigen::AngleAxisf{ angle, rotation_axis };
+				Eigen::Quaternionf rotation_quat{ rotation.inverse() };
+				tmpQuat = rotation_quat * tmpQuat;
+			}
 		}
 
 		Eigen::Quaternionf resQuat = worldQuat * tmpQuat;
 		local = NiMath::ToNiMatrix(resQuat.toRotationMatrix());
 
 		RE::NiUpdateData data{ 0.5f, RE::NiUpdateData::Flag::kNone };
-		node->Update(data);
+		niNode->Update(data);
 	}
 
 	NiPosition::Snapshot::Snapshot(NiPosition& a_position) :
@@ -111,9 +110,8 @@ namespace Registry::NiNode
 			return false;
 		}
 		const auto& partnernodes = a_partner.position.nodes;
-		const auto pMouth = GetMouthStartPoint();
-		assert(pMouth);
-		const auto& base = a_schlong->GetBaseReferenceNode()->world;
+		const auto baseNode = a_schlong->GetBaseReferenceNode();
+		const auto& base = baseNode->world;
 		const auto vHead = headworld.rotate.GetVectorY();
 
 		const auto [angleToHead, angleToMouth, angleToBase] = [&]() {
@@ -124,29 +122,30 @@ namespace Registry::NiNode
 			return std::make_tuple(
 				NiMath::GetAngleDegree(proj1, proj2),
 				NiMath::GetAngleDegree(proj1, -vHead),
-				NiMath::GetAngleDegree(proj2, vHead)
-			);
+				NiMath::GetAngleDegree(proj2, vHead));
 		}();
 
 		const auto aiming_at_head = std::abs(angleToHead - angleToMouth) < 20.0f;
 		const auto at_side_of_head = std::abs(angleToBase - 90) < 60.0f;
 		const auto in_front_of_head = std::abs(angleToBase - 180) < 30.0f;
 		const auto penetrating_skull = dCenter < (at_side_of_head ? bHead.boundMax.x : bHead.boundMax.y);
-		const auto vertical_to_haft = [&]() {
+		const auto vertical_to_shaft = [&]() {
 			const auto vSchlong = sSchlong.Vector();
 			const auto aSchlongToMouth = NiMath::GetAngleDegree(vSchlong, vHead);
 			return std::abs(aSchlongToMouth - 90) < 30.0f;
 		}();
 		const auto close_to_mouth = [&]() {
+			const auto pMouth = GetMouthStartPoint();
+			assert(pMouth);
 			const auto seg = NiMath::ClosestSegmentBetweenSegments({ *pMouth }, sSchlong);
 			const auto d = seg.Length();
 			return d < bHead.boundMax.x && d < dCenter;
 		}();
 		const auto close_to_face = dCenter < bHead.boundMax.y * 1.5;
 
-		if (in_front_of_head && vertical_to_haft && close_to_mouth) {
+		if (in_front_of_head && vertical_to_shaft && close_to_mouth) {
 			interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, dCenter);
-			RotateSchlong(a_schlong, *pMouth);
+			// RotateNode(baseNode, sSchlong, *pMouth);
 			return true;
 		} else if (penetrating_skull && in_front_of_head && aiming_at_head) {
 			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, dCenter);
@@ -156,13 +155,14 @@ namespace Registry::NiNode
 			if (tip_at_throat || pelvis_at_head) {
 				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, dCenter);
 			}
-			const auto throat = GetThroatPoint();
-			assert(throat);
-			RotateSchlong(a_schlong, *throat);
+			const auto throat = GetThroatPoint(), mouth = GetMouthStartPoint();
+			assert(throat && mouth);
+			RotateNode(baseNode, sSchlong, *throat, glm::radians(90.0f));
+			RotateNode(position.nodes.head, { *mouth, *throat }, base.translate, glm::radians(10.0f));
 			return true;
 		} else if (penetrating_skull && aiming_at_head) {
 			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
-			RotateSchlong(a_schlong, headworld.translate);
+			RotateNode(baseNode, sSchlong, headworld.translate, glm::radians(90.0f));
 			return true;
 		} else if (in_front_of_head && close_to_face && aiming_at_head) {
 			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, dCenter);
@@ -306,17 +306,15 @@ namespace Registry::NiNode
 
 	std::optional<RE::NiPoint3> NiPosition::Snapshot::GetMouthStartPoint() const
 	{
-		if (!bHead.IsValid()) {
+		auto ret = GetThroatPoint();
+		if (!ret) {
 			return std::nullopt;
 		}
 		const auto& nihead = position.nodes.head;
 		assert(nihead);
-		const auto distdown = bHead.boundMin.z * 0.4f;
-		const auto vup = nihead->world.rotate.GetVectorZ();
-		auto ret = (vup * distdown) + nihead->world.translate;
 		const auto distforward = bHead.boundMax.y * 0.88f;
 		const auto vforward = nihead->world.rotate.GetVectorY();
-		return (vforward * distforward) + ret;
+		return (vforward * distforward) + *ret;
 	}
 
 	std::optional<RE::NiPoint3> NiPosition::Snapshot::GetThroatPoint() const

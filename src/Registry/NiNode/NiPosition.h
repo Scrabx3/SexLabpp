@@ -8,7 +8,7 @@
 namespace Registry::NiNode
 {
 	/// @brief Rotate a_schlong s.t. a_target is on the line drawn by its orientation
-	void RotateSchlong(std::shared_ptr<Node::NodeData::SchlongData> a_schlong, const RE::NiPoint3& a_target);
+	void RotateNode(RE::NiPointer<RE::NiNode> niNode, const NiMath::Segment& sNode, const RE::NiPoint3& pTarget, float maxAngleAdjust);
 
 	struct Interaction
 	{
