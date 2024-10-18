@@ -23,7 +23,8 @@ namespace Registry::NiNode
 			rotation_axis.normalize();
 			float cos_angle = std::clamp(s.dot(v), -1.0f, 1.0f);
 			float angle = std::acos(cos_angle);
-			if (angle <= maxAngleAdjust && angle > FLT_EPSILON) {
+			if (angle > FLT_EPSILON) {
+				angle = std::min(angle, maxAngleAdjust);
 				const auto rotation = Eigen::AngleAxisf{ angle, rotation_axis };
 				Eigen::Quaternionf rotation_quat{ rotation.inverse() };
 				tmpQuat = rotation_quat * tmpQuat;
