@@ -4,16 +4,15 @@
 
 namespace Registry::NiNode::NiMath
 {
-	struct Segment {
+	struct Segment : public std::pair<RE::NiPoint3, RE::NiPoint3> {
 		Segment(RE::NiPoint3 fst, RE::NiPoint3 snd) :
-			first(fst), second(snd), isPoint(fst == snd) {}
+			std::pair<RE::NiPoint3, RE::NiPoint3>(fst, snd), isPoint(fst == snd) {}
 		Segment(RE::NiPoint3 fst) :
-			first(fst), second(fst), isPoint(true) {}
+			std::pair<RE::NiPoint3, RE::NiPoint3>(fst, fst), isPoint(true) {}
 
 		float Length() const { return first.GetDistance(second); }
 		RE::NiPoint3 Vector() const { return second - first; }
 
-		RE::NiPoint3 first, second;
 		bool isPoint;
 	};
 	Segment ClosestSegmentBetweenSegments(const Segment& u, const Segment& v);
