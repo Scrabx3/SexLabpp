@@ -127,17 +127,15 @@ namespace Registry::NiNode::Node
 		RE::NiPointer<RE::NiNode> animobj_r;
 
 	public:
-		std::optional<RE::NiPoint3> GetVaginalVector() const;
-		std::optional<RE::NiPoint3> GetVaginalStart() const;
-		std::optional<RE::NiPoint3> GetAnalVector() const;
-		std::optional<RE::NiPoint3> GetAnalStart() const;
+		std::optional<NiMath::Segment> GetVaginalSegment() const;
+		std::optional<NiMath::Segment> GetAnalSegment() const;
 		std::optional<RE::NiPoint3> GetToeVectorLeft() const;
 		std::optional<RE::NiPoint3> GetToeVectorRight() const;
 		std::optional<RE::NiPoint3> GetHandVectorLeft() const;
 		std::optional<RE::NiPoint3> GetHandVectorRight() const;
-		RE::NiPoint3 GetCrotchVector() const;
+		NiMath::Segment GetCrotchSegment() const;
 
-	public:
+	public :
 		RE::NiPoint3 ApproximateTip() const;
 		RE::NiPoint3 ApproximateMid() const;
 		RE::NiPoint3 ApproximateBase() const;

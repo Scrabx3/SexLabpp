@@ -88,38 +88,30 @@ namespace Registry::NiNode::Node
 		return ApproximateNode(forward, upward);
 	}
 
-	std::optional<RE::NiPoint3> NodeData::GetVaginalVector() const
+	std::optional<NiMath::Segment> NodeData::GetVaginalSegment() const
 	{
 		if (!vaginadeep || !vaginaleft || !vaginaright)
 			return std::nullopt;
 
-		auto vagmid = GetVaginalStart();
-		assert(vagmid);
-		return *vagmid - vaginadeep->world.translate;
+		const auto start = (vaginaleft->world.translate + vaginaright->world.translate) / 2;
+		const auto end = vaginadeep->world.translate;
+		return NiMath::Segment{ start, end };
 	}
 
-	std::optional<RE::NiPoint3> NodeData::GetVaginalStart() const
-	{
-		if (!vaginaleft || !vaginaright)
-			return std::nullopt;
-		return (vaginaleft->world.translate + vaginaright->world.translate) / 2;
-	}
-
-	std::optional<RE::NiPoint3> NodeData::GetAnalVector() const
+	std::optional<NiMath::Segment> NodeData::GetAnalSegment() const
 	{
 		if (!analdeep || !analleft || !analright)
 			return std::nullopt;
 
-		auto analmid = GetAnalStart();
-		assert(analmid);
-		return *analmid - analdeep->world.translate;
+		const auto start = (analleft->world.translate + analright->world.translate) / 2;
+		const auto end = analdeep->world.translate;
+		return NiMath::Segment{ start, end };
 	}
 
-	std::optional<RE::NiPoint3> NodeData::GetAnalStart() const
+	NiMath::Segment NodeData::GetCrotchSegment() const
 	{
-		if (!analleft || !analright)
-			return std::nullopt;
-		return (analleft->world.translate + analright->world.translate) / 2;
+		assert(pelvis && spine_lower);
+		return { spine_lower->world.translate, pelvis->world.translate };
 	}
 
 	std::optional<RE::NiPoint3> NodeData::GetToeVectorLeft() const
@@ -148,12 +140,6 @@ namespace Registry::NiNode::Node
 		if (!hand_right || !finger_right)
 			return std::nullopt;
 		return finger_right->world.translate - hand_right->world.translate;
-	}
-
-	RE::NiPoint3 NodeData::GetCrotchVector() const
-	{
-		assert(pelvis && spine_lower);
-		return pelvis->world.translate - spine_lower->world.translate;
 	}
 
 	std::optional<NodeData::SchlongData> NodeData::SchlongData::CreateSchlongData(RE::NiAVObject* a_root, std::string_view a_basenode, const glm::mat3& a_rot)
