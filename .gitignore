@@ -6,3 +6,4 @@ build/
 
 xmake.lua
 .xmake
+xmake-requires.lock
