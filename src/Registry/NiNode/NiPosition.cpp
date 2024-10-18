@@ -144,16 +144,16 @@ namespace Registry::NiNode
 		const auto close_to_face = dCenter < bHead.boundMax.y * 1.5;
 
 		if (in_front_of_head && vertical_to_shaft && close_to_mouth) {
-			interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, dCenter);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, sSchlong.second);
 			// RotateNode(baseNode, sSchlong, *pMouth);
 			return true;
 		} else if (penetrating_skull && in_front_of_head && aiming_at_head) {
-			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, dCenter);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, sSchlong.second);
 			assert(partnernodes.pelvis);
 			const auto tip_at_throat = dCenter < bHead.boundMax.y * 0.25;
 			const auto pelvis_at_head = bHead.IsPointInside(partnernodes.pelvis->world.translate);
 			if (tip_at_throat || pelvis_at_head) {
-				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, dCenter);
+				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, sSchlong.second);
 			}
 			const auto throat = GetThroatPoint(), mouth = GetMouthStartPoint();
 			assert(throat && mouth);
@@ -161,11 +161,11 @@ namespace Registry::NiNode
 			RotateNode(position.nodes.head, { *mouth, *throat }, base.translate, glm::radians(10.0f));
 			return true;
 		} else if (penetrating_skull && aiming_at_head) {
-			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, sSchlong.second);
 			RotateNode(baseNode, sSchlong, headworld.translate, glm::radians(90.0f));
 			return true;
 		} else if (in_front_of_head && close_to_face && aiming_at_head) {
-			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, dCenter);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, sSchlong.second);
 			return true;
 		}
 		return false;

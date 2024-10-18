@@ -50,7 +50,7 @@ namespace Registry::NiNode::NiMath
 		};
 	}
 
-	RE::NiPoint3 AsNiPoint(const Eigen::Vector3f& a_point)
+	RE::NiPoint3 ToNiPoint(const Eigen::Vector3f& a_point)
 	{
 		return { a_point[0], a_point[1], a_point[2] };
 	}
@@ -105,7 +105,7 @@ namespace Registry::NiNode::NiMath
 
 		[[maybe_unused]] auto angle = RE::rad_to_deg(GetAngle(vS, a_points.back() - a_points.front()));
 
-		return Segment{ AsNiPoint(s1), AsNiPoint(s2) };
+		return Segment{ ToNiPoint(s1), ToNiPoint(s2) };
 	}
 
 

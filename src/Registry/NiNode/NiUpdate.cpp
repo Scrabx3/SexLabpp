@@ -64,7 +64,7 @@ namespace Registry::NiNode
 				if (where == pos.interactions.end()) {
 					continue;
 				}
-				const float delta_dist = act.distance - where->distance;
+				const float delta_dist = (act.referencePoint - where->referencePoint).Length();
 				act.velocity = (where->velocity + (delta_dist / a_delta)) / 2;
 			}
 			positions[i].interactions = { snapshots[i].interactions.begin(), snapshots[i].interactions.end() };

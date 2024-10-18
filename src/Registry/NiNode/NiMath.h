@@ -18,9 +18,9 @@ namespace Registry::NiNode::NiMath
 	Segment ClosestSegmentBetweenSegments(const Segment& u, const Segment& v);
 
 	Eigen::Vector3f ToEigen(const RE::NiPoint3& a_point);
-	Eigen::Matrix3f ToEigen(const RE::NiMatrix3& a_point);
-	RE::NiPoint3 AsNiPoint(const Eigen::Vector3f& a_point);
-	RE::NiMatrix3 ToNiMatrix(const Eigen::Matrix3f& a_mat);
+	Eigen::Matrix3f ToEigen(const RE::NiMatrix3& a_matrix);
+	RE::NiPoint3 ToNiPoint(const Eigen::Vector3f& a_point);
+	RE::NiMatrix3 ToNiMatrix(const Eigen::Matrix3f& a_matrix);
 
 	/// @brief Obtain an angle s.t. ret * vector aligns with ideal (0°)
 	/// @param vector The vector to align
