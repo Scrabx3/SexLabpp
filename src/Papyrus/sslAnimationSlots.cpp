@@ -83,7 +83,7 @@ namespace Papyrus::AnimationSlots
 
 	std::vector<RE::BSFixedString> CreateProxyArray(RE::StaticFunctionTag*, uint32_t a_returnsize, uint32_t crt_specifier, RE::BSFixedString a_tags, RE::BSFixedString a_package)
 	{
-		std::vector<RE::BSFixedString> ret{};
+		std::vector<const Registry::Scene*> ret{};
 		if (a_returnsize > 0)
 			ret.reserve(a_returnsize);
 		auto tags = Registry::TagDetails{a_tags};
@@ -101,14 +101,20 @@ namespace Papyrus::AnimationSlots
 				return false;
 			if (crt_specifier == 1 && !a_scene->HasCreatures())
 				return false;
-			if (!a_scene->IsCompatibleTags(tags))
-				return false;
 			if (!hash.empty() && a_scene->GetPackageHash() != hash)
 				return false;
-			ret.push_back(a_scene->id);
+			if (!a_scene->IsCompatibleTags(tags))
+				return false;
+			ret.push_back(a_scene);
 			return a_returnsize > 0 && ret.size() == a_returnsize;
 		});
-		return ret;
+		std::sort(ret.begin(), ret.end(), [](const Registry::Scene*& a, const auto& b) {
+			return a->name < b->name;
+		});
+		std::vector<RE::BSFixedString> ids{};
+		ids.reserve(ret.size());
+		std::ranges::transform(ret, std::back_inserter(ids), [](const auto& it) { return it->id; });
+		return ids;
 	}
 
 }	 // namespace Papyrus::AnimationSlots
