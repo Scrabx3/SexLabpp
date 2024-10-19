@@ -76,8 +76,10 @@ namespace Registry::NiNode
 		public:
 			NiPosition& position;
 			ObjectBound bHead;
-
 			std::vector<Interaction> interactions{};
+
+		public:
+			bool operator==(const Snapshot& a_rhs) const { return position == a_rhs.position; }
 		};
 
 	public:
@@ -90,6 +92,9 @@ namespace Registry::NiNode
 		Node::NodeData nodes;
 		stl::enumeration<Sex> sex;
 		std::set<Interaction> interactions{};
+
+	public:
+		bool operator==(const NiPosition& a_rhs) const { return actor == a_rhs.actor; }
 	};
 
 }	 // namespace Registry::NiNode

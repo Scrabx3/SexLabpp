@@ -38,23 +38,29 @@ namespace Registry::NiNode
 			snapshots.emplace_back(it);
 		}
 		for (auto&& fst : snapshots) {
-			for (auto&& snd : snapshots) {
-				// Schlong Related Data
-				for (auto&& schlong : snd.position.nodes.schlongs) {
-					if (fst.GetHeadPenisInteractions(snd, schlong)) {
+			// Look for a partner applying a valid rotation for each schlong
+			for (auto&& schlong : fst.position.nodes.schlongs) {
+				// cancel out and go to the next schlong if any interaction is found
+				for (auto&& snd : snapshots) {
+					if (snd.GetHeadPenisInteractions(fst, schlong))
+						break;
+					if (fst == snd)
+						continue;
+					if (snd.GetCrotchPenisInteractions(fst, schlong)) {
 						break;
 					}
-					// fst.GetCrotchPenisInteractions(snd);
 				}
-				// Other
-				// if (fst != snd) {
-				// 	fst->GetHeadHeadInteractions(*snd);
-				//  fst.GetVaginaVaginaInteractions(snd);
-				// }
-				// fst->GetHeadVaginaInteractions(*snd);
-				// fst->GetGenitalLimbInteractions(*snd);	// <- Split this into Vaginal/Limb & Penis/Limb?
-				// fst->GetHeadAnimObjInteractions(*snd);
 			}
+			// Misc types for each combination
+			//for (auto&& fst : snapshots) {
+			//	 if (fst != snd) {
+			//	 	fst->GetHeadHeadInteractions(*snd);
+			//	  fst.GetVaginaVaginaInteractions(snd);
+			//	 }
+			//	 fst->GetHeadVaginaInteractions(*snd);
+			//	 fst->GetGenitalLimbInteractions(*snd);	// <- Split this into Vaginal/Limb & Penis/Limb?
+			//	 fst->GetHeadAnimObjInteractions(*snd);
+			//}
 		}
 		assert(positions.size() == snapshots.size());
 		for (size_t i = 0; i < positions.size(); i++) {
