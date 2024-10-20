@@ -117,7 +117,7 @@ namespace Registry::NiNode
 
 		const auto [angleToHead, angleToMouth, angleToBase] = [&]() {
 			const auto vBaseToHead = headworld.translate - base.translate;
-			const auto vPartnerDir = partnernodes.GetCrotchVector();
+			const auto vPartnerDir = partnernodes.GetCrotchSegment().Vector();
 			const auto proj1 = NiMath::ProjectedComponent(vPartnerDir, vHead);
 			const auto proj2 = NiMath::ProjectedComponent(vBaseToHead, vHead);
 			return std::make_tuple(
@@ -197,59 +197,77 @@ namespace Registry::NiNode
 	// 	getimpl(n.animobj_l);
 	// }
 
-	// void Position::Snapshot::GetCrotchPenisInteractions(const Snapshot& a_other)
-	// {
-	// 	if (a_other.position.sex.none(Sex::Male, Sex::Futa))
-	// 		return;
-	// 	const auto vVaginal = position.nodes.GetVaginalVector();
-	// 	const auto vAnal = position.nodes.GetAnalVector();
-	// 	const auto pVaginal = position.nodes.GetVaginalStart();
-	// 	const auto pAnal = position.nodes.GetAnalStart();
-	// 	const auto vCrotch = position.nodes.GetCrotchVector();
-	// 	for (auto&& p : a_other.position.nodes.schlongs) {
-	// 		const auto vSchlong = p->GetSchlongVector();
-	// 		const auto niBase = p->GetBaseReferenceNode();
-	// 		const auto& base = niBase->world;
-	// 		const auto vPelvisToBase = base.translate - position.nodes.pelvis->world.translate;
-	// 		const auto dSchlongToPelvisLine = vPelvisToBase.Dot(vSchlong) / vPelvisToBase.SqrLength();
-	// 		if (dSchlongToPelvisLine > Settings::fDistanceCrotch)
-	// 			continue;
-	// 		const auto angleCrotch = NiMath::GetAngleDegree(vCrotch, vSchlong);
-	// 		if (vVaginal && vAnal && position.nodes.clitoris) {	 // female
-	// 			assert(pVaginal && pAnal);
-	// 			const float dVag = pVaginal->GetDistance(base.translate), dAnal = pAnal->GetDistance(base.translate);
-	// 			const float anglePen = NiMath::GetAngleDegree(dVag <= dAnal ? *vVaginal : *vAnal, vSchlong);
-	// 			if (std::abs(anglePen - 180) < Settings::fAnglePenetration) {
-	// 				const auto act = dVag <= dAnal ? Interaction::Action::Vaginal : Interaction::Action::Anal;
-	// 				interactions.emplace_back(a_other.position.actor, act, dSchlongToPelvisLine);
-	// 			} else if (std::abs(angleCrotch - 180) < Settings::fAngleGrinding) {
-	// 				const auto distance = position.nodes.clitoris->world.translate.GetDistance(base.translate);
-	// 				interactions.emplace_back(a_other.position.actor, Interaction::Action::Grinding, distance);
-	// 			}
-	// 		} else {	// male/no 3ba
-	// 			if (std::abs(angleCrotch - 90) < Settings::fAnglePenetration) {
-	// 				interactions.emplace_back(a_other.position.actor, Interaction::Action::Anal, dSchlongToPelvisLine);
-	// 			} else if (std::abs(angleCrotch - 180) < Settings::fAngleGrinding) {
-	// 				float distance;
-	// 				if (const auto& c = position.nodes.clitoris) {
-	// 					distance = c->world.translate.GetDistance(base.translate);
-	// 				} else {
-	// 					const auto& v = position.nodes.schlongs;
-	// 					if (v.empty()) {
-	// 						const auto thisbase = position.nodes.ApproximateBase();
-	// 						distance = thisbase.GetDistance(base.translate);
-	// 					} else {
-	// 						distance = std::numeric_limits<float>::max();
-	// 						for (auto&& i : v) {
-	// 							distance = std::min(distance, i->GetBaseReferenceNode()->world.translate.GetDistance(base.translate));
-	// 						}
-	// 					}
-	// 				}
-	// 				interactions.emplace_back(a_other.position.actor, Interaction::Action::Grinding, distance);
-	// 			}
-	// 		}
-	// 	}
-	// }
+	bool NiPosition::Snapshot::GetCrotchPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::SchlongData> a_schlong)
+	{
+		const auto sSchlong = a_schlong->GetReferenceSegment();
+		const auto nSchlong = a_schlong->GetBaseReferenceNode();
+		const auto sVaginal = position.nodes.GetVaginalSegment();
+		const auto sAnal = position.nodes.GetAnalSegment();
+		const auto& nClitoris = position.nodes.clitoris;
+		if (sVaginal && sAnal && nClitoris) {	 // 3BA & female
+			const auto [type, segment, distance] = [&]() {
+				// const auto last = std::ranges::find_if(position.interactions, [&](const Interaction& it) {
+				// 	return it.partner == a_partner.position.actor && (it.action == Interaction::Action::Vaginal || it.action == Interaction::Action::Anal);
+				// });
+				/*const auto proj = NiMath::ClosestSegmentBetweenSegments(sSchlong.first, { sAnal->first, sVaginal->first }).second;
+				const auto dVaginal = proj.GetDistance(sVaginal->first);
+				const auto dAnal = proj.GetDistance(sAnal->first);*/
+				//const auto inBetween = dVaginal > FLT_EPSILON && dAnal > FLT_EPSILON;
+				// NiMath::ClosestSegmentBetweenSegments(sSchlong, sAnal->first).Length();
+				// NiMath::ClosestSegmentBetweenSegments(sSchlong, sVaginal->first).Length();
+				const auto dVaginal = sSchlong.first.GetDistance(sVaginal->first);
+				const auto dAnal = sSchlong.first.GetDistance(sAnal->first);
+				//const auto analOrVaginal = inBetween && last != position.interactions.end() ? last->action == Interaction::Action::Anal : dAnal < dVaginal;
+
+				// Giving Vaginal a slight preference as most animations
+				// where it is "unclear" are usually intended to be vaginal
+				if (dAnal < dVaginal || dVaginal - dAnal < 1.5f) {
+					return std::tuple{
+						Interaction::Action::Anal,
+						*sAnal,
+						dAnal
+					};
+				} else {
+					return std::tuple{
+						Interaction::Action::Vaginal,
+						*sVaginal,
+						dVaginal
+					};
+				}
+			}();
+			if (distance <= Settings::fDistanceCrotch) {
+				const auto aSegment = NiMath::GetAngleDegree(segment.Vector(), sSchlong.Vector());
+				if (aSegment <= Settings::fAnglePenetration) {
+					interactions.emplace_back(a_partner.position.actor, type, sSchlong.second);
+					RotateNode(nSchlong, sSchlong, segment.second, glm::radians(35.0f));
+					return true;
+				}
+				const auto sCrotch = NiMath::Segment{ sAnal->first, sVaginal->first };
+				const auto aCrotch = NiMath::GetAngleDegree(sCrotch.Vector(), sSchlong.Vector());
+				if (std::abs(aCrotch - 180.0f) <= Settings::fAngleGrinding) {
+					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Grinding, sSchlong.second);
+					// RotateNode(nSchlong, sSchlong, nClitoris->world.translate, glm::radians(15.0f));
+					return true;
+				}
+			}
+		} else {	// male | no 3BA
+			const auto sCrotch = position.nodes.GetCrotchSegment();
+			const auto dCrotch = NiMath::ClosestSegmentBetweenSegments(sCrotch, sSchlong).Length();
+			if (dCrotch <= Settings::fDistanceCrotch) {
+				const auto vBaseToSpine = sCrotch.first - sSchlong.first;
+				const auto aCrotch = NiMath::GetAngleDegree(vBaseToSpine, sSchlong.Vector());
+				if (aCrotch <= Settings::fAnglePenetration) {
+					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Anal, sSchlong.second);
+					RotateNode(nSchlong, sSchlong, sCrotch.first, 15.0f);
+					return true;
+				} else if (std::abs(aCrotch - 90.0f) <= Settings::fAngleGrinding) {
+					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Anal, sSchlong.second);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	// void Position::Snapshot::GetVaginaVaginaInteractions(const Snapshot& a_other)
 	// {

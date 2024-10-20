@@ -36,6 +36,22 @@ namespace Registry::NiNode::NiMath
 		return Segment { c1, c2 };
 	}
 
+	bool IsSegmentBetweenSegments(const Segment& a_s, const Segment& a_u, const Segment& a_v)
+	{
+		auto s = a_s.Vector(), u = a_u.Vector(), v = a_v.Vector();
+		s.Unitize();
+		u.Unitize();
+		v.Unitize();
+
+		const auto cosVs = v.Dot(s);
+		const auto cosUs = u.Dot(s);
+		const auto cosUv = u.Dot(v);
+		if (cosVs <= FLT_EPSILON || cosUs <= FLT_EPSILON || cosUv <= FLT_EPSILON) {
+			return false;
+		}
+		return cosVs + cosUs >= cosUv - FLT_EPSILON;
+	}
+
 	Eigen::Vector3f ToEigen(const RE::NiPoint3& a_point)
 	{
 		return { a_point.x, a_point.y, a_point.z };

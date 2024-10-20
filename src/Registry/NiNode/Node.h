@@ -19,11 +19,12 @@ namespace Registry::NiNode::Node
 
 	static constexpr std::string_view CLITORIS{ "Clitoral1"sv };
 	static constexpr std::string_view VAGINADEEP{ "VaginaDeep1"sv };
+	static constexpr std::string_view VAGINAB{ "VaginaB1"sv };
 	static constexpr std::string_view VAGINALLEFT{ "NPC L Pussy02"sv };
 	static constexpr std::string_view VAGINALRIGHT{ "NPC R Pussy02"sv };
-	static constexpr std::string_view ANALDEEP{ "NPC Anus Deep2"sv };
-	static constexpr std::string_view ANALLEFT{ "NPC LB Anus2"sv };
-	static constexpr std::string_view ANALRIGHT{ "NPC RB Anus2"sv };
+	static constexpr std::string_view ANALDEEP{ "NPC Anus Deep1"sv };
+	static constexpr std::string_view ANALLEFT{ "NPC LT Anus2"sv };
+	static constexpr std::string_view ANALRIGHT{ "NPC RT Anus2"sv };
 
 	static constexpr std::string_view ANIMOBJECTA{ "AnimObjectA"sv };
 	static constexpr std::string_view ANIMOBJECTB{ "AnimObjectB"sv };
@@ -114,6 +115,7 @@ namespace Registry::NiNode::Node
 
 		RE::NiPointer<RE::NiNode> clitoris;
 		RE::NiPointer<RE::NiNode> vaginadeep;
+		RE::NiPointer<RE::NiNode> vaginab;
 		RE::NiPointer<RE::NiNode> vaginaleft;
 		RE::NiPointer<RE::NiNode> vaginaright;
 		RE::NiPointer<RE::NiNode> analdeep;

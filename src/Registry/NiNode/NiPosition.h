@@ -33,14 +33,14 @@ namespace Registry::NiNode
 			Total,
 		};
 
-		Interaction(RE::ActorPtr a_partner, Action a_action, float a_distance) :
-			partner(a_partner), action(a_action), distance(a_distance) {}
+		Interaction(RE::ActorPtr a_partner, Action a_action, RE::NiPoint3 a_refPoint) :
+			partner(a_partner), action(a_action), referencePoint(a_refPoint) {}
 		~Interaction() = default;
 
 	public:
 		RE::ActorPtr partner{ 0 };
+		RE::NiPoint3 referencePoint{};
 		Action action{ Action::None };
-		float distance{ 0.0f };
 		float velocity{ 0.0f };
 
 	public:
@@ -60,6 +60,7 @@ namespace Registry::NiNode
 			~Snapshot() = default;
 
 			bool GetHeadPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::SchlongData> a_schlong);
+			bool GetCrotchPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::SchlongData> a_schlong);
 
 			// void GetHeadHeadInteractions(const Snapshot& a_other);			// This head on other head
 			// void GetHeadVaginaInteractions(const Snapshot& a_other);		// This head on other vagina

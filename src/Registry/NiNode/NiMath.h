@@ -15,7 +15,13 @@ namespace Registry::NiNode::NiMath
 
 		bool isPoint;
 	};
+
+	/// @brief Obtain the shortest segment connecting u to v
 	Segment ClosestSegmentBetweenSegments(const Segment& u, const Segment& v);
+
+	/// @brief For 3 aligned segments s, u and v if s is between u and v
+	/// @return if s is between u and v
+	bool IsSegmentBetweenSegments(const Segment& s, const Segment& u, const Segment& v);
 
 	Eigen::Vector3f ToEigen(const RE::NiPoint3& a_point);
 	Eigen::Matrix3f ToEigen(const RE::NiMatrix3& a_matrix);

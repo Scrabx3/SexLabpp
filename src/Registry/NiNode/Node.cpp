@@ -39,6 +39,7 @@ namespace Registry::NiNode::Node
 		get(TOERIGHT, toe_right, true);
 		get(CLITORIS, clitoris, true);
 		get(VAGINADEEP, vaginadeep, true);
+		get(VAGINAB, vaginab, false);
 		get(VAGINALLEFT, vaginaleft, false);
 		get(VAGINALRIGHT, vaginaright, false);
 		get(ANALDEEP, analdeep, true);
