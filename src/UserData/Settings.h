@@ -87,7 +87,7 @@ struct Settings
 
 	// --- INI
 	// Animation
-	static inline uint32_t iFurniturePrefWeight{ 2 };	 // Weight ised in FindCenter() to use Furniture over default center. Chance = (1 / weight + 1)
+	static inline uint32_t iFurniturePrefWeight{ 2 };	 // Weight used in FindCenter() to use Furniture over default center. Chance = (1 / weight + 1)
 	static inline float fScanRadius{ 750.0f };				 // Radius used in FindCenter() in which to look for potential furniture refs
 	static inline float fMinScale{ 0.88f };						 // Min Scale for an actor be animated
 	static inline bool bAllowDead{ false };						 // if dead actors are allowed in the framework
@@ -154,12 +154,14 @@ struct Settings
 	// --- Distances
 	static inline float fDistanceFoot{ 13.3f };					// ~7.2 distance to foot middle
 	static inline float fDistanceHand{ 8.3f };					// ~2.2 distance to surface
-	static inline float fDistanceCrotch{ 18.0f };				// Distance from Pelvis/Hip node to crotch
-	static inline float fAnglePenetration{ 70.0f };			// Angle relative to crotch area below which the schlong is no longer considered penetrating
+	static inline float fDistanceCrotch{ 8.0f };				// Distance from Pelvis/Hip node to crotch
+	static inline float fAnglePenetration{ 90.0f };			// Angle relative to crotch area below which the schlong is no longer considered penetrating
 	static inline float fAngleGrinding{ 70.0f };				// angle for schlong and cortch to be considered "parallel"
 	static inline float fAngleMouth{ 15.0f };						// Angle of the cone from headnode to schlong that interprets the schlong in front of mouth
 	static inline float fHeadPenetrationRatio{ 0.8f };	// At which head boundary ratio the schlong tip is considered penetrating
 	static inline float fAnimObjDist{ 25.0f };
+	static inline float fVaginalTolerance{ 2.1f };
+	static inline float fMaxVaginalAdjust{ 55.0f };
 
 	// --- Enjoyment
 	static inline float fEnjGrinding{ 0.075 };
