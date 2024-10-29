@@ -8,6 +8,14 @@ void Settings::Initialize()
 	InitializeINI();
 }
 
+template <typename T>
+struct is_vector : std::false_type
+{};
+
+template <typename T, typename Alloc>
+struct is_vector<std::vector<T, Alloc>> : std::true_type
+{};
+
 void Settings::InitializeYAML()
 {
 	if (!fs::exists(YAMLPATH)) {
@@ -17,61 +25,22 @@ void Settings::InitializeYAML()
 
 	try {
 		const auto yaml = YAML::LoadFile(YAMLPATH);
-		for (auto&& node : yaml) {
-			auto keyname = node.first.as<std::string>();
-			auto w = table.find(keyname);
-			if (w == table.end()) {
-				logger::error("Unrecognized setting: {}", keyname);
-				continue;
+		const auto ReadMCM = [&yaml]<typename T>(const char* a_key, T& a_out) {
+			if (!yaml[a_key].IsDefined())
+				return;
+			const auto val = yaml[a_key].as<T>();
+			if constexpr (is_vector<std::decay_t<T>>::value) {
+				if (a_out.size() != val.size()) {
+					logger::error("Invalid array length for setting {}, expected {} but got {}", a_key, a_out.size(), val.size());
+					return;
+				}
 			}
+			a_out = val;
+		};
+#define MCM_SETTING(STR, DEFAULT) ReadMCM(#STR, STR);
+#include "mcm.def"
+#undef MCM_SETTING
 
-			switch (VariantType(w->second.index())) {
-			case VariantType::INT:
-				{
-					auto s = std::get<int*>(w->second);
-					*s = node.second.as<int>();
-				}
-				break;
-			case VariantType::FLOAT:
-				{
-					auto s = std::get<float*>(w->second);
-					*s = node.second.as<float>();
-				}
-				break;
-			case VariantType::BOOL:
-				{
-					auto s = std::get<bool*>(w->second);
-					*s = node.second.as<bool>();
-				}
-				break;
-			case VariantType::STRING:
-				{
-					auto s = std::get<std::string*>(w->second);
-					*s = node.second.as<std::string>();
-				}
-				break;
-			case VariantType::INTARRAY:
-				{
-					auto s = std::get<std::vector<int>*>(w->second);
-					const auto value = node.second.as<std::vector<int>>();
-					if (value.size() != s->size())
-						logger::error("Invalid array length for setting {}, expected {} but got {}", keyname, s->size(), value.size());
-					*s = value;
-				}
-				break;
-			case VariantType::FLOATARRAY:
-				{
-					auto s = std::get<std::vector<float>*>(w->second);
-					const auto value = node.second.as<std::vector<float>>();
-					if (value.size() != s->size())
-						logger::error("Invalid array length for setting {}, expected {} but got {}", keyname, s->size(), value.size());
-					*s = value;
-				}
-			default:
-				logger::error("Unreocnigzed setting type for setting {}", keyname);
-				break;
-			}
-		}
 		logger::info("Finished loading yaml settings");
 	} catch (const std::exception& e) {
 		logger::error("Unable to laod settings, error: {}", e.what());
@@ -84,7 +53,6 @@ void Settings::InitializeINI()
 		logger::error("No Settings file (ini) in {}", INIPATH);
 		return;
 	}
-
 	CSimpleIniA inifile{};
 	inifile.SetUnicode();
 	const auto ec = inifile.LoadFile(INIPATH);
@@ -92,11 +60,9 @@ void Settings::InitializeINI()
 		logger::error("Failed to read .ini Settings, Error: {}", ec);
 		return;
 	}
-
 	const auto ReadIni = [&inifile]<typename T>(const char* a_section, const char* a_option, T& a_out) {
 		if (!inifile.GetValue(a_section, a_option))
 			return;
-
 		if constexpr (std::is_integral_v<T>) {
 			a_out = static_cast<T>(inifile.GetLongValue(a_section, a_option));
 		} else if constexpr (std::is_floating_point_v<T>) {
@@ -105,112 +71,17 @@ void Settings::InitializeINI()
 			logger::error("Unknown Type for option {} in section {}", a_option, a_section);
 		}
 	};
-#define READINI(section, out) ReadIni(section, #out, out)
-
-	// Animation
-	READINI("Animation", iFurniturePrefWeight);
-	READINI("Animation", fScanRadius);
-	READINI("Animation", fMinScale);
-	READINI("Animation", bAllowDead);
-	READINI("Animation", fMinSetupTime);
-
-	// Creature
-	READINI("Creature", bAshHopper);
-	READINI("Creature", bBear);
-	READINI("Creature", bBoar);
-	READINI("Creature", bBoarMounted);
-	READINI("Creature", bBoarSingle);
-	READINI("Creature", bCanine);
-	READINI("Creature", bChaurus);
-	READINI("Creature", bChaurusHunter);
-	READINI("Creature", bChaurusReaper);
-	READINI("Creature", bChicken);
-	READINI("Creature", bCow);
-	READINI("Creature", bDeer);
-	READINI("Creature", bDog);
-	READINI("Creature", bDragon);
-	READINI("Creature", bDragonPriest);
-	READINI("Creature", bDraugr);
-	READINI("Creature", bDwarvenBallista);
-	READINI("Creature", bDwarvenCenturion);
-	READINI("Creature", bDwarvenSphere);
-	READINI("Creature", bDwarvenSpider);
-	READINI("Creature", bFalmer);
-	READINI("Creature", bFlameAtronach);
-	READINI("Creature", bFox);
-	READINI("Creature", bFrostAtronach);
-	READINI("Creature", bGargoyle);
-	READINI("Creature", bGiant);
-	READINI("Creature", bGiantSpider);
-	READINI("Creature", bGoat);
-	READINI("Creature", bHagraven);
-	READINI("Creature", bHare);
-	READINI("Creature", bHorker);
-	READINI("Creature", bHorse);
-	READINI("Creature", bIceWraith);
-	READINI("Creature", bLargeSpider);
-	READINI("Creature", bLurker);
-	READINI("Creature", bMammoth);
-	READINI("Creature", bMudcrab);
-	READINI("Creature", bNetch);
-	READINI("Creature", bRiekling);
-	READINI("Creature", bSabrecat);
-	READINI("Creature", bSeeker);
-	READINI("Creature", bSkeever);
-	READINI("Creature", bSlaughterfish);
-	READINI("Creature", bSpider);
-	READINI("Creature", bSpriggan);
-	READINI("Creature", bStormAtronach);
-	READINI("Creature", bTroll);
-	READINI("Creature", bVampireLord);
-	READINI("Creature", bWerewolf);
-	READINI("Creature", bWisp);
-	READINI("Creature", bWispmother);
-	READINI("Creature", bWolf);
-
-	// Statistics
-	READINI("Statistics", fPercentageHetero);
-	READINI("Statistics", fPercentageHomo);
+#define INI_SETTING(STR, DEFAULT, CAT) ReadIni(CAT, #STR, STR);
+#include "config.def"
+#undef INI_SETTING
 
 	if (fPercentageHetero + fPercentageHomo > 100) {
 		logger::error("Sexuality Percentage Settings must be at most 100.0");
-		fPercentageHetero = POPULATION_HETERO_DEFAULT;
-		fPercentageHomo = POPULATION_HOMO_DEFAULT;
+		const auto total = fPercentageHetero + fPercentageHomo;
+		fPercentageHetero = (fPercentageHetero / total) * 100;
+		fPercentageHomo = (fPercentageHomo / total) * 100;
+		logger::info("Adjusted fPercentageHetero to {} and fPercentageHomo to {}", fPercentageHetero, fPercentageHomo);
 	}
-
-	// Distance
-	READINI("Distance", fDistanceFoot);
-	READINI("Distance", fDistanceHand);
-	READINI("Distance", fDistanceCrotch);
-	READINI("Distance", fAnglePenetration);
-	READINI("Distance", fAngleGrinding);
-	READINI("Distance", fAngleMouth);
-	READINI("Distance", fHeadPenetrationRatio);
-	READINI("Distance", fAnimObjDist);
-
-	// Enjoyment
-	READINI("Enjoyment", fEnjGrinding);
-	READINI("Enjoyment", fEnjHandActive);
-	READINI("Enjoyment", fEnjHandPassive);
-	READINI("Enjoyment", fEnjFootActive);
-	READINI("Enjoyment", fEnjFootPassive);
-	READINI("Enjoyment", fEnjOralActive);
-	READINI("Enjoyment", fEnjOralPassive);
-	READINI("Enjoyment", fEnjVaginalActive);
-	READINI("Enjoyment", fEnjVaginalPassive);
-	READINI("Enjoyment", fEnjAnalActive);
-	READINI("Enjoyment", fEnjAnalPassive);
-	READINI("Enjoyment", fFactorNonInterEnjRaise);
-	READINI("Enjoyment", fFactorInterEnjRaise);
-	READINI("Enjoyment", fTimeMax);
-	READINI("Enjoyment", fRequiredXP);
-	READINI("Enjoyment", fBoostTime);
-	READINI("Enjoyment", fPenaltyTime);
-	READINI("Enjoyment", iMaxNoPainOrgasmsM);
-	READINI("Enjoyment", iMaxNoPainOrgasmsF);
-
-#undef READINI
-
 	logger::info("Finished loading .ini settings");
 }
 
@@ -245,43 +116,10 @@ void Settings::InitializeData()
 void Settings::Save()
 {
 	YAML::Node settings{};
-	for (auto&& s : table) {
-		switch (VariantType(s.second.index())) {
-		case VariantType::INT:
-			{
-				settings[s.first] = *std::get<int*>(s.second);
-			}
-			break;
-		case VariantType::FLOAT:
-			{
-				settings[s.first] = *std::get<float*>(s.second);
-			}
-			break;
-		case VariantType::BOOL:
-			{
-				settings[s.first] = *std::get<bool*>(s.second);
-			}
-			break;
-		case VariantType::STRING:
-			{
-				settings[s.first] = *std::get<std::string*>(s.second);
-			}
-			break;
-		case VariantType::INTARRAY:
-			{
-				settings[s.first] = *std::get<std::vector<int>*>(s.second);
-			}
-			break;
-		case VariantType::FLOATARRAY:
-			{
-				settings[s.first] = *std::get<std::vector<float>*>(s.second);
-			}
-			break;
-		default:
-			logger::error("Unreocnigzed setting type for setting {}", s.first);
-			break;
-		}
-	}
+#define MCM_SETTING(STR, DEFAULT) settings[#STR] = STR;
+#include "mcm.def"
+#undef MCM_SETTING
+
 	std::ofstream fout{ YAMLPATH };
 	fout << settings;
 	logger::info("Finished saving user settings");
