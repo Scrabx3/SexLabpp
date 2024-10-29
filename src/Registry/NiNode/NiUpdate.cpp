@@ -38,9 +38,8 @@ namespace Registry::NiNode
 			snapshots.emplace_back(it);
 		}
 		for (auto&& fst : snapshots) {
-			// Look for a partner applying a valid rotation for each schlong
+			// Schlong interactions for each combination
 			for (auto&& schlong : fst.position.nodes.schlongs) {
-				// cancel out and go to the next schlong if any interaction is found
 				for (auto&& snd : snapshots) {
 					if (snd.GetHeadPenisInteractions(fst, schlong))
 						break;

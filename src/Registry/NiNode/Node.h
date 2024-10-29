@@ -78,26 +78,48 @@ namespace Registry::NiNode::Node
 
 	struct NodeData
 	{
-		struct SchlongData
+		struct Schlong
 		{
-			static std::optional<SchlongData> CreateSchlongData(RE::NiAVObject* a_root, std::string_view a_basenode, const glm::mat3& a_rot);
+			virtual NiMath::Segment GetReferenceSegment() const = 0;
+			virtual RE::NiPointer<RE::NiNode> GetBaseReferenceNode() const = 0;
+		};
 
-			NiMath::Segment GetReferenceSegment() const;
-			RE::NiPointer<RE::NiNode> GetBaseReferenceNode() const;
-			RE::NiPoint3 GetSchlongVector() const;
+		struct FakeSchlong : public Schlong
+		{
+			FakeSchlong(const NodeData& a_ownerNodes) :
+				ownerNodes(a_ownerNodes) {}
+			~FakeSchlong() = default;
+
+			virtual NiMath::Segment GetReferenceSegment() const override;
+			virtual RE::NiPointer<RE::NiNode> GetBaseReferenceNode() const override;
 
 		private:
-			SchlongData(RE::NiPointer<RE::NiNode> a_basenode, const glm::mat3& a_rot);
+			const NodeData& ownerNodes;
 
+			RE::NiPoint3 ApproximateTip() const;
+			RE::NiPoint3 ApproximateMid() const;
+			RE::NiPoint3 ApproximateBase() const;
+			RE::NiPoint3 ApproximateNode(float a_forward, float a_upward) const;
+		};
+
+		struct SchlongData : public Schlong
+		{
+			SchlongData(RE::NiPointer<RE::NiNode> a_basenode, const glm::mat3& a_rot);
+			~SchlongData() = default;
+
+			virtual NiMath::Segment GetReferenceSegment() const override;
+			virtual RE::NiPointer<RE::NiNode> GetBaseReferenceNode() const override;
+
+		private:
 			std::vector<RE::NiPointer<RE::NiNode>> nodes{};
 			RE::NiMatrix3 rot;
-		
+
 		public:
 			bool operator==(const SchlongData& a_rhs) const { return this->nodes.size() == a_rhs.nodes.size() && this->nodes.front() == a_rhs.nodes.front(); }
 		};
 
 	public:
-		NodeData(RE::Actor* a_actor);
+		NodeData(RE::Actor* a_actor, bool a_forceSchlong);
 		~NodeData() = default;
 
 		RE::NiPointer<RE::NiNode> head;
@@ -121,7 +143,7 @@ namespace Registry::NiNode::Node
 		RE::NiPointer<RE::NiNode> analdeep;
 		RE::NiPointer<RE::NiNode> analleft;
 		RE::NiPointer<RE::NiNode> analright;
-		std::vector<std::shared_ptr<SchlongData>> schlongs;
+		std::vector<std::shared_ptr<Schlong>> schlongs;
 
 		RE::NiPointer<RE::NiNode> animobj_a;
 		RE::NiPointer<RE::NiNode> animobj_b;
@@ -136,14 +158,6 @@ namespace Registry::NiNode::Node
 		std::optional<RE::NiPoint3> GetHandVectorLeft() const;
 		std::optional<RE::NiPoint3> GetHandVectorRight() const;
 		NiMath::Segment GetCrotchSegment() const;
-
-	public :
-		RE::NiPoint3 ApproximateTip() const;
-		RE::NiPoint3 ApproximateMid() const;
-		RE::NiPoint3 ApproximateBase() const;
-	
-	private:
-		RE::NiPoint3 ApproximateNode(float a_forward, float a_upward) const;
 	};
 
 }

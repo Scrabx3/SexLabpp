@@ -5,7 +5,7 @@
 
 namespace Registry::NiNode::Node
 {
-	NodeData::NodeData(RE::Actor* a_actor)
+	NodeData::NodeData(RE::Actor* a_actor, bool a_forceSchlong)
 	{
 		const auto obj = a_actor->Get3D();
 		if (!obj) {
@@ -50,43 +50,17 @@ namespace Registry::NiNode::Node
 		get(ANIMOBJECTL, animobj_l, false);
 		get(ANIMOBJECTR, animobj_r, false);
 		for (auto&& it : SCHLONG_NODES) {
-			auto data = SchlongData::CreateSchlongData(obj, it.base, it.rot);
-			if (!data)
+			auto niavbase = obj->GetObjectByName(it.base);
+			auto niobj = niavbase ? niavbase->AsNode() : nullptr;
+			if (!niobj) {
 				continue;
-			auto ptr = std::make_shared<SchlongData>(*data);
+			}
+			auto ptr = std::make_shared<SchlongData>(RE::NiPointer{ niobj }, it.rot);
 			schlongs.push_back(ptr);
 		}
-	}
+		if (a_forceSchlong && schlongs.empty()) {
 
-	RE::NiPoint3 NodeData::ApproximateNode(float a_forward, float a_upward) const
-	{
-		Coordinate approx(std::vector{ a_forward, 0.0f, a_upward, 0.0f });
-		RE::NiPoint3 angle;
-		pelvis->world.rotate.ToEulerAnglesXYZ(angle);
-		Coordinate ret{ pelvis->world.translate, angle.z };
-		approx.Apply(ret);
-		return ret.AsNiPoint();
-	}
-
-	RE::NiPoint3 NodeData::ApproximateTip() const
-	{
-		constexpr float forward = 20.0f;
-		constexpr float upward = -4.0f;
-		return ApproximateNode(forward, upward);
-	}
-
-	RE::NiPoint3 NodeData::ApproximateMid() const
-	{
-		constexpr float forward = 15.0f;
-		constexpr float upward = -6.2f;
-		return ApproximateNode(forward, upward);
-	}
-
-	RE::NiPoint3 NodeData::ApproximateBase() const
-	{
-		constexpr float forward = 10.0f;
-		constexpr float upward = -5.0f;
-		return ApproximateNode(forward, upward);
+		}
 	}
 
 	std::optional<NiMath::Segment> NodeData::GetVaginalSegment() const
@@ -143,13 +117,47 @@ namespace Registry::NiNode::Node
 		return finger_right->world.translate - hand_right->world.translate;
 	}
 
-	std::optional<NodeData::SchlongData> NodeData::SchlongData::CreateSchlongData(RE::NiAVObject* a_root, std::string_view a_basenode, const glm::mat3& a_rot)
+	NiMath::Segment NodeData::FakeSchlong::GetReferenceSegment() const
 	{
-		auto obj = a_root->GetObjectByName(a_basenode);
-		auto niobj = obj ? obj->AsNode() : nullptr;
-		if (!niobj)
-			return std::nullopt;
-		return SchlongData(RE::NiPointer{ niobj }, a_rot);
+		return{ ApproximateBase(), ApproximateTip() };
+	}
+
+	RE::NiPointer<RE::NiNode> NodeData::FakeSchlong::GetBaseReferenceNode() const
+	{
+		return { nullptr };
+	}
+
+	RE::NiPoint3 NodeData::FakeSchlong::ApproximateNode(float a_forward, float a_upward) const
+	{
+		assert(ownerNodes.pelvis);
+		const auto pelvisWorld = ownerNodes.pelvis->world;
+		Coordinate approx(std::vector{ a_forward, 0.0f, a_upward, 0.0f });
+		RE::NiPoint3 angle;
+		pelvisWorld.rotate.ToEulerAnglesXYZ(angle);
+		Coordinate ret{ pelvisWorld.translate, angle.z };
+		approx.Apply(ret);
+		return ret.AsNiPoint();
+	}
+
+	RE::NiPoint3 NodeData::FakeSchlong::ApproximateTip() const
+	{
+		constexpr float forward = 20.0f;
+		constexpr float upward = -4.0f;
+		return ApproximateNode(forward, upward);
+	}
+
+	RE::NiPoint3 NodeData::FakeSchlong::ApproximateMid() const
+	{
+		constexpr float forward = 15.0f;
+		constexpr float upward = -6.2f;
+		return ApproximateNode(forward, upward);
+	}
+
+	RE::NiPoint3 NodeData::FakeSchlong::ApproximateBase() const
+	{
+		constexpr float forward = 10.0f;
+		constexpr float upward = -5.0f;
+		return ApproximateNode(forward, upward);
 	}
 
 	NodeData::SchlongData::SchlongData(RE::NiPointer<RE::NiNode> a_basenode, const glm::mat3& a_rot) :
@@ -210,7 +218,8 @@ namespace Registry::NiNode::Node
 			throw std::invalid_argument("Schlong Data without any Nodes?");
 		case 1:
 			{
-				auto vforward = GetSchlongVector();
+				auto translate = rot * nodes.front()->world.rotate;
+				auto vforward = translate.GetVectorY() * MIN_SCHLONG_LEN;
 				vforward.Unitize();
 				auto s1 = nodes.front()->world.translate;
 				auto s2 = (vforward * MIN_SCHLONG_LEN) + s1;
@@ -239,25 +248,6 @@ namespace Registry::NiNode::Node
 			throw std::invalid_argument("Schlong Data without any Nodes?");
 		default:
 			return nodes.front();
-		}
-	}
-
-	RE::NiPoint3 NodeData::SchlongData::GetSchlongVector() const
-	{
-		switch (nodes.size()) {
-		case 0:
-			assert(false);
-			return RE::NiPoint3::Zero();
-		case 1:
-			{
-				auto translate = rot * nodes.front()->world.rotate;
-				return translate.GetVectorY() * MIN_SCHLONG_LEN;
-			}
-		default:
-			{
-				auto seg = GetReferenceSegment();
-				return seg.second - seg.first;
-			}
 		}
 	}
 }

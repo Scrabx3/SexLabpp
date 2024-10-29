@@ -59,8 +59,8 @@ namespace Registry::NiNode
 			Snapshot(NiPosition& a_position);
 			~Snapshot() = default;
 
-			bool GetHeadPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::SchlongData> a_schlong);
-			bool GetCrotchPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::SchlongData> a_schlong);
+			bool GetHeadPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
+			bool GetCrotchPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
 
 			// void GetHeadHeadInteractions(const Snapshot& a_other);			// This head on other head
 			// void GetHeadVaginaInteractions(const Snapshot& a_other);		// This head on other vagina
@@ -85,7 +85,7 @@ namespace Registry::NiNode
 
 	public:
 		NiPosition(RE::Actor* a_owner, Sex a_sex) :
-			actor(a_owner), nodes(a_owner), sex(a_sex) {}
+			actor(a_owner), nodes(a_owner, a_sex != Sex::Female && GetSex(a_owner) == Sex::Female), sex(a_sex) {}
 		~NiPosition() = default;
 
 	public:
