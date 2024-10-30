@@ -4,6 +4,13 @@ import re
 config_def_path = './src/UserData/config.def'
 output_ini_path = './CMake/gen/SexLab.ini'
 
+def validate_value(value):
+  match = re.match(r'^(\d+\.\d+|\d+)f$', value)
+  if match:
+    return match.group(1)
+  else:
+    return value
+
 def parse_config_def(file_path):
   settings = []
   with open(file_path, 'r') as file:
@@ -11,6 +18,7 @@ def parse_config_def(file_path):
       match = re.match(r'INI_SETTING\(([^,]+),\s*([^,]+),\s*"([^"]+)"\)', line)
       if match:
         value, default, category = match.groups()
+        default = validate_value(default)
         settings.append((value.strip(), default.strip(), category.strip()))
   return settings
 
