@@ -26,7 +26,7 @@ namespace Registry::NiNode
 		return false;
 	}
 
-	void NiUpdate::Process::Update(float a_delta)
+	void NiUpdate::Process::UpdateInteractions(float a_delta)
 	{
 		std::unique_lock lk{ _m, std::defer_lock };
 		if (!lk.try_lock()) {
@@ -38,15 +38,17 @@ namespace Registry::NiNode
 			snapshots.emplace_back(it);
 		}
 		for (auto&& fst : snapshots) {
-			// Schlong interactions for each combination
-			for (auto&& schlong : fst.position.nodes.schlongs) {
-				for (auto&& snd : snapshots) {
-					if (snd.GetHeadPenisInteractions(fst, schlong))
-						break;
-					if (fst == snd)
-						continue;
-					if (snd.GetCrotchPenisInteractions(fst, schlong)) {
-						break;
+			// Genital interactions for each combination
+			if (fst.position.sex.none(Sex::Female)) {
+				for (auto&& schlong : fst.position.nodes.schlongs) {
+					for (auto&& snd : snapshots) {
+						if (snd.GetHeadPenisInteractions(fst, schlong))
+							break;
+						if (fst == snd)
+							continue;
+						if (snd.GetCrotchPenisInteractions(fst, schlong)) {
+							break;
+						}
 					}
 				}
 			}
@@ -70,7 +72,11 @@ namespace Registry::NiNode
 					continue;
 				}
 				const float delta_dist = (act.referencePoint - where->referencePoint).Length();
-				act.velocity = (where->velocity + (delta_dist / a_delta)) / 2;
+				if (a_delta != 0.0f) {
+					act.velocity = (where->velocity + (delta_dist / a_delta)) / 2;
+				} else {
+					act.velocity = where->velocity;
+				}
 			}
 			positions[i].interactions = { snapshots[i].interactions.begin(), snapshots[i].interactions.end() };
 		}
@@ -81,22 +87,24 @@ namespace Registry::NiNode
 		// UpdateThirdPerson
 		REL::Relocation<std::uintptr_t> addr{ RELOCATION_ID(39446, 40522), 0x94 };
 		stl::write_thunk_call<NiUpdate>(addr.address());
+		logger::info("Registered Functions");
 	}
 
 	void NiUpdate::thunk(RE::NiAVObject* a_obj, RE::NiUpdateData* updateData)
 	{
+		func(a_obj, updateData);
 		static const auto gameDaysPassed = RE::Calendar::GetSingleton()->gameDaysPassed;
-		if (gameDaysPassed) {
-			std::scoped_lock lk{ _m };
-			const auto ms_passed = gameDaysPassed->value * 24 * 60'000;
-			static float ms_passed_last = ms_passed;
-			const auto delta = ms_passed - ms_passed_last;
-			ms_passed_last = ms_passed;
-			for (auto&& [_, process] : processes) {
-				process->Update(delta);
-			}
+		if (!gameDaysPassed) {
+			return;
 		}
-		return func(a_obj, updateData);
+		std::scoped_lock lk{ _m };
+		const auto ms_passed = gameDaysPassed->value * 24 * 60'000;
+		static float ms_passed_last = ms_passed;
+		const auto delta = ms_passed - ms_passed_last;
+		ms_passed_last = ms_passed;
+		for (auto&& [_, process] : processes) {
+			process->UpdateInteractions(delta);
+		}
 	}
 
 

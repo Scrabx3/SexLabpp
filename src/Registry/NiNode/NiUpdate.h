@@ -19,7 +19,7 @@ namespace Registry::NiNode
 			bool VisitPositions(std::function<bool(const NiPosition&)> a_visitor) const;
 
 		private:
-			void Update(float a_delta);
+			void UpdateInteractions(float a_delta);
 
 			std::vector<NiPosition> positions;
 			mutable std::mutex _m{};
