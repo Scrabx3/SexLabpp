@@ -3,6 +3,7 @@
 *.code-workspace
 build/
 /vcpkg_installed
+/CMake/gen/
 
 xmake.lua
 .xmake
