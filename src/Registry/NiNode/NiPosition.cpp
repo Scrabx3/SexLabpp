@@ -237,7 +237,7 @@ namespace Registry::NiNode
 					branchVaginal = dif < Settings::fPenetrationVaginalToleranceRepeat;
 					break;
 				case tAnal:
-					branchVaginal = dif > Settings::fPenetrationAnalToleranceRepeat;
+					branchVaginal = dif < -Settings::fPenetrationAnalToleranceRepeat;
 					break;
 				default:
 					branchVaginal = dif < Settings::fPenetrationVaginalTolerance;
