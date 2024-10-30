@@ -29,6 +29,7 @@ MCM_SETTING(iFilterStrictness, 2)
 MCM_SETTING(iLipsSoundTime, 1)
 MCM_SETTING(iLovenseStrength, 10)
 MCM_SETTING(iLovenseStrengthOrgasm, 20)
+MCM_SETTING(fLovenseDurationOrgasm, 8)
 
 // KeyBinds/Scene Control Related
 MCM_SETTING(bAdjustTargetStage, false)
