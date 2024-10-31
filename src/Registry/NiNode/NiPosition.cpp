@@ -173,6 +173,40 @@ namespace Registry::NiNode
 		return false;
 	}
 
+	bool NiPosition::Snapshot::GetHandPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
+	{
+		const auto lHand = position.nodes.hand_left;
+		const auto rHand = position.nodes.hand_right;
+		if (!lHand || !rHand) {
+			return false;
+		}
+		const auto sSchlong = a_schlong->GetReferenceSegment();
+		const auto pLeft = lHand->world.translate;
+		const auto pRight = rHand->world.translate;
+		const auto rDist = NiMath::ClosestSegmentBetweenSegments(pLeft, sSchlong);
+		const auto lDist = NiMath::ClosestSegmentBetweenSegments(pLeft, sSchlong);
+		const auto closeToL = lDist.Length() < Settings::fDistanceHand;
+		const auto closeToR = rDist.Length() < Settings::fDistanceHand;
+		RE::NiPoint3 referencePoint;
+		// TODO: Want the palm here, not center of hand
+		if (closeToR && closeToL) {	 // Both hands are close, pick the closest to the base
+			const auto nSchlong = a_schlong->GetBaseReferenceNode();
+			if (nSchlong && nSchlong->world.translate.GetDistance(pLeft) < nSchlong->world.translate.GetDistance(pRight)) {
+				referencePoint = pLeft;
+			} else {
+				referencePoint = pRight;
+			}
+		} else if (closeToR) {
+			referencePoint = pRight;
+		} else if (closeToL) {
+			referencePoint = pLeft;
+		} else {
+			return false;
+		}
+		RotateNode(a_schlong->GetBaseReferenceNode(), sSchlong, referencePoint, Settings::fAdjustSchlongLimit);
+		return true;
+	}
+
 	// void Position::Snapshot::GetHeadAnimObjInteractions(const Snapshot& a_other)
 	// {
 	// 	bool out;
@@ -207,7 +241,8 @@ namespace Registry::NiNode
 		const auto& nClitoris = position.nodes.clitoris;
 		if (sVaginal && sAnal && nClitoris) {	 // 3BA & female
 			const auto [type, segment, distance] = [&]() {
-				enum {
+				enum
+				{
 					tNone,
 					tVaginal,
 					tAnal
