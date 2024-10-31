@@ -29,8 +29,8 @@ namespace Registry::NiNode::Node
 			throw std::exception("Missing mandatory 3d object (body)");
 		}
 		get(HEAD, head, true);
-		get(HANDLEFT, hand_left, true);
-		get(HANDRIGHT, hand_right, false);
+		get(HANDLEFTREF, hand_left, true);
+		get(HANDRIGHTREF, hand_right, false);
 		get(FINGERLEFT, finger_left, false);
 		get(FINGERRIGHT, finger_right, false);
 		get(FOOTLEFT, foot_left, true);

@@ -44,6 +44,8 @@ namespace Registry::NiNode
 					for (auto&& snd : snapshots) {
 						if (snd.GetHeadPenisInteractions(fst, schlong))
 							break;
+						if (snd.GetHandPenisInteractions(fst, schlong))
+							break;
 						if (fst == snd)
 							continue;
 						if (snd.GetCrotchPenisInteractions(fst, schlong)) {

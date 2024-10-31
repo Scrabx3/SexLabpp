@@ -188,7 +188,6 @@ namespace Registry::NiNode
 		const auto closeToL = lDist.Length() < Settings::fDistanceHand;
 		const auto closeToR = rDist.Length() < Settings::fDistanceHand;
 		RE::NiPoint3 referencePoint;
-		// TODO: Want the palm here, not center of hand
 		if (closeToR && closeToL) {	 // Both hands are close, pick the closest to the base
 			const auto nSchlong = a_schlong->GetBaseReferenceNode();
 			if (nSchlong && nSchlong->world.translate.GetDistance(pLeft) < nSchlong->world.translate.GetDistance(pRight)) {

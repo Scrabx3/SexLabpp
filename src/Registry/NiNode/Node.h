@@ -10,6 +10,8 @@ namespace Registry::NiNode::Node
 
 	static constexpr std::string_view HANDLEFT{ "NPC L Hand [LHnd]"sv };	// Base hand
 	static constexpr std::string_view HANDRIGHT{ "NPC R Hand [RHnd]"sv };
+	static constexpr std::string_view HANDLEFTREF{ "SHIELD"sv };
+	static constexpr std::string_view HANDRIGHTREF{ "WEAPON"sv };
 	static constexpr std::string_view FINGERLEFT{ "NPC L Finger20 [LF20]"sv };	// Base of the midd
 	static constexpr std::string_view FINGERRIGHT{ "NPC R Finger20 [RF20]"sv };
 	static constexpr std::string_view FOOTLEFT{ "NPC L Foot [Lft ]"sv };	// Ankle
