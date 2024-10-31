@@ -59,14 +59,16 @@ namespace Registry::NiNode
 			Snapshot(NiPosition& a_position);
 			~Snapshot() = default;
 
+			// This interacting with partner penis
 			bool GetHeadPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
 			bool GetCrotchPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
-			bool GetHandPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
+			bool GetHandPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);	// NOTE: Not currently used
+			// This interacting with partner vagina
+			// void GetHeadVaginaInteractions(const Snapshot& a_other);
+			// Misc/Non Sexual
 			bool GetHeadHeadInteractions(const Snapshot& a_other);
-			// void GetHeadVaginaInteractions(const Snapshot& a_other);		// This head on other vagina
-			// void GetHeadPenisInteractions(const Snapshot& a_other);			// This head on other penis
+
 			// void GetHeadAnimObjInteractions(const Snapshot& a_other);		// This head with either animobj
-			// void GetCrotchPenisInteractions(const Snapshot& a_other);		// This crotch/vagina on other penis
 			// void GetVaginaVaginaInteractions(const Snapshot& a_other);	// This vagina on other vagina
 			// void GetGenitalLimbInteractions(const Snapshot& a_other);		// This vagina on other limbs
 
