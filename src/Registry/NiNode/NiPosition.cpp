@@ -70,7 +70,7 @@ namespace Registry::NiNode
 		if (std::abs(angle - 180) > Settings::fAngleMouthMouth) {
 			return false;
 		}
-		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Kissing, distance);
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Kissing, *partnermouthstart);
 		return true;
 	}
 
@@ -109,7 +109,7 @@ namespace Registry::NiNode
 			auto res = NiMath::ClosestSegmentBetweenSegments({ headworld.translate }, sSchlong);
 			return res.Length();
 		}();
-		if (dCenter > bHead.boundMax.y * Settings::fThroatToleranceRadius) {
+		if (dCenter > bHead.boundMax.y * Settings::fCloseToHeadRatio) {
 			return false;
 		}
 		const auto& partnernodes = a_partner.position.nodes;
@@ -173,7 +173,7 @@ namespace Registry::NiNode
 		return false;
 	}
 
-	bool NiPosition::Snapshot::GetHandPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
+	bool NiPosition::Snapshot::GetHandPenisInteractions(const Snapshot&, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
 	{
 		const auto lHand = position.nodes.hand_left;
 		const auto rHand = position.nodes.hand_right;
@@ -204,6 +204,7 @@ namespace Registry::NiNode
 			return false;
 		}
 		RotateNode(a_schlong->GetBaseReferenceNode(), sSchlong, referencePoint, Settings::fAdjustSchlongLimit);
+		interactions.emplace_back(position.actor, Interaction::Action::HandJob, sSchlong.second);
 		return true;
 	}
 
