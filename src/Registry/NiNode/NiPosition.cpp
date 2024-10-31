@@ -55,28 +55,24 @@ namespace Registry::NiNode
 		}())
 	{}
 
-	// void Position::Snapshot::GetHeadHeadInteractions(const Snapshot& a_partner)
-	// {
-	// 	if (!bHead.IsValid())
-	// 		return;
-	// 	assert(position.nodes.head);
-	// 	const auto& headworld = position.nodes.head->world;
-	// 	const auto mouthstart = GetHeadForwardPoint(bHead.boundMax.y);
-	// 	const auto pmouthstart = a_partner.GetHeadForwardPoint(a_partner.bHead.boundMax.y);
-	// 	if (!pmouthstart || !mouthstart)
-	// 		return;
-	// 	auto& partnernodes = a_partner.position.nodes;
-	// 	assert(partnernodes.head);
-	// 	const auto vMyHead = *mouthstart - headworld.translate;
-	// 	const auto vPartnerHead = *pmouthstart - partnernodes.head->world.translate;
-	// 	auto angle = NiMath::GetAngleDegree(vMyHead, vPartnerHead);
-	// 	if (std::abs(angle - 180) < Settings::fAngleMouth) {
-	// 		if (bHead.IsPointInside(*pmouthstart) || a_partner.bHead.IsPointInside(*mouthstart)) {
-	// 			float distance = pmouthstart->GetDistance(*mouthstart);
-	// 			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Kissing, distance);
-	// 		}
-	// 	}
-	// }
+	bool NiPosition::Snapshot::GetHeadHeadInteractions(const Snapshot& a_partner)
+	{
+		const auto mouthstart = GetMouthStartPoint();
+		const auto partnermouthstart = a_partner.GetMouthStartPoint();
+		if (!mouthstart || !partnermouthstart)
+			return false;
+		const auto distance = mouthstart->GetDistance(*partnermouthstart);
+		if (distance > Settings::fDistanceMouthMouth)
+			return false;
+		const auto vMyHead = *mouthstart - position.nodes.head->world.translate;
+		const auto vPartnerHead = *partnermouthstart - a_partner.position.nodes.head->world.translate;
+		auto angle = NiMath::GetAngleDegree(vMyHead, vPartnerHead);
+		if (std::abs(angle - 180) > Settings::fAngleMouthMouth) {
+			return false;
+		}
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Kissing, distance);
+		return true;
+	}
 
 	// void Position::Snapshot::GetHeadVaginaInteractions(const Snapshot& a_partner)
 	// {

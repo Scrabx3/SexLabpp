@@ -53,15 +53,15 @@ namespace Registry::NiNode
 				}
 			}
 			// Misc types for each combination
-			//for (auto&& fst : snapshots) {
-			//	 if (fst != snd) {
-			//	 	fst->GetHeadHeadInteractions(*snd);
-			//	  fst.GetVaginaVaginaInteractions(snd);
-			//	 }
-			//	 fst->GetHeadVaginaInteractions(*snd);
-			//	 fst->GetGenitalLimbInteractions(*snd);	// <- Split this into Vaginal/Limb & Penis/Limb?
-			//	 fst->GetHeadAnimObjInteractions(*snd);
-			//}
+			for (auto&& snd : snapshots) {
+				if (fst != snd) {
+					snd.GetHeadHeadInteractions(fst);
+					//	  fst.GetVaginaVaginaInteractions(snd);
+				}
+				//	 fst->GetHeadVaginaInteractions(*snd);
+				//	 fst->GetGenitalLimbInteractions(*snd);	// <- Split this into Vaginal/Limb & Penis/Limb?
+				//	 fst->GetHeadAnimObjInteractions(*snd);
+			}
 		}
 		assert(positions.size() == snapshots.size());
 		for (size_t i = 0; i < positions.size(); i++) {
