@@ -9,24 +9,26 @@ namespace Registry::NiNode
 {
 	bool RotateNode(RE::NiPointer<RE::NiNode> niNode, const NiMath::Segment& sNode, const RE::NiPoint3& pTarget, float maxAngleAdjust)
 	{
-		maxAngleAdjust = glm::radians(maxAngleAdjust);
-		auto& local = niNode->local.rotate;
 		const auto vTarget = pTarget - sNode.first;
 		Eigen::Vector3f s = NiMath::ToEigen(sNode.Vector()).normalized();
 		Eigen::Vector3f v = NiMath::ToEigen(vTarget).normalized();
-
-		const Eigen::Quaternionf worldQuat(NiMath::ToEigen(niNode->world.rotate));
-		const Eigen::Quaternionf localQuat(NiMath::ToEigen(local));
-		auto tmpQuat = worldQuat.conjugate() * localQuat;
-
 		float cos_angle = std::clamp(s.dot(v), -1.0f, 1.0f);
 		float angle = std::acos(cos_angle);
 		if (angle < FLT_EPSILON) {
 			return true;
 		}
+		maxAngleAdjust = glm::radians(maxAngleAdjust);
 		if (angle > maxAngleAdjust) {
 			return false;
 		}
+		if (!Settings::bAdjustNodes) {
+			return true;
+		}
+		auto& local = niNode->local.rotate;
+		const Eigen::Quaternionf worldQuat(NiMath::ToEigen(niNode->world.rotate));
+		const Eigen::Quaternionf localQuat(NiMath::ToEigen(local));
+		auto tmpQuat = worldQuat.conjugate() * localQuat;
+
 		auto rotation_axis = s.cross(v);
 		if (rotation_axis.norm() > FLT_EPSILON) {
 			rotation_axis.normalize();
@@ -183,25 +185,20 @@ namespace Registry::NiNode
 		const auto sSchlong = a_schlong->GetReferenceSegment();
 		const auto pLeft = lHand->world.translate;
 		const auto pRight = rHand->world.translate;
-		const auto rDist = NiMath::ClosestSegmentBetweenSegments(pLeft, sSchlong);
-		const auto lDist = NiMath::ClosestSegmentBetweenSegments(pLeft, sSchlong);
-		const auto closeToL = lDist.Length() < Settings::fDistanceHand;
-		const auto closeToR = rDist.Length() < Settings::fDistanceHand;
-		RE::NiPoint3 referencePoint;
-		if (closeToR && closeToL) {	 // Both hands are close, pick the closest to the base
-			const auto nSchlong = a_schlong->GetBaseReferenceNode();
-			if (nSchlong && nSchlong->world.translate.GetDistance(pLeft) < nSchlong->world.translate.GetDistance(pRight)) {
-				referencePoint = pLeft;
-			} else {
-				referencePoint = pRight;
-			}
-		} else if (closeToR) {
-			referencePoint = pRight;
-		} else if (closeToL) {
-			referencePoint = pLeft;
-		} else {
+		const auto lDist = NiMath::ClosestSegmentBetweenSegments(pLeft, sSchlong).Length();
+		const auto rDist = NiMath::ClosestSegmentBetweenSegments(pRight, sSchlong).Length();
+		const auto closeToL = lDist < Settings::fDistanceHand;
+		const auto closeToR = rDist < Settings::fDistanceHand;
+		bool pickLeft;
+		if (!closeToR && !closeToL) {
 			return false;
+		} else if (closeToR && closeToL) { // Both hands are close, pick the closest to the base
+			const auto nSchlong = a_schlong->GetBaseReferenceNode();
+			pickLeft = nSchlong && nSchlong->world.translate.GetDistance(pLeft) < nSchlong->world.translate.GetDistance(pRight);
+		} else {
+			pickLeft = closeToL;
 		}
+		auto referencePoint = pickLeft ? (pLeft + position.nodes.thumb_left->world.translate) / 2 : (pRight + position.nodes.thumb_right->world.translate) / 2;
 		RotateNode(a_schlong->GetBaseReferenceNode(), sSchlong, referencePoint, Settings::fAdjustSchlongLimit);
 		interactions.emplace_back(position.actor, Interaction::Action::HandJob, sSchlong.second);
 		return true;

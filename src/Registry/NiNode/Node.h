@@ -12,8 +12,11 @@ namespace Registry::NiNode::Node
 	static constexpr std::string_view HANDRIGHT{ "NPC R Hand [RHnd]"sv };
 	static constexpr std::string_view HANDLEFTREF{ "SHIELD"sv };
 	static constexpr std::string_view HANDRIGHTREF{ "WEAPON"sv };
-	static constexpr std::string_view FINGERLEFT{ "NPC L Finger20 [LF20]"sv };	// Base of the midd
+	static constexpr std::string_view FINGERLEFT{ "NPC L Finger20 [LF20]"sv };	// Base of the middle finger
 	static constexpr std::string_view FINGERRIGHT{ "NPC R Finger20 [RF20]"sv };
+	static constexpr std::string_view THUMBLEFT{ "NPC L Finger02 [LF02]"sv };	// Thumb
+	static constexpr std::string_view THUMBRIGHT{ "NPC R Finger02 [RF02]"sv };
+
 	static constexpr std::string_view FOOTLEFT{ "NPC L Foot [Lft ]"sv };	// Ankle
 	static constexpr std::string_view FOOTRIGHT{ "NPC R Foot [Rft ]"sv };
 	static constexpr std::string_view TOELEFT{ "NPC L Toe0 [LToe]"sv };	 // base of middle toe
@@ -130,8 +133,8 @@ namespace Registry::NiNode::Node
 
 		RE::NiPointer<RE::NiNode> hand_left;
 		RE::NiPointer<RE::NiNode> hand_right;
-		RE::NiPointer<RE::NiNode> finger_left;
-		RE::NiPointer<RE::NiNode> finger_right;
+		RE::NiPointer<RE::NiNode> thumb_left;
+		RE::NiPointer<RE::NiNode> thumb_right;
 		RE::NiPointer<RE::NiNode> foot_left;
 		RE::NiPointer<RE::NiNode> foot_right;
 		RE::NiPointer<RE::NiNode> toe_left;
@@ -157,8 +160,6 @@ namespace Registry::NiNode::Node
 		std::optional<NiMath::Segment> GetAnalSegment() const;
 		std::optional<RE::NiPoint3> GetToeVectorLeft() const;
 		std::optional<RE::NiPoint3> GetToeVectorRight() const;
-		std::optional<RE::NiPoint3> GetHandVectorLeft() const;
-		std::optional<RE::NiPoint3> GetHandVectorRight() const;
 		NiMath::Segment GetCrotchSegment() const;
 	};
 

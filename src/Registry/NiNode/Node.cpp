@@ -31,8 +31,8 @@ namespace Registry::NiNode::Node
 		get(HEAD, head, true);
 		get(HANDLEFTREF, hand_left, true);
 		get(HANDRIGHTREF, hand_right, false);
-		get(FINGERLEFT, finger_left, false);
-		get(FINGERRIGHT, finger_right, false);
+		get(THUMBLEFT, thumb_left, false);
+		get(THUMBRIGHT, thumb_right, false);
 		get(FOOTLEFT, foot_left, true);
 		get(FOOTRIGHT, foot_right, false);
 		get(TOELEFT, toe_left, true);
@@ -101,20 +101,6 @@ namespace Registry::NiNode::Node
 		if (!foot_right || !toe_right)
 			return std::nullopt;
 		return toe_right->world.translate - foot_right->world.translate;
-	}
-
-	std::optional<RE::NiPoint3> NodeData::GetHandVectorLeft() const
-	{
-		if (!hand_left || !finger_left)
-			return std::nullopt;
-		return finger_left->world.translate - hand_left->world.translate;
-	}
-
-	std::optional<RE::NiPoint3> NodeData::GetHandVectorRight() const
-	{
-		if (!hand_right || !finger_right)
-			return std::nullopt;
-		return finger_right->world.translate - hand_right->world.translate;
 	}
 
 	NiMath::Segment NodeData::FakeSchlong::GetReferenceSegment() const
