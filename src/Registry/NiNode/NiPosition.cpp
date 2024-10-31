@@ -318,25 +318,26 @@ namespace Registry::NiNode
 		return false;
 	}
 
-	// void Position::Snapshot::GetVaginaVaginaInteractions(const Snapshot& a_other)
-	// {
-	// 	if (position.sex.none(Sex::Female, Sex::Futa) || a_other.position.sex.none(Sex::Female, Sex::Futa))
-	// 		return;
-	// 	const auto &c1 = position.nodes.clitoris, &c2 = a_other.position.nodes.clitoris;
-	// 	if (!c1 || !c2)
-	// 		return;
-	// 	const auto distance = c1->world.translate.GetDistance(c2->world.translate);
-	// 	if (distance > Settings::fDistanceCrotch)
-	// 		return;
-	// 	auto vVaginal = position.nodes.GetVaginalVector();
-	// 	auto vVaginalPartner = a_other.position.nodes.GetVaginalVector();
-	// 	if (!vVaginal || !vVaginalPartner)
-	// 		return;
-	// 	const auto angle = NiMath::GetAngleDegree(*vVaginal, *vVaginalPartner);
-	// 	if (std::abs(angle - 180) > Settings::fAngleGrinding)
-	// 		return;
-	// 	interactions.emplace_back(a_other.position.actor, Interaction::Action::Grinding, distance);
-	// }
+	bool NiPosition::Snapshot::GetVaginaVaginaInteractions(const Snapshot& a_other)
+	{
+		if (position.sex.none(Sex::Female, Sex::Futa) || a_other.position.sex.none(Sex::Female, Sex::Futa))
+			return false;
+		const auto &c1 = position.nodes.clitoris, &c2 = a_other.position.nodes.clitoris;
+		if (!c1 || !c2)
+			return false;
+		const auto distance = c1->world.translate.GetDistance(c2->world.translate);
+		if (distance > Settings::fDistanceCrotch)
+			return false;
+		const auto sVaginal = position.nodes.GetVaginalSegment();
+		const auto sVaginalPartner = a_other.position.nodes.GetVaginalSegment();
+		if (!sVaginal || !sVaginalPartner)
+			return false;
+		const auto angle = NiMath::GetAngleDegree(sVaginal->Vector(), sVaginalPartner->Vector());
+		if (std::abs(angle - 180) > Settings::fAngleGrindingFF)
+			return false;
+		interactions.emplace_back(a_other.position.actor, Interaction::Action::Grinding, c1->world.translate);
+		return true;
+	}
 
 	// void Position::Snapshot::GetGenitalLimbInteractions(const Snapshot& a_other)
 	// {
