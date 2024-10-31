@@ -50,7 +50,7 @@ namespace Registry::Console
 
 				float scale = Scale::GetSingleton()->GetScale(a_targetRef);
         auto race = RaceHandler::GetRaceKey(actorRef);
-				std::string output = fmt::format("Scale = {} | Race = {}", scale, RaceHandler::AsString(race));
+				std::string output = std::format("Scale = {} | Race = {}", scale, RaceHandler::AsString(race));
 				PrintConsole(output.c_str());
 			}
 		}

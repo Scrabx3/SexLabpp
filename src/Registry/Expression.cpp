@@ -249,7 +249,7 @@ namespace Registry
 			}
 		}
 		file["enabled"] = enabled;
-		std::ofstream fout(fmt::format("{}\\{}.yaml", EXPRESSIONPATH, id));
+		std::ofstream fout(std::format("{}\\{}.yaml", EXPRESSIONPATH, id));
 		fout << file;
 	}
 

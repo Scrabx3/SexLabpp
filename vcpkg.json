@@ -12,11 +12,5 @@
     "glm",
     "eigen3"
   ],
-  "overrides": [
-    {
-      "name": "fmt",
-      "version": "9.1.0"
-    }
-  ],
   "builtin-baseline": "3508985146f1b1d248c67ead13f8f54be5b4f5da"
 }

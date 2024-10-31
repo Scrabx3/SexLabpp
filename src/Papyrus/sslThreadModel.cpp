@@ -213,7 +213,14 @@ namespace Papyrus::ThreadModel
 			ids.reserve(a_mergewith.size());
 			for (auto&& it : a_mergewith)
 				ids.push_back(it ? it->formID : 0);
-			logger::info("Stripping, Policy: [{:X}, {}], Stripped Equipment: [{:X}]", weapon, slots, fmt::join(ids, ", "));
+			logger::info("Stripping, Policy: [{:X}, {}], Stripped Equipment: [{}]", weapon, slots, [&] {
+				if (ids.empty()) {
+					return std::string("");
+				}
+				return std::accumulate(std::next(ids.begin()), ids.end(), std::format("{:X}", ids[0]), [](std::string a, auto b) {
+					return std::move(a) + ", " + std::format("{:X}", b);
+				});
+			}());
 			actor->Update3DModel();
 			return a_mergewith;
 		}
