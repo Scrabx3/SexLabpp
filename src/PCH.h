@@ -215,6 +215,33 @@ namespace Registry
 	}
 }
 
+template <>
+struct std::formatter<RE::BSFixedString> : std::formatter<const char*>
+{
+	template <typename FormatContext>
+	auto format(const RE::BSFixedString& myStr, FormatContext& ctx)
+	{
+		return std::formatter<const char*>::format(myStr.data(), ctx);
+	}
+};
+
+template <typename T>
+struct std::formatter<std::vector<T>> : std::formatter<T>
+{
+	template <typename FormatContext>
+	auto format(const std::vector<T>& vec, FormatContext& ctx)
+	{
+		auto out = ctx.out();
+		for (size_t i = 0; i < vec.size(); ++i) {
+			if (i > 0) {
+				out = std::format_to(out, ",");
+			}
+			out = std::formatter<T>::format(vec[i], ctx);
+		}
+		return out;
+	}
+};
+
 #define DLLEXPORT __declspec(dllexport)
 
-#include "Plugin.h"
+// #include "Plugin.h"

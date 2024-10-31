@@ -16,8 +16,10 @@ namespace Registry
 			auto& fields = a_src["data"][static_cast<uint32_t>(sex)];
 			for (auto&& arr : fields) {
 				const auto values = arr.as<std::vector<float>>();
-				if (values.size() != Profile::Total)
-					throw std::exception(fmt::format("Invalid value field, expected {}/32 values found", values.size()).c_str());
+				if (values.size() != Profile::Total) {
+					const auto err = std::format("Invalid value field, expected {}/32 values found", values.size());
+					throw std::exception(err.c_str());
+				}
 				auto& it = data[sex].emplace_back();
 				std::copy_n(values.begin(), it.size(), it.begin());
 			}
@@ -45,8 +47,10 @@ namespace Registry
 				if (field == floats->end() || !field->is_array())
 					break;
 				auto values = field->get<std::vector<float>>();
-				if (values.size() != Profile::Total)
-					throw std::exception(fmt::format("Invalid value field, expected {}/32 values found in field {}", values.size(), fieldname).c_str());
+				if (values.size() != Profile::Total) {
+					const auto err = std::format("Invalid value field, expected {}/32 values found in field {}", values.size(), fieldname);
+					throw std::exception(err.c_str());
+				}
 				auto& it = data[sex].emplace_back();
 				std::copy_n(values.begin(), it.size(), it.begin());
 			}
@@ -245,7 +249,7 @@ namespace Registry
 			}
 		}
 		file["enabled"] = enabled;
-		std::ofstream fout(fmt::format("{}\\{}.yaml", EXPRESSIONPATH, id));
+		std::ofstream fout(std::format("{}\\{}.yaml", EXPRESSIONPATH, id));
 		fout << file;
 	}
 

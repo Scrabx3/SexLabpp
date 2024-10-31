@@ -22,7 +22,8 @@ namespace Papyrus::AnimationSlots
 			return {};
 		}
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
+			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount);
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		}
 		const auto lib = Registry::Library::GetSingleton();
@@ -38,7 +39,8 @@ namespace Papyrus::AnimationSlots
 			return {};
 		}
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
+			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount);
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		}
 		const auto lib = Registry::Library::GetSingleton();

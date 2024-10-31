@@ -9,7 +9,7 @@ namespace Registry::NiNode::Node
 	{
 		const auto obj = a_actor->Get3D();
 		if (!obj) {
-			const auto msg = fmt::format("Unable to retrieve 3D of actor {:X}", a_actor->GetFormID());
+			const auto msg = std::format("Unable to retrieve 3D of actor {:X}", a_actor->GetFormID());
 			throw std::exception(msg.c_str());
 		}
 		const auto racekey = RaceHandler::GetRaceKey(a_actor);

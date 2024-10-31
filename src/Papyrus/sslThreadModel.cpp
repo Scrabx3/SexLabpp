@@ -213,7 +213,7 @@ namespace Papyrus::ThreadModel
 			ids.reserve(a_mergewith.size());
 			for (auto&& it : a_mergewith)
 				ids.push_back(it ? it->formID : 0);
-			logger::info("Stripping, Policy: [{:X}, {}], Stripped Equipment: [{:X}]", weapon, slots, fmt::join(ids, ", "));
+			logger::info("Stripping, Policy: [{:X}, {}], Stripped Equipment: [{:X}]", weapon, slots, ids);
 			actor->Update3DModel();
 			return a_mergewith;
 		}
@@ -544,7 +544,7 @@ __CONTINUE_NEXT:
 
 			const auto event = scene->GetNthAnimationEvent(stage, i);
 			actor->NotifyAnimationGraph(event);
-			const auto schlong = fmt::format("SOSBend{}", stage->positions[i].schlong);
+			const auto schlong = std::format("SOSBend{}", stage->positions[i].schlong);
 			actor->NotifyAnimationGraph(schlong);
 		}
 

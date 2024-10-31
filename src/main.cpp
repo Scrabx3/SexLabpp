@@ -69,6 +69,13 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	}
 }
 
+#ifdef XMAKE
+struct Plugin
+{
+	static constexpr std::string_view NAME = "SexLabUtil"sv;
+	static constexpr REL::Version VERSION{ 2, 10, 2 };
+};
+#else
 #ifdef SKYRIM_SUPPORT_AE
 extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
 	SKSE::PluginVersionData v;
@@ -89,6 +96,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, 
 	return true;
 }
 #endif
+#endif
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
@@ -99,7 +107,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		auto path = logger::log_directory();
 		if (!path)
 			return false;
-		*path /= fmt::format(FMT_STRING("{}.log"), Plugin::NAME);
+		*path /= std::format("{}.log", Plugin::NAME);
 		auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true);
 #endif
 		auto log = std::make_shared<spdlog::logger>("global log"s, std::move(sink));

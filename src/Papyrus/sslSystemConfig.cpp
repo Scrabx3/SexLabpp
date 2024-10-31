@@ -10,10 +10,12 @@ namespace Papyrus::SystemConfig
 	{
 		auto w = Settings::table.find(a_setting);
 		if (w == Settings::table.end()) {
-			a_vm->TraceStack(fmt::format("Unrecognized setting: {}", a_setting).c_str(), a_stackID);
+			const auto err = std::format("Unrecognized setting: {}", a_setting);
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		} else if (!std::holds_alternative<T>(w->second)) {
-			a_vm->TraceStack(fmt::format("Setting {} is of invalid type, expected {}", a_setting, typeid(T).name()).c_str(), a_stackID);
+			const auto err = std::format("Setting {} is of invalid type, expected {}", a_setting, typeid(T).name());
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}
 		return std::get<T>(w->second);
@@ -49,7 +51,8 @@ namespace Papyrus::SystemConfig
 		if (!ret)
 			return 0;
 		if (n < 0 || n >= ret->size()) {
-			a_vm->TraceStack(fmt::format("Index out of range: {}/{}", n, ret->size()).c_str(), a_stackID);
+			const auto err = std::format("Index out of range: {}/{}", n, ret->size());
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}
 		return ret->at(n);
@@ -61,7 +64,8 @@ namespace Papyrus::SystemConfig
 		if (!ret)
 			return 0;
 		if (n < 0 || n >= ret->size()) {
-			a_vm->TraceStack(fmt::format("Index out of range: {}/{}", n, ret->size()).c_str(), a_stackID);
+			const auto err = std::format("Index out of range: {}/{}", n, ret->size());
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}
 		return ret->at(n);
@@ -109,7 +113,8 @@ namespace Papyrus::SystemConfig
 		if (!s)
 			return;
 		if (n < 0 || n >= s->size()) {
-			a_vm->TraceStack(fmt::format("Index out of range: {}/{}", n, s->size()).c_str(), a_stackID);
+			const auto err = std::format("Index out of range: {}/{}", n, s->size());
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return;
 		}
 
@@ -122,7 +127,8 @@ namespace Papyrus::SystemConfig
 		if (!s)
 			return;
 		if (n < 0 || n >= s->size()) {
-			a_vm->TraceStack(fmt::format("Index out of range: {}/{}", n, s->size()).c_str(), a_stackID);
+			const auto err = std::format("Index out of range: {}/{}", n, s->size());
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return;
 		}
 
@@ -157,7 +163,8 @@ namespace Papyrus::SystemConfig
 			return Settings::iMaxNoPainOrgasmsM;
 		else if (a_setting == "iMaxNoPainOrgasmsF")
 			return Settings::iMaxNoPainOrgasmsF;
-		a_vm->TraceStack(fmt::format("Invalid Setting {}", a_setting.c_str()).c_str(), a_stackID);
+		const auto err = std::format("Invalid Setting {}", a_setting.c_str());
+		a_vm->TraceStack(err.c_str(), a_stackID);
 		return 0;
 	}
 
@@ -175,10 +182,10 @@ namespace Papyrus::SystemConfig
 			return Settings::fBoostTime;
 		else if (a_setting == "fPenaltyTime")
 			return Settings::fPenaltyTime;
-		a_vm->TraceStack(fmt::format("Invalid Setting {}", a_setting.c_str()).c_str(), a_stackID);
+		const auto err = std::format("Invalid Setting {}", a_setting.c_str());
+		a_vm->TraceStack(err.c_str(), a_stackID);
 		return 0.0f;
 	}
-
 
 	std::vector<RE::TESForm*> GetStrippableItems(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_target, bool a_wornonly)
 	{

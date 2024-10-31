@@ -37,17 +37,17 @@ namespace Registry
 	{
 		auto file = a_form->GetFile(0);
 		if (!file) {
-			return fmt::format("{}", a_form->GetFormID());
+			return std::format("{}", a_form->GetFormID());
 		}
-		return fmt::format("{}|{}", a_form->GetLocalFormID(), file->GetFilename());
+		return std::format("{}|{}", a_form->GetLocalFormID(), file->GetFilename());
 	}
 
 	inline void PrintConsole(std::string_view a_msg) { RE::ConsoleLog::GetSingleton()->Print(a_msg.data()); }
 	inline void PrintConsole(const char* a_msg) { RE::ConsoleLog::GetSingleton()->Print(a_msg); }
 	template <typename... Args>
-	inline void PrintConsole(fmt::format_string<Args...> a_fmt, Args&&... args)
+	inline void PrintConsole(std::format_string<Args...> a_fmt, Args&&... args)
 	{
-		const auto msg = fmt::format(a_fmt, std::forward<Args>(args)...);
+		const auto msg = std::format(a_fmt, std::forward<Args>(args)...);
 		RE::ConsoleLog::GetSingleton()->Print(msg.data());
 	}
 

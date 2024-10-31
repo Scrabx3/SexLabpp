@@ -46,12 +46,11 @@ namespace Serialization
 
 		static void LoadCallback(SKSE::SerializationInterface* a_intfc)
 		{
-			uint32_t type;
-			uint32_t version;
-			uint32_t length;
+			const auto v = static_cast<uint32_t>(_Version);
+			uint32_t type, version, length;
 			while (a_intfc->GetNextRecordInfo(type, version, length)) {
-				if (version != _Version) {
-					logger::info("Invalid Version for loaded Data of Type = {}. Expected = {}; Got = {}", GetTypeName(type), _Version, version);
+				if (version != v) {
+					logger::info("Invalid Version for loaded Data of Type = {}. Expected = {}; Got = {}", GetTypeName(type), v, version);
 					continue;
 				}
 				logger::info("Loading record {}", GetTypeName(type));

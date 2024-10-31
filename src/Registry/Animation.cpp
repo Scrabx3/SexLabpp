@@ -1,9 +1,8 @@
 #include "Animation.h"
 
+#include "Library.h"
 #include "Registry/Define/RaceKey.h"
 #include "Util/Combinatorics.h"
-#include "Library.h"
-
 namespace Registry
 {
 	AnimPackage::AnimPackage(const fs::path a_file)
@@ -37,7 +36,10 @@ namespace Registry
 			}
 			break;
 		default:
-			throw std::runtime_error(fmt::format("Invalid version: {}", version).c_str());
+			{
+				const auto err = std::format("Invalid version: {}", version);
+				throw std::runtime_error(err.c_str());
+			}
 		}
 	}
 
@@ -76,8 +78,10 @@ namespace Registry
 			} else {
 				vec.push_back(legacySex::Creature);
 			}
-			if (vec.empty())
-				throw std::runtime_error(fmt::format("Some position has no associated sex in scene: {}", id).c_str());
+			if (vec.empty()) {
+				const auto err = std::format("Some position has no associated sex in scene: {}", id);
+				throw std::runtime_error(err.c_str());
+			}
 			sexes.push_back(vec);
 		}
 		Combinatorics::ForEachCombination(sexes, [&](auto& it) {
@@ -109,20 +113,23 @@ namespace Registry
 			}
 		}
 		if (!start_animation) {
-			throw std::runtime_error(fmt::format("Start animation {} is not found in scene {}", startstage, id).c_str());
+			const auto err = std::format("Start animation {} is not found in scene {}", startstage, id);
+			throw std::runtime_error(err.c_str());
 		}
 		// --- Graph
 		uint64_t graph_vertices;
 		Decode::Read(a_stream, graph_vertices);
 		if (graph_vertices != stage_count) {
-			throw std::runtime_error(fmt::format("Invalid graph vertex count; expected {} but got {}", stage_count, graph_vertices).c_str());
+			const auto err = std::format("Invalid graph vertex count; expected {} but got {}", stage_count, graph_vertices);
+			throw std::runtime_error(err.c_str());
 		}
 		std::string vertexid(Decode::ID_SIZE, 'X');
 		for (size_t i = 0; i < graph_vertices; i++) {
 			a_stream.read(vertexid.data(), Decode::ID_SIZE);
 			const auto vertex = GetStageByKey(vertexid.data());
 			if (!vertex) {
-				throw std::runtime_error(fmt::format("Invalid vertex: {} in scene: {}", vertexid, id).c_str());
+				const auto err = std::format("Invalid vertex: {} in scene: {}", vertexid, id);
+				throw std::runtime_error(err.c_str());
 			}
 			std::vector<const Stage*> edges{};
 			uint64_t edge_count;
@@ -132,12 +139,13 @@ namespace Registry
 				a_stream.read(edgeid.data(), Decode::ID_SIZE);
 				const auto edge = GetStageByKey(edgeid.data());
 				if (!edge) {
-					throw std::runtime_error(fmt::format("Invalid edge: {} for vertex: {} in scene: {}", edgeid, vertexid, id).c_str());
+					const auto err = std::format("Invalid edge: {} for vertex: {} in scene: {}", edgeid, vertexid, id);
+					throw std::runtime_error(err.c_str());
 				}
 				edges.push_back(edge);
 			}
 			graph.insert(std::make_pair(vertex, edges));
-		}		
+		}
 		// --- Misc
 		a_stream.read(reinterpret_cast<char*>(&furnitures.furnitures), 4);
 		a_stream.read(reinterpret_cast<char*>(&furnitures.allowbed), 1);
@@ -211,8 +219,8 @@ namespace Registry
 
 	void Stage::Save(YAML::Node& a_node) const
 	{
-		bool skip = std::find_if(positions.begin(), positions.end(), [](auto& position) { 
-			return position.offset.HasChanges(); 
+		bool skip = std::find_if(positions.begin(), positions.end(), [](auto& position) {
+			return position.offset.HasChanges();
 		}) == positions.end();
 		if (skip)
 			return;
@@ -471,7 +479,7 @@ namespace Registry
 		}
 		return ret;
 	}
-	
+
 	const PositionInfo* Scene::GetNthPosition(size_t n) const
 	{
 		return &positions[n];
@@ -650,7 +658,7 @@ namespace Registry
 		const auto where = graph.find(a_stage);
 		if (where == graph.end())
 			return 0;
-		
+
 		return where->second.size();
 	}
 
@@ -662,7 +670,7 @@ namespace Registry
 
 		if (n < 0 || n >= where->second.size())
 			return 0;
-		
+
 		return where->second[n];
 	}
 
@@ -711,11 +719,11 @@ namespace Registry
 	{
 		if (a_stage == start_animation)
 			return NodeType::Root;
-		
+
 		const auto where = graph.find(a_stage);
 		if (where == graph.end())
 			return NodeType::None;
-		
+
 		return where->second.size() == 0 ? NodeType::Sink : NodeType::Default;
 	}
 

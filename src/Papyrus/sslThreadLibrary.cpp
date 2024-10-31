@@ -47,7 +47,8 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Cannot find actor from a none reference", a_stackID);
 			return {};
 		} else if (a_targetsex < LegacySex::None || a_targetsex > LegacySex::CrtFemale) {
-			a_vm->TraceStack(fmt::format("Invalid target sex. Argument should be in [{}; {}]", LegacySex::None, LegacySex::CrtFemale).c_str(), a_stackID);
+			const auto err = std::format("Invalid target sex. Argument should be in [{}; {}]", std::to_underlying(LegacySex::None), std::to_underlying(LegacySex::CrtFemale));
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		} else if (a_radius < 0) {
 			a_vm->TraceStack("Cannot find actor in negative radius", a_stackID);
@@ -326,16 +327,16 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Cannot get tracking events from a none reference", a_stackID);
 			return {};
 		}
-		const auto suffix = a_hook.empty() ? "" : fmt::format("_{}", a_hook.data());
+		const auto suffix = a_hook.empty() ? "" : std::format("_{}", a_hook.data());
 		auto data = Tracking::GetSingleton();
 		std::vector<std::string> ret{};
 		if (a_actor->IsPlayerRef()) {
-			ret.push_back(fmt::format("PlayerTrack{}", suffix));
+			ret.push_back(std::format("PlayerTrack{}", suffix));
 		}
 		const auto where = data->_actors.find(a_actor->formID);
 		if (where != data->_actors.end()) {
 			for (auto&& event : where->second) {
-				ret.push_back(fmt::format("{}{}", event, suffix));
+				ret.push_back(std::format("{}{}", event, suffix));
 			}
 		}
 		a_actor->VisitFactions([&](auto fac, auto rank) {
@@ -347,7 +348,7 @@ namespace Papyrus::ThreadLibrary
 				return false;
 
 			for (auto&& event : it->second) {
-				ret.push_back(fmt::format("{}{}", event, suffix));
+				ret.push_back(std::format("{}{}", event, suffix));
 			}
 			return false;
 		});

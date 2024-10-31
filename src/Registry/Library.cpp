@@ -12,10 +12,11 @@ namespace Registry
 
 		std::error_code ec{};
 		if (!fs::exists(SCENEPATH, ec) || fs::is_empty(SCENEPATH, ec)) {
-			const auto msg = ec ? fmt::format("An error occured while initializing SexLab animations: {}", ec.message()) :
-														fmt::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", SCENEPATH);
+			const auto msg = ec ? std::format("An error occured while initializing SexLab animations: {}", ec.message()) :
+														std::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", SCENEPATH);
 			logger::critical("{}", msg);
-			if (MESSAGEBOX(nullptr, fmt::format("{}\n\nExit game now?", msg).c_str(), "SexLab p+ Registry", 0x00000004) == 6)
+			const auto msgBox = std::format("{}\n\nExit game now?", msg);
+			if (MESSAGEBOX(nullptr, msgBox.c_str(), "SexLab p+ Registry", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
@@ -73,8 +74,8 @@ namespace Registry
 		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
 
 		if (!fs::exists(FURNITUREPATH, ec) || fs::is_empty(FURNITUREPATH, ec)) {
-			const auto msg = ec ? fmt::format("An error occured while attempting to read furniture info: {}", ec.message()) :
-														fmt::format("Unable to load furnitures. Folder {} is empty or does not exist.", FURNITUREPATH);
+			const auto msg = ec ? std::format("An error occured while attempting to read furniture info: {}", ec.message()) :
+														std::format("Unable to load furnitures. Folder {} is empty or does not exist.", FURNITUREPATH);
 			logger::critical("{}", msg);
 		} else {
 			const std::unique_lock lock{ read_write_lock };
@@ -151,7 +152,7 @@ namespace Registry
 			hash = CombineFragments(fragments);
 		} };
 		TagDetails tags{ a_tags };
-		const auto tagstr = a_tags.empty() ? "[]"s : fmt::format("[{}]", fmt::join(a_tags, ", "));
+		const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", a_tags);
 		_hashbuilder.join();
 
 		const std::shared_lock lock{ read_write_lock };
@@ -234,7 +235,7 @@ namespace Registry
 					auto node = data[scene->id];
 					scene->Save(node);
 				}
-				const auto filepath = fmt::format("{}\\{}_{}.yaml", SCENESETTINGPATH, p->GetName(), p->GetHash());
+				const auto filepath = std::format("{}\\{}_{}.yaml", SCENESETTINGPATH, p->GetName(), p->GetHash());
 				std::ofstream fout(filepath);
 				fout << data;
 			});

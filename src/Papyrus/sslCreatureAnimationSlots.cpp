@@ -40,7 +40,8 @@ namespace Papyrus::CreatureAnimationSlots
 		int32_t a_actorcount, std::vector<RE::Actor*> a_creatures, std::vector<std::string_view> a_tags)
 	{
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
+			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount);
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		}
 		if (a_creatures.empty() || std::find(a_creatures.begin(), a_creatures.end(), nullptr) != a_creatures.end()) {
@@ -103,7 +104,8 @@ namespace Papyrus::CreatureAnimationSlots
 		std::vector<std::string_view> a_tags)
 	{
 		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			a_vm->TraceStack(fmt::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount).c_str(), a_stackID);
+			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount);
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		}
 		if (a_malecrt + a_femalecrt > a_actorcount) {
@@ -165,7 +167,8 @@ namespace Papyrus::CreatureAnimationSlots
 		a_vm->TraceStack("Calling legacy function GetAllRaces(). It is highly recommended to no longer use this function.", a_stackID);
 		const auto matchkey = Registry::RaceHandler::GetRaceKey(a_racekey);
 		if (matchkey == Registry::RaceKey::None) {
-			a_vm->TraceStack(fmt::format("Invalid RaceKey: ", a_racekey.c_str()).c_str(), a_stackID);
+			const auto err = std::format("Invalid RaceKey: ", a_racekey.c_str());
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		}
 		std::vector<RE::TESRace*> ret{};
@@ -180,6 +183,5 @@ namespace Papyrus::CreatureAnimationSlots
 		}
 		return ret;
 	}
-
 
 } // namespace Papyrus::CreatureAnimationSlots

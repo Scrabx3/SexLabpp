@@ -437,8 +437,11 @@ namespace Papyrus::ActorStats
 		case LegacyStatistics::Times_OralCount:
 			return stats.GetStatistic(stats.TimesOral);
 		default:
-			a_vm->TraceStack(fmt::format("Invalid id {}", id).c_str(), a_stackID);
-			return 0.0;
+			{
+				const auto err = std::format("Invalid id {}", id);
+				a_vm->TraceStack(err.c_str(), a_stackID);
+				return 0.0;
+			}
 		}
 	}
 
@@ -551,8 +554,11 @@ namespace Papyrus::ActorStats
 			stats.SetStatistic(stats.TimesOral, a_value);
 			break;
 		default:
-			a_vm->TraceStack(fmt::format("Invalid id {}", id).c_str(), a_stackID);
-			return;
+			{
+				const auto err = std::format("Invalid id {}", id);
+				a_vm->TraceStack(err.c_str(), a_stackID);
+				return;
+			}
 		}
 	}
 

@@ -46,7 +46,8 @@ namespace Papyrus::SexLabRegistry
 		}
 		const auto racekey = Registry::RaceHandler::GetRaceKey(a_actor);
 		if (racekey == Registry::RaceKey::None) {
-			a_vm->TraceStack(fmt::format("Invalid race key for actor {}", a_actor->formID).c_str(), a_stackID);
+			const auto err = std::format("Invalid race key for actor {}", a_actor->formID);
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}
 		return static_cast<int32_t>(racekey);
@@ -56,7 +57,8 @@ namespace Papyrus::SexLabRegistry
 	{
 		const auto racekey = Registry::RaceHandler::GetRaceKey(a_racekey);
 		if (racekey == Registry::RaceKey::None) {
-			a_vm->TraceStack(fmt::format("Invalid race key {}", a_racekey).c_str(), a_stackID);
+			const auto err = std::format("Invalid race key {}", a_racekey);
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}
 		return static_cast<int32_t>(racekey);
@@ -98,7 +100,8 @@ namespace Papyrus::SexLabRegistry
 		}
 		const auto racekey = Registry::RaceHandler::GetRaceKey(a_actor);
 		if (racekey == Registry::RaceKey::None) {
-			a_vm->TraceStack(fmt::format("Invalid race key for race {:X}", a_actor->formID).c_str(), a_stackID);
+			const auto err = std::format("Invalid race key for race {:X}", a_actor->formID);
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}
 		return Registry::RaceHandler::AsString(racekey);
@@ -112,7 +115,8 @@ namespace Papyrus::SexLabRegistry
 		}
 		const auto racekey = Registry::RaceHandler::GetRaceKey(a_race);
 		if (racekey == Registry::RaceKey::None) {
-			a_vm->TraceStack(fmt::format("Invalid race key for race {:X}", a_race->formID).c_str(), a_stackID);
+			const auto err = std::format("Invalid race key for race {:X}", a_race->formID);
+			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}
 		return Registry::RaceHandler::AsString(racekey);
@@ -791,7 +795,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		POSITION();
+		POSITION((void)0);
 		if (a_idx < Registry::CoordinateType::X || a_idx >= Registry::CoordinateType::Total) {
 			a_vm->TraceStack("Invalid offset idx", a_stackID);
 			return;
@@ -818,7 +822,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		POSITION();
+		POSITION((void)0);
 		if (a_newoffset.size() < Registry::CoordinateType::Total) {
 			a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
 			return;
@@ -851,7 +855,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return;
 		}
-		POSITION();
+		POSITION((void)0);
 		stage->positions[n].offset.ResetOffset();
 	}
 
