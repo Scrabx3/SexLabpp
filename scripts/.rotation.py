@@ -23,11 +23,10 @@ def euler_to_rotation_matrix(yaw, pitch, roll):
     R = Rz @ Rx @ Ry
     return R
 
-# Initial rotation
 R_initial = euler_to_rotation_matrix(-158.18, -1.51, -54.54)
-# Desired rotation
 R_desired = euler_to_rotation_matrix(0, 0, 90)
 
 R_initial_inv = np.linalg.inv(R_initial)
 T = R_desired @ R_initial_inv
+
 print(T)
