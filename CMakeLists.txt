@@ -66,7 +66,6 @@ add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 if(BUILD_SKYRIMVR)
     add_compile_definitions(SKYRIMVR)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-    add_subdirectory("./lib/CommonLibVR" CommonLibSSE)
     set(SkyrimPath ${MODS_FOLDER}/${PAPYRUS_ROOT}/${PAPYRUS_VR})
     set(CommonLibName "CommonLibVR")
     message("Building Skyrim VR")
@@ -80,10 +79,9 @@ else()
         set(SkyrimPath ${MODS_FOLDER}/${PAPYRUS_ROOT}/${PAPYRUS_SE})
         message("Building Skyrim 1.5")
     endif()
-
     set(CommonLibName "CommonLibSSE")
-    add_subdirectory("./lib/CommonLibSSE" CommonLibSSE)
 endif()
+add_subdirectory("./lib/${CommonLibName}" CommonLibSSE)
 
 find_package(yaml-cpp REQUIRED)
 find_package(spdlog REQUIRED CONFIG)
@@ -125,13 +123,20 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     target_compile_options(
         "${PROJECT_NAME}"
         PRIVATE
+        "/cgthreads4" # Number of codegen threads
+
         "/sdl" # Enable Additional Security Checks
         "/utf-8" # Set Source and Executable character sets to UTF-8
         "/Zi" # Debug Information Format
 
+        "/diagnostics:caret" # Show Caret Line
+        "/fp:contract" # Enable floating point optimizations
+        "/fp:except-" # Disable floating point exceptions
+        "/Zc:enumTypes" # Enum type conformance
         "/permissive-" # Standards conformance
         "/Zc:preprocessor" # Enable preprocessor conformance mode
 
+        "/we4715" # `function` : not all control paths return a value
         "/wd4201" # nonstandard extension used : nameless struct/union
 
         "$<$<CONFIG:DEBUG>:/bigobj>"

@@ -57,7 +57,7 @@ namespace Papyrus::SexLabRegistry
 	{
 		const auto racekey = Registry::RaceHandler::GetRaceKey(a_racekey);
 		if (racekey == Registry::RaceKey::None) {
-			const auto err = std::format("Invalid race key {}", a_racekey);
+			const auto err = fmt::format("Invalid race key {}", a_racekey);
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}

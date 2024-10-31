@@ -50,7 +50,8 @@ namespace Registry::Console
 
 				float scale = Scale::GetSingleton()->GetScale(a_targetRef);
         auto race = RaceHandler::GetRaceKey(actorRef);
-				PrintConsole("Scale = {} | Race = {}", scale, RaceHandler::AsString(race));
+				std::string output = fmt::format("Scale = {} | Race = {}", scale, RaceHandler::AsString(race));
+				PrintConsole(output.c_str());
 			}
 		}
 		static inline REL::Relocation<decltype(thunk)> func;

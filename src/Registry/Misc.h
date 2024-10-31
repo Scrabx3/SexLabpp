@@ -47,7 +47,7 @@ namespace Registry
 	template <typename... Args>
 	inline void PrintConsole(std::format_string<Args...> a_fmt, Args&&... args)
 	{
-		const auto msg = std::format(a_fmt, std::forward<Args>(args)...);
+		const auto msg = fmt::format(a_fmt, std::forward<Args>(args)...);
 		RE::ConsoleLog::GetSingleton()->Print(msg.data());
 	}
 

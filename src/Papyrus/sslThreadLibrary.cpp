@@ -336,7 +336,7 @@ namespace Papyrus::ThreadLibrary
 		const auto where = data->_actors.find(a_actor->formID);
 		if (where != data->_actors.end()) {
 			for (auto&& event : where->second) {
-				ret.push_back(std::format("{}{}", event, suffix));
+				ret.push_back(fmt::format("{}{}", event, suffix));
 			}
 		}
 		a_actor->VisitFactions([&](auto fac, auto rank) {
@@ -348,7 +348,7 @@ namespace Papyrus::ThreadLibrary
 				return false;
 
 			for (auto&& event : it->second) {
-				ret.push_back(std::format("{}{}", event, suffix));
+				ret.push_back(fmt::format("{}{}", event, suffix));
 			}
 			return false;
 		});

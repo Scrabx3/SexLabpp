@@ -152,7 +152,7 @@ namespace Registry
 			hash = CombineFragments(fragments);
 		} };
 		TagDetails tags{ a_tags };
-		const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", a_tags);
+		const auto tagstr = a_tags.empty() ? "[]"s : fmt::format("[{}]", fmt::join(a_tags, ", "));
 		_hashbuilder.join();
 
 		const std::shared_lock lock{ read_write_lock };
@@ -235,7 +235,7 @@ namespace Registry
 					auto node = data[scene->id];
 					scene->Save(node);
 				}
-				const auto filepath = std::format("{}\\{}_{}.yaml", SCENESETTINGPATH, p->GetName(), p->GetHash());
+				const auto filepath = fmt::format("{}\\{}_{}.yaml", SCENESETTINGPATH, p->GetName(), p->GetHash());
 				std::ofstream fout(filepath);
 				fout << data;
 			});

@@ -279,7 +279,7 @@ namespace Registry
 		if (v->fromfile) {
 			return;
 		}
-		auto path = std::format("{}\\{}.yaml", VOICEPATH, v->name);
+		auto path = fmt::format("{}\\{}.yaml", VOICEPATH, v->name);
 		if (fs::exists(path)) {
 			return;
 		}

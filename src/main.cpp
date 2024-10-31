@@ -69,13 +69,6 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	}
 }
 
-#ifdef XMAKE
-struct Plugin
-{
-	static constexpr std::string_view NAME = "SexLabUtil"sv;
-	static constexpr REL::Version VERSION{ 2, 10, 2 };
-};
-#else
 #ifdef SKYRIM_SUPPORT_AE
 extern "C" DLLEXPORT constinit auto SKSEPlugin_Version = []() {
 	SKSE::PluginVersionData v;
@@ -96,7 +89,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface*, 
 	return true;
 }
 #endif
-#endif
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
@@ -111,13 +103,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true);
 #endif
 		auto log = std::make_shared<spdlog::logger>("global log"s, std::move(sink));
-#ifndef NDEBUG
-		log->set_level(spdlog::level::trace);
-		log->flush_on(spdlog::level::trace);
-#else
 		log->set_level(spdlog::level::info);
 		log->flush_on(spdlog::level::info);
-#endif
 		spdlog::set_default_logger(std::move(log));
 #ifndef NDEBUG
 		spdlog::set_pattern("%s(%#): [%T] [%^%l%$] %v"s);
