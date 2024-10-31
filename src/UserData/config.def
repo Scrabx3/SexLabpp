@@ -5,6 +5,7 @@ INI_SETTING(fScanRadius, 750.0f, "Animation")
 INI_SETTING(fMinScale, 0.88f, "Animation")
 INI_SETTING(bAllowDead, false, "Animation")
 INI_SETTING(fMinSetupTime, 0.4f, "Animation")
+INI_SETTING(bAdjustNodes, true, "Animation")
 
 INI_SETTING(bAshHopper, true, "Race")
 INI_SETTING(bBear, true, "Race")
@@ -64,10 +65,10 @@ INI_SETTING(fPercentageHomo, 9.0f, "Statistics")
 
 // NOTE: Needs to be reviewed until // ---
 INI_SETTING(fDistanceFoot, 13.3f, "Distances")
-INI_SETTING(fDistanceHand, 8.3f, "Distances")
 INI_SETTING(fAngleMouth, 15.0f, "Distances")
 INI_SETTING(fAnimObjDist, 25.0f, "Distances")
 // ---
+INI_SETTING(fDistanceHand, 8.3f, "Distances")
 INI_SETTING(fDistanceMouthMouth, 3.4f, "Distances")
 INI_SETTING(fDistanceCrotch, 8.0f, "Distances")
 INI_SETTING(fAngleToHeadTolerance, 20.0f, "Distances")
