@@ -76,29 +76,6 @@ namespace Registry::NiNode
 		return true;
 	}
 
-	// void Position::Snapshot::GetHeadVaginaInteractions(const Snapshot& a_partner)
-	// {
-	// 	if (!bHead.IsValid())
-	// 		return;
-	// 	if (a_partner.position.sex.none(Sex::Female, Sex::Futa))
-	// 		return;
-	// 	assert(position.nodes.head);
-	// 	auto& headworld = position.nodes.head->world;
-	// 	const auto mouthstart = GetHeadForwardPoint(bHead.boundMax.y);
-	// 	const auto vMyHead = *mouthstart - headworld.translate;
-	// 	auto& partnernodes = a_partner.position.nodes;
-	// 	auto vVaginal = partnernodes.GetVaginalVector();
-	// 	if (!vVaginal || !partnernodes.clitoris || !mouthstart)
-	// 		return;
-	// 	if (!bHead.IsPointInside(partnernodes.clitoris->world.translate))
-	// 		return;
-	// 	auto angle = NiMath::GetAngleDegree(*vVaginal, vMyHead);
-	// 	if ((angle - 180) > Settings::fAngleMouth * 2)
-	// 		return;
-	// 	float distance = partnernodes.clitoris->world.translate.GetDistance(*mouthstart);
-	// 	interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, distance);
-	// }
-
 	bool NiPosition::Snapshot::GetHeadPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
 	{
 		if (!bHead.IsValid()) {
@@ -316,6 +293,30 @@ namespace Registry::NiNode
 			}
 		}
 		return false;
+	}
+
+	bool NiPosition::Snapshot::GetHeadVaginaInteractions(const Snapshot& a_partner)
+	{
+		if (a_partner.position.sex.none(Sex::Female, Sex::Futa))
+			return false;
+		const auto mouthstart = GetMouthStartPoint();
+		if (!mouthstart)
+			return false;
+		const auto& nClitoris = a_partner.position.nodes.clitoris;
+		const auto sVaginal = partnernodes.GetVaginalSegment();
+		if (!sVaginal || !nClitoris)
+			return false;
+		float distance = nClitoris->world.translate.GetDistance(*mouthstart);
+		if (distance > Settings::fDistanceMouth)
+			return false;
+		assert(position.nodes.head);
+		const auto& headworld = position.nodes.head->world;
+		const auto vHead = headworld.rotate.GetVectorY();
+		auto angle = NiMath::GetAngleDegree(sVaginal->Vector(), vHead);
+		if (std::abs(angle - 180) > Settings::fAngleCunnilingus)
+			return false;
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, nClitoris->world.translate);
+		return true;
 	}
 
 	bool NiPosition::Snapshot::GetVaginaVaginaInteractions(const Snapshot& a_other)

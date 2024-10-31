@@ -58,9 +58,9 @@ namespace Registry::NiNode
 			for (auto&& snd : snapshots) {
 				if (fst != snd) {
 					snd.GetHeadHeadInteractions(fst);
-					//	  fst.GetVaginaVaginaInteractions(snd);
+					snd.GetVaginaVaginaInteractions(fst);
 				}
-				//	 fst->GetHeadVaginaInteractions(*snd);
+				snd.GetHeadVaginaInteractions(fst);
 				//	 fst->GetGenitalLimbInteractions(*snd);	// <- Split this into Vaginal/Limb & Penis/Limb?
 				//	 fst->GetHeadAnimObjInteractions(*snd);
 			}
