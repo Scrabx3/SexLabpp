@@ -70,6 +70,7 @@ namespace Registry::NiNode
 			bool GetVaginaLimbInteractions(const Snapshot& a_partner);
 			// Misc/Non Sexual
 			bool GetHeadHeadInteractions(const Snapshot& a_partner);
+			bool GetHeadFootInteractions(const Snapshot& a_partner);
 			bool GetHeadAnimObjInteractions(const Snapshot& a_partner);
 
 		public:

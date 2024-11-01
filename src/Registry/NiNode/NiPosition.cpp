@@ -69,11 +69,22 @@ namespace Registry::NiNode
 		const auto vMyHead = *mouthstart - position.nodes.head->world.translate;
 		const auto vPartnerHead = *partnermouthstart - a_partner.position.nodes.head->world.translate;
 		auto angle = NiMath::GetAngleDegree(vMyHead, vPartnerHead);
-		if (std::abs(angle - 180) > Settings::fAngleMouthMouth) {
+		if (std::abs(angle - 180) > Settings::fAngleKissing) {
 			return false;
 		}
 		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Kissing, *partnermouthstart);
 		return true;
+	}
+
+	bool NiPosition::Snapshot::GetHeadFootInteractions(const Snapshot& a_partner)
+	{
+		if (!bHead.IsValid())
+			return false;
+		const auto footL = a_partner.position.nodes.toe_left;
+		const auto footR = a_partner.position.nodes.toe_right;
+		if (!footL || !footR)
+			return false;
+		return bHead.IsPointInside(footL->world.translate) || bHead.IsPointInside(footR->world.translate);
 	}
 
 	bool NiPosition::Snapshot::GetHeadPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
@@ -303,7 +314,7 @@ namespace Registry::NiNode
 		const auto& headworld = position.nodes.head->world;
 		const auto vHead = headworld.rotate.GetVectorY();
 		const auto angle = NiMath::GetAngleDegree(sVaginal->Vector(), vHead);
-		if (std::abs(angle - 180) > Settings::fAngleCunnilingus)
+		if (angle > Settings::fAngleCunnilingus)
 			return false;
 		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, nClitoris->world.translate);
 		return true;

@@ -75,6 +75,7 @@ namespace Registry::NiNode
 				if (act.GetCrotchPenisInteractions(it, schlong)) {
 					break;
 				}
+				act.GetFootPenisInteractions(it, schlong);
 			}
 		}
 	}
@@ -98,6 +99,7 @@ namespace Registry::NiNode
 			if (it != snd) {
 				snd.GetHeadHeadInteractions(it);
 			}
+			snd.GetHeadFootInteractions(it);
 			snd.GetHeadAnimObjInteractions(it);
 		}
 	}
