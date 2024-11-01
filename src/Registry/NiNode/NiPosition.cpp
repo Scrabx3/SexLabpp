@@ -84,7 +84,18 @@ namespace Registry::NiNode
 		const auto footR = a_partner.position.nodes.toe_right;
 		if (!footL || !footR)
 			return false;
-		return bHead.IsPointInside(footL->world.translate) || bHead.IsPointInside(footR->world.translate);
+		if (!bHead.IsPointInside(footL->world.translate) && !bHead.IsPointInside(footR->world.translate))
+			return false;
+		const auto mouth = GetMouthStartPoint();
+		if (!mouth)
+			return false;
+		const auto distanceLeft = footL->world.translate.GetDistance(*mouth);
+		const auto distanceRight = footR->world.translate.GetDistance(*mouth);
+		if (distanceLeft > Settings::fDistanceFootMouth && distanceRight > Settings::fDistanceFootMouth)
+			return false;
+		const auto foot = distanceLeft < distanceRight ? footL : footR;
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::ToeSucking, foot->world.translate);
+		return true;
 	}
 
 	bool NiPosition::Snapshot::GetHeadPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
@@ -339,7 +350,6 @@ namespace Registry::NiNode
 		return true;
 	}
 	
-
 	bool NiPosition::Snapshot::GetVaginaLimbInteractions(const Snapshot& a_partner)
 	{
 		const auto& nClitoris = a_partner.position.nodes.clitoris;

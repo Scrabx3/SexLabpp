@@ -15,20 +15,19 @@ namespace Registry::NiNode
 		enum class Action
 		{
 			None = 0,
-			Vaginal,			 // This being penetrated
-			Anal,					 // This being penetrated
-			Oral,					 // This licking/sucking other
-			Grinding,			 // This being grinded against by other
-			Deepthroat,		 // Oral, with other close to/at maximum depth
-			Skullfuck,		 // This head penetration that isnt Oral
-			LickingShaft,	 // This licking others shaft
-
-			FootJob,	// This being pleasured by other
-			HandJob,	// This being pleasured by other
-			Kissing,	// This kissing partner
-			Facial,		// Other penis in front of this face
-
-			AnimObjFace,
+			Vaginal,			
+			Anal,					
+			Oral,					
+			Grinding,			
+			Deepthroat,		
+			Skullfuck,		
+			LickingShaft,	
+			FootJob,			
+			HandJob,			
+			Kissing,			
+			Facial,				
+			AnimObjFace,	
+			ToeSucking,	
 
 			Total,
 		};
