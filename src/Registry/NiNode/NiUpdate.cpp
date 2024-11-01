@@ -38,34 +38,10 @@ namespace Registry::NiNode
 			snapshots.emplace_back(it);
 		}
 		for (auto&& fst : snapshots) {
-			// Genital interactions for each combination
-			if (fst.position.sex.none(Sex::Female)) {
-				for (auto&& schlong : fst.position.nodes.schlongs) {
-					for (auto&& snd : snapshots) {
-						if (snd.GetHeadPenisInteractions(fst, schlong))
-							break;
-						if (snd.GetHandPenisInteractions(fst, schlong))
-							break;
-						if (fst == snd)
-							continue;
-						if (snd.GetCrotchPenisInteractions(fst, schlong)) {
-							break;
-						}
-					}
-				}
-			}
-			// Misc types for each combination
-			for (auto&& snd : snapshots) {
-				if (fst != snd) {
-					snd.GetHeadHeadInteractions(fst);
-					snd.GetVaginaVaginaInteractions(fst);
-				}
-				snd.GetHeadVaginaInteractions(fst);
-				//	 fst->GetGenitalLimbInteractions(*snd);	// <- Split this into Vaginal/Limb & Penis/Limb?
-				//	 fst->GetHeadAnimObjInteractions(*snd);
-			}
+			GetInteractionsMale(snapshots, fst);
+			GetInteractionsFemale(snapshots, fst);
+			GetInteractionsNeutral(snapshots, fst);
 		}
-		assert(positions.size() == snapshots.size());
 		for (size_t i = 0; i < positions.size(); i++) {
 			auto& pos = positions[i];
 			for (auto&& act : snapshots[i].interactions) {
@@ -81,6 +57,47 @@ namespace Registry::NiNode
 				}
 			}
 			positions[i].interactions = { snapshots[i].interactions.begin(), snapshots[i].interactions.end() };
+		}
+	}
+
+	void NiUpdate::Process::GetInteractionsMale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
+	{
+		if (it.position.sex.any(Sex::Female))
+			return;
+		for (auto&& schlong : it.position.nodes.schlongs) {
+			for (auto&& act : list) {
+				if (act.GetHeadPenisInteractions(it, schlong))
+					break;
+				if (act.GetHandPenisInteractions(it, schlong))
+					break;
+				if (it == act)
+					continue;
+				if (act.GetCrotchPenisInteractions(it, schlong)) {
+					break;
+				}
+			}
+		}
+	}
+
+	void NiUpdate::Process::GetInteractionsFemale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
+	{
+		if (it.position.sex.any(Sex::Male))
+			return;
+		for (auto&& snd : list) {
+			if (it != snd) {
+				snd.GetVaginaVaginaInteractions(it);
+			}
+			snd.GetHeadVaginaInteractions(it);
+		}
+	}
+
+	void NiUpdate::Process::GetInteractionsNeutral(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
+	{
+		for (auto&& snd : list) {
+			if (it != snd) {
+				snd.GetHeadHeadInteractions(it);
+			}
+			//	 fst->GetHeadAnimObjInteractions(*snd);
 		}
 	}
 

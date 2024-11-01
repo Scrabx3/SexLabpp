@@ -20,6 +20,9 @@ namespace Registry::NiNode
 
 		private:
 			void UpdateInteractions(float a_delta);
+			void GetInteractionsMale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it);
+			void GetInteractionsFemale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it);
+			void GetInteractionsNeutral(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it);
 
 			std::vector<NiPosition> positions;
 			mutable std::mutex _m{};
