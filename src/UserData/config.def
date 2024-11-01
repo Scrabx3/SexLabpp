@@ -63,9 +63,7 @@ INI_SETTING(bWolf, true, "Race")
 INI_SETTING(fPercentageHetero, 80.0f, "Statistics")
 INI_SETTING(fPercentageHomo, 9.0f, "Statistics")
 
-// NOTE: Needs to be reviewed until // ---
-INI_SETTING(fAnimObjDist, 25.0f, "Distances")
-// ---
+INI_SETTING(fAnimObjDist, 23.0f, "Distances")
 INI_SETTING(fAngleCunnilingus, 130.0f, "Distances")
 INI_SETTING(fDistanceFoot, 13.3f, "Distances")
 INI_SETTING(fDistanceHand, 8.3f, "Distances")

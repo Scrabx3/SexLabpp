@@ -241,7 +241,7 @@ namespace Registry::NiNode
 		return false;
 	}
 
-	bool NiPosition::Snapshot::GetHandPenisInteractions(const Snapshot&, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
+	bool NiPosition::Snapshot::GetHandPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
 	{
 		const auto lHand = position.nodes.hand_left;
 		const auto rHand = position.nodes.hand_right;
@@ -266,11 +266,11 @@ namespace Registry::NiNode
 		}
 		auto referencePoint = pickLeft ? (pLeft + position.nodes.thumb_left->world.translate) / 2 : (pRight + position.nodes.thumb_right->world.translate) / 2;
 		RotateNode(a_schlong->GetBaseReferenceNode(), sSchlong, referencePoint, Settings::fAdjustSchlongLimit);
-		interactions.emplace_back(position.actor, Interaction::Action::HandJob, sSchlong.second);
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::HandJob, pickLeft ? pLeft : pRight);
 		return true;
 	}
 
-	bool NiPosition::Snapshot::GetFootPenisInteractions(const Snapshot&, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
+	bool NiPosition::Snapshot::GetFootPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
 	{
 		const auto nSchlong = a_schlong->GetBaseReferenceNode();
 		const auto sSchlong = a_schlong->GetReferenceSegment();
@@ -281,7 +281,7 @@ namespace Registry::NiNode
 			const auto d = NiMath::ClosestSegmentBetweenSegments(pFoot, sSchlong).Length();
 			if (d > Settings::fDistanceFoot)
 				return false;
-			interactions.emplace_back(position.actor, Interaction::Action::FootJob, pFoot);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::FootJob, pFoot);
 			return true;
 		};
 		return get(position.nodes.foot_left) || get(position.nodes.foot_right);
@@ -309,85 +309,75 @@ namespace Registry::NiNode
 		return true;
 	}
 
-	bool NiPosition::Snapshot::GetVaginaVaginaInteractions(const Snapshot& a_other)
+	bool NiPosition::Snapshot::GetVaginaVaginaInteractions(const Snapshot& a_partner)
 	{
-		if (position.sex.none(Sex::Female, Sex::Futa) || a_other.position.sex.none(Sex::Female, Sex::Futa))
-			return false;
-		const auto &c1 = position.nodes.clitoris, &c2 = a_other.position.nodes.clitoris;
+		const auto &c1 = position.nodes.clitoris, &c2 = a_partner.position.nodes.clitoris;
 		if (!c1 || !c2)
 			return false;
 		const auto distance = c1->world.translate.GetDistance(c2->world.translate);
 		if (distance > Settings::fDistanceCrotch)
 			return false;
 		const auto sVaginal = position.nodes.GetVaginalSegment();
-		const auto sVaginalPartner = a_other.position.nodes.GetVaginalSegment();
+		const auto sVaginalPartner = a_partner.position.nodes.GetVaginalSegment();
 		if (!sVaginal || !sVaginalPartner)
 			return false;
 		const auto angle = NiMath::GetAngleDegree(sVaginal->Vector(), sVaginalPartner->Vector());
 		if (std::abs(angle - 180) > Settings::fAngleGrindingFF)
 			return false;
-		interactions.emplace_back(a_other.position.actor, Interaction::Action::Grinding, c1->world.translate);
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Grinding, c1->world.translate);
 		return true;
 	}
+	
 
-	// void Position::Snapshot::GetGenitalLimbInteractions(const Snapshot& a_other)
-	// {
-	// 	const auto& othernodes = a_other.position.nodes;
-	// 	const auto impl = [&](const decltype(othernodes.hand_left)& activePoint, auto action) {
-	// 		const auto make = [&](RE::NiPoint3 refPoint) {
-	// 			const auto d = activePoint->world.translate.GetDistance(refPoint);
-	// 			if (d > Settings::fDistanceHand)
-	// 				return false;
-	// 			interactions.emplace_back(a_other.position.actor, action, d);
-	// 			return true;
-	// 		};
-	// 		if (!activePoint)
-	// 			return false;
-	// 		for (auto&& p : position.nodes.schlongs) {
-	// 			const auto& refpoint = p->GetSchlongVector();
-	// 			if (make(refpoint))
-	// 				return true;
-	// 		}
-	// 		if (const auto& c = position.nodes.clitoris) {
-	// 			if (make(c->world.translate))
-	// 				return true;
-	// 		}
-	// 		return false;
-	// 	};
-	// 	for (auto&& node : { othernodes.hand_left, othernodes.hand_right }) {
-	// 		if (impl(node, Interaction::Action::HandJob))
-	// 			break;
-	// 	}
-	// 	for (auto&& node : { othernodes.foot_left, othernodes.foot_right }) {
-	// 		if (impl(node, Interaction::Action::FootJob))
-	// 			break;
-	// 	}
-	// }
+	bool NiPosition::Snapshot::GetVaginaLimbInteractions(const Snapshot& a_partner)
+	{
+		const auto& nClitoris = a_partner.position.nodes.clitoris;
+		if (!nClitoris)
+			return false;
+		const auto get = [&](const auto& limb, auto type, float maxDist) {
+			if (!limb)
+				return false;
+			const auto pLimb = limb->world.translate;
+			const auto d = pLimb.GetDistance(nClitoris->world.translate);
+			if (d > maxDist)
+				return false;
+			interactions.emplace_back(position.actor, type, pLimb);
+			return true;
+		};
+		const auto lHand = position.nodes.hand_left;
+		const auto rHand = position.nodes.hand_right;
+		const auto lFoot = position.nodes.foot_left;
+		const auto rFoot = position.nodes.foot_right;
+		return get(lHand, Interaction::Action::HandJob, Settings::fDistanceHand) ||
+					 get(rHand, Interaction::Action::HandJob, Settings::fDistanceHand) ||
+					 get(lFoot, Interaction::Action::FootJob, Settings::fDistanceFoot) ||
+					 get(rFoot, Interaction::Action::FootJob, Settings::fDistanceFoot);
+	}
 
-	// void Position::Snapshot::GetHeadAnimObjInteractions(const Snapshot& a_other)
-	// {
-	// 	bool out;
-	// 	a_other.position.actor->GetGraphVariableBool("bAnimObjectLoaded", out);
-	// 	if (!out) {
-	// 		return;
-	// 	}
-	// 	const auto point = GetHeadForwardPoint(bHead.boundMax.y);
-	// 	if (!point)
-	// 		return;
-	// 	const auto getimpl = [&](auto pos) {
-	// 		if (!pos)
-	// 			return;
-	// 		const auto d = pos->world.translate.GetDistance(*point);
-	// 		if (d > Settings::fAnimObjDist)
-	// 			return;
-	// 		interactions.emplace_back(a_other.position.actor, Interaction::Action::AnimObjFace, d);
-	// 	};
-	// 	const auto& n = a_other.position.nodes;
-	// 	getimpl(n.animobj_a);
-	// 	getimpl(n.animobj_b);
-	// 	getimpl(n.animobj_r);
-	// 	getimpl(n.animobj_l);
-	// }
+	void Position::Snapshot::GetHeadAnimObjInteractions(const Snapshot& a_partner)
+	{
+		bool out;
+		a_partner.position.actor->GetGraphVariableBool("bAnimObjectLoaded", out);
+		if (!out) {
+			return;
+		}
+		const auto point = GetHeadForwardPoint(bHead.boundMax.y);
+		if (!point)
+			return;
+		const auto getimpl = [&](auto pos) {
+			if (!pos)
+				return;
+			const auto d = pos->world.translate.GetDistance(*point);
+			if (d > Settings::fAnimObjDist)
+				return;
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::AnimObjFace, d);
+		};
+		const auto& n = a_partner.position.nodes;
+		getimpl(n.animobj_a);
+		getimpl(n.animobj_b);
+		getimpl(n.animobj_r);
+		getimpl(n.animobj_l);
+	}
 
 	std::optional<RE::NiPoint3> NiPosition::Snapshot::GetMouthStartPoint() const
 	{

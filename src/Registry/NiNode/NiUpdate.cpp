@@ -88,6 +88,7 @@ namespace Registry::NiNode
 				snd.GetVaginaVaginaInteractions(it);
 			}
 			snd.GetHeadVaginaInteractions(it);
+			snd.GetVaginaLimbInteractions(it);
 		}
 	}
 

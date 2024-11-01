@@ -67,11 +67,11 @@ namespace Registry::NiNode
 			// This interacting with partner vagina
 			bool GetHeadVaginaInteractions(const Snapshot& a_other);
 			bool GetVaginaVaginaInteractions(const Snapshot& a_other);
+			bool GetVaginaLimbInteractions(const Snapshot& a_other);
 			// Misc/Non Sexual
 			bool GetHeadHeadInteractions(const Snapshot& a_other);
 
 			// void GetHeadAnimObjInteractions(const Snapshot& a_other);		// This head with either animobj
-			// void GetGenitalLimbInteractions(const Snapshot& a_other);		// This vagina on other limbs
 
 		public:
 			std::optional<RE::NiPoint3> GetMouthStartPoint() const;
