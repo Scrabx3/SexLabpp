@@ -152,52 +152,6 @@ namespace Registry::NiNode
 		return false;
 	}
 
-	bool NiPosition::Snapshot::GetHandPenisInteractions(const Snapshot&, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
-	{
-		const auto lHand = position.nodes.hand_left;
-		const auto rHand = position.nodes.hand_right;
-		if (!lHand || !rHand) {
-			return false;
-		}
-		const auto sSchlong = a_schlong->GetReferenceSegment();
-		const auto pLeft = lHand->world.translate;
-		const auto pRight = rHand->world.translate;
-		const auto lDist = NiMath::ClosestSegmentBetweenSegments(pLeft, sSchlong).Length();
-		const auto rDist = NiMath::ClosestSegmentBetweenSegments(pRight, sSchlong).Length();
-		const auto closeToL = lDist < Settings::fDistanceHand;
-		const auto closeToR = rDist < Settings::fDistanceHand;
-		bool pickLeft;
-		if (!closeToR && !closeToL) {
-			return false;
-		} else if (closeToR && closeToL) { // Both hands are close, pick the closest to the base
-			const auto nSchlong = a_schlong->GetBaseReferenceNode();
-			pickLeft = nSchlong && nSchlong->world.translate.GetDistance(pLeft) < nSchlong->world.translate.GetDistance(pRight);
-		} else {
-			pickLeft = closeToL;
-		}
-		auto referencePoint = pickLeft ? (pLeft + position.nodes.thumb_left->world.translate) / 2 : (pRight + position.nodes.thumb_right->world.translate) / 2;
-		RotateNode(a_schlong->GetBaseReferenceNode(), sSchlong, referencePoint, Settings::fAdjustSchlongLimit);
-		interactions.emplace_back(position.actor, Interaction::Action::HandJob, sSchlong.second);
-		return true;
-	}
-
-	bool NiPosition::Snapshot::GetFootPenisInteractions(const Snapshot&, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
-	{
-		const auto nSchlong = a_schlong->GetBaseReferenceNode();
-		const auto sSchlong = a_schlong->GetReferenceSegment();
-		const auto get = [&](const auto& foot) {
-			if (!foot)
-				return false;
-			const auto pFoot = foot->world.translate;
-			const auto d = NiMath::ClosestSegmentBetweenSegments(pFoot, sSchlong).Length();
-			if (d > Settings::fDistanceFoot)
-				return false;
-			interactions.emplace_back(position.actor, Interaction::Action::FootJob, pFoot);
-			return true;
-		};
-		return get(position.nodes.foot_left) || get(position.nodes.foot_right);
-	}
-
 	bool NiPosition::Snapshot::GetCrotchPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
 	{
 		const auto sSchlong = a_schlong->GetReferenceSegment();
@@ -287,10 +241,54 @@ namespace Registry::NiNode
 		return false;
 	}
 
+	bool NiPosition::Snapshot::GetHandPenisInteractions(const Snapshot&, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
+	{
+		const auto lHand = position.nodes.hand_left;
+		const auto rHand = position.nodes.hand_right;
+		if (!lHand || !rHand) {
+			return false;
+		}
+		const auto sSchlong = a_schlong->GetReferenceSegment();
+		const auto pLeft = lHand->world.translate;
+		const auto pRight = rHand->world.translate;
+		const auto lDist = NiMath::ClosestSegmentBetweenSegments(pLeft, sSchlong).Length();
+		const auto rDist = NiMath::ClosestSegmentBetweenSegments(pRight, sSchlong).Length();
+		const auto closeToL = lDist < Settings::fDistanceHand;
+		const auto closeToR = rDist < Settings::fDistanceHand;
+		bool pickLeft;
+		if (!closeToR && !closeToL) {
+			return false;
+		} else if (closeToR && closeToL) { // Both hands are close, pick the closest to the base
+			const auto nSchlong = a_schlong->GetBaseReferenceNode();
+			pickLeft = nSchlong && nSchlong->world.translate.GetDistance(pLeft) < nSchlong->world.translate.GetDistance(pRight);
+		} else {
+			pickLeft = closeToL;
+		}
+		auto referencePoint = pickLeft ? (pLeft + position.nodes.thumb_left->world.translate) / 2 : (pRight + position.nodes.thumb_right->world.translate) / 2;
+		RotateNode(a_schlong->GetBaseReferenceNode(), sSchlong, referencePoint, Settings::fAdjustSchlongLimit);
+		interactions.emplace_back(position.actor, Interaction::Action::HandJob, sSchlong.second);
+		return true;
+	}
+
+	bool NiPosition::Snapshot::GetFootPenisInteractions(const Snapshot&, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
+	{
+		const auto nSchlong = a_schlong->GetBaseReferenceNode();
+		const auto sSchlong = a_schlong->GetReferenceSegment();
+		const auto get = [&](const auto& foot) {
+			if (!foot)
+				return false;
+			const auto pFoot = foot->world.translate;
+			const auto d = NiMath::ClosestSegmentBetweenSegments(pFoot, sSchlong).Length();
+			if (d > Settings::fDistanceFoot)
+				return false;
+			interactions.emplace_back(position.actor, Interaction::Action::FootJob, pFoot);
+			return true;
+		};
+		return get(position.nodes.foot_left) || get(position.nodes.foot_right);
+	}
+
 	bool NiPosition::Snapshot::GetHeadVaginaInteractions(const Snapshot& a_partner)
 	{
-		if (a_partner.position.sex.none(Sex::Female, Sex::Futa))
-			return false;
 		const auto mouthstart = GetMouthStartPoint();
 		if (!mouthstart)
 			return false;
@@ -364,6 +362,31 @@ namespace Registry::NiNode
 	// 		if (impl(node, Interaction::Action::FootJob))
 	// 			break;
 	// 	}
+	// }
+
+	// void Position::Snapshot::GetHeadAnimObjInteractions(const Snapshot& a_other)
+	// {
+	// 	bool out;
+	// 	a_other.position.actor->GetGraphVariableBool("bAnimObjectLoaded", out);
+	// 	if (!out) {
+	// 		return;
+	// 	}
+	// 	const auto point = GetHeadForwardPoint(bHead.boundMax.y);
+	// 	if (!point)
+	// 		return;
+	// 	const auto getimpl = [&](auto pos) {
+	// 		if (!pos)
+	// 			return;
+	// 		const auto d = pos->world.translate.GetDistance(*point);
+	// 		if (d > Settings::fAnimObjDist)
+	// 			return;
+	// 		interactions.emplace_back(a_other.position.actor, Interaction::Action::AnimObjFace, d);
+	// 	};
+	// 	const auto& n = a_other.position.nodes;
+	// 	getimpl(n.animobj_a);
+	// 	getimpl(n.animobj_b);
+	// 	getimpl(n.animobj_r);
+	// 	getimpl(n.animobj_l);
 	// }
 
 	std::optional<RE::NiPoint3> NiPosition::Snapshot::GetMouthStartPoint() const
