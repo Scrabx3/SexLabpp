@@ -65,13 +65,12 @@ namespace Registry::NiNode
 			bool GetHandPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
 			bool GetFootPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
 			// This interacting with partner vagina
-			bool GetHeadVaginaInteractions(const Snapshot& a_other);
-			bool GetVaginaVaginaInteractions(const Snapshot& a_other);
-			bool GetVaginaLimbInteractions(const Snapshot& a_other);
+			bool GetHeadVaginaInteractions(const Snapshot& a_partner);
+			bool GetVaginaVaginaInteractions(const Snapshot& a_partner);
+			bool GetVaginaLimbInteractions(const Snapshot& a_partner);
 			// Misc/Non Sexual
-			bool GetHeadHeadInteractions(const Snapshot& a_other);
-
-			// void GetHeadAnimObjInteractions(const Snapshot& a_other);		// This head with either animobj
+			bool GetHeadHeadInteractions(const Snapshot& a_partner);
+			bool GetHeadAnimObjInteractions(const Snapshot& a_partner);
 
 		public:
 			std::optional<RE::NiPoint3> GetMouthStartPoint() const;

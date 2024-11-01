@@ -98,7 +98,7 @@ namespace Registry::NiNode
 			if (it != snd) {
 				snd.GetHeadHeadInteractions(it);
 			}
-			//	 fst->GetHeadAnimObjInteractions(*snd);
+			snd.GetHeadAnimObjInteractions(it);
 		}
 	}
 

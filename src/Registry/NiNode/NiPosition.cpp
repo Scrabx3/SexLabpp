@@ -354,29 +354,27 @@ namespace Registry::NiNode
 					 get(rFoot, Interaction::Action::FootJob, Settings::fDistanceFoot);
 	}
 
-	void Position::Snapshot::GetHeadAnimObjInteractions(const Snapshot& a_partner)
+	bool NiPosition::Snapshot::GetHeadAnimObjInteractions(const Snapshot& a_partner)
 	{
-		bool out;
-		a_partner.position.actor->GetGraphVariableBool("bAnimObjectLoaded", out);
-		if (!out) {
-			return;
+		bool bAnimObjectLoaded;
+		a_partner.position.actor->GetGraphVariableBool("bAnimObjectLoaded", bAnimObjectLoaded);
+		if (!bAnimObjectLoaded) {
+			return false;
 		}
-		const auto point = GetHeadForwardPoint(bHead.boundMax.y);
+		const auto point = GetMouthStartPoint();
 		if (!point)
 			return;
-		const auto getimpl = [&](auto pos) {
+		const auto get = [&](auto pos) {
 			if (!pos)
-				return;
+				return false;
 			const auto d = pos->world.translate.GetDistance(*point);
 			if (d > Settings::fAnimObjDist)
-				return;
+				return false;
 			interactions.emplace_back(a_partner.position.actor, Interaction::Action::AnimObjFace, d);
+			return true;
 		};
 		const auto& n = a_partner.position.nodes;
-		getimpl(n.animobj_a);
-		getimpl(n.animobj_b);
-		getimpl(n.animobj_r);
-		getimpl(n.animobj_l);
+		return get(n.animobj_a) || get(n.animobj_b) || get(n.animobj_r) || get(n.animobj_l);
 	}
 
 	std::optional<RE::NiPoint3> NiPosition::Snapshot::GetMouthStartPoint() const
