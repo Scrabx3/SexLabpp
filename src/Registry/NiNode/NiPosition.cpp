@@ -84,8 +84,6 @@ namespace Registry::NiNode
 		const auto footR = a_partner.position.nodes.toe_right;
 		if (!footL || !footR)
 			return false;
-		if (!bHead.IsPointInside(footL->world.translate) && !bHead.IsPointInside(footR->world.translate))
-			return false;
 		const auto mouth = GetMouthStartPoint();
 		if (!mouth)
 			return false;
