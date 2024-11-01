@@ -358,19 +358,19 @@ namespace Registry::NiNode
 	{
 		bool bAnimObjectLoaded;
 		a_partner.position.actor->GetGraphVariableBool("bAnimObjectLoaded", bAnimObjectLoaded);
-		if (!bAnimObjectLoaded) {
+		if (!bAnimObjectLoaded)
 			return false;
-		}
-		const auto point = GetMouthStartPoint();
-		if (!point)
-			return;
-		const auto get = [&](auto pos) {
-			if (!pos)
+		const auto pMouth = GetMouthStartPoint();
+		if (!pMouth)
+			return false;
+		const auto get = [&](const auto& animObj) {
+			if (!animObj)
 				return false;
-			const auto d = pos->world.translate.GetDistance(*point);
+			const auto pAnimObj = animObj->world.translate;
+			const auto d = pAnimObj.GetDistance(*pMouth);
 			if (d > Settings::fAnimObjDist)
 				return false;
-			interactions.emplace_back(a_partner.position.actor, Interaction::Action::AnimObjFace, d);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::AnimObjFace, pAnimObj);
 			return true;
 		};
 		const auto& n = a_partner.position.nodes;
