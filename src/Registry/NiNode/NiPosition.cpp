@@ -64,7 +64,7 @@ namespace Registry::NiNode
 		if (!mouthstart || !partnermouthstart)
 			return false;
 		const auto distance = mouthstart->GetDistance(*partnermouthstart);
-		if (distance > Settings::fDistanceMouthMouth)
+		if (distance > Settings::fDistanceMouth)
 			return false;
 		const auto vMyHead = *mouthstart - position.nodes.head->world.translate;
 		const auto vPartnerHead = *partnermouthstart - a_partner.position.nodes.head->world.translate;
@@ -181,30 +181,22 @@ namespace Registry::NiNode
 		return true;
 	}
 
-	// void Position::Snapshot::GetHeadAnimObjInteractions(const Snapshot& a_other)
-	// {
-	// 	bool out;
-	// 	a_other.position.actor->GetGraphVariableBool("bAnimObjectLoaded", out);
-	// 	if (!out) {
-	// 		return;
-	// 	}
-	// 	const auto point = GetHeadForwardPoint(bHead.boundMax.y);
-	// 	if (!point)
-	// 		return;
-	// 	const auto getimpl = [&](auto pos) {
-	// 		if (!pos)
-	// 			return;
-	// 		const auto d = pos->world.translate.GetDistance(*point);
-	// 		if (d > Settings::fAnimObjDist)
-	// 			return;
-	// 		interactions.emplace_back(a_other.position.actor, Interaction::Action::AnimObjFace, d);
-	// 	};
-	// 	const auto& n = a_other.position.nodes;
-	// 	getimpl(n.animobj_a);
-	// 	getimpl(n.animobj_b);
-	// 	getimpl(n.animobj_r);
-	// 	getimpl(n.animobj_l);
-	// }
+	bool NiPosition::Snapshot::GetFootPenisInteractions(const Snapshot&, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
+	{
+		const auto nSchlong = a_schlong->GetBaseReferenceNode();
+		const auto sSchlong = a_schlong->GetReferenceSegment();
+		const auto get = [&](const auto& foot) {
+			if (!foot)
+				return false;
+			const auto pFoot = foot->world.translate;
+			const auto d = NiMath::ClosestSegmentBetweenSegments(pFoot, sSchlong).Length();
+			if (d > Settings::fDistanceFoot)
+				return false;
+			interactions.emplace_back(position.actor, Interaction::Action::FootJob, pFoot);
+			return true;
+		};
+		return get(position.nodes.foot_left) || get(position.nodes.foot_right);
+	}
 
 	bool NiPosition::Snapshot::GetCrotchPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong)
 	{
@@ -303,7 +295,7 @@ namespace Registry::NiNode
 		if (!mouthstart)
 			return false;
 		const auto& nClitoris = a_partner.position.nodes.clitoris;
-		const auto sVaginal = partnernodes.GetVaginalSegment();
+		const auto sVaginal = a_partner.position.nodes.GetVaginalSegment();
 		if (!sVaginal || !nClitoris)
 			return false;
 		float distance = nClitoris->world.translate.GetDistance(*mouthstart);
@@ -312,7 +304,7 @@ namespace Registry::NiNode
 		assert(position.nodes.head);
 		const auto& headworld = position.nodes.head->world;
 		const auto vHead = headworld.rotate.GetVectorY();
-		auto angle = NiMath::GetAngleDegree(sVaginal->Vector(), vHead);
+		const auto angle = NiMath::GetAngleDegree(sVaginal->Vector(), vHead);
 		if (std::abs(angle - 180) > Settings::fAngleCunnilingus)
 			return false;
 		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, nClitoris->world.translate);

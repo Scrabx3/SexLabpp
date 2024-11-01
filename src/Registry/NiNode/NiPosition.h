@@ -63,6 +63,7 @@ namespace Registry::NiNode
 			bool GetHeadPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
 			bool GetCrotchPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
 			bool GetHandPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
+			bool GetFootPenisInteractions(const Snapshot& a_partner, std::shared_ptr<Node::NodeData::Schlong> a_schlong);
 			// This interacting with partner vagina
 			bool GetHeadVaginaInteractions(const Snapshot& a_other);
 			bool GetVaginaVaginaInteractions(const Snapshot& a_other);
