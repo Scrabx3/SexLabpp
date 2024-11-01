@@ -5,6 +5,10 @@ config_def_path = './src/UserData/config.def'
 output_ini_path = './CMake/gen/SexLab.ini'
 
 def validate_value(value):
+  if value == "true":
+    return "1"
+  if value == "false":
+    return "0"
   match = re.match(r'^(\d+\.\d+|\d+)f$', value)
   if match:
     return match.group(1)
