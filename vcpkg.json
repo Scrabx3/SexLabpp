@@ -1,7 +1,7 @@
 {
   "name": "slp-skse",
-  "version-string": "0.0.1",
-  "description": "performance patch for sl",
+  "version-string": "2.11.8",
+  "description": "sexlab p+ backend systems",
   "dependencies": [
     "rsm-binary-io",
     "spdlog",
