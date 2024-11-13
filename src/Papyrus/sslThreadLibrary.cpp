@@ -296,9 +296,6 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Cannot track on a none reference", a_stackID);
 			return;
 		}
-		if (a_actor->IsPlayerRef()) {
-			return;	 // player is always tracked
-		}
 		auto data = Tracking::GetSingleton();
 		if (a_dotrack) {
 			data->Add(data->_actors, a_actor->formID, a_callback);
