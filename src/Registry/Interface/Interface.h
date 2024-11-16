@@ -5,6 +5,7 @@ namespace Registry::Interface
 	struct SKSEScaleform_OpenMenu;
 	struct SKSEScaleform_CloseMenu;
 	struct SKSEScaleform_SendModEvent;
+	struct SKSEScaleform_AllowInput;
 
 	template <typename T>
 	class FlashLogger : public RE::GFxLog
@@ -48,25 +49,34 @@ namespace Registry::Interface
 			}
 		}
 
-		static inline void AttachSKSEFunctions(RE::GPtr<RE::GFxMovieView> a_view)
+		static inline std::optional<RE::GFxValue> MakeFunctionObject(RE::GPtr<RE::GFxMovieView> a_view, const char* a_classname)
 		{
 			RE::GFxValue global;
 			bool success = a_view->GetVariable(&global, "_global");
 			if (!success) {
 				logger::error("Unable to get _global from view");
-				return;
+				return std::nullopt;
 			}
 			RE::GFxValue skse;
 			a_view->CreateObject(&skse);
-			success = global.SetMember("skse", skse);
+			success = global.SetMember(a_classname, skse);
 			if (!success) {
-				logger::error("Failed to attach skse to global instance");
+				logger::error("Failed to attach function object {} to global instance", a_classname);
+				return std::nullopt;
+			}
+			return skse;
+		}
+
+		static inline void AttachSKSEFunctions(RE::GPtr<RE::GFxMovieView> a_view)
+		{
+			auto skse = MakeFunctionObject(a_view, "skse");
+			if (!skse) {
 				return;
 			}
-
-			AttachFunction<SKSEScaleform_OpenMenu>(a_view, skse, "OpenMenu");
-			AttachFunction<SKSEScaleform_CloseMenu>(a_view, skse, "CloseMenu");
-			AttachFunction<SKSEScaleform_SendModEvent>(a_view, skse, "SendModEvent");
+			AttachFunction<SKSEScaleform_OpenMenu>(a_view, *skse, "OpenMenu");
+			AttachFunction<SKSEScaleform_CloseMenu>(a_view, *skse, "CloseMenu");
+			AttachFunction<SKSEScaleform_SendModEvent>(a_view, *skse, "SendModEvent");
+			AttachFunction<SKSEScaleform_AllowInput>(a_view, *skse, "AllowTextInput");
 		}
 
 	private:
@@ -116,6 +126,17 @@ namespace Registry::Interface
 				argForm ? RE::TESForm::LookupByID(argForm) : nullptr
 			};
 			SKSE::GetModCallbackEventSource()->SendEvent(&modEvent);
+		}
+	};
+
+	struct SKSEScaleform_AllowInput : public RE::GFxFunctionHandler
+	{
+		void Call(Params& a_args) override
+		{
+			assert(a_args.argCount > 0);
+
+			const auto enable = a_args.args->GetBool();
+			RE::ControlMap::GetSingleton()->AllowTextInput(enable);
 		}
 	};
 }
