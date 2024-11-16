@@ -33,6 +33,24 @@ namespace Registry::Interface
 		auto view = this->uiMovie;
 		view->SetMouseCursorCount(0);
 		FunctionManager::AttachSKSEFunctions(view);
+
+		static auto hijackShowMessage = [&]() {
+			auto hud = RE::UI::GetSingleton()->GetMovieView(RE::HUDMenu::MENU_NAME);
+			RE::GFxValue hudMain, showMessage;
+			success = hud->GetVariable(&hudMain, "_root.HUDMovieBaseInstance");
+			assert(success);
+			success = hudMain.GetMember("ShowMessage", &showMessage);
+			assert(success);
+			success = hudMain.SetMember("ShowMessage_SEXLABREROUTE", showMessage);
+			assert(success);
+
+			RE::GFxFunctionHandler* fn = new HUDMenu_ShowMessageEx;
+			RE::GFxValue dst;
+			hud->CreateFunction(&dst, fn);
+			success = hudMain.SetMember("ShowMessage", dst);
+			assert(success);
+			return 0;
+		}();
 	}
 
 	void SceneMenu::Register()
@@ -52,4 +70,16 @@ namespace Registry::Interface
 			return RE::IMenu::ProcessMessage(a_message);
 		}
 	}
+
+	void HUDMenu_ShowMessageEx::Call(Params& a_args)
+	{
+		const auto ui = RE::UI::GetSingleton();
+		if (SceneMenu::IsOpen()) {
+			auto scene = ui->GetMovieView(SceneMenu::NAME);
+			scene->InvokeNoReturn("_root.main.ShowMessage", a_args.args, a_args.argCount);
+		}
+		auto hud = ui->GetMovieView(RE::HUDMenu::MENU_NAME);
+		hud->InvokeNoReturn("_root.HUDMovieBaseInstance.ShowMessage_SEXLABREROUTE", a_args.args, a_args.argCount);
+	}
+
 }
