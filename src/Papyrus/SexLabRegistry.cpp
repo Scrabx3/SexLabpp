@@ -336,7 +336,7 @@ namespace Papyrus::SexLabRegistry
 	RE::BSFixedString GetSceneByName(RE::StaticFunctionTag*, RE::BSFixedString a_name)
 	{
 		auto ret = Registry::Library::GetSingleton()->GetSceneByName(a_name);
-		return ret ? ret->name : "";
+		return ret ? ret->id : "";
 	}
 
 	bool SortBySceneA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*,
