@@ -8,7 +8,7 @@ set(CXX_FILES
 	src/Script.h
 	src/GameForms.h
 
-	src/IPluginInterface.h
+	src/API/IPluginInterface.h
 
 	src/UserData/Settings.h
 	src/UserData/Settings.cpp

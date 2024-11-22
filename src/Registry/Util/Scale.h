@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IPluginInterface.h"
+#include "API/IPluginInterface.h"
 #include "Registry/Define/RaceKey.h"
 
 namespace Registry
