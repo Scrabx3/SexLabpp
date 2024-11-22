@@ -74,31 +74,31 @@ set(CXX_FILES
 	src/Registry/Voice.h
 	src/Registry/Voice.cpp
 
-	src/Papyrus/LegacyData.h
-	src/Papyrus/Serialize.h
-	src/Papyrus/Papyrus.h
+	src/Papyrus/sslLibrary/LegacyData.h
+	src/Papyrus/sslLibrary/Serialize.h
+	src/Papyrus/sslLibrary/sslActorLibrary.cpp
+	src/Papyrus/sslLibrary/sslActorLibrary.h
+	src/Papyrus/sslLibrary/sslThreadLibrary.cpp
+	src/Papyrus/sslLibrary/sslThreadLibrary.h
+	src/Papyrus/sslObject/sslAnimationSlots.cpp
+	src/Papyrus/sslObject/sslAnimationSlots.h
+	src/Papyrus/sslObject/sslCreatureAnimationSlots.cpp
+	src/Papyrus/sslObject/sslCreatureAnimationSlots.h
+	src/Papyrus/sslObject/sslExpressionSlots.cpp
+	src/Papyrus/sslObject/sslExpressionSlots.h
+	src/Papyrus/sslObject/sslVoiceSlots.cpp
+	src/Papyrus/sslObject/sslVoiceSlots.h
 	src/Papyrus/Papyrus.cpp
-	src/Papyrus/SexLabRegistry.h
+	src/Papyrus/Papyrus.h
 	src/Papyrus/SexLabRegistry.cpp
+	src/Papyrus/SexLabRegistry.h
 	src/Papyrus/SexLabUtil.h
-	src/Papyrus/sslActorLibrary.h
-	src/Papyrus/sslActorLibrary.cpp
-	src/Papyrus/sslActorStats.h
 	src/Papyrus/sslActorStats.cpp
-	src/Papyrus/sslAnimationSlots.h
-	src/Papyrus/sslAnimationSlots.cpp
-	src/Papyrus/sslCreatureAnimationSlots.h
-	src/Papyrus/sslCreatureAnimationSlots.cpp
-	src/Papyrus/sslExpressionSlots.h
-	src/Papyrus/sslExpressionSlots.cpp
-	src/Papyrus/sslSystemConfig.h
+	src/Papyrus/sslActorStats.h
 	src/Papyrus/sslSystemConfig.cpp
-	src/Papyrus/sslThreadLibrary.h
-	src/Papyrus/sslThreadLibrary.cpp
-	src/Papyrus/sslThreadModel.h
+	src/Papyrus/sslSystemConfig.h
 	src/Papyrus/sslThreadModel.cpp
-	src/Papyrus/sslVoiceSlots.h
-	src/Papyrus/sslVoiceSlots.cpp
+	src/Papyrus/sslThreadModel.h
 
 	src/Registry/Util/Console.h
 )

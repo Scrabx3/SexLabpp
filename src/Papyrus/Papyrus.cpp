@@ -1,14 +1,16 @@
-#include "Papyrus/SexLabRegistry.h"
-#include "Papyrus/SexLabUtil.h"
-#include "Papyrus/sslActorLibrary.h"
-#include "Papyrus/sslActorStats.h"
-#include "Papyrus/sslAnimationSlots.h"
-#include "Papyrus/sslCreatureAnimationSlots.h"
-#include "Papyrus/sslExpressionSlots.h"
-#include "Papyrus/sslSystemConfig.h"
-#include "Papyrus/sslThreadLibrary.h"
-#include "Papyrus/sslThreadModel.h"
-#include "Papyrus/sslVoiceSlots.h"
+#include "Papyrus.h"
+
+#include "SexLabRegistry.h"
+#include "SexLabUtil.h"
+#include "sslActorStats.h"
+#include "sslLibrary/sslActorLibrary.h"
+#include "sslLibrary/sslThreadLibrary.h"
+#include "sslObject/sslAnimationSlots.h"
+#include "sslObject/sslCreatureAnimationSlots.h"
+#include "sslObject/sslExpressionSlots.h"
+#include "sslObject/sslVoiceSlots.h"
+#include "sslSystemConfig.h"
+#include "sslThreadModel.h"
 
 namespace Papyrus
 {

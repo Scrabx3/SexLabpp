@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Papyrus/sslLibrary/Serialize.h"
 #include "Registry/Stats.h"
-#include "Papyrus/Serialize.h"
 
 namespace Serialization
 {

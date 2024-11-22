@@ -4,8 +4,6 @@
 
 namespace Papyrus
 {
-  // Information of pre V2 definitions used in some papyrus functions
-
   enum LegacySex
   {
     Male = 0,

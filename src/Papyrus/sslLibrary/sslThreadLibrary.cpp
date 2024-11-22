@@ -1,6 +1,6 @@
-#include "Papyrus/sslThreadLibrary.h"
+#include "sslThreadLibrary.h"
 
-#include "Papyrus/Serialize.h"
+#include "Serialize.h"
 #include "Registry/Animation.h"
 #include "Registry/Define/Fragment.h"
 #include "Registry/Define/Furniture.h"
