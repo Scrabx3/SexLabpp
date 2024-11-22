@@ -66,6 +66,11 @@ namespace Registry::Interface
 
 		switch (*a_message.type) {
 		case Type::kShow:
+			RE::UIMessageQueue::GetSingleton()->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
+			return Result::kHandled;
+		case Type::kHide:
+			RE::UIMessageQueue::GetSingleton()->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr);
+			return Result::kHandled;
 		default:
 			return RE::IMenu::ProcessMessage(a_message);
 		}
