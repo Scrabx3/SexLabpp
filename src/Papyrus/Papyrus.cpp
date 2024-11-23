@@ -9,6 +9,7 @@
 #include "sslObject/sslCreatureAnimationSlots.h"
 #include "sslObject/sslExpressionSlots.h"
 #include "sslObject/sslVoiceSlots.h"
+#include "sslSceneMenu.h"
 #include "sslSystemConfig.h"
 #include "sslThreadModel.h"
 
@@ -32,6 +33,7 @@ namespace Papyrus
 		papyrus->Register(Papyrus::ThreadLibrary::Register);
 		papyrus->Register(Papyrus::ThreadModel::Register);
 		papyrus->Register(Papyrus::VoiceSlots::Register);
+		papyrus->Register(Papyrus::SceneMenu::Register);
 
 		return true;
 	}

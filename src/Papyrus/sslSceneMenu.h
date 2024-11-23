@@ -4,13 +4,13 @@
 
 namespace Papyrus::SceneMenu
 {
-	void OpenMenu(RE::StaticFunctionTag*) { Registry::Interface::SceneMenu::Show(); }
-	void CloseMenu(RE::StaticFunctionTag*) { Registry::Interface::SceneMenu::Hide(); }
-	bool IsMenuOpen(RE::StaticFunctionTag*) { Registry::Interface::SceneMenu::IsOpen(); }
+	inline void OpenMenu(RE::StaticFunctionTag*) { Registry::Interface::SceneMenu::Show(); }
+	inline void CloseMenu(RE::StaticFunctionTag*) { Registry::Interface::SceneMenu::Hide(); }
+	inline bool IsMenuOpen(RE::StaticFunctionTag*) { return Registry::Interface::SceneMenu::IsOpen(); }
 
-	void SetPositions(STATICARGS, std::vector<RE::Actor*> a_positions);
-	void UpdateEnjoyment(STATICARGS, RE::Actor* a_position, float a_enjoyment);
-	void SetEnjoyment(STATICARGS, RE::Actor* a_position, float a_enjoyment);
+	void SetPositions(RE::StaticFunctionTag*, std::vector<RE::Actor*> a_positions);
+	void UpdateEnjoyment(RE::StaticFunctionTag*, RE::Actor* a_position, float a_enjoyment);
+	void SetEnjoyment(RE::StaticFunctionTag*, RE::Actor* a_position, float a_enjoyment);
 
 	inline bool Register(VM* a_vm)
 	{
