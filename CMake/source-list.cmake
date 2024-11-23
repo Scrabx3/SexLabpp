@@ -95,6 +95,8 @@ set(CXX_FILES
 	src/Papyrus/SexLabUtil.h
 	src/Papyrus/sslActorStats.cpp
 	src/Papyrus/sslActorStats.h
+	src/Papyrus/sslSceneMenu.cpp
+	src/Papyrus/sslSceneMenu.h
 	src/Papyrus/sslSystemConfig.cpp
 	src/Papyrus/sslSystemConfig.h
 	src/Papyrus/sslThreadModel.cpp
