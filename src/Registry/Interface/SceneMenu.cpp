@@ -31,7 +31,7 @@ namespace Registry::Interface
 		assert(success);
 
 		auto view = this->uiMovie;
-		view->SetMouseCursorCount(0);
+		view->SetMouseCursorCount(1);
 		FunctionManager::AttachSKSEFunctions(view);
 
 		static auto hijackShowMessage = [&]() {
