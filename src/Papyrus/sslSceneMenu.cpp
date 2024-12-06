@@ -76,7 +76,7 @@ namespace Papyrus::SceneMenu
 					RE::GFxValue arg;
 					view->CreateObject(&arg);
 					arg.SetMember("id", { edge->id.c_str() });
-					arg.SetMember("text", { edge->navtext.c_str() });
+					arg.SetMember("name", { edge->navtext.c_str() });
 					arg.SetMember("length", { edge->fixedlength > 0 });
 					bool hasClimax = false;
 					for (const auto& pos : edge->positions) {
@@ -90,6 +90,12 @@ namespace Papyrus::SceneMenu
 					arg.SetMember("end", { endNode });
 					args.push_back(arg);
 				}
+			} else {
+				RE::GFxValue arg;
+				view->CreateObject(&arg);
+				arg.SetMember("id", { "" });
+				arg.SetMember("name", { "$SL_EndScene" });
+				args.push_back(arg);
 			}
 			view->InvokeNoReturn("_root.main.setStages", args.data(), static_cast<uint32_t>(args.size()));
 		});
