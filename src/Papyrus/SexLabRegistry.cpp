@@ -915,7 +915,7 @@ namespace Papyrus::SexLabRegistry
 				return false;
 			});
 		} else {
-			const auto stage = scene->GetStageByKey(a_stage);
+			const auto stage = scene->GetStageByID(a_stage);
 			if (!stage) {
 				a_vm->TraceStack("Invalid stage id", a_stackID);
 				return;
