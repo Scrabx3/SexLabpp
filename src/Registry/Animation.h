@@ -156,8 +156,8 @@ namespace Registry
 
 		_NODISCARD size_t GetNumStages() const;
 		_NODISCARD const std::vector<const Stage*> GetAllStages() const;
-		_NODISCARD Stage* GetStageByKey(const RE::BSFixedString& a_stage);
-		_NODISCARD const Stage* GetStageByKey(const RE::BSFixedString& a_stage) const;
+		_NODISCARD Stage* GetStageByID(const RE::BSFixedString& a_stage);
+		_NODISCARD const Stage* GetStageByID(const RE::BSFixedString& a_stage) const;
 		_NODISCARD std::vector<const Stage*> GetLongestPath(const Stage* a_src) const;
 		_NODISCARD std::vector<const Stage*> GetShortestPath(const Stage* a_src) const;
 		void ForEachStage(std::function<bool(Stage*)> a_visitor);

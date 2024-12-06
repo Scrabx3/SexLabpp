@@ -74,7 +74,7 @@ namespace Papyrus::VoiceSlots
 				a_vm->TraceStack("Invalid position idx", a_stackID);
 				return nullptr;
 			}
-			auto stage = scene->GetStageByKey(a_stage);
+			auto stage = scene->GetStageByID(a_stage);
 			if (!stage) {
 				a_vm->TraceStack("Invalid stage id", a_stackID);
 				return nullptr;

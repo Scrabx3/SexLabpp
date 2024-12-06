@@ -15,7 +15,7 @@ namespace Papyrus::SexLabRegistry
 	}
 
 #define STAGE(argRet)                                \
-	const auto stage = scene->GetStageByKey(a_stage);  \
+	const auto stage = scene->GetStageByID(a_stage);   \
 	if (!stage) {                                      \
 		a_vm->TraceStack("Invalid stage id", a_stackID); \
 		return argRet;                                   \
@@ -459,7 +459,7 @@ namespace Papyrus::SexLabRegistry
 	bool StageExists(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_stage)
 	{
 		SCENE(false);
-		return scene->GetStageByKey(a_stage) != nullptr;
+		return scene->GetStageByID(a_stage) != nullptr;
 	}
 
 	bool IsSceneEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
@@ -558,7 +558,7 @@ namespace Papyrus::SexLabRegistry
 	RE::BSFixedString GetStartAnimation(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 	{
 		SCENE("");
-		const auto start = scene->GetStageByKey("");
+		const auto start = scene->GetStageByID("");
 		return start ? start->id : "";
 	}
 
@@ -806,7 +806,7 @@ namespace Papyrus::SexLabRegistry
 				return false;
 			});
 		} else {
-			const auto stage = scene->GetStageByKey(a_stage);
+			const auto stage = scene->GetStageByID(a_stage);
 			if (!stage) {
 				a_vm->TraceStack("Invalid stage id", a_stackID);
 				return;
@@ -834,7 +834,7 @@ namespace Papyrus::SexLabRegistry
 				return false;
 			});
 		} else {
-			const auto stage = scene->GetStageByKey(a_stage);
+			const auto stage = scene->GetStageByID(a_stage);
 			if (!stage) {
 				a_vm->TraceStack("Invalid stage id", a_stackID);
 				return;
@@ -850,7 +850,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey(a_stage);
+		const auto stage = scene->GetStageByID(a_stage);
 		if (!stage) {
 			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return;
@@ -867,7 +867,7 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey(a_stage);
+		const auto stage = scene->GetStageByID(a_stage);
 		if (!stage) {
 			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return;

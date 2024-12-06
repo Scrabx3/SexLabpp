@@ -126,7 +126,7 @@ namespace Registry
 		std::string vertexid(Decode::ID_SIZE, 'X');
 		for (size_t i = 0; i < graph_vertices; i++) {
 			a_stream.read(vertexid.data(), Decode::ID_SIZE);
-			const auto vertex = GetStageByKey(vertexid.data());
+			const auto vertex = GetStageByID(vertexid.data());
 			if (!vertex) {
 				const auto err = std::format("Invalid vertex: {} in scene: {}", vertexid, id);
 				throw std::runtime_error(err.c_str());
@@ -137,7 +137,7 @@ namespace Registry
 			std::string edgeid(Decode::ID_SIZE, 'X');
 			for (size_t n = 0; n < edge_count; n++) {
 				a_stream.read(edgeid.data(), Decode::ID_SIZE);
-				const auto edge = GetStageByKey(edgeid.data());
+				const auto edge = GetStageByID(edgeid.data());
 				if (!edge) {
 					const auto err = std::format("Invalid edge: {} for vertex: {} in scene: {}", edgeid, vertexid, id);
 					throw std::runtime_error(err.c_str());
@@ -440,7 +440,7 @@ namespace Registry
 		return ret;
 	}
 
-	Stage* Scene::GetStageByKey(const RE::BSFixedString& a_key)
+	Stage* Scene::GetStageByID(const RE::BSFixedString& a_key)
 	{
 		if (a_key.empty()) {
 			return start_animation;
@@ -450,7 +450,7 @@ namespace Registry
 		return where == stages.end() ? nullptr : where->get();
 	}
 
-	const Stage* Scene::GetStageByKey(const RE::BSFixedString& a_key) const
+	const Stage* Scene::GetStageByID(const RE::BSFixedString& a_key) const
 	{
 		if (a_key.empty()) {
 			return start_animation;

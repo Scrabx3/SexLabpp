@@ -490,7 +490,7 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return 0;
 		}
-		const auto stage = scene->GetStageByKey(a_stage);
+		const auto stage = scene->GetStageByID(a_stage);
 		if (!stage) {
 			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return 0;
@@ -532,7 +532,7 @@ __CONTINUE_NEXT:
 			return "";
 		}
 
-		const auto stage = scene->GetStageByKey(a_stage);
+		const auto stage = scene->GetStageByID(a_stage);
 		if (!stage) {
 			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return "";
@@ -574,7 +574,7 @@ __CONTINUE_NEXT:
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		const auto stage = scene->GetStageByKey(a_stage);
+		const auto stage = scene->GetStageByID(a_stage);
 		if (!stage) {
 			a_vm->TraceStack("Invalid stage id", a_stackID);
 			return;
@@ -839,7 +839,7 @@ __CONTINUE_NEXT:
 		}
 		int vaginal = 0, anal = 0, oral = 0;
 		for (auto&& it : a_playedstages) {
-			auto stage = scene->GetStageByKey(it);
+			auto stage = scene->GetStageByID(it);
 			if (!stage)
 				continue;
 
@@ -924,7 +924,7 @@ __CONTINUE_NEXT:
 		}
 		int vaginal = 0, anal = 0, oral = 0;
 		for (auto&& it : a_playedstages) {
-			auto stage = scene->GetStageByKey(it);
+			auto stage = scene->GetStageByID(it);
 			if (!stage)
 				continue;
 
