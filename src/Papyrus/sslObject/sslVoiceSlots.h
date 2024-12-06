@@ -14,6 +14,8 @@ namespace Papyrus::VoiceSlots
 		RE::TESSound* GetSoundObject(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_strength,
 			std::vector<RE::BSFixedString> a_context, RE::BSFixedString a_scene, RE::BSFixedString a_stage, int a_positionidx);
 		RE::TESSound* GetSoundObjectLeg(RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_idx);
+		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id,
+			std::vector<RE::BSFixedString> a_context, RE::BSFixedString a_scene, RE::BSFixedString a_stage, int a_positionidx);
 
 		bool InitializeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id);
 		void FinalizeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id);
@@ -32,6 +34,7 @@ namespace Papyrus::VoiceSlots
 			REGISTERFUNC(GetCompatibleRaces, "sslBaseVoice", true);
 			REGISTERFUNC(GetSoundObject, "sslBaseVoice", true);
 			REGISTERFUNC(GetSoundObjectLeg, "sslBaseVoice", true);
+			REGISTERFUNC(GetOrgasmSound, "sslBaseVoice", true);
 			REGISTERFUNC(InitializeVoiceObject, "sslBaseVoice", true);
 			REGISTERFUNC(FinalizeVoiceObject, "sslBaseVoice", true);
 			REGISTERFUNC(SetSoundObjectLeg, "sslBaseVoice", true);

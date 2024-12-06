@@ -89,6 +89,29 @@ namespace Papyrus::VoiceSlots
 			return Registry::Voice::GetSingleton()->PickSound(a_id, Registry::LegacyVoice(a_idx));
 		}
 
+		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id,
+			std::vector<RE::BSFixedString> a_context, RE::BSFixedString a_scene, RE::BSFixedString a_stage, int a_positionidx)
+		{
+			const auto lib = Registry::Library::GetSingleton();
+			auto scene = lib->GetSceneByID(a_scene);
+			if (!scene) {
+				a_vm->TraceStack("Invalid scene id", a_stackID);
+				return nullptr;
+			}
+			if (scene->CountPositions() <= static_cast<uint32_t>(a_positionidx)) {
+				a_vm->TraceStack("Invalid position idx", a_stackID);
+				return nullptr;
+			}
+			auto stage = scene->GetStageByID(a_stage);
+			if (!stage) {
+				a_vm->TraceStack("Invalid stage id", a_stackID);
+				return nullptr;
+			}
+			auto p = scene->GetNthPosition(a_positionidx);
+			const auto vs = Registry::Voice::GetSingleton();
+			return vs->GetOrgasmSound(a_id, stage, p, a_context);
+		}
+
 		bool InitializeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			return Registry::Voice::GetSingleton()->InitializeNew(a_id);
