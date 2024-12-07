@@ -7,6 +7,7 @@
 namespace Papyrus::SceneMenu
 {
 	inline static RE::FormID sceneMenuId{ 0 };
+
 #define VALIDATE                                   \
 	if (!a_qst || a_qst->GetFormID() != sceneMenuId) \
 		return;                                        \
@@ -33,35 +34,7 @@ namespace Papyrus::SceneMenu
 	}
 
 	void SetPositions(RE::StaticFunctionTag*, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions)
-	inline static RE::FormID sceneMenuId{ 0 };
-#define VALIDATE                                   \
-	if (!a_qst || a_qst->GetFormID() != sceneMenuId) \
-		return;                                        \
-
-	void OpenMenu(RE::StaticFunctionTag*, RE::TESQuest* a_qst)
 	{
-		if (sceneMenuId != 0)  {
-			return;
-		}
-		sceneMenuId = a_qst->GetFormID();
-		Registry::Interface::SceneMenu::Show();
-	}
-
-	void CloseMenu(RE::StaticFunctionTag*, RE::TESQuest* a_qst)
-	{
-		VALIDATE;
-		Registry::Interface::SceneMenu::Hide();
-		sceneMenuId = 0;
-	}
-
-	bool IsMenuOpen(RE::StaticFunctionTag*)
-	{
-		return Registry::Interface::SceneMenu::IsOpen();
-	}
-
-	void SetPositions(RE::StaticFunctionTag*, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions)
-	{
-		VALIDATE;
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([a_positions = std::move(a_positions)]() {
 			const auto view = RE::UI::GetSingleton()->GetMovieView(Registry::Interface::SceneMenu::NAME);
@@ -144,7 +117,6 @@ namespace Papyrus::SceneMenu
 	void UpdateEnjoyment(RE::StaticFunctionTag*, RE::TESQuest* a_qst, RE::Actor* a_position, float a_enjoyment)
 	{
 		VALIDATE;
-		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([=]() {
 			const auto view = RE::UI::GetSingleton()->GetMovieView(Registry::Interface::SceneMenu::NAME);
 			std::vector<RE::GFxValue> args{};
@@ -155,9 +127,7 @@ namespace Papyrus::SceneMenu
 	}
 
 	void SetEnjoyment(RE::StaticFunctionTag*, RE::TESQuest* a_qst, RE::Actor* a_position, float a_enjoyment)
-	void SetEnjoyment(RE::StaticFunctionTag*, RE::TESQuest* a_qst, RE::Actor* a_position, float a_enjoyment)
 	{
-		VALIDATE;
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([=]() {
 			const auto view = RE::UI::GetSingleton()->GetMovieView(Registry::Interface::SceneMenu::NAME);
