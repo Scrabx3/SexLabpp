@@ -26,6 +26,10 @@ namespace Registry::Interface
 	protected:
 		// IMenu
 		RE::UI_MESSAGE_RESULTS ProcessMessage(RE::UIMessage& a_message) override;
+
+	private:
+		bool mainFourEnabled;
+		bool menuEnabled;
 	};
 	
 	struct HUDMenu_ShowMessageEx : public RE::GFxFunctionHandler

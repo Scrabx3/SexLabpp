@@ -73,7 +73,7 @@ namespace Papyrus::SceneMenu
 			const auto view = RE::UI::GetSingleton()->GetMovieView(Registry::Interface::SceneMenu::NAME);
 			const auto& edges = scene->GetAdjacentStages(stage);
 			std::vector<RE::GFxValue> args{};
-			if (edges) {
+			if (edges && !edges->empty()) {
 				args.reserve(edges->size());
 				for (const auto& edge : *edges) {
 					RE::GFxValue arg;
