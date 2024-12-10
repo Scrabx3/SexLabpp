@@ -3,11 +3,11 @@
 namespace Registry
 {
 	Expression::Profile::Profile(const YAML::Node& a_src) :
-		id(a_src["id"].IsDefined() ? a_src["id"].as<std::string>() : "Missing Name"),
-		version(a_src["version"].IsDefined() ? static_cast<uint8_t>(a_src["version"].as<uint32_t>()) : 0),
-		enabled(!a_src["enabled"].IsDefined() || a_src["enabled"].as<bool>()),
-		tags(a_src["tags"].IsDefined() ? a_src["tags"].as<std::vector<std::string>>() : std::vector<std::string>{}),
-		scaling(a_src["scaling"].IsDefined() ? Scaling(a_src["scaling"].as<int32_t>()) : Scaling::Linear)
+		id(a_src["id"].as<std::string>("Missing Name")),
+		version(static_cast<uint8_t>(a_src["version"].as<uint32_t>(0))),
+		enabled(a_src["enabled"].as<bool>(true)),
+		tags(a_src["tags"].as<std::vector<std::string>>(std::vector<std::string>{})),
+		scaling(Scaling(a_src["scaling"].as<int32_t>(std::to_underlying(Scaling::Linear))))
 	{
 		if (!a_src["data"].IsDefined())
 			throw std::exception("Missing data values");
@@ -331,8 +331,11 @@ namespace Registry
 		logger::info("Loading Expressions");
 
 		if (fs::exists(EXPRESSIONPATH) && fs::is_directory(EXPRESSIONPATH)) {
-			for (auto& file : fs::directory_iterator{ LEGACY_CONFIG }) {
-				auto filename = file.path().filename().string();
+			for (auto& file : fs::directory_iterator{ EXPRESSIONPATH }) {
+				const auto extension = file.path().extension();
+				if (extension != ".yaml" && extension != ".yml")
+					continue;
+				const auto filename = file.path().filename().string();
 				try {
 					const auto yaml = YAML::LoadFile(file.path().string());
 					auto profile = Profile{ yaml };
