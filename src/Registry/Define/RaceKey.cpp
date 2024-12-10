@@ -212,7 +212,7 @@ namespace Registry
 				return RaceKey::GiantSpider;
 			}
 		case RaceKey::Wolf:
-			if (AsLower(std::string{ a_race->formEditorID }).find("fox") != std::string::npos) {
+			if (Util::CastLower(std::string{ a_race->formEditorID }).find("fox") != std::string::npos) {
 				return RaceKey::Fox;
 			} else {
 				return RaceKey::Wolf;

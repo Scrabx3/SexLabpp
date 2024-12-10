@@ -71,7 +71,7 @@ namespace Registry
 					ret = false;
 					return true;
 				} else if (std::string name{ a_faction->GetFullName() }; !name.empty()) {
-					ToLower(name);
+					Util::ToLower(name);
 					if (name.find("pubic") != std::string::npos) {
 						ret = false;
 						return true;

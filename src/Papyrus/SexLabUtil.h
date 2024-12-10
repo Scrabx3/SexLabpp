@@ -21,21 +21,7 @@ namespace Papyrus::SexLabUtil
 	}
 	void PrintConsole(RE::StaticFunctionTag*, std::string a_str)
 	{
-		if (a_str.empty())
-			return;
-		else if (a_str.size() < 1000)
-			Registry::PrintConsole(a_str.c_str());
-		else {	// Large strings printed to console crash the game - truncate it
-			size_t i = 0;
-			do
-			{
-				constexpr auto maxchar = 950;
-				auto print = a_str.substr(i, i + maxchar);
-				print += '\n';
-				i += maxchar;
-				Registry::PrintConsole(print.c_str());
-			} while (i < a_str.size());
-		}
+		Util::PrintConsole(a_str);
 	}
 
 	int IntMinMaxIndex(RE::StaticFunctionTag*, std::vector<int> arr, bool findHighestValue)

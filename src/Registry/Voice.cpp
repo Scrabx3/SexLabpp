@@ -335,7 +335,7 @@ namespace Registry
 				const auto root = YAML::LoadFile(VOICE_NPCPATH);
 				for (auto&& it : root) {
 					const auto str = it.first.as<std::string>();
-					auto id = FormFromString<RE::FormID>(str);
+					auto id = Util::FormFromString(str);
 					if (id == 0)
 						continue;
 					auto v = it.second.as<std::string>();
@@ -391,7 +391,7 @@ namespace Registry
 					if (!base->IsUnique())
 						continue;
 				}
-				auto str = FormToString(form);
+				auto str = Util::FormToString(form);
 				root[str] = voice->name.data();
 			}
 			std::ofstream fout(VOICE_NPCPATH);
@@ -408,7 +408,7 @@ namespace Registry
 			if (!node.IsDefined())
 				return RE::SEXES::kNone;
 			auto str = node.as<std::string>();
-			ToLower(str);
+			Util::ToLower(str);
 			return str == "female" ? RE::SEXES::kFemale :
 						 str == "male"	 ? RE::SEXES::kMale :
 															 RE::SEXES::kNone;
@@ -431,7 +431,7 @@ namespace Registry
 			return { arg };
 		}()),
 		defaultset(a_node),
-		orgasmvfx([&]() { auto&node = a_node["Orgasm"]; return node.IsDefined() ? FormFromString<RE::TESSound*>(node.as<std::string>()) : nullptr; }()),
+		orgasmvfx([&]() { auto&node = a_node["Orgasm"]; return node.IsDefined() ? Util::FormFromString<RE::TESSound*>(node.as<std::string>()) : nullptr; }()),
 		extrasets([&]() {
 			decltype(extrasets) ret{};
 			ret.emplace_back(a_node);
@@ -472,7 +472,7 @@ namespace Registry
 		}
 		ret["Voices"] = defaultset.AsYaml()["Voices"];
 		if (orgasmvfx)
-			ret["Orgasm"] = FormToString(orgasmvfx);
+			ret["Orgasm"] = Util::FormToString(orgasmvfx);
 		for (auto&& e : extrasets) {
 			ret["Extra"].push_back(e.AsYaml());
 		}
@@ -484,14 +484,14 @@ namespace Registry
 		auto v = a_node["Voices"];
 		if (v.IsMap()) {
 			for (auto&& it : v) {
-				auto sound = FormFromString<RE::TESSound*>(it.first.as<std::string>());
+				auto sound = Util::FormFromString<RE::TESSound*>(it.first.as<std::string>());
 				data.emplace_back(sound, static_cast<uint8_t>(it.second.as<uint32_t>()));
 			}
 		} else {
 			const auto max = static_cast<float>(v.size());
 			for (float i = 0; i < max; i++)
 			{
-				auto sound = FormFromString<RE::TESSound*>(v[i].as<std::string>());
+				auto sound = Util::FormFromString<RE::TESSound*>(v[i].as<std::string>());
 				if (!sound)
 					continue;
 				data.emplace_back(sound, static_cast<uint8_t>((i / max) * 100.0f));
@@ -510,7 +510,7 @@ namespace Registry
 
 		for (auto&& con : convec) {
 			auto key = con.first.as<std::string>();
-			ToLower(key);
+			Util::ToLower(key);
 			if (key == "submissive") {
 				CONDITION::Condition ct{};
 				ct._bool = con.second.as<bool>();
@@ -611,7 +611,7 @@ namespace Registry
 		for (auto&& [v, prio] : data) {
 			if (!v)
 				continue;
-			auto key = FormToString(v);
+			auto key = Util::FormToString(v);
 			if (ret["Voices"][key].IsDefined())
 				continue;
 			ret["Voices"][key] = static_cast<int32_t>(prio);

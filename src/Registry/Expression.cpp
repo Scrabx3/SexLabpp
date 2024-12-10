@@ -348,7 +348,7 @@ namespace Registry
 		if (fs::exists(LEGACY_CONFIG) && fs::is_directory(LEGACY_CONFIG)) {
 			for (auto& file : fs::directory_iterator{ LEGACY_CONFIG }) {
 				auto filename = file.path().filename().string();
-				ToLower(filename);
+				Util::ToLower(filename);
 				if (!filename.starts_with("expression"))
 					continue;
 				try {

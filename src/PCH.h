@@ -27,12 +27,15 @@ namespace logger = SKSE::log;
 namespace fs = std::filesystem;
 using namespace std::literals;
 
-#include "Random.h"
 #include "GameForms.h"
 #include "Registry/Misc.h"
-#include "Script.h"
-#include "Singleton.h"
 #include "UserData/Settings.h"
+#include "Util/FormLookup.h"
+#include "Util/Misc.h"
+#include "Util/Random.h"
+#include "Util/Script.h"
+#include "Util/Singleton.h"
+#include "Util/StringUtil.h"
 
 #define ESPNAME "SexLab.esm"
 constexpr auto LEGACY_CONFIG { "Data\\SKSE\\Plugins\\SexLab\\" };

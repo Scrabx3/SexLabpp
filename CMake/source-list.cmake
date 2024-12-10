@@ -2,10 +2,6 @@ set(CXX_FILES
 	src/PCH.h
 	src/main.cpp
 	src/Serialization.h
-
-	src/Random.h
-	src/Singleton.h
-	src/Script.h
 	src/GameForms.h
 
 	src/API/IPluginInterface.h
@@ -14,6 +10,14 @@ set(CXX_FILES
 	src/UserData/Settings.cpp
 	src/UserData/StripData.h
 	src/UserData/StripData.cpp
+
+	src/Util/FormLookup.h
+	src/Util/Misc.h
+	src/Util/Random.h
+	src/Util/Script.h
+	src/Util/Singleton.h
+	src/Util/StringUtil.h
+	src/Util/FormLookup.h
 
 	# src/Hooks/Hooks.h
 	# src/Hooks/Hooks.cpp

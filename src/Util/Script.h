@@ -5,8 +5,10 @@ namespace Script
 	using VM = RE::BSScript::Internal::VirtualMachine;
 	using ObjectPtr = RE::BSTSmartPointer<RE::BSScript::Object>;
 	using ArrayPtr = RE::BSTSmartPointer<RE::BSScript::Array>;
+	using TypePtr = RE::BSTSmartPointer<RE::BSScript::ObjectTypeInfo>;
 	using CallbackPtr = RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor>;
 	using Args = RE::BSScript::IFunctionArguments;
+	using RawType = RE::BSScript::TypeInfo::RawType;
 
 	inline RE::VMHandle GetHandle(const RE::TESForm* a_form)
 	{
@@ -36,6 +38,25 @@ namespace Script
 		auto var = a_obj->GetProperty(a_prop);
 		assert(var);
 		return RE::BSScript::UnpackValue<T>(var);
+	}
+
+	template <class T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
+	inline T GetTrivialProperty(ObjectPtr a_obj, const RE::BSFixedString& a_prop)
+	{
+		const auto var = a_obj->GetProperty(a_prop);
+		const auto type = var->GetType().GetRawType();
+		switch (type) {
+		case RawType::kBool:
+      return static_cast<T>(RE::BSScript::UnpackValue<bool>(var));
+    case RawType::kInt:
+      return static_cast<T>(RE::BSScript::UnpackValue<int>(var));
+    case RawType::kFloat:
+      return static_cast<T>(RE::BSScript::UnpackValue<float>(var));
+    default:
+      logger::error("Not a trivial type: {}", type);
+      break;
+		}
+    return 0;
 	}
 
 	template <class T>
@@ -72,4 +93,3 @@ namespace Script
 		return DispatchStaticCall(a_class, a_fnName, a_callback, args);
 	}
 }
-	

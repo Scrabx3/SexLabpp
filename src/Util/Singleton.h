@@ -8,11 +8,11 @@ protected:
 	~Singleton() = default;
 
 public:
-  static T* GetSingleton()
-  {
-    static T singleton;
-    return &singleton;
-  }
+	static T* GetSingleton()
+	{
+		static T singleton;
+		return &singleton;
+	}
 
 public:
 	Singleton(const Singleton&) = delete;

@@ -4,7 +4,6 @@
 #include "Registry/Library.h"
 #include "Registry/NiNode/NiUpdate.h"
 #include "Registry/Stats.h"
-#include "Registry/Util/Console.h"
 #include "Registry/Voice.h"
 #include "Serialization.h"
 #include "UserData/StripData.h"
