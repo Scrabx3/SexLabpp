@@ -236,7 +236,7 @@ namespace Papyrus::ExpressionSlots
 			return {};
 		}
 		std::vector<RE::BSFixedString> ret{};
-		auto list = Registry::StringSplit(a_tags);
+		auto list = Util::StringSplit(a_tags, ",");
 		Registry::TagDetails search{ list };
 		Registry::Expression::GetSingleton()->ForEachProfile([&](const Registry::Expression::Profile& profile) {
 			if (!search.MatchTags(profile.tags)) {

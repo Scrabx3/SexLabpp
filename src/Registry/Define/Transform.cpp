@@ -3,6 +3,8 @@
 #include <glm/gtx/transform.hpp>
 #include <numbers>
 
+#include "Registry/Util/Decode.h"
+
 namespace Registry
 {
 	Coordinate::Coordinate(const RE::TESObjectREFR* a_ref) :

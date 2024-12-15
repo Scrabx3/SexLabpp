@@ -605,7 +605,7 @@ __CONTINUE_NEXT:
 
 	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext)
 	{
-		const auto list = Registry::StringSplit(a_newcontext, ',');
+		const auto list = Util::StringSplit(a_newcontext, ",");
 		for (auto&& tag : list) {
 			if (!tag.starts_with('!'))
 				continue;

@@ -211,7 +211,7 @@ namespace Papyrus::SexLabRegistry
 			return {};
 		}
 		const auto lib = Registry::Library::GetSingleton();
-		const auto tags = Registry::StringSplit(a_tags, ',');
+		const auto tags = Util::StringSplit(a_tags, ",");
 		auto scenes = lib->LookupScenes(a_positions, tags, a_submissives);
 		if (const auto pretrim = scenes.size()) {
 			logger::info("Lookup found {} Scenes. Validating by center preference...", pretrim);

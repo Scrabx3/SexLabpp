@@ -1,5 +1,6 @@
 #include "Tags.h"
 
+#include "Registry/Util/Decode.h"
 namespace Registry
 {
 #define MAPENTRY(value) \
@@ -212,7 +213,7 @@ namespace Registry
 	}
 
 	TagDetails::TagDetails(const std::string_view a_tags) :
-		TagDetails(StringSplit(a_tags, ',')) {}
+		TagDetails(Util::StringSplit(a_tags, ",")) {}
 
 	TagDetails::TagDetails(const std::vector<std::string_view> a_tags)
 	{
