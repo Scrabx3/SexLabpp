@@ -17,8 +17,6 @@ namespace GameForms
 	}
 
 	// Vanilla Forms
-	inline RE::BGSKeyword* Vampire;
-	inline RE::BGSKeyword* ActorTypeNPC;
 	inline RE::BGSKeyword* FurnitureBedRoll;
 	inline RE::BGSKeyword* DLC2RieklingMountedKeyword;
 
@@ -31,8 +29,6 @@ namespace GameForms
 
 	inline bool LoadData()
 	{
-		LOOKUPGAME(Vampire, 0xA82BB);
-		LOOKUPGAME(ActorTypeNPC, 0x13794);
 		LOOKUPGAME(FurnitureBedRoll, 0xE4AD6);
 		LOOKUPMOD(DLC2RieklingMountedKeyword, 0x03A159, "Dragonborn.esm");
 
