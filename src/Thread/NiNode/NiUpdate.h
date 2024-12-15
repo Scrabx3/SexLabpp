@@ -1,8 +1,8 @@
 #pragma once
 
+#include "NiPosition.h"
+#include "Node.h"
 #include "Registry/Animation.h"
-#include "Registry/NiNode/NiPosition.h"
-#include "Registry/NiNode/Node.h"
 
 namespace Registry::NiNode
 {

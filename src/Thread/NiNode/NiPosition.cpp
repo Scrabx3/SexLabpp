@@ -1,8 +1,7 @@
 #include "NiPosition.h"
 
-#include "Registry/NiNode/NiMath.h"
-// #include "Registry/NiNode/NodeUpdate.h"
-#include "Registry/Util/Premutation.h"
+#include "NiMath.h"
+#include "Util/Premutation.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 
 namespace Registry::NiNode

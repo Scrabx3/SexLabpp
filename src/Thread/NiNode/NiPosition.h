@@ -2,7 +2,7 @@
 
 #include "Registry/Animation.h"
 #include "Registry/Define/Sex.h"
-#include "Registry/NiNode/Node.h"
+#include "Node.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 
 namespace Registry::NiNode
