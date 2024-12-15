@@ -2,11 +2,6 @@
 
 namespace Registry
 {
-	bool IsVampire(const RE::Actor* a_actor)
-	{
-		return a_actor->HasKeyword(GameForms::Vampire);
-	}
-
 	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor)
 	{
 		const auto base = a_actor->GetTemplateActorBase();

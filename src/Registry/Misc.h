@@ -2,7 +2,6 @@
 
 namespace Registry
 {
-	bool IsVampire(const RE::Actor* a_actor);
 	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor);
 
 	template <class T, class U>

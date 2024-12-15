@@ -29,7 +29,7 @@ namespace Registry
 		case RaceKey::Human:
 			{
 				ret.set(PositionFragment::Human);
-				if (a_actor->HasKeyword(GameForms::Vampire)) {
+				if (a_actor->HasKeywordWithType(RE::DEFAULT_OBJECT::kKeywordVampire)) {
 					ret.set(PositionFragment::Vampire);
 				}
 			}
