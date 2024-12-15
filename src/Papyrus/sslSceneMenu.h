@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Registry/Interface/SceneMenu.h"
+#include "Thread/Interface/SceneMenu.h"
 
 namespace Papyrus::SceneMenu
 {

@@ -11,13 +11,16 @@ set(CXX_FILES
 	src/UserData/StripData.h
 	src/UserData/StripData.cpp
 
+	src/Util/Combinatorics.h
 	src/Util/FormLookup.h
 	src/Util/Misc.h
+	src/Util/Premutation.h
 	src/Util/Random.h
 	src/Util/Script.h
 	src/Util/Singleton.h
 	src/Util/StringUtil.h
 	src/Util/FormLookup.h
+	src/Util/World.h
 
 	# src/Hooks/Hooks.h
 	# src/Hooks/Hooks.cpp
@@ -29,27 +32,11 @@ set(CXX_FILES
 	src/Registry/Util/RayCast/RayCast.cpp
 	src/Registry/Util/RayCast/Offsets.h
 
-	src/Registry/Util/CellCrawler.h
-	src/Registry/Util/Combinatorics.h
 	src/Registry/Util/Decode.h
-	src/Registry/Util/Premutation.h
 	src/Registry/Util/RayCast.h
 	src/Registry/Util/SAT.h
 	src/Registry/Util/Scale.h
 	src/Registry/Util/Scale.cpp
-
-	src/Registry/NiNode/NiMath.h
-	src/Registry/NiNode/NiMath.cpp
-	src/Registry/NiNode/NiPosition.h
-	src/Registry/NiNode/NiPosition.cpp
-	src/Registry/NiNode/NiUpdate.h
-	src/Registry/NiNode/NiUpdate.cpp
-	src/Registry/NiNode/Node.h
-	src/Registry/NiNode/Node.cpp
-
-	src/Registry/Interface/Interface.h
-	src/Registry/Interface/SceneMenu.h
-	src/Registry/Interface/SceneMenu.cpp
 
 	src/Registry/Define/Fragment.h
 	src/Registry/Define/Fragment.cpp
@@ -104,4 +91,17 @@ set(CXX_FILES
 	src/Papyrus/sslSystemConfig.h
 	src/Papyrus/sslThreadModel.cpp
 	src/Papyrus/sslThreadModel.h
+
+	src/Thread/Interface/Interface.h
+	src/Thread/Interface/SceneMenu.h
+	src/Thread/Interface/SceneMenu.cpp
+
+	src/Thread/NiNode/NiMath.h
+	src/Thread/NiNode/NiMath.cpp
+	src/Thread/NiNode/NiPosition.h
+	src/Thread/NiNode/NiPosition.cpp
+	src/Thread/NiNode/NiUpdate.h
+	src/Thread/NiNode/NiUpdate.cpp
+	src/Thread/NiNode/Node.h
+	src/Thread/NiNode/Node.cpp
 )

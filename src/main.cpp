@@ -1,11 +1,11 @@
 #include "Papyrus/Papyrus.h"
 #include "Registry/Expression.h"
-#include "Registry/Interface/SceneMenu.h"
 #include "Registry/Library.h"
-#include "Registry/NiNode/NiUpdate.h"
 #include "Registry/Stats.h"
 #include "Registry/Voice.h"
 #include "Serialization.h"
+#include "Thread/Interface/SceneMenu.h"
+#include "Thread/NiNode/NiUpdate.h"
 #include "UserData/StripData.h"
 
 // class EventHandler :

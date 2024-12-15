@@ -2,14 +2,14 @@
 
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
-#include "Registry/NiNode/Node.h"
-#include "Registry/NiNode/NiUpdate.h"
+#include "Thread/NiNode/NiUpdate.h"
+#include "Thread/NiNode/Node.h"
 #include "Registry/Stats.h"
-#include "Registry/Util/CellCrawler.h"
 #include "Registry/Util/RayCast.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 #include "Registry/Util/Scale.h"
 #include "UserData/StripData.h"
+#include "Util/World.h"
 
 using Offset = Registry::CoordinateType;
 
@@ -387,7 +387,7 @@ namespace Papyrus::ThreadModel
 		}
 
 		std::vector<std::pair<RE::TESObjectREFR*, const Registry::FurnitureDetails*>> found_objects;
-		CellCrawler::ForEachObjectInRange(actor, Settings::fScanRadius, [&](RE::TESObjectREFR* a_ref) {
+		Util::ForEachObjectInRange(actor, Settings::fScanRadius, [&](RE::TESObjectREFR* a_ref) {
 			if (!a_ref || std::ranges::contains(used_furnitures, a_ref)) {
 				return RE::BSContainer::ForEachResult::kContinue;
 			}
