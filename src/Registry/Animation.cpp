@@ -3,6 +3,8 @@
 #include "Library.h"
 #include "Registry/Define/RaceKey.h"
 #include "Util/Combinatorics.h"
+#include "Util/Decode.h"
+
 namespace Registry
 {
 	AnimPackage::AnimPackage(const fs::path a_file)

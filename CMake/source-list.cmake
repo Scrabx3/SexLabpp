@@ -31,6 +31,7 @@ set(CXX_FILES
 
 	src/Registry/Util/CellCrawler.h
 	src/Registry/Util/Combinatorics.h
+	src/Registry/Util/Decode.h
 	src/Registry/Util/Premutation.h
 	src/Registry/Util/RayCast.h
 	src/Registry/Util/SAT.h
@@ -105,6 +106,4 @@ set(CXX_FILES
 	src/Papyrus/sslSystemConfig.h
 	src/Papyrus/sslThreadModel.cpp
 	src/Papyrus/sslThreadModel.h
-
-	src/Registry/Util/Console.h
 )
