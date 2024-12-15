@@ -20,6 +20,12 @@ namespace Util
 			} while (i < a_str.size());
 		}
 	}
+	
+	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor)
+	{
+		const auto base = a_actor->GetTemplateActorBase();
+		return base ? base : a_actor->GetActorBase();
+	}
 
 	// using _GetFormEditorID = const char* (*)(std::uint32_t);
 	// inline std::string GetEditorID(RE::TESForm* a_form)
