@@ -3,7 +3,9 @@
 namespace Registry::Interface
 {
 	class SceneMenu :
-		public RE::IMenu
+		public RE::IMenu,
+		public RE::BSTEventSink<RE::InputEvent*>
+		// public RE::BSTEventSink<RE::MenuOpenCloseEvent>
 	{
 		using GRefCountBaseStatImpl::operator new;
 		using GRefCountBaseStatImpl::operator delete;
@@ -11,6 +13,7 @@ namespace Registry::Interface
 	public:
 		static constexpr std::string_view NAME{ "SLSceneMenu" };
 		static constexpr std::string_view FILEPATH{ "SexLab\\SceneMenu" };
+		static constexpr int8_t DEPTH_PRIORITY{ 4 }; 
 
 		SceneMenu();
 		~SceneMenu() = default;
@@ -20,20 +23,23 @@ namespace Registry::Interface
 	public:
 		static void Show() { RE::UIMessageQueue::GetSingleton()->AddMessage(NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr); }
 		static void Hide() { RE::UIMessageQueue::GetSingleton()->AddMessage(NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr); }
-		static void ForceHide() { RE::UIMessageQueue::GetSingleton()->AddMessage(NAME, RE::UI_MESSAGE_TYPE::kForceHide, nullptr); }
 		static bool IsOpen() { return RE::UI::GetSingleton()->IsMenuOpen(NAME); }
 
 	protected:
 		// IMenu
 		RE::UI_MESSAGE_RESULTS ProcessMessage(RE::UIMessage& a_message) override;
 
+		// Events
+		RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>*) override;
+		// RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* a_event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
+
 	private:
-		bool mainFourEnabled;
-		bool menuEnabled;
-	};
-	
-	struct HUDMenu_ShowMessageEx : public RE::GFxFunctionHandler
-	{
-		void Call(Params& a_args) override;
+		static constexpr std::string_view TRUE_HUD_NAME{ "TrueHUD" };
+		bool mainFourEnabled{ true };
+
+		struct HUDMenu_ShowMessageEx : public RE::GFxFunctionHandler
+		{
+			void Call(Params& a_args) override;
+		};
 	};
 }
