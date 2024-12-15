@@ -897,7 +897,7 @@ __CONTINUE_NEXT:
 				if (sub != 1 && scene->GetNthPosition(i)->IsSubmissive()) {
 					sub = -1;
 				}
-				if (Registry::IsNPC(a_positions[i])) {
+				if (a_positions[i]->IsHumanoid()) {
 					switch (Registry::GetSex(a_positions[i])) {
 					case Registry::Sex::Male:
 						stats.AddStatistic(stats.PartnersMale, 1);

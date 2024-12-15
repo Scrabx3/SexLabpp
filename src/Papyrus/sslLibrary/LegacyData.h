@@ -16,7 +16,7 @@ namespace Papyrus
 
   inline LegacySex GetLegacySex(RE::Actor* a_actor)
 	{
-		auto creature = !Registry::IsNPC(a_actor);
+		auto creature = !a_actor->IsHumanoid();
 		auto sex = Registry::GetSex(a_actor);
 		switch (sex) {
 		case Registry::Sex::None:

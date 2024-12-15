@@ -2,11 +2,6 @@
 
 namespace Registry
 {
-	bool IsNPC(const RE::Actor* a_actor)
-	{
-		return a_actor->HasKeyword(GameForms::ActorTypeNPC);
-	}
-
 	bool IsVampire(const RE::Actor* a_actor)
 	{
 		return a_actor->HasKeyword(GameForms::Vampire);

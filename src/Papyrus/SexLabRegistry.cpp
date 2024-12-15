@@ -174,16 +174,17 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Cannot get sex from none ref", a_stackID);
 			return 0;
 		}
+		const bool humanoid = a_actor->IsHumanoid();
 		auto sex = Registry::GetSex(a_actor, a_ignoreoverwrite);
 		switch (sex) {
 		case Registry::Sex::Male:
-			return Registry::IsNPC(a_actor) ? 0 : 3;
+			return humanoid ? 0 : 3;
 		case Registry::Sex::Female:
-			return Registry::IsNPC(a_actor)	 ? 1 :
+			return humanoid									 ? 1 :
 						 Settings::bCreatureGender ? 4 :
 																				 3;
 		case Registry::Sex::Futa:
-			return Registry::IsNPC(a_actor)	 ? 2 :
+			return humanoid									 ? 2 :
 						 Settings::bCreatureGender ? 4 :
 																				 3;
 		default:

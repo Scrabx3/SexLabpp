@@ -2,7 +2,6 @@
 
 namespace Registry
 {
-	bool IsNPC(const RE::Actor* a_actor);
 	bool IsVampire(const RE::Actor* a_actor);
 	RE::TESActorBase* GetLeveledActorBase(RE::Actor* a_actor);
 
