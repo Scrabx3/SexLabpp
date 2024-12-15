@@ -16,32 +16,24 @@ namespace Registry
 		stream.exceptions(std::fstream::failbit);
 
 		uint8_t version;
+		constexpr uint8_t MIN_VERSION = 1;
+		constexpr uint8_t MAX_VERSION = 4;
 		stream.read(reinterpret_cast<char*>(&version), 1);
-		switch (version) {
-		case 1:
-		case 2:
-		case 3:
-			{
-				Decode::Read(stream, name);
-				Decode::Read(stream, author);
+		if (version < MIN_VERSION || version > MAX_VERSION) {
+			const auto err = std::format("Invalid version: {}", version);
+			throw std::runtime_error(err.c_str());
+		}
+		Decode::Read(stream, name);
+		Decode::Read(stream, author);
+		hash.resize(Decode::HASH_SIZE);
+		stream.read(hash.data(), Decode::HASH_SIZE);
 
-				hash.resize(Decode::HASH_SIZE);
-				stream.read(hash.data(), Decode::HASH_SIZE);
-
-				uint64_t scene_count;
-				Decode::Read(stream, scene_count);
-				scenes.reserve(scene_count);
-				for (size_t i = 0; i < scene_count; i++) {
-					scenes.push_back(
-						std::make_unique<Scene>(stream, hash, version));
-				}
-			}
-			break;
-		default:
-			{
-				const auto err = std::format("Invalid version: {}", version);
-				throw std::runtime_error(err.c_str());
-			}
+		uint64_t scene_count;
+		Decode::Read(stream, scene_count);
+		scenes.reserve(scene_count);
+		for (size_t i = 0; i < scene_count; i++) {
+			scenes.push_back(
+				std::make_unique<Scene>(stream, hash, version));
 		}
 	}
 
@@ -187,8 +179,14 @@ namespace Registry
 		for (size_t i = 0; i < position_count; i++) {
 			positions.emplace_back(a_stream, a_version);
 		}
-
-		Decode::Read(a_stream, fixedlength);
+		if (a_version >= 4) {
+			uint32_t fixedlength_ms;
+			Decode::Read(a_stream, fixedlength_ms);
+			fixedlength = static_cast<float>(fixedlength_ms) / 1000.0f;
+		} else {
+			Decode::Read(a_stream, fixedlength);
+			fixedlength /= 1000.0f;
+		}
 		Decode::Read(a_stream, navtext);
 		tags = TagData{ a_stream };
 	}
