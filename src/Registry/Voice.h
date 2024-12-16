@@ -14,40 +14,32 @@ namespace Registry
 		Medium
 	};
 
+	enum class VoiceAnnotation
+	{
+		None = 0,
+		Submissive = 1 << 0,
+		Dominant = 1 << 1,
+		Muffled = 1 << 7,
+	};
+
+	enum class Pitch
+	{
+		Unknown,
+		Normal,
+		High,
+		Low
+	};
+
 	struct VoiceSet
 	{
-		struct CONDITION
-		{
-			enum class ConditionType : uint8_t
-			{
-				Tag,
-				Context,
-				PositionExtra,
-				Submissive
-			};
-
-			union Condition
-			{
-				const char* _string;
-				bool _bool;
-			};
-
-		public:
-			CONDITION(ConditionType a_type, Condition a_condition) :
-				type(a_type), condition(a_condition) {}
-			~CONDITION() = default;
-
-			ConditionType type;
-			Condition condition;
-		};
-
-	public:
 		VoiceSet(const YAML::Node& a_node);
 		VoiceSet(bool a_aslegacyextra);
 		~VoiceSet() = default;
 
-		bool IsValid(const Stage* a_stage, const PositionInfo* a_position, const std::vector<RE::BSFixedString>& a_context) const;
-		RE::TESSound* Get(uint32_t a_strength) const;
+		bool IsValid(REX::EnumSet<VoiceAnnotation> a_annotations) const { return annotations == a_annotations; }
+		RE::TESSound* GetOrgasmStart() const { return orgasmStart; }
+		RE::TESSound* GetOrgasmEnd() const { return orgasmEnd; }
+		RE::TESSound* Get(uint32_t a_excitement) const;
 		RE::TESSound* Get(LegacyVoice a_setting) const;
 
 	public:
@@ -55,18 +47,26 @@ namespace Registry
 		YAML::Node AsYaml() const;
 
 	private:
+		RE::TESSound* orgasmStart{ nullptr };
+		RE::TESSound* orgasmEnd{ nullptr };
 		std::vector<std::pair<RE::TESSound*, uint8_t>> data{};
-		std::vector<CONDITION> conditions{};
+		REX::EnumSet<VoiceAnnotation> annotations{ VoiceAnnotation::None };
 	};
 
 	class Voice :
 		public Singleton<Voice>
 	{
+		static constexpr const char* VOICE_PATH{ CONFIGPATH("Voices") };
+		static constexpr const char* VOICE_PATH_PITCH{ CONFIGPATH("Voices//Pitch") };
+		static constexpr const char* VOICE_SETTING_PATH{ USERDATAPATH("Voices.yaml") };
+		static constexpr const char* VOICE_SETTINGS_CACHES_PATH{ USERDATAPATH("Voices_NPC.yaml") };
+
+	public:
 		struct VoiceObject
 		{
 			VoiceObject(const YAML::Node& a_node);
 			VoiceObject(RE::BSFixedString a_name) :
-				name(a_name), fromfile(false), defaultset(false), extrasets({ { true } }){};
+				name(a_name), fromfile(false), defaultset(false), extrasets({ { true } }) {}
 			~VoiceObject() = default;
 
 			RE::BSFixedString name;
@@ -75,14 +75,15 @@ namespace Registry
 
 			RE::SEXES::SEX sex{ RE::SEXES::SEX::kNone };
 			std::vector<RaceKey> races{};
+			Pitch pitch{ Pitch::Unknown };
 
 			TagData tags{};
 			VoiceSet defaultset;
-			RE::TESSound* orgasmvfx{ nullptr };
 			std::vector<VoiceSet> extrasets{};
 
 		public:
 			YAML::Node AsYaml() const;
+			const VoiceSet& GetApplicableSet(REX::EnumSet<VoiceAnnotation> a_annotation) const;
 			bool operator==(const VoiceObject& a_rhs) const noexcept { return name == a_rhs.name; }
 		};
 
@@ -95,8 +96,8 @@ namespace Registry
 		void SetVoiceObjectEnabled(RE::BSFixedString a_voice, bool a_enabled);
 
 		RE::TESSound* PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const;
-		RE::TESSound* PickSound(RE::BSFixedString a_voice, uint32_t a_priority, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const;
-		RE::TESSound* GetOrgasmSound(RE::BSFixedString a_voice, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const;
+		RE::TESSound* PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const;
+		RE::TESSound* PickOrgasmSound(RE::BSFixedString a_voice, bool a_orgasmStart, REX::EnumSet<VoiceAnnotation> a_annotation) const;
 
 		std::vector<RE::Actor*> GetSavedActors() const;
 		const VoiceObject* GetSavedVoice(RE::FormID a_key) const;
@@ -117,8 +118,17 @@ namespace Registry
 		void Save();
 
 	private:
+		void LoadVoices();
+		void LoadPitches();
+		void LoadSettings();
+		void LoadCache();
+		void SaveSettings();
+		void SaveCache();
+
+	private:
 		mutable std::shared_mutex _m{};
 		std::vector<VoiceObject> voices{};
+		std::map<RE::FormID, Pitch> saved_pitches{};
 		std::map<RE::FormID, const VoiceObject*> saved_voices{};
 	};
 

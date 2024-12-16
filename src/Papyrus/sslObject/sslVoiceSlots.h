@@ -11,11 +11,9 @@ namespace Papyrus::VoiceSlots
 		int GetCompatibleSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
 		std::vector<RE::BSFixedString> GetCompatibleRaces(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id);
 
-		RE::TESSound* GetSoundObject(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_strength,
-			std::vector<RE::BSFixedString> a_context, RE::BSFixedString a_scene, RE::BSFixedString a_stage, int a_positionidx);
+		RE::TESSound* GetSoundObject(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_strength, RE::BSFixedString a_scene, int a_idx, bool a_muffled);
 		RE::TESSound* GetSoundObjectLeg(RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_idx);
-		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id,
-			std::vector<RE::BSFixedString> a_context, RE::BSFixedString a_scene, RE::BSFixedString a_stage, int a_positionidx);
+		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_scene, int a_idx, bool a_muffled, bool a_start);
 
 		bool InitializeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id);
 		void FinalizeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id);

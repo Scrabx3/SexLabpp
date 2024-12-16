@@ -3,6 +3,7 @@ Name: ExampleName # Should be unique
 Actor:
   Sex: Female   # Male, Female or Any
   Race: Human   # Scalar or List
+  Pitch: Normal # Low, Normal, High
 
 Tags:
   - Tag1
@@ -13,15 +14,17 @@ Voices:           # List or Map
   <Voice1Form>: 0
   <Voice2Form>: 20
   <Voice3Form>: 65
-Orgasm: <VoiceForm>
+Orgasm: <VoiceForm>  # Optional, but recommended
+OrgasmEnd: <VoiceForm>  # Optional
 
 Extra:
   - Voices:
       - <Voice1Form>
       - <Voice2Form>
       - <Voice3Form>
+    Orgasm: <VoiceForm>
+    OrgasmEnd: <VoiceForm>
     Conditions:
-      Submissive: true
-      Context: Aggressive   # Scalar or List
-      Position: ExampleData # Position ExtraData, Scalar or List
-      Tags: Dominant        # Stage Tags, Scalar or List
+      Submissive: false
+      Dominant: true
+      Muffled: false

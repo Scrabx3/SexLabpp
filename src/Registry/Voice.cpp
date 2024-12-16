@@ -40,6 +40,18 @@ namespace Registry
 		if (ret.empty()) {
 			return nullptr;
 		}
+		if (auto voiceForm = base->GetVoiceType()) {
+			auto where = saved_pitches.find(a_actor->formID);
+			const auto pitch = where != saved_pitches.end() ? where->second : Pitch::Unknown;
+			if (pitch != Pitch::Unknown) {
+				const auto w = std::remove_if(ret.begin(), ret.end(), [&](auto v) {
+					return v->pitch != Pitch::Unknown && v->pitch != pitch;
+				});
+				if (w != ret.begin() && w != ret.end()) {
+					ret.erase(w, ret.end());
+				}
+			}
+		}
 		auto v = ret[Random::draw<size_t>(0, ret.size() - 1)];
 		saved_voices[a_actor->formID] = v;
 		return v;
@@ -88,22 +100,6 @@ namespace Registry
 		v->enabled = a_enabled;
 	}
 
-	RE::TESSound* Voice::PickSound(RE::BSFixedString a_voice, uint32_t a_priority, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const
-	{
-		std::shared_lock lock{ _m };
-		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
-		if (v == voices.end()) {
-			logger::error("No such voice registered: {}", a_voice);
-			return nullptr;
-		}
-		for (auto&& vset : v->extrasets) {
-			if (vset.IsValid(a_stage, a_info, a_context)) {
-				return vset.Get(a_priority);
-			}
-		}
-		return v->defaultset.Get(a_priority);
-	}
-
 	RE::TESSound* Voice::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const
 	{
 		std::shared_lock lock{ _m };
@@ -116,7 +112,7 @@ namespace Registry
 		return maybe_victim && !v->extrasets.empty() ? v->extrasets.front().Get(a_legacysetting) : v->defaultset.Get(a_legacysetting);
 	}
 
-	RE::TESSound* Voice::GetOrgasmSound(RE::BSFixedString a_voice, const Stage* a_stage, const PositionInfo* a_info, const std::vector<RE::BSFixedString>& a_context) const
+	RE::TESSound* Voice::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const
 	{
 		std::shared_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
@@ -124,9 +120,20 @@ namespace Registry
 			logger::error("No such voice registered: {}", a_voice);
 			return nullptr;
 		}
-		if (v->orgasmvfx)
-			return v->orgasmvfx;
-		return PickSound(a_voice, 100, a_stage, a_info, a_context);
+		return v->GetApplicableSet(a_annotation).Get(a_excitement);
+	}
+
+	RE::TESSound* Voice::PickOrgasmSound(RE::BSFixedString a_voice, bool a_orgasmStart, REX::EnumSet<VoiceAnnotation> a_annotation) const
+	{
+		std::shared_lock lock{ _m };
+		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
+		if (v == voices.end()) {
+			logger::error("No such voice registered: {}", a_voice);
+			return nullptr;
+		}
+		const auto s = v->GetApplicableSet(a_annotation);
+		const auto retVal = a_orgasmStart ? s.GetOrgasmStart() : s.GetOrgasmEnd();
+		return retVal ? retVal : s.Get(100);
 	}
 
 	std::vector<RE::Actor*> Voice::GetSavedActors() const
@@ -279,7 +286,7 @@ namespace Registry
 		if (v->fromfile) {
 			return;
 		}
-		auto path = std::format("{}\\{}.yaml", VOICEPATH, v->name);
+		auto path = std::format("{}\\{}.yaml", VOICE_PATH, v->name);
 		if (fs::exists(path)) {
 			return;
 		}
@@ -292,63 +299,109 @@ namespace Registry
 	{
 		std::unique_lock lock{ _m };
 		logger::info("Loading Voices");
+		LoadVoices();
+		LoadPitches();
+		LoadSettings();
+		LoadCache();
+	}
 
-		if (fs::exists(VOICEPATH)) {
-			for (auto& file : fs::directory_iterator{ VOICEPATH }) {
-				if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
-					continue;
-				const auto filename = file.path().filename().string();
-				try {
-					const auto root = YAML::LoadFile(file.path().string());
-					auto v = VoiceObject{ root };
-					if (auto w = std::ranges::find(voices, v); w != voices.end()) {
-						*w = std::move(v);
-					} else {
-						voices.push_back(std::move(v));
-					}
-					logger::info("Loaded scene voice {}", filename);
-				} catch (const std::exception& e) {
-					logger::error("Error while loading scene settings from file {}: {}", filename, e.what());
-				}
-			}
+	void Voice::LoadVoices()
+	{
+		if (!fs::exists(VOICE_PATH) || fs::is_empty(VOICE_PATH)) {
+			throw std::exception("No Voice Files to load");
 		}
-
-		if (fs::exists(VOICESETTINGPATH)) {
+		for (auto& file : fs::directory_iterator{ VOICE_PATH }) {
+			if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
+				continue;
+			const auto filename = file.path().filename().string();
 			try {
-				const auto root = YAML::LoadFile(VOICESETTINGPATH);
-				for (auto&& it : root) {
-					const RE::BSFixedString str = it.first.as<std::string>();
-					auto where = std::ranges::find(voices, str, [](auto& it) { return it.name; });
-					if (where == voices.end())
-						continue;
-
-					where->enabled = it.second.as<bool>();
+				const auto root = YAML::LoadFile(file.path().string());
+				auto v = VoiceObject{ root };
+				if (auto w = std::ranges::find(voices, v); w != voices.end()) {
+					*w = std::move(v);
+				} else {
+					voices.push_back(std::move(v));
 				}
+				logger::info("Loaded scene voice {}", filename);
 			} catch (const std::exception& e) {
-				logger::error("Error while loading voice settings: {}", e.what());
+				logger::error("Error while loading scene settings from file {}: {}", filename, e.what());
 			}
 		}
 		logger::info("Loaded {} Voices", voices.size());
+	}
 
-		if (fs::exists(VOICE_NPCPATH)) {
+	void Voice::LoadPitches()
+	{
+		if (!fs::exists(VOICE_PATH_PITCH) || fs::is_empty(VOICE_PATH_PITCH)) {
+			logger::info("No Voice Pitches to load");
+			return;
+		}
+		for (auto& file : fs::directory_iterator{ VOICE_PATH_PITCH }) {
+			if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
+				continue;
+			const auto filename = file.path().filename().string();
 			try {
-				const auto root = YAML::LoadFile(VOICE_NPCPATH);
+				const auto root = YAML::LoadFile(file.path().string());
 				for (auto&& it : root) {
-					const auto str = it.first.as<std::string>();
-					auto id = Util::FormFromString(str);
+					auto id = Util::FormFromString(it.first.as<std::string>());
 					if (id == 0)
 						continue;
-					auto v = it.second.as<std::string>();
-					auto vobj = std::ranges::find(voices, v.data(), [](auto& it) { return it.name; });
-					if (vobj == voices.end()) {
-						logger::error("Actor {} uses unknown Voice {}", id, v);
+					auto pitch = magic_enum::enum_cast<Pitch>(it.second.as<std::string>());
+					if (!pitch.has_value())
 						continue;
-					}
-					saved_voices.insert_or_assign(id, vobj._Ptr);
+					saved_pitches.insert_or_assign(id, pitch.value());
 				}
 			} catch (const std::exception& e) {
-				logger::error("Error while loading npc voices: {}", e.what());
+				logger::error("Error while loading voice pitches from file {}: {}", filename, e.what());
 			}
+		}
+		logger::info("Loaded {} Voice Pitches", saved_pitches.size());
+	}
+
+	void Voice::LoadSettings()
+	{
+		if (!fs::exists(VOICE_SETTING_PATH)) {
+			logger::info("No Voice Settings to load");
+			return;
+		}
+		try {
+			const auto root = YAML::LoadFile(VOICE_SETTING_PATH);
+			for (auto&& it : root) {
+				const RE::BSFixedString str = it.first.as<std::string>();
+				auto where = std::ranges::find(voices, str, [](auto& it) { return it.name; });
+				if (where == voices.end())
+					continue;
+
+				where->enabled = it.second.as<bool>();
+			}
+		} catch (const std::exception& e) {
+			logger::error("Error while loading voice settings: {}", e.what());
+		}
+	}
+
+	void Voice::LoadCache()
+	{
+		if (!fs::exists(VOICE_SETTINGS_CACHES_PATH)) {
+			logger::info("No Voice Cache to load");
+			return;
+		}
+		try {
+			const auto root = YAML::LoadFile(VOICE_SETTINGS_CACHES_PATH);
+			for (auto&& it : root) {
+				const auto str = it.first.as<std::string>();
+				auto id = Util::FormFromString(str);
+				if (id == 0)
+					continue;
+				auto v = it.second.as<std::string>();
+				auto vobj = std::ranges::find(voices, v.data(), [](auto& it) { return it.name; });
+				if (vobj == voices.end()) {
+					logger::error("Actor {} uses unknown Voice {}", id, v);
+					continue;
+				}
+				saved_voices.insert_or_assign(id, vobj._Ptr);
+			}
+		} catch (const std::exception& e) {
+			logger::error("Error while loading npc voices: {}", e.what());
 		}
 		logger::info("Loaded {} NPC Voices", saved_voices.size());
 	}
@@ -356,48 +409,54 @@ namespace Registry
 	void Voice::Save()
 	{
 		std::shared_lock lock{ _m };
-		{
-			YAML::Node root = []() {
-				try {
-					if (fs::exists(VOICESETTINGPATH))
-						return YAML::LoadFile(VOICESETTINGPATH);
-				} catch (const std::exception& e) {
-					logger::error("Error while loading voice settings: {}. The file will be re-generated", e.what());
-				}
-				return YAML::Node{};
-			}();
-			for (auto&& it : voices) {
-				root[it.name.data()] = it.enabled;
+		SaveSettings();
+		SaveCache();
+	}
+	
+	void Voice::SaveSettings()
+	{
+		YAML::Node root = []() {
+			try {
+				if (fs::exists(VOICE_SETTING_PATH))
+					return YAML::LoadFile(VOICE_SETTING_PATH);
+			} catch (const std::exception& e) {
+				logger::error("Error while loading voice settings: {}. The file will be re-generated", e.what());
 			}
-			std::ofstream fout(VOICESETTINGPATH);
-			fout << root;
-			logger::info("Saved {} Voices", root.size());
+			return YAML::Node{};
+		}();
+		for (auto&& it : voices) {
+			root[it.name.data()] = it.enabled;
 		}
-		{
-			YAML::Node root = []() {
-				try {
-					if (fs::exists(VOICE_NPCPATH))
-						return YAML::LoadFile(VOICE_NPCPATH);
-				} catch (const std::exception& e) {
-					logger::error("Error while loading npc voices: {}. The file will be re-generated", e.what());
-				}
-				return YAML::Node{};
-			}();
-			for (auto&& [id, voice] : saved_voices) {
-				auto form = RE::TESForm::LookupByID<RE::Actor>(id);
-				if (!form)
+		std::ofstream fout(VOICE_SETTING_PATH);
+		fout << root;
+		logger::info("Saved {} Voices", root.size());
+	}
+	
+	void Voice::SaveCache()
+	{
+		YAML::Node root = []() {
+			try {
+				if (fs::exists(VOICE_SETTINGS_CACHES_PATH))
+					return YAML::LoadFile(VOICE_SETTINGS_CACHES_PATH);
+			} catch (const std::exception& e) {
+				logger::error("Error while loading npc voices: {}. The file will be re-generated", e.what());
+			}
+			return YAML::Node{};
+		}();
+		for (auto&& [id, voice] : saved_voices) {
+			auto form = RE::TESForm::LookupByID<RE::Actor>(id);
+			if (!form)
+				continue;
+			if (auto base = form->GetActorBase()) {
+				if (!base->IsUnique())
 					continue;
-				if (auto base = form->GetActorBase()) {
-					if (!base->IsUnique())
-						continue;
-				}
-				auto str = Util::FormToString(form);
-				root[str] = voice->name.data();
 			}
-			std::ofstream fout(VOICE_NPCPATH);
-			fout << root;
-			logger::info("Saved {} NPC Voices", root.size());
+			auto str = Util::FormToString(form);
+			root[str] = voice->name.data();
 		}
+		std::ofstream fout(VOICE_SETTINGS_CACHES_PATH);
+		fout << root;
+		logger::info("Saved {} NPC Voices", root.size());
 	}
 
 	Voice::VoiceObject::VoiceObject(const YAML::Node& a_node) :
@@ -425,13 +484,19 @@ namespace Registry
 			}
 			return ret;
 		}()),
+		pitch([&]() {
+			const auto& node = a_node["Actor"]["Pitch"];
+			if (!node.IsDefined())
+				return Pitch::Unknown;
+			const auto str = node.as<std::string>();
+			return magic_enum::enum_cast<Pitch>(str, magic_enum::case_insensitive).value_or(Pitch::Unknown);
+		}()),
 		tags([&]() -> decltype(tags) {
-			auto node = a_node["Tags"];
+			const auto& node = a_node["Tags"];
 			auto arg = node.IsScalar() ? std::vector{ node.as<std::string>() } : node.as<std::vector<std::string>>();
 			return { arg };
 		}()),
 		defaultset(a_node),
-		orgasmvfx([&]() { auto&node = a_node["Orgasm"]; return node.IsDefined() ? Util::FormFromString<RE::TESSound*>(node.as<std::string>()) : nullptr; }()),
 		extrasets([&]() {
 			decltype(extrasets) ret{};
 			ret.emplace_back(a_node);
@@ -470,13 +535,32 @@ namespace Registry
 		for (auto&& t : tags.AsVector()) {
 			ret["Tags"].push_back(t.data());
 		}
-		ret["Voices"] = defaultset.AsYaml()["Voices"];
-		if (orgasmvfx)
-			ret["Orgasm"] = Util::FormToString(orgasmvfx);
+		const auto dSet = defaultset.AsYaml();
+		ret["Voices"] = dSet["Voices"];
+		if (dSet["Orgasm"].IsDefined()) {
+			ret["Orgasm"] = dSet["Orgasm"];
+		}
+		if (dSet["OrgasmEnd"].IsDefined()) {
+			ret["OrgasmEnd"] = dSet["OrgasmEnd"];
+		}
 		for (auto&& e : extrasets) {
 			ret["Extra"].push_back(e.AsYaml());
 		}
 		return ret;
+	}
+	
+	const VoiceSet& Voice::VoiceObject::GetApplicableSet(REX::EnumSet<VoiceAnnotation> a_annotation) const
+	{
+		while (a_annotation != VoiceAnnotation::None) {
+			for (auto&& vset : extrasets) {
+				if (vset.IsValid(a_annotation)) {
+					return vset;
+				}
+			}
+			auto u = a_annotation.underlying();
+			a_annotation = VoiceAnnotation(u & (u - 1));
+		}
+		return defaultset;
 	}
 
 	VoiceSet::VoiceSet(const YAML::Node& a_node)
@@ -489,8 +573,7 @@ namespace Registry
 			}
 		} else {
 			const auto max = static_cast<float>(v.size());
-			for (float i = 0; i < max; i++)
-			{
+			for (float i = 0; i < max; i++) {
 				auto sound = Util::FormFromString<RE::TESSound*>(v[i].as<std::string>());
 				if (!sound)
 					continue;
@@ -503,37 +586,23 @@ namespace Registry
 		std::sort(data.begin(), data.end(), [](auto& a, auto& b) {
 			return a.second < b.second;
 		});
-
+		if (auto o = a_node["Orgasm"]; o.IsDefined()) {
+			orgasmStart = Util::FormFromString<RE::TESSound*>(o.as<std::string>());
+		}
+		if (auto o = a_node["OrgasmEnd"]; o.IsDefined()) {
+			orgasmEnd = Util::FormFromString<RE::TESSound*>(o.as<std::string>());
+		}
 		auto convec = a_node["Conditions"];
 		if (!convec.IsDefined())
 			return;
-
 		for (auto&& con : convec) {
 			auto key = con.first.as<std::string>();
-			Util::ToLower(key);
-			if (key == "submissive") {
-				CONDITION::Condition ct{};
-				ct._bool = con.second.as<bool>();
-				conditions.emplace_back(CONDITION::ConditionType::Submissive, ct);
+			auto value = con.second.as<bool>();
+			if (!value)
 				continue;
-			}
-			auto contype =
-				key == "context"	? CONDITION::ConditionType::Context :
-				key == "position" ? CONDITION::ConditionType::PositionExtra :
-														// key == "tags" ?
-														CONDITION::ConditionType::Tag;
-			if (con.second.IsScalar()) {
-				auto str = con.second.as<std::string>();
-				CONDITION::Condition ct{};
-				ct._string = _strdup(str.c_str());
-				conditions.emplace_back(contype, ct);
-			} else {
-				for (auto&& it : con.second) {
-					auto str = it.as<std::string>();
-					CONDITION::Condition ct{};
-					ct._string = _strdup(str.c_str());
-					conditions.emplace_back(contype, ct);
-				}
+			auto annotation = magic_enum::enum_cast<VoiceAnnotation>(key, magic_enum::case_insensitive);
+			if (annotation.has_value()) {
+				annotations |= annotation.value();
 			}
 		}
 	}
@@ -542,39 +611,8 @@ namespace Registry
 		data({ { nullptr, uint8_t(0) }, { nullptr, uint8_t(75) } })
 	{
 		if (a_aslegacyextra) {
-			CONDITION::Condition carg{};
-			carg._string = "Aggressive";
-			CONDITION c(CONDITION::ConditionType::Context, carg);
-			conditions.push_back(std::move(c));
+			annotations |= VoiceAnnotation::Submissive;
 		}
-	}
-
-	bool VoiceSet::IsValid(const Stage* a_stage, const PositionInfo* a_position, const std::vector<RE::BSFixedString>& a_context) const
-	{
-		for (auto&& c : conditions) {
-			switch (c.type) {
-			case CONDITION::ConditionType::Tag:
-				if (!a_stage->tags.HasTag(c.condition._string))
-					return false;
-				break;
-			case CONDITION::ConditionType::Context:
-				if (!std::ranges::contains(a_context, RE::BSFixedString(c.condition._string)))
-					return false;
-				break;
-			case CONDITION::ConditionType::PositionExtra:
-				if (!a_position->HasExtraCstm(c.condition._string))
-					return false;
-				break;
-			case CONDITION::ConditionType::Submissive:
-				if (a_position->IsSubmissive() != c.condition._bool)
-					return false;
-				break;
-			default:
-				logger::error("Unrecognized Condition Type {}", static_cast<std::underlying_type_t<decltype(c.type)>>(c.type));
-				break;
-			}
-		}
-		return true;
 	}
 
 	RE::TESSound* VoiceSet::Get(uint32_t a_priority) const
@@ -584,7 +622,6 @@ namespace Registry
 			auto& [voice, value] = data[i];
 			if (value <= a_priority)
 				return voice;
-
 		}
 		return nullptr;
 	}
@@ -616,24 +653,16 @@ namespace Registry
 				continue;
 			ret["Voices"][key] = static_cast<int32_t>(prio);
 		}
-		for (auto&& c : conditions) {
-			switch (c.type) {
-			case CONDITION::ConditionType::Tag:
-				ret["Conditions"]["Tags"].push_back(c.condition._string);
-				break;
-			case CONDITION::ConditionType::Context:
-				ret["Conditions"]["Context"].push_back(c.condition._string);
-				break;
-			case CONDITION::ConditionType::PositionExtra:
-				ret["Conditions"]["Position"].push_back(c.condition._string);
-				break;
-			case CONDITION::ConditionType::Submissive:
-				ret["Conditions"]["Submissive"].push_back(c.condition._bool);
-				break;
-			default:
-				logger::error("Unrecognized Condition Type {}", static_cast<std::underlying_type_t<decltype(c.type)>>(c.type));
-				break;
-			}
+		if (orgasmStart) {
+			ret["Orgasm"] = Util::FormToString(orgasmStart);
+		}
+		if (orgasmEnd) {
+			ret["OrgasmEnd"] = Util::FormToString(orgasmEnd);
+		}
+		const auto components = FlagToComponents(annotations.get());
+		for (auto&& c : components) {
+			const auto name = magic_enum::enum_name(c);
+			ret["Conditions"][name.data()] = true;
 		}
 		return ret;
 	}

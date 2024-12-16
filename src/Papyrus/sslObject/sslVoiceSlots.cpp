@@ -61,8 +61,7 @@ namespace Papyrus::VoiceSlots
 			return ret;
 		}
 
-		RE::TESSound* GetSoundObject(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_strength,
-			std::vector<RE::BSFixedString> a_context, RE::BSFixedString a_scene, RE::BSFixedString a_stage, int a_positionidx)
+		RE::TESSound* GetSoundObject(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_strength, RE::BSFixedString a_scene, int a_idx, bool a_muffled)
 		{
 			const auto lib = Registry::Library::GetSingleton();
 			auto scene = lib->GetSceneByID(a_scene);
@@ -70,18 +69,20 @@ namespace Papyrus::VoiceSlots
 				a_vm->TraceStack("Invalid scene id", a_stackID);
 				return nullptr;
 			}
-			if (scene->CountPositions() <= static_cast<uint32_t>(a_positionidx)) {
+			if (scene->CountPositions() <= static_cast<uint32_t>(a_idx)) {
 				a_vm->TraceStack("Invalid position idx", a_stackID);
 				return nullptr;
 			}
-			auto stage = scene->GetStageByID(a_stage);
-			if (!stage) {
-				a_vm->TraceStack("Invalid stage id", a_stackID);
-				return nullptr;
+			REX::EnumSet<Registry::VoiceAnnotation> annotation;
+			if (scene->CountSubmissives() > 0) {
+				if (scene->GetNthPosition(a_idx)->IsSubmissive())
+					annotation.set(Registry::VoiceAnnotation::Submissive);
+				else
+					annotation.set(Registry::VoiceAnnotation::Dominant);
 			}
-			auto p = scene->GetNthPosition(a_positionidx);
-			const auto vs = Registry::Voice::GetSingleton();
-			return vs->PickSound(a_id, static_cast<uint32_t>(a_strength), stage, p, a_context);
+			if (a_muffled)
+				annotation.set(Registry::VoiceAnnotation::Muffled);
+			return Registry::Voice::GetSingleton()->PickSound(a_id, static_cast<uint32_t>(a_strength), annotation);
 		}
 
 		RE::TESSound* GetSoundObjectLeg(RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_idx)
@@ -89,8 +90,7 @@ namespace Papyrus::VoiceSlots
 			return Registry::Voice::GetSingleton()->PickSound(a_id, Registry::LegacyVoice(a_idx));
 		}
 
-		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id,
-			std::vector<RE::BSFixedString> a_context, RE::BSFixedString a_scene, RE::BSFixedString a_stage, int a_positionidx)
+		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_scene, int a_idx, bool a_muffled, bool a_start)
 		{
 			const auto lib = Registry::Library::GetSingleton();
 			auto scene = lib->GetSceneByID(a_scene);
@@ -98,18 +98,20 @@ namespace Papyrus::VoiceSlots
 				a_vm->TraceStack("Invalid scene id", a_stackID);
 				return nullptr;
 			}
-			if (scene->CountPositions() <= static_cast<uint32_t>(a_positionidx)) {
+			if (scene->CountPositions() <= static_cast<uint32_t>(a_idx)) {
 				a_vm->TraceStack("Invalid position idx", a_stackID);
 				return nullptr;
 			}
-			auto stage = scene->GetStageByID(a_stage);
-			if (!stage) {
-				a_vm->TraceStack("Invalid stage id", a_stackID);
-				return nullptr;
+			REX::EnumSet<Registry::VoiceAnnotation> annotation;
+			if (scene->CountSubmissives() > 0) {
+				if (scene->GetNthPosition(a_idx)->IsSubmissive())
+					annotation.set(Registry::VoiceAnnotation::Submissive);
+				else
+					annotation.set(Registry::VoiceAnnotation::Dominant);
 			}
-			auto p = scene->GetNthPosition(a_positionidx);
-			const auto vs = Registry::Voice::GetSingleton();
-			return vs->GetOrgasmSound(a_id, stage, p, a_context);
+			if (a_muffled)
+				annotation.set(Registry::VoiceAnnotation::Muffled);
+			return Registry::Voice::GetSingleton()->PickOrgasmSound(a_id, a_start, annotation);
 		}
 
 		bool InitializeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id)
