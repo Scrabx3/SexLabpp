@@ -45,17 +45,22 @@ namespace Registry
 
 	FurnitureDetails::FurnitureDetails(const YAML::Node& a_node)
 	{
-		for (auto&& it : a_node) {
-			const auto typestr = it.as<std::string>();
+		const auto parse_node = [&](const YAML::Node& it) {
+			const auto typenode = it["Type"];
+			if (!typenode.IsDefined()) {
+				logger::error("Missing 'Type' for node");
+				return;
+			}
+			const auto typestr = typenode.as<std::string>();
 			const auto where = FurniTable.find(typestr);
 			if (where == FurniTable.end()) {
 				logger::error("Unrecognized Furniture: '{}'", typestr);
-				continue;
+				return;
 			}
 			const auto offsetnode = it["Offset"];
-			if (offsetnode.IsDefined() || !offsetnode.IsSequence()) {
+			if (!offsetnode.IsDefined() || !offsetnode.IsSequence()) {
 				logger::error("Missing 'Offset' node for type '{}'", typestr);
-				continue;
+				return;
 			}
 			std::vector<Coordinate> offsets{};
 			const auto push = [&](const YAML::Node& node) {
@@ -77,9 +82,16 @@ namespace Registry
 			}
 			if (offsets.empty()) {
 				logger::error("Type '{}' is defined but has no valid offsets", typestr);
-				continue;
+				return;
 			}
 			_data.emplace_back(where->second, std::move(offsets));
+		};
+		if (a_node.IsSequence()) {
+			for (auto&& it : a_node) {
+				parse_node(it);
+			}
+		} else {
+			parse_node(a_node);
 		}
 	}
 
