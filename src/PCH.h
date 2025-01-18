@@ -190,6 +190,20 @@ struct std::formatter<RE::BSFixedString> : std::formatter<const char*>
 	}
 };
 
+template<>
+struct fmt::formatter<YAML::Mark> : fmt::formatter<std::string>
+{
+	constexpr auto parse(format_parse_context& ctx) {
+        return ctx.begin();
+    }
+
+	template <typename FormatContext>
+    auto format(YAML::Mark mark, FormatContext &ctx) const -> decltype(ctx.out())
+	{
+		return fmt::format_to(ctx.out(), "[Ln {}, Col {}]", mark.line + 1, mark.column + 1);
+	}
+};
+
 #define DLLEXPORT __declspec(dllexport)
 
 #include "Plugin.h"

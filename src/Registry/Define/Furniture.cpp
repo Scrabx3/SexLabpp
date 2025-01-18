@@ -45,23 +45,28 @@ namespace Registry
 
 	FurnitureDetails::FurnitureDetails(const YAML::Node& a_node)
 	{
-		for (auto&& it : a_node) {
-			const auto typestr = it.as<std::string>();
+		const auto parse_node = [&](const YAML::Node& it) {
+			const auto typenode = it["Type"];
+			if (!typenode.IsDefined()) {
+				logger::error("Missing 'Type' for node {}", a_node.Mark());
+				return;
+			}
+			const auto typestr = typenode.as<std::string>();
 			const auto where = FurniTable.find(typestr);
 			if (where == FurniTable.end()) {
-				logger::error("Unrecognized Furniture: '{}'", typestr);
-				continue;
+				logger::error("Unrecognized Furniture: '{}' {}", typestr, typenode.Mark());
+				return;
 			}
 			const auto offsetnode = it["Offset"];
-			if (offsetnode.IsDefined() || !offsetnode.IsSequence()) {
-				logger::error("Missing 'Offset' node for type '{}'", typestr);
-				continue;
+			if (!offsetnode.IsDefined() || !offsetnode.IsSequence()) {
+				logger::error("Missing 'Offset' node for type '{}' {}", typestr, typenode.Mark());
+				return;
 			}
 			std::vector<Coordinate> offsets{};
 			const auto push = [&](const YAML::Node& node) {
 				const auto vec = node.as<std::vector<float>>();
 				if (vec.size() != 4) {
-					logger::error("Invalid offset size. Expected 4 but got {}", vec.size());
+					logger::error("Invalid offset size. Expected 4 but got {} {}", vec.size(), node.Mark());
 					return;
 				}
 				Coordinate coords(vec);
@@ -76,10 +81,17 @@ namespace Registry
 				push(offsetnode);
 			}
 			if (offsets.empty()) {
-				logger::error("Type '{}' is defined but has no valid offsets", typestr);
-				continue;
+				logger::error("Type '{}' is defined but has no valid offsets {}", typestr, typenode.Mark());
+				return;
 			}
 			_data.emplace_back(where->second, std::move(offsets));
+		};
+		if (a_node.IsSequence()) {
+			for (auto&& it : a_node) {
+				parse_node(it);
+			}
+		} else {
+			parse_node(a_node);
 		}
 	}
 
