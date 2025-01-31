@@ -90,7 +90,7 @@ namespace Papyrus::VoiceSlots
 			return Registry::Voice::GetSingleton()->PickSound(a_id, Registry::LegacyVoice(a_idx));
 		}
 
-		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_scene, int a_idx, bool a_muffled, bool a_start)
+		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_scene, int a_idx, bool a_muffled)
 		{
 			const auto lib = Registry::Library::GetSingleton();
 			auto scene = lib->GetSceneByID(a_scene);
@@ -111,7 +111,7 @@ namespace Papyrus::VoiceSlots
 			}
 			if (a_muffled)
 				annotation.set(Registry::VoiceAnnotation::Muffled);
-			return Registry::Voice::GetSingleton()->PickOrgasmSound(a_id, a_start, annotation);
+			return Registry::Voice::GetSingleton()->PickOrgasmSound(a_id, annotation);
 		}
 
 		bool InitializeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id)
@@ -201,9 +201,10 @@ namespace Papyrus::VoiceSlots
 		Registry::Voice::GetSingleton()->ClearVoice(a_actor->GetFormID());
 	}
 
-	std::vector<RE::BSFixedString> GetAllVoices(RE::StaticFunctionTag*)
+	std::vector<RE::BSFixedString> GetAllVoices(RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
-		return Registry::Voice::GetSingleton()->GetAllVoiceNames();
+		auto rk = a_racekey.empty() ? Registry::RaceKey::None : Registry::RaceHandler::GetRaceKey(a_racekey);
+		return Registry::Voice::GetSingleton()->GetAllVoiceNames(rk);
 	}
 
 	std::vector<RE::Actor*> GetAllCachedUniqueActorsSorted(RE::StaticFunctionTag*, RE::Actor* a_sndprio)

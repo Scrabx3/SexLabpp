@@ -2,12 +2,14 @@
 
 namespace Registry
 {
-	std::vector<RE::BSFixedString> Voice::GetAllVoiceNames() const
+	std::vector<RE::BSFixedString> Voice::GetAllVoiceNames(RaceKey a_race) const
 	{
 		std::shared_lock lock{ _m };
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(voices.size());
 		for (auto&& v : voices) {
+			if (a_race != RaceKey::None && !std::ranges::contains(v.races, a_race))
+				continue;
 			ret.push_back(v.name);
 		}
 		return ret;
@@ -41,11 +43,13 @@ namespace Registry
 			return nullptr;
 		}
 		if (auto voiceForm = base->GetVoiceType()) {
-			auto where = saved_pitches.find(a_actor->formID);
-			const auto pitch = where != saved_pitches.end() ? where->second : Pitch::Unknown;
-			if (pitch != Pitch::Unknown) {
+			auto where = saved_pitches.find(voiceForm->formID);
+			const auto pitchObj = where != saved_pitches.end() ? where->second : Pitch::Unknown;
+			if (pitchObj.voice != nullptr)
+				return pitchObj.voice;
+			if (pitchObj.pitch != Pitch::Unknown) {
 				const auto w = std::remove_if(ret.begin(), ret.end(), [&](auto v) {
-					return v->pitch != Pitch::Unknown && v->pitch != pitch;
+					return v->pitch != Pitch::Unknown && v->pitch != pitchObj.pitch;
 				});
 				if (w != ret.begin() && w != ret.end()) {
 					ret.erase(w, ret.end());
@@ -123,7 +127,7 @@ namespace Registry
 		return v->GetApplicableSet(a_annotation).Get(a_excitement);
 	}
 
-	RE::TESSound* Voice::PickOrgasmSound(RE::BSFixedString a_voice, bool a_orgasmStart, REX::EnumSet<VoiceAnnotation> a_annotation) const
+	RE::TESSound* Voice::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const
 	{
 		std::shared_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
@@ -132,8 +136,7 @@ namespace Registry
 			return nullptr;
 		}
 		const auto s = v->GetApplicableSet(a_annotation);
-		const auto retVal = a_orgasmStart ? s.GetOrgasmStart() : s.GetOrgasmEnd();
-		return retVal ? retVal : s.Get(100);
+		return s.GetOrgasm() ? s.GetOrgasm() : s.Get(100);
 	}
 
 	std::vector<RE::Actor*> Voice::GetSavedActors() const
@@ -310,7 +313,7 @@ namespace Registry
 		if (!fs::exists(VOICE_PATH) || fs::is_empty(VOICE_PATH)) {
 			throw std::exception("No Voice Files to load");
 		}
-		for (auto& file : fs::directory_iterator{ VOICE_PATH }) {
+		for (auto& file : fs::recursive_directory_iterator{ VOICE_PATH }) {
 			if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
 				continue;
 			const auto filename = file.path().filename().string();
@@ -346,9 +349,16 @@ namespace Registry
 					auto id = Util::FormFromString(it.first.as<std::string>());
 					if (id == 0)
 						continue;
-					auto pitch = magic_enum::enum_cast<Pitch>(it.second.as<std::string>());
-					if (!pitch.has_value())
-						continue;
+					const auto pitchStr = it.second.as<std::string>();
+					auto pitch = magic_enum::enum_cast<Pitch>(pitchStr);
+					if (!pitch.has_value()) {
+						auto voice = std::ranges::find_if(voices, [&](auto& v) { return v.name == std::string_view{ pitchStr }; });
+						if (voice == voices.end()) {
+							logger::error("Unknown Pitch {} in file {}", pitchStr, filename);
+							continue;
+						}
+						saved_pitches.insert_or_assign(id, voice._Ptr);
+					}
 					saved_pitches.insert_or_assign(id, pitch.value());
 				}
 			} catch (const std::exception& e) {
@@ -371,7 +381,6 @@ namespace Registry
 				auto where = std::ranges::find(voices, str, [](auto& it) { return it.name; });
 				if (where == voices.end())
 					continue;
-
 				where->enabled = it.second.as<bool>();
 			}
 		} catch (const std::exception& e) {
@@ -395,7 +404,7 @@ namespace Registry
 				auto v = it.second.as<std::string>();
 				auto vobj = std::ranges::find(voices, v.data(), [](auto& it) { return it.name; });
 				if (vobj == voices.end()) {
-					logger::error("Actor {} uses unknown Voice {}", id, v);
+					logger::error("Actor {:X} uses unknown Voice {}", id, v);
 					continue;
 				}
 				saved_voices.insert_or_assign(id, vobj._Ptr);
@@ -540,9 +549,6 @@ namespace Registry
 		if (dSet["Orgasm"].IsDefined()) {
 			ret["Orgasm"] = dSet["Orgasm"];
 		}
-		if (dSet["OrgasmEnd"].IsDefined()) {
-			ret["OrgasmEnd"] = dSet["OrgasmEnd"];
-		}
 		for (auto&& e : extrasets) {
 			ret["Extra"].push_back(e.AsYaml());
 		}
@@ -587,10 +593,7 @@ namespace Registry
 			return a.second < b.second;
 		});
 		if (auto o = a_node["Orgasm"]; o.IsDefined()) {
-			orgasmStart = Util::FormFromString<RE::TESSound*>(o.as<std::string>());
-		}
-		if (auto o = a_node["OrgasmEnd"]; o.IsDefined()) {
-			orgasmEnd = Util::FormFromString<RE::TESSound*>(o.as<std::string>());
+			orgasm = Util::FormFromString<RE::TESSound*>(o.as<std::string>());
 		}
 		auto convec = a_node["Conditions"];
 		if (!convec.IsDefined())
@@ -653,11 +656,8 @@ namespace Registry
 				continue;
 			ret["Voices"][key] = static_cast<int32_t>(prio);
 		}
-		if (orgasmStart) {
-			ret["Orgasm"] = Util::FormToString(orgasmStart);
-		}
-		if (orgasmEnd) {
-			ret["OrgasmEnd"] = Util::FormToString(orgasmEnd);
+		if (orgasm) {
+			ret["Orgasm"] = Util::FormToString(orgasm);
 		}
 		const auto components = FlagToComponents(annotations.get());
 		for (auto&& c : components) {

@@ -13,7 +13,7 @@ namespace Papyrus::VoiceSlots
 
 		RE::TESSound* GetSoundObject(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_strength, RE::BSFixedString a_scene, int a_idx, bool a_muffled);
 		RE::TESSound* GetSoundObjectLeg(RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_idx);
-		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_scene, int a_idx, bool a_muffled, bool a_start);
+		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_scene, int a_idx, bool a_muffled);
 
 		bool InitializeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id);
 		void FinalizeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id);
@@ -52,7 +52,7 @@ namespace Papyrus::VoiceSlots
 	void StoreVoice(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_voice);
 	void DeleteVoice(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 
-	std::vector<RE::BSFixedString> GetAllVoices(RE::StaticFunctionTag*);
+	std::vector<RE::BSFixedString> GetAllVoices(RE::StaticFunctionTag*, RE::BSFixedString a_racekey);
 	std::vector<RE::Actor*> GetAllCachedUniqueActorsSorted(RE::StaticFunctionTag*, RE::Actor* a_sndprio);
 	RE::BSFixedString SelectVoiceByRace(RE::StaticFunctionTag*, RE::BSFixedString a_racekey);
 
