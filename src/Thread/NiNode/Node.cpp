@@ -3,7 +3,7 @@
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Define/Transform.h"
 
-namespace Registry::NiNode::Node
+namespace Thread::NiNode::Node
 {
 	NodeData::NodeData(RE::Actor* a_actor, bool a_forceSchlong)
 	{
@@ -12,8 +12,8 @@ namespace Registry::NiNode::Node
 			const auto msg = std::format("Unable to retrieve 3D of actor {:X}", a_actor->GetFormID());
 			throw std::exception(msg.c_str());
 		}
-		const auto racekey = RaceHandler::GetRaceKey(a_actor);
-		const auto racestr = racekey == RaceKey::None ? "?" : RaceHandler::AsString(racekey);
+		const auto racekey = Registry::RaceHandler::GetRaceKey(a_actor);
+		const auto racestr = racekey == Registry::RaceKey::None ? "?" : Registry::RaceHandler::AsString(racekey);
 		const auto get = [&](auto str, auto& target, bool log) {
 			auto node = obj->GetObjectByName(str);
 			auto ninode = node ? node->AsNode() : nullptr;
@@ -117,10 +117,10 @@ namespace Registry::NiNode::Node
 	{
 		assert(ownerNodes.pelvis);
 		const auto pelvisWorld = ownerNodes.pelvis->world;
-		Coordinate approx(std::vector{ a_forward, 0.0f, a_upward, 0.0f });
+		Registry::Coordinate approx(std::vector{ a_forward, 0.0f, a_upward, 0.0f });
 		RE::NiPoint3 angle;
 		pelvisWorld.rotate.ToEulerAnglesXYZ(angle);
-		Coordinate ret{ pelvisWorld.translate, angle.z };
+		Registry::Coordinate ret{ pelvisWorld.translate, angle.z };
 		approx.Apply(ret);
 		return ret.AsNiPoint();
 	}

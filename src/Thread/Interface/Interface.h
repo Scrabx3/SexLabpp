@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Registry::Interface
+namespace Thread::Interface
 {
 	struct SKSEScaleform_OpenMenu;
 	struct SKSEScaleform_CloseMenu;

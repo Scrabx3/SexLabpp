@@ -18,26 +18,26 @@ namespace Papyrus::SceneMenu
 			return;
 		}
 		sceneMenuId = a_qst->GetFormID();
-		Registry::Interface::SceneMenu::Show();
+		Thread::Interface::SceneMenu::Show();
 	}
 
 	void CloseMenu(RE::StaticFunctionTag*, RE::TESQuest* a_qst)
 	{
 		VALIDATE;
-		Registry::Interface::SceneMenu::Hide();
+		Thread::Interface::SceneMenu::Hide();
 		sceneMenuId = 0;
 	}
 
 	bool IsMenuOpen(RE::StaticFunctionTag*)
 	{
-		return Registry::Interface::SceneMenu::IsOpen();
+		return Thread::Interface::SceneMenu::IsOpen();
 	}
 
 	void SetPositions(RE::StaticFunctionTag*, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions)
 	{
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([a_positions = std::move(a_positions)]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Registry::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
 			std::vector<RE::GFxValue> args{};
 			args.reserve(a_positions.size());
 			for (const auto& pos : a_positions) {
@@ -70,7 +70,7 @@ namespace Papyrus::SceneMenu
 			return;
 		}
 		SKSE::GetTaskInterface()->AddUITask([=]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Registry::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
 			const auto& edges = scene->GetAdjacentStages(stage);
 			std::vector<RE::GFxValue> args{};
 			if (edges && !edges->empty()) {
@@ -108,7 +108,7 @@ namespace Papyrus::SceneMenu
 	{
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([=]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Registry::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
 			RE::GFxValue arg { afTime };
 			view->InvokeNoReturn("_root.main.setTimer", &arg, 1);
 		});
@@ -118,7 +118,7 @@ namespace Papyrus::SceneMenu
 	{
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([=]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Registry::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
 			std::vector<RE::GFxValue> args{};
 			args.emplace_back(a_position->GetFormID());
 			args.emplace_back(a_enjoyment);
@@ -130,7 +130,7 @@ namespace Papyrus::SceneMenu
 	{
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([=]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Registry::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
 			std::vector<RE::GFxValue> args{};
 			args.emplace_back(a_position->GetFormID());
 			args.emplace_back(a_enjoyment);

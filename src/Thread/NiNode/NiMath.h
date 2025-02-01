@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 
-namespace Registry::NiNode::NiMath
+namespace Thread::NiNode::NiMath
 {
 	struct Segment : public std::pair<RE::NiPoint3, RE::NiPoint3> {
 		Segment(RE::NiPoint3 fst, RE::NiPoint3 snd) :
@@ -78,4 +78,4 @@ namespace Registry::NiNode::NiMath
 		return f > i ? i + 1 : i;
 	}
 
-}	 // namespace Registry::NiNode::NiMath
+}	 // namespace Thread::NiNode::NiMath

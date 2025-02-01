@@ -2,9 +2,9 @@
 
 #include "NiMath.h"
 
-namespace Registry::NiNode
+namespace Thread::NiNode
 {
-	NiUpdate::Process::Process(const std::vector<RE::Actor*>& a_positions, const Scene* a_scene) :
+	NiUpdate::Process::Process(const std::vector<RE::Actor*>& a_positions, const Registry::Scene* a_scene) :
 		positions([&]() {
 			std::vector<NiNode::NiPosition> v{};
 			v.reserve(a_positions.size());
@@ -62,7 +62,7 @@ namespace Registry::NiNode
 
 	void NiUpdate::Process::GetInteractionsMale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
 	{
-		if (it.position.sex.any(Sex::Female))
+		if (it.position.sex.any(Registry::Sex::Female))
 			return;
 		for (auto&& schlong : it.position.nodes.schlongs) {
 			for (auto&& act : list) {
@@ -82,7 +82,7 @@ namespace Registry::NiNode
 
 	void NiUpdate::Process::GetInteractionsFemale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
 	{
-		if (it.position.sex.any(Sex::Male))
+		if (it.position.sex.any(Registry::Sex::Male))
 			return;
 		for (auto&& snd : list) {
 			if (it != snd) {
@@ -130,7 +130,7 @@ namespace Registry::NiNode
 	}
 
 
-	void NiUpdate::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept
+	void NiUpdate::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Registry::Scene* a_scene) noexcept
 	{
 		try {
 			const auto where = std::ranges::find(processes, a_id, [](auto& it) { return it.first; });
@@ -165,4 +165,4 @@ namespace Registry::NiNode
 		return where == processes.end() ? nullptr : where->second.get();
 	}
 
-}	 // namespace Registry::NiNode
+}	 // namespace Thread::NiNode

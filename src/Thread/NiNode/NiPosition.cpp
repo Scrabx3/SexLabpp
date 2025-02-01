@@ -4,7 +4,7 @@
 #include "Util/Premutation.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 
-namespace Registry::NiNode
+namespace Thread::NiNode
 {
 	bool RotateNode(RE::NiPointer<RE::NiNode> niNode, const NiMath::Segment& sNode, const RE::NiPoint3& pTarget, float maxAngleAdjust)
 	{
@@ -420,4 +420,4 @@ namespace Registry::NiNode
 		return (vup * distdown) + nihead->world.translate;
 	}
 
-}	 // namespace Registry::NiNode
+}	 // namespace Thread::NiNode

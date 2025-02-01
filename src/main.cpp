@@ -137,8 +137,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 		return false;
 	}
 
-	Registry::Interface::SceneMenu::Register();
-	Registry::NiNode::NiUpdate::Install();
+	Thread::Interface::SceneMenu::Register();
+	Thread::NiNode::NiUpdate::Install();
 
 	const auto serialization = SKSE::GetSerializationInterface();
 	serialization->SetUniqueID('slpp');

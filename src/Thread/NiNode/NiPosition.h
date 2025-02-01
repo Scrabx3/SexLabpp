@@ -5,7 +5,7 @@
 #include "Node.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 
-namespace Registry::NiNode
+namespace Thread::NiNode
 {
 	/// @brief Rotate a_schlong s.t. a_target is on the line drawn by its orientation
 	bool RotateNode(RE::NiPointer<RE::NiNode> niNode, const NiMath::Segment& sNode, const RE::NiPoint3& pTarget, float maxAngleAdjust);
@@ -86,18 +86,18 @@ namespace Registry::NiNode
 		};
 
 	public:
-		NiPosition(RE::Actor* a_owner, Sex a_sex) :
-			actor(a_owner), nodes(a_owner, a_sex != Sex::Female && GetSex(a_owner) == Sex::Female), sex(a_sex) {}
+		NiPosition(RE::Actor* a_owner, Registry::Sex a_sex) :
+			actor(a_owner), nodes(a_owner, a_sex != Registry::Sex::Female && Registry::GetSex(a_owner) == Registry::Sex::Female), sex(a_sex) {}
 		~NiPosition() = default;
 
 	public:
 		RE::ActorPtr actor;
 		Node::NodeData nodes;
-		stl::enumeration<Sex> sex;
+		stl::enumeration<Registry::Sex> sex;
 		std::set<Interaction> interactions{};
 
 	public:
 		bool operator==(const NiPosition& a_rhs) const { return actor == a_rhs.actor; }
 	};
 
-}	 // namespace Registry::NiNode
+}	 // namespace Thread::NiNode

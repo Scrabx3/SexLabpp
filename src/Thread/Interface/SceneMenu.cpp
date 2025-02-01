@@ -2,7 +2,7 @@
 
 #include "Interface.h"
 
-namespace Registry::Interface
+namespace Thread::Interface
 {
 	///
 	/// Menu

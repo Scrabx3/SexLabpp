@@ -4,7 +4,7 @@
 #include "Node.h"
 #include "Registry/Animation.h"
 
-namespace Registry::NiNode
+namespace Thread::NiNode
 {
 	class NiUpdate
 	{
@@ -13,7 +13,7 @@ namespace Registry::NiNode
 			friend class NiUpdate;
 
 		public:
-			Process(const std::vector<RE::Actor*>& a_positions, const Scene* a_scene);
+			Process(const std::vector<RE::Actor*>& a_positions, const Registry::Scene* a_scene);
 			~Process() = default;
 
 			bool VisitPositions(std::function<bool(const NiPosition&)> a_visitor) const;
@@ -31,7 +31,7 @@ namespace Registry::NiNode
 	public:
 		static void Install();
 
-		static void Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Scene* a_scene) noexcept;
+		static void Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Registry::Scene* a_scene) noexcept;
 		static void Unregister(RE::FormID a_id) noexcept;
 		static bool IsRegistered(RE::FormID a_id) noexcept;
 		static const Process* GetProcess(RE::FormID a_id) noexcept;
@@ -46,4 +46,4 @@ namespace Registry::NiNode
 		static inline std::vector<std::pair<RE::FormID, std::unique_ptr<Process>>> processes;
 	};
 
-}	 // namespace Registry::Collision
+}	 // namespace Thread::Collision
