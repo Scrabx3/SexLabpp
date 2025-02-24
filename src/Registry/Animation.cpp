@@ -594,7 +594,7 @@ namespace Registry
 				return true;
 			}
 
-			std::vector<int> count;
+			int count[3];
 			for (auto&& position : positions) {
 				if (position.race == Registry::RaceKey::Human)
 					continue;
