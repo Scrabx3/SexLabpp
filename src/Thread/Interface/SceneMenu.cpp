@@ -4,9 +4,35 @@
 
 namespace Thread::Interface
 {
-	///
-	/// Menu
-	///
+	KeyType GetKeyType(uint32_t a_keyCode)
+	{
+		const auto get = [](uint32_t key) {
+			return key >= SKSE::InputMap::kMacro_GamepadOffset ? SKSE::InputMap::GamepadKeycodeToMask(key) : key;
+		};
+		if (a_keyCode == get(Settings::iKeyUp))
+			return KeyType::Up;
+		if (a_keyCode == get(Settings::iKeyDown))
+			return KeyType::Down;
+		if (a_keyCode == get(Settings::iKeyLeft))
+			return KeyType::Left;
+		if (a_keyCode == get(Settings::iKeyRight))
+			return KeyType::Right;
+		if (a_keyCode == get(Settings::iKeyAdvance))
+			return KeyType::Select;
+		if (a_keyCode == get(Settings::iKeyEnd))
+			return KeyType::End;
+		if (a_keyCode == get(Settings::iKeyExtra1))
+			return KeyType::Extra1;
+		if (a_keyCode == get(Settings::iKeyExtra2))
+			return KeyType::Extra2;
+		if (a_keyCode == get(Settings::iKeyMod))
+			return KeyType::Modes;
+		if (a_keyCode == get(Settings::iKeyReset))
+			return KeyType::Reset;
+		if (a_keyCode == get(Settings::iKeyMouse))
+			return KeyType::Mouse;
+		return KeyType::None;
+	}
 
 	SceneMenu::SceneMenu() :
 		RE::IMenu()
@@ -29,7 +55,6 @@ namespace Thread::Interface
 		auto view = this->uiMovie;
 		view->SetMouseCursorCount(0);
 		FunctionManager::AttachSKSEFunctions(view);
-		// RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(this);
 
 		static auto hijackShowMessage = [&]() {
 			auto hud = RE::UI::GetSingleton()->GetMovieView(RE::HUDMenu::MENU_NAME);
@@ -83,57 +108,12 @@ namespace Thread::Interface
 			// RE::UIMessageQueue::GetSingleton()->AddMessage(TRUE_HUD_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr);
 			return Result::kHandled;
 		case Type::kUserEvent:
-			// if (!RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) {
-			// 	if (const auto& data = static_cast<RE::BSUIMessageData*>(a_message.data)) {
-			// 		std::string navEq{ "" };
-			// 		const auto events = RE::UserEvents::GetSingleton();
-			// 		if (data->fixedStr == events->strafeRight) {
-			// 			navEq = "right";
-			// 		} else if (data->fixedStr == events->strafeLeft) {
-			// 			navEq = "left";
-			// 		} else if (data->fixedStr == events->forward) {
-			// 			navEq = "up";
-			// 		} else if (data->fixedStr == events->back) {
-			// 			navEq = "down";
-			// 		} else {
-			// 			return Result::kPassOn;
-			// 		}
-			// 		RE::GFxValue arg{ navEq.c_str() };
-			// 		this->uiMovie->InvokeNoReturn("_root.main.handleInputEx", &arg, 1);
-			// 		return Result::kHandled;
-			// 	}
-			// }
-			// __fallthrough;
 		case Type::kScaleformEvent:
 			return Result::kPassOn;
 		default:
 			return RE::IMenu::ProcessMessage(a_message);
 		}
 	}
-
-	// RE::BSEventNotifyControl SceneMenu::ProcessEvent(const RE::MenuOpenCloseEvent* a_event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
-	// {
-	// 	using EventResult = RE::BSEventNotifyControl;
-	// 	if (!isShowing || !a_event) {
-	// 		return EventResult::kContinue;
-	// 	}
-	// 	const auto ui = RE::UI::GetSingleton();
-	// 	const auto menu = ui->GetMenu(a_event->menuName);
-	// 	if (!menu || menu->depthPriority >= DEPTH_PRIORITY) {
-	// 		return EventResult::kContinue;
-	// 	} else if (!menu->InventoryItemMenu() && !menu->ApplicationMenu()) {
-	// 		if (a_event->opening) {
-	// 			RE::UIMessageQueue::GetSingleton()->AddMessage(a_event->menuName, RE::UI_MESSAGE_TYPE::kHide, nullptr);
-	// 		}
-	// 	} else {
-	// 		if (a_event->opening) {
-	// 			Hide();
-	// 		} else {
-	// 			Show();
-	// 		}
-	// 	}
-	// 	return EventResult::kContinue;
-	// }
 
 	RE::BSEventNotifyControl SceneMenu::ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>*)
 	{
@@ -162,34 +142,31 @@ namespace Thread::Interface
 					continue;
 				}
 			}
-			// https://ck.uesp.net/wiki/Input_Script#DXScanCodes
 			const auto dxCode = idEvent->GetIDCode();
-			std::string navEq{ "" };
-			switch (dxCode) {
-			case 0x39:	// Space
-				navEq = "enter-gamepad_A";
-				break;
-			case 0x11:	// W
-				navEq = "up";
-				break;
-			case 0x1E:	// A
-				navEq = "left";
-				break;
-			case 0x1F:	// S
-				navEq = "down";
-				break;
-			case 0x20:	// D
-				navEq = "right";
-				break;
-			case 0xCF:	// End
+			const auto type = GetKeyType(dxCode);
+			switch (type) {
+			case KeyType::End:
 				{
 					SKSE::ModCallbackEvent modEvent{ "SL_EndScene" };
 					SKSE::GetModCallbackEventSource()->SendEvent(&modEvent);
-					continue;
 				}
+				break;
+			case KeyType::None:
+				break;
+			default:
+				{
+					auto enumName = magic_enum::enum_name(type);
+					std::string navEq{ enumName };
+					if (navEq.empty()) {
+						logger::error("Unknown key type: {}", dxCode);
+						continue;
+					}
+					Util::ToLower(navEq);
+					RE::GFxValue arg{ navEq.c_str() };
+					this->uiMovie->InvokeNoReturn("_root.main.handleInputEx", &arg, 1);
+				}
+				break;
 			}
-			RE::GFxValue arg{ navEq.c_str() };
-			this->uiMovie->InvokeNoReturn("_root.main.handleInputEx", &arg, 1);
 		}
 		return EventResult::kContinue;
 	}

@@ -32,24 +32,35 @@ MCM_SETTING(iLovenseStrengthOrgasm, 20)
 MCM_SETTING(fLovenseDurationOrgasm, 8)
 
 // KeyBinds/Scene Control Related
-MCM_SETTING(bAdjustTargetStage, false)
-MCM_SETTING(iAdjustStage, 157)
-MCM_SETTING(iBackwards, 54)
-MCM_SETTING(iAdvanceAnimation, 57)
-MCM_SETTING(iChangeAnimation, 24)
-MCM_SETTING(iChangePositions, 13)
-MCM_SETTING(iAdjustChange, 37)
-MCM_SETTING(iAdjustForward, 38)
-MCM_SETTING(iAdjustSideways, 40)
-MCM_SETTING(iAdjustUpward, 39)
-MCM_SETTING(iRealignActors, 26)
-MCM_SETTING(iMoveScene, 27)
-MCM_SETTING(iRestoreOffsets, 12)
-MCM_SETTING(iRotateScene, 22)
-MCM_SETTING(iEndAnimation, 207)
-MCM_SETTING(iAdjustSchlong, 46)
+MCM_SETTING(iKeyUp, 0x11)		// W
+MCM_SETTING(iKeyDown, 0x1F)		// S
+MCM_SETTING(iKeyLeft, 0x1E)		// A
+MCM_SETTING(iKeyRight, 0x20)	// D
+MCM_SETTING(iKeyAdvance, 0x39)	// Space
+MCM_SETTING(iKeyEnd, 0xCF)		// End
+MCM_SETTING(iKeyExtra1, 0x10)	// Q
+MCM_SETTING(iKeyExtra2, 0x12)	// E
+MCM_SETTING(iKeyMod, 0x2A)		// Shift
+MCM_SETTING(iKeyReset, 0x1D)	// Ctrl
+MCM_SETTING(iKeyMouse, 0x38)	// Alt
+
 MCM_SETTING(iToggleFreeCamera, 81)
 MCM_SETTING(iTargetActor, 49)
+
+// MCM_SETTING(bAdjustTargetStage, false)
+// MCM_SETTING(iAdjustStage, 157)
+// MCM_SETTING(iBackwards, 54)
+// MCM_SETTING(iChangeAnimation, 24)
+// MCM_SETTING(iChangePositions, 13)
+// MCM_SETTING(iAdjustChange, 37)
+// MCM_SETTING(iAdjustForward, 38)
+// MCM_SETTING(iAdjustSideways, 40)
+// MCM_SETTING(iAdjustUpward, 39)
+// MCM_SETTING(iRealignActors, 26)
+// MCM_SETTING(iMoveScene, 27)
+// MCM_SETTING(iRestoreOffsets, 12)
+// MCM_SETTING(iRotateScene, 22)
+// MCM_SETTING(iAdjustSchlong, 46)
 
 MCM_SETTING(fCumTimer, 180.0f)
 MCM_SETTING(fShakeStrength, 0.7f)

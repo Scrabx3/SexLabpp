@@ -2,6 +2,23 @@
 
 namespace Thread::Interface
 {
+	enum class KeyType
+	{
+		None,
+		Up,
+		Down,
+		Left,
+		Right,
+		Select,
+		End,
+		Extra1,
+		Extra2,
+		Modes,
+		Reset,
+		Mouse,
+	};
+	KeyType GetKeyType(uint32_t a_keyCode);
+
 	class SceneMenu :
 		public RE::IMenu,
 		public RE::BSTEventSink<RE::InputEvent*>
