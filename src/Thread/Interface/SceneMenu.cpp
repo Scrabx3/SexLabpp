@@ -124,6 +124,9 @@ namespace Thread::Interface
 		const auto ui = RE::UI::GetSingleton();
 		if (ui->IsMenuOpen(RE::Console::MENU_NAME) || ui->GameIsPaused() || ui->IsApplicationMenuOpen())
 			return EventResult::kContinue;
+		KeyType navType = KeyType::None;
+		bool mode = false;
+		bool reset = false;
 		for (const RE::InputEvent* input = *a_event; input; input = input->next) {
 			const auto buttonEvent = input->AsButtonEvent();
 			if (!buttonEvent || !buttonEvent->IsDown())
@@ -151,23 +154,34 @@ namespace Thread::Interface
 					SKSE::GetModCallbackEventSource()->SendEvent(&modEvent);
 				}
 				break;
+			case KeyType::Mouse:
+				break;
 			case KeyType::None:
 				break;
+			case KeyType::Reset:
+				reset = true;
+				break;
+			case KeyType::Modes:
+				mode = true;
+				break;
 			default:
-				{
-					auto enumName = magic_enum::enum_name(type);
-					std::string navEq{ enumName };
-					if (navEq.empty()) {
-						logger::error("Unknown key type: {}", dxCode);
-						continue;
-					}
-					Util::ToLower(navEq);
-					RE::GFxValue arg{ navEq.c_str() };
-					this->uiMovie->InvokeNoReturn("_root.main.handleInputEx", &arg, 1);
-				}
+				navType = type;
 				break;
 			}
 		}
+		if (navType == KeyType::None)
+			return EventResult::kContinue;
+		auto enumName = magic_enum::enum_name(navType);
+		if (enumName.empty())
+			return EventResult::kContinue;
+		std::string navEq{ enumName };
+		Util::ToLower(navEq);
+		std::vector<RE::GFxValue> args{
+			RE::GFxValue(navEq.c_str()),
+			RE::GFxValue(mode),
+			RE::GFxValue(reset)
+		};
+		this->uiMovie->InvokeNoReturn("_root.main.handleInputEx", args.data(), static_cast<uint32_t>(args.size()));
 		return EventResult::kContinue;
 	}
 
