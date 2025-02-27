@@ -15,7 +15,6 @@ namespace Thread::Interface
 		Extra2,
 		Modes,
 		Reset,
-		Mouse,
 	};
 	KeyType GetKeyType(uint32_t a_keyCode);
 

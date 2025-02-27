@@ -29,8 +29,6 @@ namespace Thread::Interface
 			return KeyType::Modes;
 		if (a_keyCode == get(Settings::iKeyReset))
 			return KeyType::Reset;
-		if (a_keyCode == get(Settings::iKeyMouse))
-			return KeyType::Mouse;
 		return KeyType::None;
 	}
 
@@ -153,8 +151,6 @@ namespace Thread::Interface
 					SKSE::ModCallbackEvent modEvent{ "SL_EndScene" };
 					SKSE::GetModCallbackEventSource()->SendEvent(&modEvent);
 				}
-				break;
-			case KeyType::Mouse:
 				break;
 			case KeyType::None:
 				break;
