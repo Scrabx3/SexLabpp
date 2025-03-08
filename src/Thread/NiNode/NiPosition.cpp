@@ -264,7 +264,9 @@ namespace Thread::NiNode
 	{
 		const auto lHand = position.nodes.hand_left;
 		const auto rHand = position.nodes.hand_right;
-		if (!lHand || !rHand) {
+		const auto lThumb = position.nodes.thumb_left;
+		const auto rThumb = position.nodes.thumb_right;
+		if (!lHand || !rHand || !lThumb || !rThumb) {
 			return false;
 		}
 		const auto sSchlong = a_schlong->GetReferenceSegment();
@@ -283,7 +285,7 @@ namespace Thread::NiNode
 		} else {
 			pickLeft = closeToL;
 		}
-		auto referencePoint = pickLeft ? (pLeft + position.nodes.thumb_left->world.translate) / 2 : (pRight + position.nodes.thumb_right->world.translate) / 2;
+		auto referencePoint = pickLeft ? (pLeft + lThumb->world.translate) / 2 : (pRight + rThumb->world.translate) / 2;
 		RotateNode(a_schlong->GetBaseReferenceNode(), sSchlong, referencePoint, Settings::fAdjustSchlongLimit);
 		interactions.emplace_back(a_partner.position.actor, Interaction::Action::HandJob, pickLeft ? pLeft : pRight);
 		return true;
