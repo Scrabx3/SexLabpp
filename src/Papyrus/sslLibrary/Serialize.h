@@ -92,6 +92,9 @@ namespace Papyrus
 						list.push_back(next);
 					}
 					toload.insert({ newid, list });
+
+					a_intfc->ReadRecordData(id);
+					assert(id == (std::numeric_limits<uint32_t>::max)());
 				}
 			};
 
