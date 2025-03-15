@@ -93,10 +93,11 @@ namespace stl
 		if (!a_intfc->ReadRecordData(size)) {
 			return false;
 		}
-		a_str.reserve(size);
+		a_str.resize(size);
 		if (!a_intfc->ReadRecordData(a_str.data(), static_cast<std::uint32_t>(size))) {
 			return false;
 		}
+		a_str.erase(std::find(a_str.cbegin(), a_str.cend(), '\0'), a_str.cend());
 		return true;
 	}
 
