@@ -1,6 +1,5 @@
 #include "Transform.h"
 
-#include <glm/gtx/transform.hpp>
 #include <numbers>
 
 #include "Registry/Util/Decode.h"
@@ -26,13 +25,15 @@ namespace Registry
 
 	void Coordinate::Apply(Coordinate& a_coordinate) const
 	{
-		const auto rotate = glm::rotate(glm::mat4(1.0f), a_coordinate.rotation, glm::vec3(0, 0, 1));
-		const auto transform = glm::mat3{ rotate } * location;
+		const float cosAngle = std::cos(a_coordinate.rotation);
+		const float sinAngle = std::sin(a_coordinate.rotation);
+		const glm::vec3 transform{
+			location.x * cosAngle - location.y * sinAngle,
+			location.x * sinAngle + location.y * cosAngle,
+			location.z
+		};
 		a_coordinate.location += transform;
-
-		if (this->rotation) {
-			a_coordinate.rotation += this->rotation;
-		}
+		a_coordinate.rotation += rotation;
 	}
 
 	Transform::Transform(const Coordinate& a_rawoffset) :

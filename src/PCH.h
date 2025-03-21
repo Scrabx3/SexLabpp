@@ -170,18 +170,6 @@ namespace Registry
 }
 
 template <>
-struct fmt::formatter<RE::BSFixedString> {
-    constexpr auto parse(format_parse_context& ctx) {
-        return ctx.begin();
-    }
-
-    template <typename FormatContext>
-    auto format(const RE::BSFixedString& str, FormatContext& ctx) const {
-        return fmt::format_to(ctx.out(), "{}", str.data());
-    }
-};
-
-template <>
 struct std::formatter<RE::BSFixedString> : std::formatter<const char*>
 {
 	template <typename FormatContext>
@@ -191,20 +179,15 @@ struct std::formatter<RE::BSFixedString> : std::formatter<const char*>
 	}
 };
 
-template<>
-struct fmt::formatter<YAML::Mark> : fmt::formatter<std::string>
+template <>
+struct std::formatter<YAML::Mark> : std::formatter<std::string>
 {
-	constexpr auto parse(format_parse_context& ctx) {
-        return ctx.begin();
-    }
-
 	template <typename FormatContext>
-    auto format(YAML::Mark mark, FormatContext &ctx) const -> decltype(ctx.out())
+	auto format(const YAML::Mark& mark, FormatContext& ctx) const
 	{
-		return fmt::format_to(ctx.out(), "[Ln {}, Col {}]", mark.line + 1, mark.column + 1);
+		auto str = std::format("[Ln {}, Col {}]", mark.line + 1, mark.column + 1);
+		return std::formatter<std::string>::format(str, ctx);
 	}
 };
 
 #define DLLEXPORT __declspec(dllexport)
-
-#include "Plugin.h"

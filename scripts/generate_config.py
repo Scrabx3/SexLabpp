@@ -2,7 +2,7 @@ import os
 import re
 
 config_def_path = './src/UserData/config.def'
-output_ini_path = './CMake/gen/SexLab.ini'
+output_ini_path = './scripts/out/SexLab.ini'
 
 def validate_value(value):
   if value == "true":
@@ -33,6 +33,7 @@ def generate_ini_file(settings, output_path):
       categories[category] = []
     categories[category].append((value, default))
   
+  os.makedirs(os.path.dirname(output_path), exist_ok=True)
   with open(output_path, 'w') as file:
     for category, values in categories.items():
       file.write(f'[{category}]\n')

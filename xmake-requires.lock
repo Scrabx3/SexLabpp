@@ -1,0 +1,79 @@
+{
+    __meta__ = {
+        version = "1.0"
+    },
+    ["windows|x64"] = {
+        ["cmake#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "d690827620fac7d455dac05ed2e60e576f5cdcf8",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "3.31.6"
+        },
+        ["eigen#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "d690827620fac7d455dac05ed2e60e576f5cdcf8",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "3.4.0"
+        },
+        ["glm#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "d690827620fac7d455dac05ed2e60e576f5cdcf8",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "1.0.1"
+        },
+        ["magic_enum#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "c54cc6e7bc4c571586864d58fdcf119d2ac32250",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "v0.9.7"
+        },
+        ["nlohmann_json#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "c54cc6e7bc4c571586864d58fdcf119d2ac32250",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "v3.11.3"
+        },
+        ["rsm-binary-io#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "c54cc6e7bc4c571586864d58fdcf119d2ac32250",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "2.0.6"
+        },
+        ["simpleini#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "c54cc6e7bc4c571586864d58fdcf119d2ac32250",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "v4.22"
+        },
+        ["spdlog#9c36f0a9"] = {
+            repo = {
+                branch = "master",
+                commit = "d690827620fac7d455dac05ed2e60e576f5cdcf8",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "v1.15.1"
+        },
+        ["yaml-cpp#31fecfc4"] = {
+            repo = {
+                branch = "master",
+                commit = "c54cc6e7bc4c571586864d58fdcf119d2ac32250",
+                url = "https://github.com/xmake-io/xmake-repo.git"
+            },
+            version = "0.8.0"
+        }
+    }
+}

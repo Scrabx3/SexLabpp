@@ -3,8 +3,5 @@
 *.code-workspace
 build/
 /vcpkg_installed
-/CMake/gen/
-
-xmake.lua
+scripts/out/
 .xmake
-xmake-requires.lock
