@@ -32,14 +32,14 @@ namespace Thread::NiNode
 			Total,
 		};
 
-		Interaction(RE::ActorPtr a_partner, Action a_action, RE::NiPoint3 a_refPoint) :
-			partner(a_partner), action(a_action), referencePoint(a_refPoint) {}
+		Interaction(RE::ActorPtr a_partner, Action a_action, float a_distance) :
+			partner(a_partner), action(a_action), distance(a_distance) {}
 		~Interaction() = default;
 
 	public:
 		RE::ActorPtr partner{ 0 };
-		RE::NiPoint3 referencePoint{};
 		Action action{ Action::None };
+		float distance{ 0.0f };
 		float velocity{ 0.0f };
 
 	public:

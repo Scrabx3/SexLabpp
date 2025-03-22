@@ -71,7 +71,7 @@ namespace Thread::NiNode
 		if (std::abs(angle - 180) > Settings::fAngleKissing) {
 			return false;
 		}
-		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Kissing, *partnermouthstart);
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Kissing, distance);
 		return true;
 	}
 
@@ -90,8 +90,7 @@ namespace Thread::NiNode
 		const auto distanceRight = footR->world.translate.GetDistance(*mouth);
 		if (distanceLeft > Settings::fDistanceFootMouth && distanceRight > Settings::fDistanceFootMouth)
 			return false;
-		const auto foot = distanceLeft < distanceRight ? footL : footR;
-		interactions.emplace_back(a_partner.position.actor, Interaction::Action::ToeSucking, foot->world.translate);
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::ToeSucking, std::min(distanceLeft, distanceRight));
 		return true;
 	}
 
@@ -143,29 +142,29 @@ namespace Thread::NiNode
 		}();
 
 		if (in_front_of_head && vertical_to_shaft && close_to_mouth) {
-			interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, sSchlong.second);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::LickingShaft, dCenter);
 			return true;
 		} else if (penetrating_skull && in_front_of_head && aiming_at_head) {
 			const auto throat = GetThroatPoint(), mouth = GetMouthStartPoint();
 			assert(throat && mouth);
 			if (!baseNode || RotateNode(baseNode, sSchlong, *throat, Settings::fAdjustSchlongLimit)) {
 				RotateNode(position.nodes.head, { *mouth, *throat }, sSchlong.first, Settings::fAdjustHeadLimit);
-				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, sSchlong.second);
+				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, dCenter);
 				assert(partnernodes.pelvis);
 				const auto tip_at_throat = dCenter < bHead.boundMax.y * Settings::fThroatToleranceRadius;
 				const auto pelvis_at_head = bHead.IsPointInside(partnernodes.pelvis->world.translate);
 				if (tip_at_throat || pelvis_at_head) {
-					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, sSchlong.second);
+					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Deepthroat, dCenter);
 				}
 				return true;
 			}
 		} else if (penetrating_skull && aiming_at_head) {
 			if (!baseNode || RotateNode(baseNode, sSchlong, headworld.translate, Settings::fAdjustSchlongLimit)) {
-				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, sSchlong.second);
+				interactions.emplace_back(a_partner.position.actor, Interaction::Action::Skullfuck, dCenter);
 			}
 			return true;
 		} else if (in_front_of_head && aiming_at_head) {
-			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, sSchlong.second);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::Facial, dCenter);
 			return true;
 		}
 		return false;
@@ -232,13 +231,13 @@ namespace Thread::NiNode
 			if (distance <= Settings::fDistanceCrotch) {
 				const auto aSegment = NiMath::GetAngleDegree(segment.Vector(), sSchlong.Vector());
 				if (aSegment <= Settings::fAnglePenetration && (!nSchlong || RotateNode(nSchlong, sSchlong, segment.second, Settings::fAdjustSchlongVaginalLimit))) {
-					interactions.emplace_back(a_partner.position.actor, type, sSchlong.second);
+					interactions.emplace_back(a_partner.position.actor, type, distance);
 					return true;
 				}
 				const auto sCrotch = NiMath::Segment{ sAnal->first, sVaginal->first };
 				const auto aCrotch = NiMath::GetAngleDegree(sCrotch.Vector(), sSchlong.Vector());
 				if (std::abs(aCrotch - 180.0f) <= Settings::fAngleGrinding) {
-					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Grinding, sSchlong.second);
+					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Grinding, distance);
 					return true;
 				}
 			}
@@ -249,10 +248,10 @@ namespace Thread::NiNode
 				const auto vBaseToSpine = sCrotch.first - sSchlong.first;
 				const auto aCrotch = NiMath::GetAngleDegree(vBaseToSpine, sSchlong.Vector());
 				if (aCrotch <= Settings::fAnglePenetration && (!nSchlong || RotateNode(nSchlong, sSchlong, sCrotch.first, Settings::fAdjustSchlongVaginalLimit))) {
-					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Anal, sSchlong.second);
+					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Anal, dCrotch);
 					return true;
 				} else if (std::abs(aCrotch - 90.0f) <= Settings::fAngleGrinding) {
-					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Anal, sSchlong.second);
+					interactions.emplace_back(a_partner.position.actor, Interaction::Action::Anal, dCrotch);
 					return true;
 				}
 			}
@@ -287,7 +286,7 @@ namespace Thread::NiNode
 		}
 		auto referencePoint = pickLeft ? (pLeft + lThumb->world.translate) / 2 : (pRight + rThumb->world.translate) / 2;
 		RotateNode(a_schlong->GetBaseReferenceNode(), sSchlong, referencePoint, Settings::fAdjustSchlongLimit);
-		interactions.emplace_back(a_partner.position.actor, Interaction::Action::HandJob, pickLeft ? pLeft : pRight);
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::HandJob, pickLeft ? lDist : rDist);
 		return true;
 	}
 
@@ -302,7 +301,7 @@ namespace Thread::NiNode
 			const auto d = NiMath::ClosestSegmentBetweenSegments(pFoot, sSchlong).Length();
 			if (d > Settings::fDistanceFoot)
 				return false;
-			interactions.emplace_back(a_partner.position.actor, Interaction::Action::FootJob, pFoot);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::FootJob, d);
 			return true;
 		};
 		return get(position.nodes.foot_left) || get(position.nodes.foot_right);
@@ -326,7 +325,7 @@ namespace Thread::NiNode
 		const auto angle = NiMath::GetAngleDegree(sVaginal->Vector(), vHead);
 		if (angle > Settings::fAngleCunnilingus)
 			return false;
-		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, nClitoris->world.translate);
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Oral, distance);
 		return true;
 	}
 
@@ -345,7 +344,7 @@ namespace Thread::NiNode
 		const auto angle = NiMath::GetAngleDegree(sVaginal->Vector(), sVaginalPartner->Vector());
 		if (std::abs(angle - 180) > Settings::fAngleGrindingFF)
 			return false;
-		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Grinding, c1->world.translate);
+		interactions.emplace_back(a_partner.position.actor, Interaction::Action::Grinding, distance);
 		return true;
 	}
 	
@@ -361,7 +360,7 @@ namespace Thread::NiNode
 			const auto d = pLimb.GetDistance(nClitoris->world.translate);
 			if (d > maxDist)
 				return false;
-			interactions.emplace_back(position.actor, type, pLimb);
+			interactions.emplace_back(position.actor, type, d);
 			return true;
 		};
 		const auto lHand = position.nodes.hand_left;
@@ -390,7 +389,7 @@ namespace Thread::NiNode
 			const auto d = pAnimObj.GetDistance(*pMouth);
 			if (d > Settings::fAnimObjDist)
 				return false;
-			interactions.emplace_back(a_partner.position.actor, Interaction::Action::AnimObjFace, pAnimObj);
+			interactions.emplace_back(a_partner.position.actor, Interaction::Action::AnimObjFace, d);
 			return true;
 		};
 		const auto& n = a_partner.position.nodes;

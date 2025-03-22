@@ -49,7 +49,7 @@ namespace Thread::NiNode
 				if (where == pos.interactions.end()) {
 					continue;
 				}
-				const float delta_dist = (act.referencePoint - where->referencePoint).Length();
+				const float delta_dist = act.distance - where->distance;
 				if (a_delta != 0.0f) {
 					act.velocity = (where->velocity + (delta_dist / a_delta)) / 2;
 				} else {
