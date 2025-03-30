@@ -16,7 +16,7 @@ namespace Registry
 														std::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", SCENEPATH);
 			logger::critical("{}", msg);
 			const auto msgBox = std::format("{}\n\nExit game now?", msg);
-			if (MESSAGEBOX(nullptr, msgBox.c_str(), "SexLab p+ Registry", 0x00000004) == 6)
+			if (REX::W32::MessageBoxA(nullptr, msgBox.c_str(), "SexLab p+ Registry", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
