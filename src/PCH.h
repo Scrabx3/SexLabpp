@@ -45,11 +45,11 @@ constexpr auto INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
 #define SCENEPATH CONFIGPATH("Registry")
 #define FURNITUREPATH CONFIGPATH("Furniture")
 #define EXPRESSIONPATH CONFIGPATH("Expressions")
-#define STRIPPINGPATH CONFIGPATH("Stripping.yaml")
 #define SCHLONGPATH CONFIGPATH("SchlongsOfSkyrim.yaml")
 
-#define USERDATAPATH(path) CONFIGPATH("UserData\\") path
-#define SCENESETTINGPATH USERDATAPATH("Scenes")
+#define USER_CONFIGS(path) CONFIGPATH("UserData\\") path
+#define STRIP_PATH USER_CONFIGS("Stripping.yaml")
+#define SCENE_USER_CONFIG USER_CONFIGS("Scenes")
 
 #define MESSAGEBOX REX::W32::MessageBoxA
 

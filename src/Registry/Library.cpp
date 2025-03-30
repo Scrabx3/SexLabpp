@@ -239,7 +239,7 @@ namespace Registry
 					auto node = data[scene->id];
 					scene->Save(node);
 				}
-				const auto filepath = std::format("{}\\{}_{}.yaml", SCENESETTINGPATH, p->GetName().data(), p->GetHash());
+				const auto filepath = std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, p->GetName().data(), p->GetHash());
 				std::ofstream fout(filepath);
 				fout << data;
 			});
@@ -252,11 +252,11 @@ namespace Registry
 
 	void Library::Load()
 	{
-		if (!fs::exists(SCENESETTINGPATH))
+		if (!fs::exists(SCENE_USER_CONFIG))
 			return;
 
 		std::unique_lock lock{ read_write_lock };
-		for (auto& file : fs::directory_iterator{ SCENESETTINGPATH }) {
+		for (auto& file : fs::directory_iterator{ SCENE_USER_CONFIG }) {
 			if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
 				continue;
 			const auto filename = file.path().filename().string();
