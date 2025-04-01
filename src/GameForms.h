@@ -5,14 +5,14 @@ namespace GameForms
 #define LOOKUPMOD(form, formid, mod)                                                                             \
 	form = RE::TESDataHandler::GetSingleton()->LookupForm<std::remove_pointer<decltype(form)>::type>(formid, mod); \
 	if (!form) {                                                                                                   \
-		logger::critical("Failed to lookup form {} in {}", #form, mod);                                              \
+		logger::critical("Failed to lookup form {} in {}: 0x{:X}", #form, mod, formid);                              \
 		return false;                                                                                                \
 	}
 
 #define LOOKUPGAME(form, formid)                                                     \
 	form = RE::TESForm::LookupByID<std::remove_pointer<decltype(form)>::type>(formid); \
 	if (!form) {                                                                       \
-		logger::critical("Failed to lookup form {}", #form);                             \
+		logger::critical("Failed to lookup form {}: 0x{:X}", #form, formid);             \
 		return false;                                                                    \
 	}
 
@@ -39,4 +39,4 @@ namespace GameForms
 
 		return true;
 	}
-} // namespace SLPP
+}	 // namespace SLPP
