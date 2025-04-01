@@ -1,4 +1,5 @@
 #include "Papyrus/Papyrus.h"
+#include "Registry/CumFx.h"
 #include "Registry/Expression.h"
 #include "Registry/Library.h"
 #include "Registry/Stats.h"
@@ -38,6 +39,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	switch (message->type) {
 	case SKSE::MessagingInterface::kPostLoad:
 		Settings::Initialize();
+		Registry::CumFx::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Initialize();
 		Registry::Library::GetSingleton()->Load();
 		Registry::Expression::GetSingleton()->Initialize();
@@ -46,7 +48,11 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		Registry::Voice::GetSingleton()->Initialize();
 		if (!GameForms::LoadData()) {
 			logger::critical("Unable to load esp objects");
-			if (REX::W32::MessageBoxA(nullptr, "Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game. Please ensure that you have all requirements installed\n\nExit Game now? (Recommended yes)", "SexLab p+ Load Data", 0x00000004) == 6)
+			const auto err =
+				"Some game objects could not be loaded. This is usually due to a required game plugin not being loaded in your game."
+				"See the SexLabUtil.log for more information about which form failed to load."
+				"\n\nExit Game now? (Recommended yes)";
+			if (REX::W32::MessageBoxA(nullptr, err, "SexLab p+ Load Data", 0x00000004) == 6)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
