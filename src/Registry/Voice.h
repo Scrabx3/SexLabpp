@@ -56,8 +56,8 @@ namespace Registry
 	{
 		static constexpr const char* VOICE_PATH{ CONFIGPATH("Voices\\Voices") };
 		static constexpr const char* VOICE_PATH_PITCH{ CONFIGPATH("Voices\\Pitch") };
-		static constexpr const char* VOICE_SETTING_PATH{ USERDATAPATH("Voices.yaml") };
-		static constexpr const char* VOICE_SETTINGS_CACHES_PATH{ USERDATAPATH("Voices_NPC.yaml") };
+		static constexpr const char* VOICE_SETTING_PATH{ USER_CONFIGS("Voices.yaml") };
+		static constexpr const char* VOICE_SETTINGS_CACHES_PATH{ USER_CONFIGS("Voices_NPC.yaml") };
 
 	public:
 		struct VoiceObject
