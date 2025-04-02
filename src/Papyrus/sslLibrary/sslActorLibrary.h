@@ -29,6 +29,9 @@ namespace Papyrus::ActorLibrary
 
 		REGISTERFUNC(HasVehicle, "sslActorLibrary", true);
 
+		REGISTERFUNC(PickRandomFxSet, "sslActorLibrary", true);
+		REGISTERFUNC(GetFxSetCount, "sslActorLibrary", true);
+
 		return true;
 	}
 
