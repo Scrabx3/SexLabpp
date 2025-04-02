@@ -12,9 +12,9 @@ namespace Papyrus::SexLabUtil
 		return kwd && kwd->ContainsKeywordString(a_substring);
 	}
 	RE::BSFixedString RemoveSubString(RE::StaticFunctionTag*, std::string a_str, std::string a_substring)
-  {
-    const auto where = a_str.find(a_substring);
-    if (where == std::string::npos)
+	{
+		const auto where = a_str.find(a_substring);
+		if (where == std::string::npos)
 			return a_str;
 		a_str.erase(where, a_substring.length());
 		return a_str;
@@ -25,19 +25,19 @@ namespace Papyrus::SexLabUtil
 	}
 
 	int IntMinMaxIndex(RE::StaticFunctionTag*, std::vector<int> arr, bool findHighestValue)
-  {
+	{
 		if (arr.empty()) {
 			return 0;
 		}
 		size_t w = 0;
-    int m = 0;
+		int m = 0;
 		for (size_t i = 0; i < arr.size(); i++) {
 			if (findHighestValue && arr[i] > m || !findHighestValue && arr[i] < m) {
 				w = i;
 				m = arr[i];
 			}
 		}
-    return static_cast<int>(w);
+		return static_cast<int>(w);
 	}
 	int IntMinMaxValue(RE::StaticFunctionTag*, std::vector<int> arr, bool findHighestValue)
 	{
@@ -52,7 +52,7 @@ namespace Papyrus::SexLabUtil
 			return 0;
 		}
 		size_t w = 0;
-    float m = 0;
+		float m = 0;
 		for (size_t i = 0; i < arr.size(); i++) {
 			if (findHighestValue && arr[i] > m || !findHighestValue && arr[i] < m) {
 				w = i;
@@ -87,11 +87,11 @@ namespace Papyrus::SexLabUtil
 
 	float GetCurrentGameRealTime(RE::StaticFunctionTag*)
 	{
-    constexpr auto seconds_per_day = 86400.0f;
+		constexpr auto seconds_per_day = 86400.0f;
 		const auto calendar = RE::Calendar::GetSingleton();
 		const auto timescale = std::max<float>(1, calendar->GetTimescale());
 		return (calendar->GetCurrentGameTime() / timescale) * seconds_per_day;
-  }
+	}
 
 	inline bool Register(VM* a_vm)
 	{
@@ -108,4 +108,4 @@ namespace Papyrus::SexLabUtil
 		return true;
 	}
 
-} // namespace Papyrus::SexLabUtil
+}	 // namespace Papyrus::SexLabUtil
