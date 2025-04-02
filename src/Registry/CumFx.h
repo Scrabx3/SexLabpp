@@ -10,7 +10,7 @@ namespace Registry
 	public:
 		enum FxType
 		{
-			Vagina = 0,
+			Vaginal = 0,
 			Anal,
 			Oral,
 

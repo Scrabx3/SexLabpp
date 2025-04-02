@@ -25,7 +25,7 @@ uint8_t Registry::CumFx::GetFxCount(FxType a_type, RE::BSFixedString a_set) cons
 void Registry::CumFx::Initialize()
 {
 	if (!fs::exists(CUM_FX_PATH) || fs::is_empty(CUM_FX_PATH)) {
-		auto code = REX::W32::MessageBoxA(nullptr, "CumFx path is empty or does not exist. Please check your installation.", "SexLab p+ CumFx", 0x00000004);
+		auto code = REX::W32::MessageBoxA(nullptr, "CumFx path is empty or does not exist. Please check your installation.\n\nExit game now?", "SexLab p+ CumFx", 0x00000004);
 		logger::error("CumFx path is empty or does not exist: {}", CUM_FX_PATH);
 		if (code == 6) {
 			std::_Exit(EXIT_FAILURE);
@@ -35,6 +35,10 @@ void Registry::CumFx::Initialize()
 	for (size_t i = 0; i < FxType::Total; i++) {
 		const auto fxName = magic_enum::enum_name(static_cast<FxType>(i));
 		const auto path = std::format("{}{}", CUM_FX_PATH, fxName);
+		if (!fs::exists(path) || fs::is_empty(path)) {
+			logger::error("FX type path does not exist or is empty: {}", path);
+			goto AFTER_DIRECTORY_ITERATOR;
+		}
 		for (const auto& profileEntry : fs::directory_iterator(path)) {
 			if (!profileEntry.is_directory())
 				continue;
@@ -47,6 +51,7 @@ void Registry::CumFx::Initialize()
 			fxList[i].emplace_back(RE::BSFixedString(profileName), typeCount.value());
 			logger::info("Loaded profile: {}", profileName);
 		}
+AFTER_DIRECTORY_ITERATOR:
 		if (fxList[i].empty()) {
 			logger::info("No profiles found for FX type: {}", fxName);
 			if (i <= FxType::MainThree) {
