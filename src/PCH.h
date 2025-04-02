@@ -47,7 +47,7 @@ constexpr auto INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
 #define EXPRESSIONPATH CONFIGPATH("Expressions")
 #define SCHLONGPATH CONFIGPATH("SchlongsOfSkyrim.yaml")
 
-#define CUM_FX_PATH "Textures/SexLab/CumFx/"
+#define CUM_FX_PATH "Data/Textures/SexLab/CumFx/"
 
 #define USER_CONFIGS(path) CONFIGPATH("UserData\\") path
 #define STRIP_PATH USER_CONFIGS("Stripping.yaml")
@@ -58,7 +58,7 @@ constexpr auto INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
 #else
 #define OFFSET(SE, AE) SE
 #endif
-namespace stl
+	namespace stl
 {
 	using namespace SKSE::stl;
 
