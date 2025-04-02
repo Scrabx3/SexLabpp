@@ -13,6 +13,9 @@ namespace Papyrus::ActorLibrary
 
 	bool HasVehicle(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
 
+	RE::BSFixedString PickRandomFxSet(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, int32_t a_type);
+	int32_t GetFxSetCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, int32_t a_type, RE::BSFixedString asSet);
+
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(ValidateActorImpl, "sslActorLibrary", true);
@@ -27,5 +30,6 @@ namespace Papyrus::ActorLibrary
 		REGISTERFUNC(HasVehicle, "sslActorLibrary", true);
 
 		return true;
-  }
+	}
+
 } // namespace Papyrus::ActorLibrary

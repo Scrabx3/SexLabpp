@@ -1,5 +1,6 @@
 #include "sslActorLibrary.h"
 
+#include "Registry/CumFx.h"
 #include "Registry/Validation.h"
 #include "UserData/StripData.h"
 
@@ -100,6 +101,38 @@ namespace Papyrus::ActorLibrary
 			return false;
 		}
 		return a_actor->unk1E8;
+	}
+
+	RE::BSFixedString PickRandomFxSet(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, int32_t a_type)
+	{
+		const auto fx = Registry::CumFx::GetSingleton();
+		if (a_type < 0 || a_type >= Registry::CumFx::FxType::Total) {
+			a_vm->TraceStack("Invalid FX type", a_stackID);
+			return "";
+		}
+		const auto fxType = static_cast<Registry::CumFx::FxType>(a_type);
+		const auto fxSet = fx->PickRandomFxSet(fxType);
+		if (fxSet.empty()) {
+			a_vm->TraceStack("FX set is empty or invalid", a_stackID);
+			return "";
+		}
+		return fxSet;
+	}
+
+	int32_t GetFxSetCount(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, int32_t a_type, RE::BSFixedString asSet)
+	{
+		const auto fx = Registry::CumFx::GetSingleton();
+		if (a_type < 0 || a_type >= Registry::CumFx::FxType::Total) {
+			a_vm->TraceStack("Invalid FX type", a_stackID);
+			return -1;
+		}
+		const auto fxType = static_cast<Registry::CumFx::FxType>(a_type);
+		const auto count = fx->GetFxCount(fxType, asSet);
+		if (count == 0) {
+			a_vm->TraceStack("FX set is empty or invalid", a_stackID);
+			return -1;
+		}
+		return count;
 	}
 
 }	 // namespace Papyrus::ActorLibrary
