@@ -470,6 +470,7 @@ namespace Registry
 
 	Voice::VoiceObject::VoiceObject(const YAML::Node& a_node) :
 		name(a_node["Name"].as<std::string>()),
+		displayName(a_node["DisplayName"].as<std::string>(""s)),
 		enabled(true),
 		sex([&]() {
 			auto node = a_node["Actor"]["Sex"];

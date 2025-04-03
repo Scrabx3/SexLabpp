@@ -68,6 +68,7 @@ namespace Registry
 			~VoiceObject() = default;
 
 			RE::BSFixedString name;
+			RE::BSFixedString displayName;
 			bool enabled{ true };
 			bool fromfile{ true };
 

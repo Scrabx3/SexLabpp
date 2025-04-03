@@ -114,6 +114,17 @@ namespace Papyrus::VoiceSlots
 			return Registry::Voice::GetSingleton()->PickOrgasmSound(a_id, annotation);
 		}
 
+		RE::BSFixedString GetDisplayName(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
+		{
+			const auto vs = Registry::Voice::GetSingleton();
+			auto it = vs->GetVoice(a_id);
+			if (!it) {
+				a_vm->TraceStack("Invalid voice form", a_stackID);
+				return "";
+			}
+			return it->displayName.empty() ? it->name : it->displayName;
+		}
+
 		bool InitializeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			return Registry::Voice::GetSingleton()->InitializeNew(a_id);
