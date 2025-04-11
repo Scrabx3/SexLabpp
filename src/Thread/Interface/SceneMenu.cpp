@@ -84,26 +84,13 @@ namespace Thread::Interface
 		using Type = RE::UI_MESSAGE_TYPE;
 		using Result = RE::UI_MESSAGE_RESULTS;
 
-		// const auto controls = RE::ControlMap::GetSingleton();
 		const auto input = RE::BSInputDeviceManager::GetSingleton();
 		switch (*a_message.type) {
 		case Type::kShow:
 			input->AddEventSink<RE::InputEvent*>(this);
-			// mainFourEnabled = controls->AreControlsEnabled(RE::ControlMap::UEFlag::kMainFour);
-			// controls->ToggleControls(RE::ControlMap::UEFlag::kMainFour, false);
-			// RE::UIMessageQueue::GetSingleton()->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
-			// RE::UIMessageQueue::GetSingleton()->AddMessage(TRUE_HUD_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
 			return Result::kHandled;
 		case Type::kHide:
 			input->RemoveEventSink(this);
-			// isShowing = false;
-			// __fallthrough;
-			// case Type::kForceHide:
-			// if (!controls->AreControlsEnabled(RE::ControlMap::UEFlag::kMainFour)) {
-			// 	controls->ToggleControls(RE::ControlMap::UEFlag::kMainFour, mainFourEnabled);
-			// }
-			// RE::UIMessageQueue::GetSingleton()->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr);
-			// RE::UIMessageQueue::GetSingleton()->AddMessage(TRUE_HUD_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr);
 			return Result::kHandled;
 		case Type::kUserEvent:
 		case Type::kScaleformEvent:
@@ -146,12 +133,6 @@ namespace Thread::Interface
 			const auto dxCode = idEvent->GetIDCode();
 			const auto type = GetKeyType(dxCode);
 			switch (type) {
-			case KeyType::End:
-				{
-					SKSE::ModCallbackEvent modEvent{ "SL_EndScene" };
-					SKSE::GetModCallbackEventSource()->SendEvent(&modEvent);
-				}
-				break;
 			case KeyType::None:
 				break;
 			case KeyType::Reset:

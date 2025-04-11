@@ -21,7 +21,6 @@ namespace Thread::Interface
 	class SceneMenu :
 		public RE::IMenu,
 		public RE::BSTEventSink<RE::InputEvent*>
-		// public RE::BSTEventSink<RE::MenuOpenCloseEvent>
 	{
 		using GRefCountBaseStatImpl::operator new;
 		using GRefCountBaseStatImpl::operator delete;
@@ -47,12 +46,8 @@ namespace Thread::Interface
 
 		// Events
 		RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>*) override;
-		// RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* a_event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 
 	private:
-		static constexpr std::string_view TRUE_HUD_NAME{ "TrueHUD" };
-		bool mainFourEnabled{ true };
-
 		struct HUDMenu_ShowMessageEx : public RE::GFxFunctionHandler
 		{
 			void Call(Params& a_args) override;
