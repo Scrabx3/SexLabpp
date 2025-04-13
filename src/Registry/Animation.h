@@ -62,56 +62,32 @@ namespace Registry
 
 	struct PositionInfo
 	{
-		enum class MatchStrictness
-		{
-			Light,
-			Standard,
-			Strict,
-
-			Total
-		};
-
-		enum class Extra : uint8_t
-		{
-			Submissive = 1 << 0,
-			Vamprie = 1 << 1,
-			Unconscious = 1 << 2
-		};
-
-	public:
 		PositionInfo(std::ifstream& a_stream, uint8_t a_version);
 		~PositionInfo() = default;
 
-		_NODISCARD bool IsHuman() const { return race == RaceKey::Human; }
-		_NODISCARD bool IsMale() const { return sex.all(Sex::Male); }
-		_NODISCARD bool IsFemale() const { return sex.all(Sex::Female); }
-		_NODISCARD bool IsFuta() const { return sex.all(Sex::Futa); }
+		_NODISCARD bool IsHuman() const { return data.IsHuman(); }
+		_NODISCARD bool IsMale() const { return data.IsSex(Sex::Male); }
+		_NODISCARD bool IsFemale() const { return data.IsSex(Sex::Female); }
+		_NODISCARD bool IsFuta() const { return data.IsSex(Sex::Futa); }
 		_NODISCARD PapyrusSex GetSexPapyrus() const;
 
-		_NODISCARD bool IsSubmissive() const { return extra.all(Extra::Submissive); }
+		_NODISCARD bool IsSubmissive() const { return data.IsSubmissive(); }
 
 		_NODISCARD bool CanFillPosition(RE::Actor* a_actor) const;
 		_NODISCARD bool CanFillPosition(const PositionInfo& a_other) const;
-		_NODISCARD bool CanFillPosition(stl::enumeration<PositionFragment> a_fragment, MatchStrictness a_strictness) const;
-		_NODISCARD std::vector<PositionFragment> MakeFragments() const;
+		_NODISCARD bool CanFillPosition(const ActorFragment& a_fragment) const;
 
 		_NODISCARD bool HasExtraCstm(const RE::BSFixedString& a_extra) const;
 		_NODISCARD std::string ConcatExtraCstm() const;
 
 	public:
-		RaceKey race;
-		stl::enumeration<Sex> sex;
-		stl::enumeration<Extra> extra;
-		std::vector<RE::BSFixedString> custom;
-
-		float scale;
+		ActorFragment data;
+		std::vector<RE::BSFixedString> annotations;
 	};
 
 	class Scene
 	{
 	public:
-		using FragmentPair = std::vector<std::pair<RE::Actor*, Registry::PositionFragment>>;
-
 		enum class NodeType
 		{
 			None = -1,
@@ -125,7 +101,7 @@ namespace Registry
 		{
 			stl::enumeration<FurnitureType> furnitures{ FurnitureType::None };
 			bool allowbed{ false };
-			Coordinate offset{};
+			Transform offset{};
 
 		public:
 			stl::enumeration<FurnitureType> GetCompatibleFurnitures() const;
@@ -151,8 +127,7 @@ namespace Registry
 		_NODISCARD uint32_t CountSubmissives() const;
 		_NODISCARD const PositionInfo* GetNthPosition(size_t n) const;
 
-		_NODISCARD std::vector<std::vector<PositionFragment>> MakeFragments() const;
-		_NODISCARD std::optional<std::vector<RE::Actor*>> SortActors(const FragmentPair& a_positions, PositionInfo::MatchStrictness a_strictness) const;
+		_NODISCARD std::vector<std::vector<RE::Actor*>> FindAssignments(const std::vector<ActorFragment>& a_fragments) const;
 
 		_NODISCARD size_t GetNumStages() const;
 		_NODISCARD const std::vector<const Stage*> GetAllStages() const;
@@ -187,6 +162,7 @@ namespace Registry
 		std::vector<PositionInfo> positions;
 		FurnitureData furnitures;
 		TagData tags;
+		std::vector<RE::BSFixedString> annotations;
 
 		bool enabled;
 

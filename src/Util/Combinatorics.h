@@ -20,7 +20,6 @@ namespace Combinatorics
 		while (it[0] != a_iterative[0].end()) {
 			if (a_iterator(it) == CResult::Stop)
 				return;
-
 			// Next
 			++it[K];
 			for (auto i = K; i > 0 && it[i] == a_iterative[i].end(); i--) {

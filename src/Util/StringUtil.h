@@ -40,7 +40,8 @@ namespace Util
 			while (!word.empty() && std::isspace(word.back()))
 				word.remove_suffix(1);
 			return word;
-		}) | views::filter([](auto&& word) { return !word.empty(); }) | std::ranges::to<std::vector>();
+		}) | views::filter([](auto&& word) { return !word.empty(); }) |
+					 std::ranges::to<std::vector>();
 	}
 
 	inline std::vector<std::string> StringSplitToOwned(const std::string_view& a_view, const std::string_view& a_delim)
@@ -49,7 +50,7 @@ namespace Util
 		return std::vector<std::string>(ret.cbegin(), ret.cend());
 	}
 
-  template <class T>
+	template <class T>
 	static inline std::string StringJoin(const std::vector<T>& a_vec, std::string_view a_delimiter)
 	{
 		return std::accumulate(a_vec.begin(), a_vec.end(), std::string{},

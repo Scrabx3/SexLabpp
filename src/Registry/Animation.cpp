@@ -4,6 +4,7 @@
 #include "Registry/Define/RaceKey.h"
 #include "Util/Combinatorics.h"
 #include "Util/Decode.h"
+#include "Util/StringUtil.h"
 
 namespace Registry
 {
@@ -62,12 +63,12 @@ namespace Registry
 		sexes.reserve(positions.size());
 		for (auto&& position : positions) {
 			std::vector<legacySex> vec{};
-			if (position.race == RaceKey::Human) {
-				if (position.sex.all(Sex::Male))
+			if (position.data.IsHuman()) {
+				if (position.data.IsSex(Sex::Male))
 					vec.push_back(legacySex::Male);
-				if (position.sex.all(Sex::Female))
+				if (position.data.IsSex(Sex::Female))
 					vec.push_back(legacySex::Female);
-				if (position.sex.all(Sex::Futa))
+				if (position.data.IsSex(Sex::Futa))
 					vec.push_back(legacySex::Futa);
 			} else {
 				vec.push_back(legacySex::Creature);
@@ -149,22 +150,34 @@ namespace Registry
 
 	PositionInfo::PositionInfo(std::ifstream& a_stream, uint8_t a_version)
 	{
+		enum Extra : uint8_t
+		{
+			Submissive = 1 << 0,
+			Vamprie = 1 << 1,
+			Unconscious = 1 << 2
+		};
+		float scale;
+		RaceKey race;
+		stl::enumeration<Sex> sex;
+		stl::enumeration<Extra> extra;
 		a_stream.read(reinterpret_cast<char*>(&race), 1);
 		a_stream.read(reinterpret_cast<char*>(&sex), 1);
 		Decode::Read(a_stream, scale);
 		a_stream.read(reinterpret_cast<char*>(&extra), 1);
 
+		data = ActorFragment(sex, race, scale, extra.all(Extra::Vamprie), extra.all(Extra::Submissive), extra.all(Extra::Unconscious));
+
 		if (a_version > 1) {
 			uint64_t extra_custom;
 			Decode::Read(a_stream, extra_custom);
-			custom.reserve(extra_custom);
+			annotations.reserve(extra_custom);
 			for (size_t j = 0; j < extra_custom; j++) {
 				RE::BSFixedString tag;
 				Decode::Read(a_stream, tag);
-				custom.push_back(tag);
+				annotations.push_back(tag);
 			}
 		} else {
-			custom = {};
+			annotations = {};
 		}
 	}
 
@@ -264,168 +277,47 @@ namespace Registry
 
 	bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
 	{
-		auto fragment = MakeFragmentFromActor(a_actor, true);
-		return CanFillPosition(fragment, MatchStrictness::Light);
+		auto fragment = ActorFragment(a_actor, false);
+		return CanFillPosition(fragment);
 	}
 
-	bool PositionInfo::CanFillPosition(stl::enumeration<PositionFragment> a_fragment, MatchStrictness a_strictness) const
+	bool PositionInfo::CanFillPosition(const ActorFragment& a_fragment) const
 	{
-		switch (a_strictness) {
-		case MatchStrictness::Strict:
-			if (a_fragment.all(PositionFragment::Futa)) {
-				if (!sex.all(Sex::Futa))
-					return false;
-			} else if (a_fragment.all(PositionFragment::Female) && !sex.all(Sex::Female)) {
-				return false;
-			}
-			__fallthrough;
-		case MatchStrictness::Standard:
-			if (a_fragment.all(PositionFragment::Unconscious) != extra.all(Extra::Unconscious))
-				return false;
-			if (a_fragment.all(PositionFragment::Submissive) != extra.all(Extra::Submissive))
-				return false;
-			__fallthrough;
-		case MatchStrictness::Light:
-			if (a_fragment.all(PositionFragment::Futa))
-				;
-			else if (a_fragment.all(PositionFragment::Male) && !sex.all(Sex::Male))
-				return false;
-			else if (a_fragment.all(PositionFragment::Female) && !sex.any(Sex::Male, Sex::Female))
-				return false;
-			break;
-		}
-
-		if (a_fragment.all(PositionFragment::Human)) {
-			if (this->extra.all(Extra::Vamprie) && !a_fragment.all(PositionFragment::Vampire))
-				return false;
-		} else {
-			const auto race_frag = RaceKeyAsFragment(race);
-			if (!a_fragment.all(race_frag)) {
-				if (race == RaceKey::Canine) {
-					if (!a_fragment.all(RaceKeyAsFragment(RaceKey::Dog)) &&
-							!a_fragment.all(RaceKeyAsFragment(RaceKey::Wolf)) &&
-							!a_fragment.all(RaceKeyAsFragment(RaceKey::Fox)))
-						return false;
-				} else if (race == RaceKey::Boar) {
-					if (!a_fragment.all(RaceKeyAsFragment(RaceKey::BoarMounted)) &&
-							!a_fragment.all(RaceKeyAsFragment(RaceKey::BoarSingle)))
-						return false;
-				} else {
-					return false;
-				}
-			}
-		}
-		return true;
+		return data.GetCompatibilityScore(a_fragment) > 0;
 	}
 
 	bool PositionInfo::CanFillPosition(const PositionInfo& a_other) const
 	{
-		return race == a_other.race && sex.any(a_other.sex.get()) && extra.all(a_other.extra.get());
-	}
-
-	std::vector<PositionFragment> PositionInfo::MakeFragments() const
-	{
-		std::vector<stl::enumeration<PositionFragment>> fragments{};
-		const auto addVariance = [&](PositionFragment a_variancebit) {
-			const auto count = fragments.size();
-			for (size_t i = 0; i < count; i++) {
-				auto copy = fragments[i];
-				copy.set(a_variancebit);
-				fragments.push_back(copy);
-			}
-		};
-		const auto setFragmentBit = [&](PositionFragment a_bit) {
-			for (auto&& fragment : fragments) {
-				fragment.set(a_bit);
-			}
-		};
-		const auto addRaceVariance = [&](RaceKey a_racekey) {
-			const auto val = RaceKeyAsFragment(a_racekey);
-			const auto count = fragments.size();
-			for (size_t i = 0; i < count; i++) {
-				auto copy = fragments[i];
-				copy.reset(PositionFragment::CrtBit0,
-					PositionFragment::CrtBit1,
-					PositionFragment::CrtBit2,
-					PositionFragment::CrtBit3,
-					PositionFragment::CrtBit4,
-					PositionFragment::CrtBit5);
-				copy.set(val);
-				fragments.push_back(copy);
-			}
-		};
-		const auto setRaceBit = [&](RaceKey a_racekey) {
-			const auto val = RaceKeyAsFragment(a_racekey);
-			setFragmentBit(val);
-		};
-
-		if (this->sex.all(Sex::Male))
-			fragments.emplace_back(PositionFragment::Male);
-		if (this->sex.all(Sex::Female))
-			fragments.emplace_back(PositionFragment::Female);
-		if (this->sex.all(Sex::Futa))
-			fragments.emplace_back(PositionFragment::Futa);
-		if (this->extra.all(Extra::Unconscious))
-			setFragmentBit(PositionFragment::Unconscious);
-		if (this->extra.all(Extra::Submissive))
-			setFragmentBit(PositionFragment::Submissive);
-
-		switch (this->race) {
-		case RaceKey::Human:
-			{
-				setFragmentBit(PositionFragment::Human);
-				if (this->extra.all(Extra::Vamprie)) {
-					setFragmentBit(PositionFragment::Vampire);
-				} else {
-					addVariance(PositionFragment::Vampire);
-				}
-			}
-			break;
-		case RaceKey::Boar:
-			setRaceBit(RaceKey::BoarMounted);
-			addRaceVariance(RaceKey::BoarSingle);
-			break;
-		case RaceKey::Canine:
-			setRaceBit(RaceKey::Dog);
-			addRaceVariance(RaceKey::Wolf);
-			break;
-		default:
-			setRaceBit(this->race);
-			break;
-		}
-		std::vector<PositionFragment> ret{};
-		for (auto&& it : fragments)
-			ret.push_back(it.get());
-		return ret;
+		return CanFillPosition(a_other.data);
 	}
 
 	bool PositionInfo::HasExtraCstm(const RE::BSFixedString& a_extra) const
 	{
-		return std::ranges::find(custom, a_extra) != custom.end();
+		return std::ranges::find(annotations, a_extra) != annotations.end();
 	}
 
 	std::string PositionInfo::ConcatExtraCstm() const
 	{
-		std::string ret{};
-		for (auto&& it : custom) {
-			ret += it.c_str();
-		}
-		return ret;
+		return Util::StringJoin(annotations, ", ");
 	}
 
 	PapyrusSex PositionInfo::GetSexPapyrus() const
 	{
-		if (race == Registry::RaceKey::Human) {
-			return PapyrusSex(sex.underlying());
+		auto sex = data.GetSex();
+		REX::EnumSet<PapyrusSex> ret{ PapyrusSex::None };
+		if (data.IsHuman()) {
+#define SET_SEX(s)     \
+	if (sex.all(Sex::s)) \
+		ret.set(PapyrusSex::s);
+		SET_SEX(Male);
+		SET_SEX(Female);
+		SET_SEX(Futa);
+#undef SET_SEX
 		} else {
-			stl::enumeration<PapyrusSex> ret{ PapyrusSex::None };
-			if (sex.all(Registry::Sex::Male))
-				ret.set(PapyrusSex::CrtMale);
-			if (sex.all(Registry::Sex::Female))
-				ret.set(PapyrusSex::CrtFemale);
-
-			return ret == PapyrusSex::None ? ret.get() : PapyrusSex::CrtMale;
+			const auto crtSex = sex.any(Sex::Female) ? PapyrusSex::CrtFemale : PapyrusSex::CrtMale;
+			ret.set(crtSex);
 		}
+		return ret.get();
 	}
 
 	stl::enumeration<FurnitureType> Scene::FurnitureData::GetCompatibleFurnitures() const
@@ -498,16 +390,6 @@ namespace Registry
 	bool Scene::IsPrivate() const
 	{
 		return is_private;
-	}
-
-	std::vector<std::vector<PositionFragment>> Scene::MakeFragments() const
-	{
-		std::vector<std::vector<PositionFragment>> ret;
-		ret.reserve(this->positions.size());
-		for (auto&& pinfo : this->positions) {
-			ret.push_back(pinfo.MakeFragments());
-		}
-		return ret;
 	}
 
 	bool Scene::IsCompatibleTags(const TagData& a_tags) const
@@ -596,11 +478,11 @@ namespace Registry
 
 			int count[3];
 			for (auto&& position : positions) {
-				if (position.race == Registry::RaceKey::Human)
+				if (position.data.IsHuman())
 					continue;
-				if (position.sex.none(Registry::Sex::Female)) {
+				if (position.data.IsNotSex(Sex::Female)) {
 					count[Male]++;
-				} else if (position.sex.none(Registry::Sex::Male)) {
+				} else if (position.data.IsNotSex(Sex::Male)) {
 					count[Female]++;
 				} else {
 					count[Either]++;
@@ -615,40 +497,79 @@ namespace Registry
 		return ret;
 	}
 
-	std::optional<std::vector<RE::Actor*>> Scene::SortActors(const FragmentPair& a_positions, PositionInfo::MatchStrictness a_strictness) const
-	{
-		if (a_positions.size() != this->positions.size())
-			return std::nullopt;
 
-		std::vector<std::vector<std::pair<size_t, RE::Actor*>>> compatibles{};
-		compatibles.resize(a_positions.size());
-		for (size_t i = 0; i < a_positions.size(); i++) {
-			for (size_t n = 0; n < this->positions.size(); n++) {
-				if (this->positions[n].CanFillPosition(a_positions[i].second, a_strictness)) {
-					compatibles[i].emplace_back(n, a_positions[i].first);
+	std::vector<std::vector<RE::Actor*>> Scene::FindAssignments(const std::vector<ActorFragment>& a_fragments) const
+	{
+		if (a_fragments.size() != positions.size())
+			return {};
+
+		const auto n = a_fragments.size();
+		std::vector<std::vector<std::pair<size_t, int32_t>>> graph;	 // fragment[i] = { { positionIdx, score }, ... }
+		for (size_t i = 0; i < n; i++) {
+			const auto& fragment = a_fragments[i];
+			for (size_t j = 0; j < n; j++) {
+				const auto& position = positions[j];
+				const auto score = position.data.GetCompatibilityScore(fragment);
+				if (score > 0) {
+					graph[i].emplace_back(j, score);
 				}
-			}
-			if (compatibles[i].empty()) {
-				logger::info("Actor {:X} has no compatible positions for scene {} ({})", a_positions[i].first->formID, this->name, this->id);
-				return std::nullopt;
 			}
 		}
-		std::vector<RE::Actor*> ret;
-		Combinatorics::ForEachCombination(compatibles, [&](auto it) {
-			std::vector<RE::Actor*> result(it.size(), nullptr);
-			for (auto&& current : it) {
-				const auto& [scene_idx, actor] = *current;
-				if (result[scene_idx] != nullptr) {
-					return Combinatorics::CResult::Next;
-				}
-				result[scene_idx] = actor;
+
+		using Assignment = std::vector<std::pair<ActorFragment, size_t>>;
+		struct ScoredAssignment
+		{
+			Assignment assignment{};
+			int32_t score{ 0 };
+
+			bool operator<(const ScoredAssignment& other) const { return score > other.score; }
+		};
+		std::vector<ScoredAssignment> assignments{};
+		std::vector<bool> used(n, false);
+		Assignment current;
+		const std::function<void(size_t, int32_t)> helper = [&](size_t fragmentIdx, int32_t accScore) {
+			if (fragmentIdx == n) {
+				assignments.emplace_back(current, accScore);
+				return;
 			}
-			assert(!std::ranges::contains(result, nullptr));
-			ret = result;
-			return Combinatorics::CResult::Stop;
-		});
-		if (ret.empty()) {
-			return std::nullopt;
+			for (auto&& [positionIdx, score] : graph[fragmentIdx]) {
+				if (used[positionIdx]) {
+					continue;
+				}
+				used[positionIdx] = true;
+				current.emplace_back(a_fragments[fragmentIdx], positionIdx);
+				helper(fragmentIdx + 1, accScore + score);
+				current.pop_back();
+				used[positionIdx] = false;
+			}
+		};
+		helper(0, 0);
+		if (assignments.empty()) {
+			return {};
+		}
+		std::sort(assignments.begin(), assignments.end());
+
+#ifndef NDEBUG
+		logger::info("Scene: {} | Found {} assignments", id, assignments.size());
+		for (auto&& assignment : assignments) {
+			std::string str{};
+			str.reserve(assignment.assignment.size() * 2);
+			for (auto&& [fragment, positionIdx] : assignment.assignment) {
+				str += std::format("{} ", positionIdx);
+			}
+			logger::info("Assignment: {} | Score: {}", str, assignment.score);
+		}
+#endif
+
+		std::vector<std::vector<RE::Actor*>> ret{};
+		ret.reserve(assignments.size());
+		for (auto&& assignment : assignments) {
+			std::vector<RE::Actor*> actors{};
+			actors.reserve(n);
+			for (auto&& [fragment, positionIdx] : assignment.assignment) {
+				actors[positionIdx] = fragment.GetActor();
+			}
+			ret.push_back(actors);
 		}
 		return ret;
 	}

@@ -21,8 +21,8 @@ namespace Papyrus::AnimationSlots
 			a_vm->TraceStack("Cannot call GetByTagsImpl on a none object", a_stackID);
 			return {};
 		}
-		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount);
+		if (a_actorcount <= 0 || a_actorcount > Registry::ActorFragment::MAX_ACTOR_COUNT) {
+			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::ActorFragment::MAX_ACTOR_COUNT, a_actorcount);
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		}
@@ -38,8 +38,8 @@ namespace Papyrus::AnimationSlots
 			a_vm->TraceStack("Cannot call GetByTypeImpl on a none object", a_stackID);
 			return {};
 		}
-		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount);
+		if (a_actorcount <= 0 || a_actorcount > Registry::ActorFragment::MAX_ACTOR_COUNT) {
+			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::ActorFragment::MAX_ACTOR_COUNT, a_actorcount);
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		}

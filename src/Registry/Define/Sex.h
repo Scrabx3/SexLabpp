@@ -15,7 +15,7 @@ namespace Registry
 
 	enum class Sex : uint8_t
 	{
-    None = 0,
+		None = 0,
 
 		Male = 1 << 0,
 		Female = 1 << 1,
@@ -31,9 +31,9 @@ namespace Registry
 		None
 	};
 
-	/// @brief Get (1 dimensional) sex for this actor
+	/// @brief Get the (1 dimensional) sex for this actor
 	Sex GetSex(RE::Actor* a_actor, bool a_skipfactions = false);
 	/// @brief If this (female) actor is a futa
 	bool IsFuta(RE::Actor* a_actor);
 
-} // namespace Registry
+}	 // namespace Registry

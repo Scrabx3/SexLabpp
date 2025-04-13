@@ -246,20 +246,16 @@ namespace Papyrus::ThreadLibrary
 			return a_positions;
 		}
 		auto subcount = scene->CountSubmissives();
-		std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> argFrag;
+		std::vector<Registry::ActorFragment> fragments;
 		for (auto&& actor : a_positions) {
 			const auto submissive = subcount > 0 && std::find(a_submissives.begin(), a_submissives.end(), actor) != a_submissives.end();
-			if (submissive) {
+			if (submissive)
 				subcount--;
-			}
-			argFrag.emplace_back(
-				actor,
-				Registry::MakeFragmentFromActor(
-					actor,
-					submissive));
+			const auto fragment = Registry::ActorFragment{ actor, submissive };
+			fragments.push_back(fragment);
 		}
-		auto ret = scene->SortActors(argFrag, Registry::PositionInfo::MatchStrictness::Light);
-		return ret ? *ret : a_positions;
+		auto ret = scene->FindAssignments(fragments);
+		return ret.empty() ? a_positions : ret.front();
 	}
 
 	bool IsActorTrackedImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)

@@ -26,7 +26,7 @@ namespace Papyrus::CreatureAnimationSlots
 			if (!a_scene->IsCompatibleTags(tagdetails))
 				return false;
 			for (auto&& position : a_scene->positions) {
-				if (Registry::RaceHandler::IsCompatibleRaceKey(position.race, racekey)) {
+				if (Registry::RaceHandler::IsCompatibleRaceKey(position.data.GetRace(), racekey)) {
 					ret.push_back(a_scene->id);
 					break;
 				}
@@ -39,8 +39,8 @@ namespace Papyrus::CreatureAnimationSlots
 	std::vector<RE::BSFixedString> GetByCreatureActorsTagsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
 		int32_t a_actorcount, std::vector<RE::Actor*> a_creatures, std::vector<std::string_view> a_tags)
 	{
-		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount);
+		if (a_actorcount <= 0 || a_actorcount > Registry::ActorFragment::MAX_ACTOR_COUNT) {
+			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::ActorFragment::MAX_ACTOR_COUNT, a_actorcount);
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		}
@@ -81,7 +81,7 @@ namespace Papyrus::CreatureAnimationSlots
 					if (control[i])
 						continue;
 					const auto& position = a_scene->positions[i];
-					if (Registry::RaceHandler::IsCompatibleRaceKey(position.race, racekey)) {
+					if (Registry::RaceHandler::IsCompatibleRaceKey(position.data.GetRace(), racekey)) {
 						control[i] = true;
 						break;
 					}
@@ -103,8 +103,8 @@ namespace Papyrus::CreatureAnimationSlots
 		int32_t a_femalecrt, 
 		std::vector<std::string_view> a_tags)
 	{
-		if (a_actorcount <= 0 || a_actorcount > Registry::MAX_ACTOR_COUNT) {
-			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::MAX_ACTOR_COUNT, a_actorcount);
+		if (a_actorcount <= 0 || a_actorcount > Registry::ActorFragment::MAX_ACTOR_COUNT) {
+			const auto err = std::format("Actorcount should be between 1 and {} but was {}", Registry::ActorFragment::MAX_ACTOR_COUNT, a_actorcount);
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
 		}
@@ -129,7 +129,7 @@ namespace Papyrus::CreatureAnimationSlots
 				return false;
 			bool has_race = false;
 			for (auto&& position : a_scene->positions) {
-				if (Registry::RaceHandler::IsCompatibleRaceKey(position.race, racekey)) {
+				if (Registry::RaceHandler::IsCompatibleRaceKey(position.data.GetRace(), racekey)) {
 					has_race = true;
 					break;
 				}

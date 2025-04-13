@@ -31,27 +31,7 @@ namespace Registry
 				try {
 					auto package = std::make_unique<AnimPackage>(file);
 					for (auto&& scene : package->scenes) {
-						const auto positionFragments = scene->MakeFragments();
-						Combinatorics::ForEachCombination<PositionFragment>(positionFragments, [&](const std::vector<std::vector<PositionFragment>::const_iterator>& it) {
-							std::vector<PositionFragment> argFragment{};
-							argFragment.reserve(it.size());
-							for (const auto& current : it) {
-								if (*current == PositionFragment::None) {
-									continue;
-								}
-								argFragment.push_back(*current);
-							}
-							std::stable_sort(argFragment.begin(), argFragment.end());
-							auto key = CombineFragments(argFragment);
-							const std::unique_lock lock{ read_write_lock };
-							const auto where = scenes.find(key);
-							if (where == scenes.end()) {
-								scenes[key] = { scene.get() };
-							} else if (!std::ranges::contains(where->second, scene.get())) {
-								where->second.push_back(scene.get());
-							}
-							return Combinatorics::CResult::Next;
-						});
+						RegisterScene(scene.get());
 					}
 					const std::unique_lock lock{ read_write_lock };
 					for (auto&& scene : package->scenes) {
@@ -73,34 +53,68 @@ namespace Registry
 		std::chrono::duration<double, std::milli> ms = t2 - t1;
 		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
 
-		if (!fs::exists(FURNITUREPATH, ec) || fs::is_empty(FURNITUREPATH, ec)) {
-			const auto msg = ec ? std::format("An error occured while attempting to read furniture info: {}", ec.message()) :
-														std::format("Unable to load furnitures. Folder {} is empty or does not exist.", FURNITUREPATH);
-			logger::critical("{}", msg);
-		} else {
-			const std::unique_lock lock{ read_write_lock };
-			for (auto& file : fs::directory_iterator{ FURNITUREPATH }) {
-				if (auto ext = file.path().extension(); ext != ".yml" && ext != ".yaml") {
-					continue;
-				}
-				const auto filename = file.path().filename().string();
-				try {
-					YAML::Node root = YAML::LoadFile(file.path().string());
-					for (auto&& it : root) {
-						furnitures.emplace(
-							RE::BSFixedString(it.first.as<std::string>()),
-							std::make_unique<FurnitureDetails>(it.second));
-					}
-					logger::info("Finished parsing file {}", filename);
-				} catch (const std::exception& e) {
-					logger::error("Unable to load furnitures in file {}; Error: {}", filename, e.what());
-				}
-			}
+		if (RegisterFurniture()) {
 			const auto t3 = std::chrono::high_resolution_clock::now();
 			ms = t3 - t2;
 			logger::info("Loaded {} Furnitures in {}ms", furnitures.size(), ms.count());
 		}
 		logger::info("Initialized Data");
+	}
+
+	void Library::RegisterScene(Scene* a_scene)
+	{
+		std::vector<std::vector<ActorFragment>> positionFragments{};
+		for (auto&& it : a_scene->positions) {
+			const auto splits = it.data.Split();
+			positionFragments.push_back(splits);
+		}
+		Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
+			std::vector<ActorFragment> argFragment{};
+			argFragment.reserve(it.size());
+			for (const auto& current : it) {
+				argFragment.push_back(*current);
+			}
+			std::stable_sort(argFragment.begin(), argFragment.end());
+			const auto key = ActorFragment::MakeFragmentHash(argFragment);
+			const std::unique_lock lock{ read_write_lock };
+			const auto where = scenes.find(key);
+			if (where == scenes.end()) {
+				scenes[key] = { a_scene };
+			} else if (!std::ranges::contains(where->second, a_scene)) {
+				where->second.push_back(a_scene);
+			}
+			return Combinatorics::CResult::Next;
+		});
+	}
+
+	bool Library::RegisterFurniture()
+	{
+		std::error_code ec{};
+		if (!fs::exists(FURNITUREPATH, ec) || fs::is_empty(FURNITUREPATH, ec)) {
+			const auto msg = ec ? std::format("An error occured while attempting to read furniture info: {}", ec.message()) :
+														std::format("Unable to load furnitures. Folder {} is empty or does not exist.", FURNITUREPATH);
+			logger::critical("{}", msg);
+			return false;
+		}
+		const std::unique_lock lock{ read_write_lock };
+		for (auto& file : fs::directory_iterator{ FURNITUREPATH }) {
+			if (auto ext = file.path().extension(); ext != ".yml" && ext != ".yaml") {
+				continue;
+			}
+			const auto filename = file.path().filename().string();
+			try {
+				YAML::Node root = YAML::LoadFile(file.path().string());
+				for (auto&& it : root) {
+					furnitures.emplace(
+						RE::BSFixedString(it.first.as<std::string>()),
+						std::make_unique<FurnitureDetails>(it.second));
+				}
+				logger::info("Finished parsing file {}", filename);
+			} catch (const std::exception& e) {
+				logger::error("Unable to load furnitures in file {}; Error: {}", filename, e.what());
+			}
+		}
+		return true;
 	}
 
 	const Scene* Library::GetSceneByID(const RE::BSFixedString& a_id) const
@@ -140,16 +154,14 @@ namespace Registry
 	std::vector<Scene*> Library::LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
 	{
 		const auto t1 = std::chrono::high_resolution_clock::now();
-		FragmentHash hash;
+		ActorFragment::FragmentHash hash;
 		std::thread _hashbuilder{ [&]() {
-			std::vector<PositionFragment> fragments;
+			std::vector<ActorFragment> fragments;
 			for (auto&& position : a_actors) {
 				const auto submissive = std::ranges::contains(a_submissives, position);
-				const auto fragment = MakeFragmentFromActor(position, submissive);
-				fragments.push_back(fragment);
+				fragments.emplace_back(position, submissive);
 			}
-			std::stable_sort(fragments.begin(), fragments.end());
-			hash = CombineFragments(fragments);
+			hash = ActorFragment::MakeFragmentHash(fragments);
 		} };
 		TagDetails tags{ a_tags };
 		const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", [&] {
@@ -190,6 +202,17 @@ namespace Registry
 			ret += package->scenes.size();
 		}
 		return ret;
+	}
+
+	const AnimPackage* Library::GetPackageFromScene(Scene* a_scene) const
+	{
+		const std::shared_lock lock{ read_write_lock };
+		for (auto&& package : packages) {
+			if (std::ranges::contains(package->scenes, a_scene, [](const auto& scenePtr) { return scenePtr.get(); })) {
+				return package.get();
+			}
+		}
+		return nullptr;
 	}
 
 	std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
