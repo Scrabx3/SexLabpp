@@ -221,4 +221,5 @@ namespace Registry
 		}
 		return fragments;
 	}
+
 }	 // namespace Registry

@@ -92,6 +92,4 @@ namespace Registry
 		float scale{ 1.0f };
 	};
 
-	// std::vector<std::pair<RE::Actor*, Registry::PositionFragment>> MakeFragmentPair(const std::vector<RE::Actor*>& a_actors, const std::vector<RE::Actor*>& a_submissives);
-
 }	 // namespace Registry

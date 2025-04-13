@@ -503,11 +503,11 @@ namespace Registry
 		if (a_fragments.size() != positions.size())
 			return {};
 
-		const auto n = a_fragments.size();
+		const auto N = a_fragments.size();
 		std::vector<std::vector<std::pair<size_t, int32_t>>> graph;	 // fragment[i] = { { positionIdx, score }, ... }
-		for (size_t i = 0; i < n; i++) {
+		for (size_t i = 0; i < N; i++) {
 			const auto& fragment = a_fragments[i];
-			for (size_t j = 0; j < n; j++) {
+			for (size_t j = 0; j < N; j++) {
 				const auto& position = positions[j];
 				const auto score = position.data.GetCompatibilityScore(fragment);
 				if (score > 0) {
@@ -525,10 +525,10 @@ namespace Registry
 			bool operator<(const ScoredAssignment& other) const { return score > other.score; }
 		};
 		std::vector<ScoredAssignment> assignments{};
-		std::vector<bool> used(n, false);
+		std::vector<bool> used(N, false);
 		Assignment current;
 		const std::function<void(size_t, int32_t)> helper = [&](size_t fragmentIdx, int32_t accScore) {
-			if (fragmentIdx == n) {
+			if (fragmentIdx == N) {
 				assignments.emplace_back(current, accScore);
 				return;
 			}
@@ -564,8 +564,7 @@ namespace Registry
 		std::vector<std::vector<RE::Actor*>> ret{};
 		ret.reserve(assignments.size());
 		for (auto&& assignment : assignments) {
-			std::vector<RE::Actor*> actors{};
-			actors.reserve(n);
+			std::vector<RE::Actor*> actors(N, nullptr);
 			for (auto&& [fragment, positionIdx] : assignment.assignment) {
 				actors[positionIdx] = fragment.GetActor();
 			}
