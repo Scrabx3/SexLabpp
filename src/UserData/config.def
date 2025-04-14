@@ -5,6 +5,7 @@ INI_SETTING(fScanRadius, 750.0f, "Animation")
 INI_SETTING(fMinScale, 0.88f, "Animation")
 INI_SETTING(bAllowDead, false, "Animation")
 INI_SETTING(fMinSetupTime, 0.4f, "Animation")
+INI_SETTING(fAdjustStepSizeIncrement, 0.1f, "Animation")
 INI_SETTING(bAdjustNodes, true, "Animation")
 
 INI_SETTING(iWeightSexStrict, 20, "Filter")

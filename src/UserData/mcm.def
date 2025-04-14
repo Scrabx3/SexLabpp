@@ -26,6 +26,7 @@ MCM_SETTING(iUseFade, 1)
 MCM_SETTING(iClimaxType, 0)
 MCM_SETTING(iFilterStrictness, 2)
 MCM_SETTING(iLipsSoundTime, 1)
+
 MCM_SETTING(iLovenseStrength, 10)
 MCM_SETTING(iLovenseStrengthOrgasm, 20)
 MCM_SETTING(fLovenseDurationOrgasm, 8)
@@ -44,6 +45,9 @@ MCM_SETTING(iKeyReset, 0x1D)	// Ctrl
 
 MCM_SETTING(iToggleFreeCamera, 81)
 MCM_SETTING(iTargetActor, 49)
+
+MCM_SETTING(fAdjustStepSize, 0.5f)
+MCM_SETTING(bAdjustStage, true)
 
 // MCM_SETTING(bAdjustTargetStage, false)
 // MCM_SETTING(iAdjustStage, 157)

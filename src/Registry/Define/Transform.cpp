@@ -52,6 +52,36 @@ namespace Registry
 		return _offset;
 	}
 
+	float Transform::GetOffset(CoordinateType a_type) const
+	{
+		switch (a_type) {
+		case CoordinateType::X:
+			return _offset.location.x;
+		case CoordinateType::Y:
+			return _offset.location.y;
+		case CoordinateType::Z:
+			return _offset.location.z;
+		case CoordinateType::R:
+			return _offset.rotation;
+		}
+		logger::error("Invalid offset type: {}", std::to_underlying(a_type));
+		return 0.0f;
+	}
+
+	void Transform::SetOffset(float a_value, CoordinateType a_type)
+	{
+		switch (a_type) {
+		case CoordinateType::X:
+			_offset.location.x = a_value;
+		case CoordinateType::Y:
+			_offset.location.y = a_value;
+		case CoordinateType::Z:
+			_offset.location.z = a_value;
+		case CoordinateType::R:
+			_offset.rotation = a_value;
+		}
+	}
+
 	void Transform::UpdateOffset(const Coordinate& a_newoffset)
 	{
 		_offset = a_newoffset;

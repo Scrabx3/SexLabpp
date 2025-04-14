@@ -58,6 +58,8 @@ namespace Registry
 
 		const Coordinate& GetRawOffset() const;
 		const Coordinate& GetOffset() const;
+		float GetOffset(CoordinateType a_type) const;
+		void SetOffset(float a_value, CoordinateType a_type);
 		void UpdateOffset(const Coordinate& a_coordinate);
 		void UpdateOffset(float x, float y, float z, float rot);
 		void UpdateOffset(float a_value, CoordinateType a_where);
