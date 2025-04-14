@@ -33,8 +33,8 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Cannot get race id of a none ref", a_stackID);
 			return 0;
 		}
-		const auto racekey = Registry::RaceHandler::GetRaceKey(a_actor);
-		if (racekey == Registry::RaceKey::None) {
+		const auto racekey = Registry::RaceKey(a_actor);
+		if (!racekey.IsValid()) {
 			const auto err = std::format("Invalid race key for actor {}", a_actor->formID);
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
@@ -44,8 +44,8 @@ namespace Papyrus::SexLabRegistry
 
 	int32_t MapRaceKeyToID(STATICARGS, RE::BSFixedString a_racekey)
 	{
-		const auto racekey = Registry::RaceHandler::GetRaceKey(a_racekey);
-		if (racekey == Registry::RaceKey::None) {
+		const auto racekey = Registry::RaceKey(a_racekey);
+		if (!racekey.IsValid()) {
 			const auto err = std::format("Invalid race key {}", a_racekey);
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
@@ -56,12 +56,12 @@ namespace Papyrus::SexLabRegistry
 	std::vector<int32_t> GetRaceIDA(STATICARGS, RE::Actor* a_actor)
 	{
 		const auto key = GetRaceID(a_vm, a_stackID, nullptr, a_actor);
-		if (key == static_cast<int32_t>(Registry::RaceKey::None)) {
+		if (key == 0) {
 			return {};
 		}
 		std::vector<int32_t> ret{ key };
-		const auto alternate = Registry::RaceHandler::GetVariantKey(Registry::RaceKey(key));
-		if (alternate != Registry::RaceKey::None) {
+		const auto alternate = Registry::RaceKey(Registry::RaceKey::Value(key)).GetMetaRace();
+		if (alternate.IsValid()) {
 			ret.push_back(static_cast<int32_t>(alternate));
 		}
 		return ret;
@@ -70,13 +70,14 @@ namespace Papyrus::SexLabRegistry
 	std::vector<int32_t> MapRaceKeyToIDA(STATICARGS, RE::BSFixedString a_racekey)
 	{
 		const auto key = MapRaceKeyToID(a_vm, a_stackID, nullptr, a_racekey);
-		if (key == static_cast<int32_t>(Registry::RaceKey::None)) {
+		if (key == 0) {
 			return {};
 		}
 		std::vector<int32_t> ret{ key };
-		const auto alternate = Registry::RaceHandler::GetVariantKey(Registry::RaceKey(key));
-		if (alternate != Registry::RaceKey::None) {
-			ret.push_back(static_cast<int32_t>(alternate));
+		const Registry::RaceKey racekey{ a_racekey };
+		const auto alternate = racekey.GetMetaRace();
+		if (alternate.IsValid()) {
+			ret.push_back(static_cast<int32_t>(alternate.value));
 		}
 		return ret;
 	}
@@ -87,13 +88,13 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Cannot get race key of a none ref", a_stackID);
 			return 0;
 		}
-		const auto racekey = Registry::RaceHandler::GetRaceKey(a_actor);
-		if (racekey == Registry::RaceKey::None) {
+		const Registry::RaceKey racekey{ a_actor };
+		if (!racekey.IsValid()) {
 			const auto err = std::format("Invalid race key for race {:X}", a_actor->formID);
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}
-		return Registry::RaceHandler::AsString(racekey);
+		return racekey.AsString();
 	}
 
 	RE::BSFixedString GetRaceKeyByRace(STATICARGS, RE::TESRace* a_race)
@@ -102,18 +103,18 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Cannot get race key of a none race", a_stackID);
 			return 0;
 		}
-		const auto racekey = Registry::RaceHandler::GetRaceKey(a_race);
-		if (racekey == Registry::RaceKey::None) {
+		const Registry::RaceKey racekey{ a_race };
+		if (!racekey.IsValid()) {
 			const auto err = std::format("Invalid race key for race {:X}", a_race->formID);
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return 0;
 		}
-		return Registry::RaceHandler::AsString(racekey);
+		return racekey.AsString();
 	}
 
 	RE::BSFixedString MapRaceIDToRaceKey(RE::StaticFunctionTag*, int32_t a_raceid)
 	{
-		return Registry::RaceHandler::AsString(Registry::RaceKey(a_raceid));
+		return Registry::RaceKey(Registry::RaceKey::Value(a_raceid)).AsString();
 	}
 
 	std::vector<RE::BSFixedString> GetRaceKeyA(STATICARGS, RE::Actor* a_actor)
@@ -121,7 +122,8 @@ namespace Papyrus::SexLabRegistry
 		const auto ids = GetRaceIDA(a_vm, a_stackID, nullptr, a_actor);
 		std::vector<RE::BSFixedString> ret{};
 		for (auto&& id : ids) {
-			ret.push_back(Registry::RaceHandler::AsString(Registry::RaceKey(id)));
+			const auto rk = Registry::RaceKey(Registry::RaceKey::Value(id));
+			ret.push_back(rk.AsString());
 		}
 		return ret;
 	}
@@ -132,29 +134,30 @@ namespace Papyrus::SexLabRegistry
 			a_vm->TraceStack("Cannot get racekeys from none race", a_stackID);
 			return {};
 		}
-		const auto key = Registry::RaceHandler::GetRaceKey(a_race);
-		if (key == Registry::RaceKey::None)
+		const Registry::RaceKey key{ a_race };
+		if (!key.IsValid())
 			return {};
-		const auto variant = Registry::RaceHandler::GetVariantKey(key);
-		if (variant == Registry::RaceKey::None)
-			return { Registry::RaceHandler::AsString(key) };
-		return { Registry::RaceHandler::AsString(key), Registry::RaceHandler::AsString(variant) };
+		const auto variant = key.GetMetaRace();
+		if (!variant.IsValid())
+			return { key.AsString() };
+		return { key.AsString(), variant.AsString() };
 	}
 
 	std::vector<RE::BSFixedString> MapRaceIDToRaceKeyA(RE::StaticFunctionTag*, int32_t a_raceid)
 	{
-		const auto key1 = Registry::RaceHandler::AsString(Registry::RaceKey(a_raceid));
+		const Registry::RaceKey key{ Registry::RaceKey::Value(a_raceid) };
+		const auto key1 = key.AsString();
 		if (key1.empty())
 			return {};
-		const auto variant = Registry::RaceHandler::GetVariantKey(Registry::RaceKey(a_raceid));
-		if (variant == Registry::RaceKey::None)
+		const auto variant = key.GetMetaRace();
+		if (!variant.IsValid())
 			return { key1 };
-		return { key1, Registry::RaceHandler::AsString(variant) };
+		return { key1, variant.AsString() };
 	}
 
 	std::vector<RE::BSFixedString> GetAllRaceKeys(RE::StaticFunctionTag*, bool a_ignoreambiguous)
 	{
-		return Registry::RaceHandler::GetAllRaceKeys(a_ignoreambiguous);
+		return Registry::RaceKey::GetAllRaceKeys(a_ignoreambiguous);
 	}
 
 	int32_t GetSex(STATICARGS, RE::Actor* a_actor, bool a_ignoreoverwrite)
@@ -724,7 +727,7 @@ namespace Papyrus::SexLabRegistry
 	{
 		SCENE("");
 		POSITION("");
-		return Registry::RaceHandler::AsString(scene->positions[n].data.GetRace());
+		return scene->positions[n].data.GetRace().AsString();
 	}
 
 	std::vector<RE::BSFixedString> GetRaceKeyPositionA(STATICARGS, RE::BSFixedString a_id)
@@ -733,7 +736,7 @@ namespace Papyrus::SexLabRegistry
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(scene->positions.size());
 		for (auto&& position : scene->positions) {
-			const auto race = Registry::RaceHandler::AsString(position.data.GetRace());
+			const auto race = position.data.GetRace().AsString();
 			ret.push_back(race);
 		}
 		return ret;

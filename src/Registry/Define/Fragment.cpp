@@ -52,8 +52,8 @@ namespace Registry
 		default:
 			throw std::runtime_error(std::format("Cannt build fragment from Actor {:X}: Invalid Sex: {}", a_actor->GetFormID(), std::to_underlying(sex)));
 		}
-		const auto race = RaceHandler::GetRaceKey(a_actor);
-		switch (race) {
+		const RaceKey race{ a_actor };
+		switch (race.value) {
 		case RaceKey::None:
 			throw std::runtime_error(std::format("Cannt build fragment from Actor {:X}: Invalid RaceKey", a_actor->GetFormID()));
 		case RaceKey::Human:
@@ -78,7 +78,7 @@ namespace Registry
 		if (value.any(Human)) {
 			return RaceKey::Human;
 		}
-		return RaceKey((value.underlying() >> 3) & 0b1111'11);
+		return RaceKey::Value((value.underlying() >> 3) & 0b1111'11);
 	}
 
 	REX::EnumSet<Sex> ActorFragment::GetSex() const
@@ -101,11 +101,11 @@ namespace Registry
 		const auto raceKeyIn = a_fragment.GetRace();
 		switch (raceKey) {
 		case RaceKey::Canine:
-			if (raceKeyIn != raceKey && raceKeyIn != RaceKey::Dog && raceKeyIn != RaceKey::Wolf && raceKeyIn != RaceKey::Fox)
+			if (!raceKeyIn.IsAnyOf(raceKey.value, RaceKey::Dog, RaceKey::Wolf, RaceKey::Fox))
 				return 0;
 			break;
 		case RaceKey::Boar:
-			if (raceKeyIn != raceKey && raceKeyIn != RaceKey::BoarSingle && raceKeyIn != RaceKey::BoarMounted)
+			if (!raceKeyIn.IsAnyOf(raceKey.value, RaceKey::BoarSingle, RaceKey::BoarMounted))
 				return 0;
 			break;
 		case RaceKey::Human:

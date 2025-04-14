@@ -10,7 +10,7 @@ namespace Papyrus::VoiceSlots
 		bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Voice::GetSingleton();
-			auto it = vs->GetVoice(a_id);
+			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return false;
@@ -27,7 +27,7 @@ namespace Papyrus::VoiceSlots
 		std::vector<RE::BSFixedString> GetVoiceTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Voice::GetSingleton();
-			auto it = vs->GetVoice(a_id);
+			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return {};
@@ -38,7 +38,7 @@ namespace Papyrus::VoiceSlots
 		int GetCompatibleSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Voice::GetSingleton();
-			auto it = vs->GetVoice(a_id);
+			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return {};
@@ -49,14 +49,14 @@ namespace Papyrus::VoiceSlots
 		std::vector<RE::BSFixedString> GetCompatibleRaces(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Voice::GetSingleton();
-			auto it = vs->GetVoice(a_id);
+			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return {};
 			}
 			std::vector<RE::BSFixedString> ret{};
 			for (auto&& r : it->races) {
-				ret.push_back(Registry::RaceHandler::AsString(r));
+				ret.push_back(r.AsString());
 			}
 			return ret;
 		}
@@ -117,7 +117,7 @@ namespace Papyrus::VoiceSlots
 		RE::BSFixedString GetDisplayName(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Voice::GetSingleton();
-			auto it = vs->GetVoice(a_id);
+			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return "";
@@ -155,8 +155,8 @@ namespace Papyrus::VoiceSlots
 			std::vector<Registry::RaceKey> races{};
 			races.reserve(a_set.size());
 			for (auto&& r : a_set) {
-				const auto rk = Registry::RaceHandler::GetRaceKey(r);
-				if (rk == Registry::RaceKey::None)
+				const Registry::RaceKey rk{ r };
+				if (!rk.IsValid())
 					continue;
 				races.push_back(rk);
 			}
@@ -214,7 +214,7 @@ namespace Papyrus::VoiceSlots
 
 	std::vector<RE::BSFixedString> GetAllVoices(RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
-		auto rk = a_racekey.empty() ? Registry::RaceKey::None : Registry::RaceHandler::GetRaceKey(a_racekey);
+		auto rk = a_racekey.empty() ? Registry::RaceKey{ Registry::RaceKey::None } : Registry::RaceKey{ a_racekey };
 		return Registry::Voice::GetSingleton()->GetAllVoiceNames(rk);
 	}
 
@@ -241,7 +241,7 @@ namespace Papyrus::VoiceSlots
 
 	RE::BSFixedString SelectVoiceByRace(RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
-		auto v = Registry::Voice::GetSingleton()->GetVoice(Registry::RaceHandler::GetRaceKey(a_racekey));
+		auto v = Registry::Voice::GetSingleton()->GetVoice(Registry::RaceKey{ a_racekey });
 		return v ? v->name : "";
 	}
 

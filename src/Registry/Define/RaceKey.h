@@ -7,79 +7,101 @@ namespace Registry
 		BoarAny can animate both BoarSingle and BoarMounted but BoarMounted can only animateBoarMounted/BoarSingle only BoarSingle
 	*/
 
-	enum class RaceKey : uint8_t
+	struct RaceKey
 	{
-		Human = 0,
+		enum Value : uint8_t
+		{
+			Human = 0,
+			AshHopper,
+			Bear,
+			Boar,
+			BoarMounted,
+			BoarSingle,
+			Canine,
+			Chaurus,
+			ChaurusHunter,
+			ChaurusReaper,
+			Chicken,
+			Cow,
+			Deer,
+			Dog,
+			Dragon,
+			DragonPriest,
+			Draugr,
+			DwarvenBallista,
+			DwarvenCenturion,
+			DwarvenSphere,
+			DwarvenSpider,
+			Falmer,
+			FlameAtronach,
+			Fox,
+			FrostAtronach,
+			Gargoyle,
+			Giant,
+			GiantSpider,
+			Goat,
+			Hagraven,
+			Hare,
+			Horker,
+			Horse,
+			IceWraith,
+			LargeSpider,
+			Lurker,
+			Mammoth,
+			Mudcrab,
+			Netch,
+			Riekling,
+			Sabrecat,
+			Seeker,
+			Skeever,
+			Slaughterfish,
+			Spider,
+			Spriggan,
+			StormAtronach,
+			Troll,
+			VampireLord,
+			Werewolf,
+			Wisp,
+			Wispmother,
+			Wolf,
 
-		AshHopper,
-		Bear,
-		Boar,
-		BoarMounted,
-		BoarSingle,
-		Canine,
-		Chaurus,
-		ChaurusHunter,
-		ChaurusReaper,
-		Chicken,
-		Cow,
-		Deer,
-		Dog,
-		Dragon,
-		DragonPriest,
-		Draugr,
-		DwarvenBallista,
-		DwarvenCenturion,
-		DwarvenSphere,
-		DwarvenSpider,
-		Falmer,
-		FlameAtronach,
-		Fox,
-		FrostAtronach,
-		Gargoyle,
-		Giant,
-		GiantSpider,
-		Goat,
-		Hagraven,
-		Hare,
-		Horker,
-		Horse,
-		IceWraith,
-		LargeSpider,
-		Lurker,
-		Mammoth,
-		Mudcrab,
-		Netch,
-		Riekling,
-		Sabrecat,
-		Seeker,
-		Skeever,
-		Slaughterfish,
-		Spider,
-		Spriggan,
-		StormAtronach,
-		Troll,
-		VampireLord,
-		Werewolf,
-		Wisp,
-		Wispmother,
-		Wolf,
+			None = static_cast<std::underlying_type_t<RaceKey>>(-1),
+		};
 
-		None = static_cast<std::underlying_type_t<RaceKey>>(-1),
-	};
+		constexpr RaceKey() = default;
+		constexpr RaceKey(Value a_value);
+		RaceKey(RE::Actor* a_actor);
+		RaceKey(const RE::BSFixedString& a_raceStr);
+		RaceKey(const RE::TESRace* a_race, float a_scale = 0.0f, RE::SEXES::SEX a_sex = RE::SEXES::SEX::kMale);
 
-	struct RaceHandler
-	{
-		_NODISCARD static RaceKey GetRaceKey(RE::Actor* a_actor);
-		_NODISCARD static RaceKey GetRaceKey(const RE::TESRace* a_race, float a_scale = 0.0f, RE::SEXES::SEX a_sex = RE::SEXES::SEX::kMale);
-		_NODISCARD static RaceKey GetRaceKey(const RE::BSFixedString& a_racestring);
-		_NODISCARD static RaceKey GetVariantKey(RaceKey a_racekey);
+		_NODISCARD RaceKey GetMetaRace() const;
+		_NODISCARD RE::BSFixedString AsString() const;
+		_NODISCARD bool IsCompatibleWith(RaceKey a_other) const;
 
-		_NODISCARD static bool HasRaceKey(RE::Actor* a_actor, const RE::BSFixedString& a_racekey);
-		_NODISCARD static bool HasRaceKey(RE::Actor* a_actor, RaceKey a_racekey);
-		_NODISCARD static bool IsCompatibleRaceKey(RaceKey a_racekey1, RaceKey a_racekey2);
+		template <typename... T>
+		_NODISCARD bool IsAnyOf(T... a_values) const
+			requires(std::same_as<T, Value>&&...)
+		{
+			return a_values == value || ...;
+		}
+		_NODISCARD bool Is(Value a_value) const { return value == a_value; }
+		_NODISCARD bool IsValid() const { return value != Value::None; }
 
-		_NODISCARD static RE::BSFixedString AsString(RaceKey a_racekey);
-		_NODISCARD static std::vector<RE::BSFixedString> GetAllRaceKeys(bool a_ignoreambiguous);
+	public:
+		_NODISCARD static std::vector<RE::BSFixedString> GetAllRaceKeys(bool a_ignoreAmbiguous);
+
+	public:
+		constexpr bool operator==(const RaceKey& a_rhs) const { return value == a_rhs.value; }
+		constexpr bool operator!=(const RaceKey& a_rhs) const { return value != a_rhs.value; }
+		constexpr bool operator<(const RaceKey& a_rhs) const { return value < a_rhs.value; }
+
+		constexpr bool operator==(const Value& a_rhs) const { return value == a_rhs; }
+		constexpr bool operator!=(const Value& a_rhs) const { return value != a_rhs; }
+
+		operator Value() const { return value; }
+
+	public:
+		Value value{ Value::None };
 	};
 
 }	 // namespace Registry

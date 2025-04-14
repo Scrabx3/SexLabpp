@@ -8,7 +8,7 @@ namespace Registry
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(voices.size());
 		for (auto&& v : voices) {
-			if (a_race != RaceKey::None && !std::ranges::contains(v.races, a_race))
+			if (a_race.IsValid() && !std::ranges::contains(v.races, a_race))
 				continue;
 			ret.push_back(v.name);
 		}
@@ -23,8 +23,8 @@ namespace Registry
 
 		auto base = a_actor->GetActorBase();
 		auto sex = base ? base->GetSex() : RE::SEXES::kMale;
-		auto race = RaceHandler::GetRaceKey(a_actor);
-		if (race == RaceKey::None) {
+		const RaceKey race{ a_actor };
+		if (!race.IsValid()) {
 			logger::error("Actor {} has invalid racekey", a_actor->GetFormID());
 			return nullptr;
 		}
@@ -32,7 +32,7 @@ namespace Registry
 		for (auto&& voice : voices) {
 			if (voice.sex != RE::SEXES::kNone && voice.sex != sex)
 				continue;
-			auto where = std::ranges::find_if(voice.races, [&](auto rk) { return RaceHandler::IsCompatibleRaceKey(rk, race); });
+			auto where = std::ranges::find_if(voice.races, [&](auto rk) { return race.IsCompatibleWith(rk); });
 			if (where == voice.races.end())
 				continue;
 			if (!tags.MatchTags(voice.tags))
@@ -78,7 +78,7 @@ namespace Registry
 		std::shared_lock lock{ _m };
 		std::vector<const VoiceObject*> ret{};
 		for (auto&& voice : voices) {
-			auto where = std::ranges::find_if(voice.races, [&](auto rk) { return RaceHandler::IsCompatibleRaceKey(rk, a_race); });
+			auto where = std::ranges::find_if(voice.races, [&](auto rk) { return a_race.IsCompatibleWith(rk); });
 			if (where == voice.races.end())
 				continue;
 			ret.push_back(&voice);
@@ -86,7 +86,7 @@ namespace Registry
 		return ret.empty() ? nullptr : ret[Random::draw<size_t>(0, ret.size() - 1)];
 	}
 
-	const Voice::VoiceObject* Voice::GetVoice(RE::BSFixedString a_voice) const
+	const Voice::VoiceObject* Voice::GetVoiceByName(RE::BSFixedString a_voice) const
 	{
 		std::shared_lock lock{ _m };
 		auto v = std::ranges::find_if(voices, [&](auto& v) { return v.name == a_voice; });
@@ -162,7 +162,7 @@ namespace Registry
 
 	void Voice::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)
 	{
-		auto v = GetVoice(a_voice);
+		auto v = GetVoiceByName(a_voice);
 		std::unique_lock lock{ _m };
 		if (v) {
 			saved_voices.insert_or_assign(a_key, v);
@@ -242,7 +242,7 @@ namespace Registry
 			logger::error("From File initialized Voice Objects are read only. {}", a_voice);
 			return;
 		}
-		if (!a_races.empty() && !std::ranges::contains(a_races, RaceKey::Human)) {
+		if (!a_races.empty() && !std::ranges::contains(a_races, RaceKey::Human, [](auto& it) { return it.value; })) {
 			v->tags.AddTag("Creature");
 		} else {
 			v->tags.RemoveTag("Creature");
@@ -485,12 +485,12 @@ namespace Registry
 		races([&]() -> decltype(races) {
 			auto node = a_node["Actor"]["Race"];
 			if (node.IsScalar())
-				return { RaceHandler::GetRaceKey(node.as<std::string>()) };
+				return { RaceKey{ node.as<std::string>() } };
 
 			decltype(races) ret;
 			for (auto&& it : node) {
 				auto arg = it.as<std::string>();
-				ret.push_back(RaceHandler::GetRaceKey(arg));
+				ret.push_back(RaceKey{ arg });
 			}
 			return ret;
 		}()),
@@ -538,7 +538,7 @@ namespace Registry
 			ret["Actor"]["Race"].push_back("Human");
 		} else {
 			for (auto&& r : races) {
-				auto str = RaceHandler::AsString(r);
+				auto str = r.AsString();
 				ret["Actor"]["Race"].push_back(str.data());
 			}
 		}

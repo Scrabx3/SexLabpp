@@ -41,8 +41,8 @@ int32_t Registry::IsValidActorImpl(RE::Actor* a_actor)
 		return validfaction;
 
 
-	const auto race = RaceHandler::GetRaceKey(a_actor);
-	if (!Settings::bAllowCreatures && race != RaceKey::Human) {
+	const RaceKey race{ a_actor };
+	if (!Settings::bAllowCreatures && !race.Is(RaceKey::Human)) {
 		return -17;
 	}
 	switch (race) {

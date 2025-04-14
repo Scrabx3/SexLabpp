@@ -54,9 +54,10 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Cannot find actor in negative radius", a_stackID);
 			return {};
 		}
+		const Registry::RaceKey targetrace{ a_targetrace.empty() ? "Human" : a_targetrace };
 		const auto targetsex = [&]() {
-			if (a_targetsex >= LegacySex::CrtMale || !a_targetrace.empty() && a_targetrace != "humans") {
-				if (a_targetsex == LegacySex::Male || !Settings::bCreatureGender) {
+			if (a_targetsex >= LegacySex::CrtMale || !targetrace.Is(Registry::RaceKey::Human)) {
+				if (!Settings::bCreatureGender || a_targetsex == LegacySex::Male || a_targetsex == LegacySex::CrtMale) {
 					return LegacySex::CrtMale;
 				} else if (a_targetsex == LegacySex::Female) {
 					return LegacySex::CrtFemale;
@@ -64,7 +65,6 @@ namespace Papyrus::ThreadLibrary
 			}
 			return a_targetsex;
 		}();
-		const auto targetrace = Registry::RaceHandler::GetRaceKey(a_targetrace.empty() ? "humans" : a_targetrace);
 		std::vector<RE::Actor*> ret{};
 		const auto& highactors = RE::ProcessLists::GetSingleton()->highActorHandles;
 		for (auto&& handle : highactors) {
@@ -76,7 +76,7 @@ namespace Papyrus::ThreadLibrary
 					actor.get() == ignore_ref04)
 				continue;
 
-			if (!Registry::RaceHandler::HasRaceKey(actor.get(), targetrace))
+			if (!targetrace.IsCompatibleWith(actor.get()))
 				continue;
 			if (targetsex != LegacySex::None && GetLegacySex(actor.get()) != targetsex)
 				continue;

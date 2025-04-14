@@ -12,7 +12,7 @@ namespace Registry
 
 	void Scale::SetScale(RE::Actor* a_actor, float a_absolutescale)
 	{
-		SetScale(a_actor, RaceHandler::GetRaceKey(a_actor), a_absolutescale);
+		SetScale(a_actor, { a_actor }, a_absolutescale);
 	}
 
 	void Scale::SetScale(RE::Actor* a_actor, RaceKey a_racekey, float a_absolutescale)

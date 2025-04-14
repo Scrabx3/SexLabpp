@@ -12,8 +12,8 @@ namespace Thread::NiNode::Node
 			const auto msg = std::format("Unable to retrieve 3D of actor {:X}", a_actor->GetFormID());
 			throw std::exception(msg.c_str());
 		}
-		const auto racekey = Registry::RaceHandler::GetRaceKey(a_actor);
-		const auto racestr = racekey == Registry::RaceKey::None ? "?" : Registry::RaceHandler::AsString(racekey);
+		const auto racekey = Registry::RaceKey(a_actor);
+		const auto racestr = racekey.IsValid() ? racekey.AsString() : "?";
 		const auto get = [&](auto str, auto& target, bool log) {
 			auto node = obj->GetObjectByName(str);
 			auto ninode = node ? node->AsNode() : nullptr;

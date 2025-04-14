@@ -10,8 +10,8 @@ namespace Papyrus::CreatureAnimationSlots
 		RE::BSFixedString a_racekey, 
 		std::vector<std::string_view> a_tags)
 	{
-    const auto racekey = Registry::RaceHandler::GetRaceKey(a_racekey);
-		if (racekey == Registry::RaceKey::None) {
+		const Registry::RaceKey racekey{ a_racekey };
+		if (!racekey.IsValid()) {
 			a_vm->TraceStack("Invalid racekey", a_stackID);
 			return {};
 		}
@@ -26,7 +26,7 @@ namespace Papyrus::CreatureAnimationSlots
 			if (!a_scene->IsCompatibleTags(tagdetails))
 				return false;
 			for (auto&& position : a_scene->positions) {
-				if (Registry::RaceHandler::IsCompatibleRaceKey(position.data.GetRace(), racekey)) {
+				if (position.data.GetRace().IsCompatibleWith(racekey)) {
 					ret.push_back(a_scene->id);
 					break;
 				}
@@ -67,8 +67,8 @@ namespace Papyrus::CreatureAnimationSlots
 			int32_t reqtrue = static_cast<int32_t>(a_creatures.size());
 			std::vector<bool> control(a_actorcount, false);
 			for (auto&& creature : a_creatures) {
-				const auto racekey = Registry::RaceHandler::GetRaceKey(creature);
-				if (racekey == Registry::RaceKey::None) {
+				const Registry::RaceKey racekey{ creature };
+				if (!racekey.IsValid()) {
 					a_vm->TraceStack("Invalid racekey", a_stackID);
 					ret.clear();
 					return true;
@@ -81,7 +81,7 @@ namespace Papyrus::CreatureAnimationSlots
 					if (control[i])
 						continue;
 					const auto& position = a_scene->positions[i];
-					if (Registry::RaceHandler::IsCompatibleRaceKey(position.data.GetRace(), racekey)) {
+					if (position.data.GetRace().IsCompatibleWith(racekey)) {
 						control[i] = true;
 						break;
 					}
@@ -112,8 +112,8 @@ namespace Papyrus::CreatureAnimationSlots
 			a_vm->TraceStack("Expecting more creatures than total positions", a_stackID);
 			return {};
 		}
-		const auto racekey = Registry::RaceHandler::GetRaceKey(a_racekey);
-		if (racekey == Registry::RaceKey::None) {
+		const Registry::RaceKey racekey{ a_racekey };
+		if (!racekey.IsValid()) {
 			a_vm->TraceStack("Invalid racekey", a_stackID);
 			return {};
 		}
@@ -129,7 +129,7 @@ namespace Papyrus::CreatureAnimationSlots
 				return false;
 			bool has_race = false;
 			for (auto&& position : a_scene->positions) {
-				if (Registry::RaceHandler::IsCompatibleRaceKey(position.data.GetRace(), racekey)) {
+				if (position.data.GetRace().IsCompatibleWith(racekey)) {
 					has_race = true;
 					break;
 				}
@@ -165,8 +165,8 @@ namespace Papyrus::CreatureAnimationSlots
 	std::vector<RE::TESRace*> GetAllRaces(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
 		a_vm->TraceStack("Calling legacy function GetAllRaces(). It is highly recommended to no longer use this function.", a_stackID);
-		const auto matchkey = Registry::RaceHandler::GetRaceKey(a_racekey);
-		if (matchkey == Registry::RaceKey::None) {
+		const Registry::RaceKey matchkey{ a_racekey };
+		if (!matchkey.IsValid()) {
 			const auto err = std::format("Invalid RaceKey: ", a_racekey.c_str());
 			a_vm->TraceStack(err.c_str(), a_stackID);
 			return {};
@@ -176,8 +176,8 @@ namespace Papyrus::CreatureAnimationSlots
 		for (auto&& race : races) {
 			if (!race)
 				continue;
-			const auto racekey = Registry::RaceHandler::GetRaceKey(race);
-			if (!Registry::RaceHandler::IsCompatibleRaceKey(racekey, matchkey))
+			const Registry::RaceKey racekey{ race };
+			if (!racekey.IsCompatibleWith(matchkey))
 				continue;
 			ret.push_back(race);
 		}

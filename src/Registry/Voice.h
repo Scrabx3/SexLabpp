@@ -102,7 +102,7 @@ namespace Registry
 		std::vector<RE::BSFixedString> GetAllVoiceNames(RaceKey a_race) const;
 		const VoiceObject* GetVoice(RE::Actor* a_actor, const TagDetails& tags);
 		const VoiceObject* GetVoice(const TagDetails& tags) const;
-		const VoiceObject* GetVoice(RE::BSFixedString a_voice) const;
+		const VoiceObject* GetVoiceByName(RE::BSFixedString a_voice) const;
 		const VoiceObject* GetVoice(RaceKey a_race) const;
 		void SetVoiceObjectEnabled(RE::BSFixedString a_voice, bool a_enabled);
 
