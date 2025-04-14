@@ -2,10 +2,9 @@
 
 namespace Registry
 {
-	/* 
-		Canine can animate both dog and wolf but dog can only animte dog/wolf only wolf
-		BoarAny can animate both BoarSingle and BoarMounted but BoarMounted can only animateBoarMounted/BoarSingle only BoarSingle
-	*/
+	// NOTE:
+	// Canine Race can be used to animate both dog and wolf; Dog can only animate Dog; Wolf can only animate Wolf.
+	// BoarAny can animate both BoarSingle and BoarMounted; BoarMounted can only animate BoarMounted and BoarSingle; BoarSingle can only animate BoarSingle.
 
 	struct RaceKey
 	{
@@ -14,7 +13,7 @@ namespace Registry
 			Human = 0,
 			AshHopper,
 			Bear,
-			Boar,
+			BoarAny,
 			BoarMounted,
 			BoarSingle,
 			Canine,
@@ -94,9 +93,6 @@ namespace Registry
 		constexpr bool operator==(const RaceKey& a_rhs) const { return value == a_rhs.value; }
 		constexpr bool operator!=(const RaceKey& a_rhs) const { return value != a_rhs.value; }
 		constexpr bool operator<(const RaceKey& a_rhs) const { return value < a_rhs.value; }
-
-		constexpr bool operator==(const Value& a_rhs) const { return value == a_rhs; }
-		constexpr bool operator!=(const Value& a_rhs) const { return value != a_rhs; }
 
 		operator Value() const { return value; }
 

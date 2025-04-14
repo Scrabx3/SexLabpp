@@ -73,7 +73,7 @@ int32_t Registry::IsValidActorImpl(RE::Actor* a_actor)
 		return Settings::bAshHopper;
 	case RaceKey::Bear:
 		return Settings::bBear;
-	case RaceKey::Boar:
+	case RaceKey::BoarAny:
 		return Settings::bBoar;
 	case RaceKey::BoarMounted:
 		return Settings::bBoarMounted;

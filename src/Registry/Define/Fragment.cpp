@@ -104,7 +104,7 @@ namespace Registry
 			if (!raceKeyIn.IsAnyOf(raceKey.value, RaceKey::Dog, RaceKey::Wolf, RaceKey::Fox))
 				return 0;
 			break;
-		case RaceKey::Boar:
+		case RaceKey::BoarAny:
 			if (!raceKeyIn.IsAnyOf(raceKey.value, RaceKey::BoarSingle, RaceKey::BoarMounted))
 				return 0;
 			break;
@@ -189,7 +189,7 @@ namespace Registry
 		case RaceKey::Canine:
 			RaceVariant({ RaceKey::Dog, RaceKey::Wolf });
 			break;
-		case RaceKey::Boar:
+		case RaceKey::BoarAny:
 			RaceVariant({RaceKey::BoarSingle, RaceKey::BoarMounted});
 			break;
 		default:

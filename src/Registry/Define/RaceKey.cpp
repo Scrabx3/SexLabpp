@@ -8,7 +8,7 @@ namespace Registry
 		{ RaceKey::Human, "Humans" },
 		{ RaceKey::AshHopper, "AshHoppers" },
 		{ RaceKey::Bear, "Bears" },
-		{ RaceKey::Boar, "BoarsAny" },
+		{ RaceKey::BoarAny, "BoarsAny" },
 		{ RaceKey::BoarMounted, "BoarsMounted" },
 		{ RaceKey::BoarSingle, "Boars" },
 		{ RaceKey::Canine, "Canines" },
@@ -95,7 +95,7 @@ namespace Registry
 			{ "CHaurusFlyerBehavior.hkx", ChaurusHunter },
 			{ "VampireBruteBehavior.hkx", Gargoyle },
 			{ "BenthicLurkerBehavior.hkx", Lurker },
-			{ "BoarBehavior.hkx", Boar },
+			{ "BoarBehavior.hkx", BoarAny },
 			{ "BCBehavior.hkx", DwarvenBallista },
 			{ "HMDaedra.hkx", Seeker },
 			{ "NetchBehavior.hkx", Netch },
@@ -133,7 +133,7 @@ namespace Registry
 			throw std::runtime_error("Unrecognized Behavior: " + std::string{ root });
 		}
 		switch (where->second) {
-		case Value::Boar:
+		case Value::BoarAny:
 			if (a_race->HasKeyword(GameForms::DLC2RieklingMountedKeyword)) {
 				value = Value::BoarMounted;
 			} else {
@@ -180,14 +180,14 @@ namespace Registry
 		switch (value) {
 		case Value::Canine:
 			return a_other.IsAnyOf(Canine, Dog, Wolf);
-		case Value::Boar:
-			return a_other.IsAnyOf(Boar, BoarSingle, BoarMounted);
+		case Value::BoarAny:
+			return a_other.IsAnyOf(BoarAny, BoarSingle, BoarMounted);
 		case Value::Dog:
 		case Value::Wolf:
 			return a_other.IsAnyOf(Canine, value);
 		case Value::BoarSingle:
 		case Value::BoarMounted:
-			return a_other.IsAnyOf(Boar, value);
+			return a_other.IsAnyOf(BoarAny, value);
 		default:
 			return a_other.value == value;
 		}
@@ -201,7 +201,7 @@ namespace Registry
 			return Value::Canine;
 		case Value::BoarMounted:
 		case Value::BoarSingle:
-			return Value::Boar;
+			return Value::BoarAny;
 		default:
 			return Value::None;
 		}
@@ -212,7 +212,7 @@ namespace Registry
 		auto raceKeys = magic_enum::enum_entries<Value>();
 		std::vector<RE::BSFixedString> ret;
 		for (auto [enumVal, name] : raceKeys) {
-			if (a_ignoreAmbiguous && (enumVal == Value::Boar || enumVal == Value::Canine)) {
+			if (a_ignoreAmbiguous && (enumVal == Value::BoarAny || enumVal == Value::Canine)) {
 				continue;
 			}
 			ret.push_back(name);
