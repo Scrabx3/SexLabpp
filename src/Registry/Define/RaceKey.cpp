@@ -4,60 +4,60 @@
 
 namespace Registry
 {
-	static inline const std::map<RaceKey, RE::BSFixedString> LegacyRaceKeys = {
-		{ Human, "Humans" },
-		{ AshHopper, "AshHoppers" },
-		{ Bear, "Bears" },
-		{ Boar, "BoarsAny" },
-		{ BoarMounted, "BoarsMounted" },
-		{ BoarSingle, "Boars" },
-		{ Canine, "Canines" },
-		{ Chaurus, "Chaurus" },
-		{ ChaurusHunter, "ChaurusHunters" },
-		{ ChaurusReaper, "ChaurusReapers" },
-		{ Chicken, "Chickens" },
-		{ Cow, "Cows" },
-		{ Deer, "Deers" },
-		{ Dog, "Dogs" },
-		{ Dragon, "Dragons" },
-		{ DragonPriest, "DragonPriests" },
-		{ Draugr, "Draugrs" },
-		{ DwarvenBallista, "DwarvenBallistas" },
-		{ DwarvenCenturion, "DwarvenCenturions" },
-		{ DwarvenSphere, "DwarvenSpheres" },
-		{ DwarvenSpider, "DwarvenSpiders" },
-		{ Falmer, "Falmers" },
-		{ FlameAtronach, "FlameAtronach" },
-		{ Fox, "Foxes" },
-		{ FrostAtronach, "FrostAtronach" },
-		{ Gargoyle, "Gargoyles" },
-		{ Giant, "Giants" },
-		{ GiantSpider, "GiantSpiders" },
-		{ Goat, "Goats" },
-		{ Hagraven, "Hagravens" },
-		{ Hare, "Rabbits" },
-		{ Horker, "Horkers" },
-		{ Horse, "Horses" },
-		{ IceWraith, "IceWraiths" },
-		{ LargeSpider, "LargeSpiders" },
-		{ Lurker, "Lurkers" },
-		{ Mammoth, "Mammoths" },
-		{ Mudcrab, "Mudcrabs" },
-		{ Netch, "Netches" },
-		{ Riekling, "Rieklings" },
-		{ Sabrecat, "Sabrecats" },
-		{ Seeker, "Seekers" },
-		{ Skeever, "Skeevers" },
-		{ Slaughterfish, "Slaughterfishes" },
-		{ Spider, "Spiders" },
-		{ Spriggan, "Spriggans" },
-		{ StormAtronach, "StormAtronach" },
-		{ Troll, "Trolls" },
-		{ VampireLord, "VampireLords" },
-		{ Werewolf, "Werewolves" },
-		{ Wisp, "Wisps" },
-		{ Wispmother, "Wispmothers" },
-		{ Wolf, "Wolves" },
+	static inline const std::map<RaceKey::Value, RE::BSFixedString> LegacyRaceKeys = {
+		{ RaceKey::Human, "Humans" },
+		{ RaceKey::AshHopper, "AshHoppers" },
+		{ RaceKey::Bear, "Bears" },
+		{ RaceKey::Boar, "BoarsAny" },
+		{ RaceKey::BoarMounted, "BoarsMounted" },
+		{ RaceKey::BoarSingle, "Boars" },
+		{ RaceKey::Canine, "Canines" },
+		{ RaceKey::Chaurus, "Chaurus" },
+		{ RaceKey::ChaurusHunter, "ChaurusHunters" },
+		{ RaceKey::ChaurusReaper, "ChaurusReapers" },
+		{ RaceKey::Chicken, "Chickens" },
+		{ RaceKey::Cow, "Cows" },
+		{ RaceKey::Deer, "Deers" },
+		{ RaceKey::Dog, "Dogs" },
+		{ RaceKey::Dragon, "Dragons" },
+		{ RaceKey::DragonPriest, "DragonPriests" },
+		{ RaceKey::Draugr, "Draugrs" },
+		{ RaceKey::DwarvenBallista, "DwarvenBallistas" },
+		{ RaceKey::DwarvenCenturion, "DwarvenCenturions" },
+		{ RaceKey::DwarvenSphere, "DwarvenSpheres" },
+		{ RaceKey::DwarvenSpider, "DwarvenSpiders" },
+		{ RaceKey::Falmer, "Falmers" },
+		{ RaceKey::FlameAtronach, "FlameAtronach" },
+		{ RaceKey::Fox, "Foxes" },
+		{ RaceKey::FrostAtronach, "FrostAtronach" },
+		{ RaceKey::Gargoyle, "Gargoyles" },
+		{ RaceKey::Giant, "Giants" },
+		{ RaceKey::GiantSpider, "GiantSpiders" },
+		{ RaceKey::Goat, "Goats" },
+		{ RaceKey::Hagraven, "Hagravens" },
+		{ RaceKey::Hare, "Rabbits" },
+		{ RaceKey::Horker, "Horkers" },
+		{ RaceKey::Horse, "Horses" },
+		{ RaceKey::IceWraith, "IceWraiths" },
+		{ RaceKey::LargeSpider, "LargeSpiders" },
+		{ RaceKey::Lurker, "Lurkers" },
+		{ RaceKey::Mammoth, "Mammoths" },
+		{ RaceKey::Mudcrab, "Mudcrabs" },
+		{ RaceKey::Netch, "Netches" },
+		{ RaceKey::Riekling, "Rieklings" },
+		{ RaceKey::Sabrecat, "Sabrecats" },
+		{ RaceKey::Seeker, "Seekers" },
+		{ RaceKey::Skeever, "Skeevers" },
+		{ RaceKey::Slaughterfish, "Slaughterfishes" },
+		{ RaceKey::Spider, "Spiders" },
+		{ RaceKey::Spriggan, "Spriggans" },
+		{ RaceKey::StormAtronach, "StormAtronach" },
+		{ RaceKey::Troll, "Trolls" },
+		{ RaceKey::VampireLord, "VampireLords" },
+		{ RaceKey::Werewolf, "Werewolves" },
+		{ RaceKey::Wisp, "Wisps" },
+		{ RaceKey::Wispmother, "Wispmothers" },
+		{ RaceKey::Wolf, "Wolves" },
 	};
 
 	RaceKey::RaceKey(Value a_value) :
@@ -67,12 +67,12 @@ namespace Registry
 		RaceKey(a_actor->GetRace(), Scale::GetSingleton()->GetScale(a_actor), a_actor->GetActorBase()->GetSex()) {}
 
 	RaceKey::RaceKey(const RE::BSFixedString& a_raceStr) :
-		value(magic_enum::enum_cast<Value>(a_raceStr, magic_enum::case_insensitive).value_or(None))
+		value(magic_enum::enum_cast<Value>(a_raceStr, magic_enum::case_insensitive).value_or(Value::None))
 	{
-		if (value != None)
+		if (value != Value::None)
 			return;
 		const auto where = std::ranges::find_if(LegacyRaceKeys, [&](const auto& pair) { return pair.second == a_raceStr; });
-		value = (where == LegacyRaceKeys.end()) ? None : where->first;
+		value = (where == LegacyRaceKeys.end()) ? Value::None : where->first;
 	}
 
 	RaceKey::RaceKey(const RE::TESRace* a_race, float a_scale, RE::SEXES::SEX a_sex)
@@ -133,34 +133,34 @@ namespace Registry
 			throw std::runtime_error("Unrecognized Behavior: " + std::string{ root });
 		}
 		switch (where->second) {
-		case Boar:
+		case Value::Boar:
 			if (a_race->HasKeyword(GameForms::DLC2RieklingMountedKeyword)) {
-				value = BoarMounted;
+				value = Value::BoarMounted;
 			} else {
-				value = BoarSingle;
+				value = Value::BoarSingle;
 			}
 			break;
-		case Chaurus:
+		case Value::Chaurus:
 			if ((a_scale == 0.0 ? a_race->data.height[a_sex] : a_scale) < 1.0) {
-				value = Chaurus;
+				value = Value::Chaurus;
 			} else {
-				value = ChaurusReaper;
+				value = Value::ChaurusReaper;
 			}
 			break;
-		case Spider:
+		case Value::Spider:
 			if (const auto scale = (a_scale == 0.0) ? a_race->data.height[a_sex] : a_scale; scale < 0.9) {
-				value = Spider;
+				value = Value::Spider;
 			} else if (scale < 1.5) {
-				value = LargeSpider;
+				value = Value::LargeSpider;
 			} else {
-				value = GiantSpider;
+				value = Value::GiantSpider;
 			}
 			break;
-		case Wolf:
+		case Value::Wolf:
 			if (Util::CastLower(std::string{ a_race->formEditorID }).find("fox") != std::string::npos) {
-				value = Fox;
+				value = Value::Fox;
 			} else {
-				value = Wolf;
+				value = Value::Wolf;
 			}
 			break;
 		default:
