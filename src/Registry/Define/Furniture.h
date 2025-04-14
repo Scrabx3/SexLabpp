@@ -33,9 +33,9 @@ namespace Registry
 		ChairNoble = 1 << 18,		// Noble Chair
 		ChairMisc = 1 << 19,		// Unspecified
 
-		Bench = 1 << 20,				// With back
-		BenchNoble = 1 << 21,		// Noble Bench (no back, with arm)
-		BenchMisc = 1 << 20,		// No specification on back or arm
+		Bench = 1 << 20,			 // With back
+		BenchNoble = 1 << 21,	 // Noble Bench (no back, with arm)
+		BenchMisc = 1 << 20,	 // No specification on back or arm
 
 		Throne = 1 << 22,
 		ThroneRiften = 1 << 23,
@@ -84,7 +84,7 @@ namespace Registry
 	};
 
 	struct BedHandler
-  {
+	{
 		/// @brief Get the reference's bed-furnituretype
 		/// @param a_reference The reference to get the type from
 		/// @return FurnitureType, the bed type of this object, or None if the reference is not a bed
@@ -94,4 +94,4 @@ namespace Registry
 		_NODISCARD static std::vector<RE::TESObjectREFR*> GetBedsInArea(RE::TESObjectREFR* a_center, float a_radius, float a_radiusz);
 	};
 
-} // namespace Registry
+}	 // namespace Registry

@@ -18,7 +18,7 @@ option_end()
 
 option("skyrim_vr")
     set_default(false)
-    set_description("Enable support for Skyrim AE")
+    set_description("Enable support for Skyrim VR")
     add_defines("SKYRIM_SUPPORT_VR=1")
 option_end()
 

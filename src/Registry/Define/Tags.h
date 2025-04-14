@@ -107,7 +107,7 @@ namespace Registry
 	private:
 		void AddExtraTag(const RE::BSFixedString& a_tag);
 		void RemoveExtraTag(const RE::BSFixedString& a_tag);
-		_NODISCARD bool HasExtraTag(const RE::BSFixedString& a_tag) const;
+		bool HasExtraTag(const RE::BSFixedString& a_tag) const;
 
 		stl::enumeration<Tag> _basetags;
 		std::vector<RE::BSFixedString> _extratags;
