@@ -27,9 +27,7 @@ namespace Registry
 		void ToContainer(T& a_out) const
 		{
 			assert(a_out.size() >= 4);
-			a_out[0] = location.x;
-			a_out[1] = location.y;
-			a_out[2] = location.z;
+			std::copy_n(&location.x, location.length(), a_out.begin());
 			a_out[3] = rotation;
 		}
 		RE::NiPoint3 AsNiPoint() const { return { location.x, location.y, location.z }; }

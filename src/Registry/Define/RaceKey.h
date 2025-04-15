@@ -2,8 +2,7 @@
 
 namespace Registry
 {
-	// NOTE:
-	// Canine Race can be used to animate both dog and wolf; Dog can only animate Dog; Wolf can only animate Wolf.
+	// NOTE: Canine Race can be used to animate both dog and wolf; Dog can only animate Dog; Wolf can only animate Wolf.
 	// BoarAny can animate both BoarSingle and BoarMounted; BoarMounted can only animate BoarMounted and BoarSingle; BoarSingle can only animate BoarSingle.
 
 	struct RaceKey
@@ -78,13 +77,13 @@ namespace Registry
 		_NODISCARD bool IsCompatibleWith(RaceKey a_other) const;
 
 		template <typename... T>
-		_NODISCARD bool IsAnyOf(T... a_values) const
+		_NODISCARD constexpr bool IsAnyOf(T... a_values) const
 			requires(std::same_as<T, Value>&&...)
 		{
 			return a_values == value || ...;
 		}
-		_NODISCARD bool Is(Value a_value) const { return value == a_value; }
-		_NODISCARD bool IsValid() const { return value != Value::None; }
+		_NODISCARD constexpr bool Is(Value a_value) const { return value == a_value; }
+		_NODISCARD constexpr bool IsValid() const { return value != Value::None; }
 
 	public:
 		_NODISCARD static std::vector<RE::BSFixedString> GetAllRaceKeys(bool a_ignoreAmbiguous);
@@ -94,7 +93,7 @@ namespace Registry
 		constexpr bool operator!=(const RaceKey& a_rhs) const { return value != a_rhs.value; }
 		constexpr bool operator<(const RaceKey& a_rhs) const { return value < a_rhs.value; }
 
-		operator Value() const { return value; }
+		constexpr operator Value() const { return value; }
 
 	public:
 		Value value{ Value::None };
