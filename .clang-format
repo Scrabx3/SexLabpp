@@ -87,7 +87,7 @@ SpacesInConditionalStatement: 'false'
 SpacesInContainerLiterals: 'true'
 SpacesInParentheses: 'false'
 SpacesInSquareBrackets: 'false'
-Standard: c++23
+Standard: c++20
 TabWidth: 2
 UseCRLF: 'true'
 UseTab: Always
