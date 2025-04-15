@@ -1,6 +1,6 @@
 #include "sslExpressionSlots.h"
 
-#include "Registry/Expression.h"
+#include "Registry/Library.h"
 
 namespace Papyrus::ExpressionSlots
 {
@@ -52,7 +52,7 @@ namespace Papyrus::ExpressionSlots
 
 		int GetVersion(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			auto profile = Registry::Library::GetSingleton()->GetExpression(a_id);
 			if (!profile) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return {};
@@ -62,7 +62,7 @@ namespace Papyrus::ExpressionSlots
 
 		std::vector<RE::BSFixedString> GetExpressionTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			auto profile = Registry::Library::GetSingleton()->GetExpression(a_id);
 			if (!profile) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return {};
@@ -72,8 +72,8 @@ namespace Papyrus::ExpressionSlots
 
 		void SetExpressionTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, std::vector<RE::BSFixedString> a_newtags)
 		{
-			auto expr = Registry::Expression::GetSingleton();
-			if (!expr->GetProfile(a_id)) {
+			auto expr = Registry::Library::GetSingleton();
+			if (!expr->GetExpression(a_id)) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return;
 			}
@@ -82,7 +82,7 @@ namespace Papyrus::ExpressionSlots
 
 		bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			auto profile = Registry::Library::GetSingleton()->GetExpression(a_id);
 			if (!profile) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return false;
@@ -92,8 +92,8 @@ namespace Papyrus::ExpressionSlots
 
 		void SetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_enabled)
 		{
-			auto expr = Registry::Expression::GetSingleton();
-			if (!expr->GetProfile(a_id)) {
+			auto expr = Registry::Library::GetSingleton();
+			if (!expr->GetExpression(a_id)) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return;
 			}
@@ -102,7 +102,7 @@ namespace Papyrus::ExpressionSlots
 
 		int GetExpressionScaleMode(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			auto profile = Registry::Library::GetSingleton()->GetExpression(a_id);
 			if (!profile) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return false;
@@ -112,21 +112,21 @@ namespace Papyrus::ExpressionSlots
 
 		void SetExpressionScaleMode(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_idx)
 		{
-			auto expr = Registry::Expression::GetSingleton();
-			if (!expr->GetProfile(a_id)) {
+			auto expr = Registry::Library::GetSingleton();
+			if (!expr->GetExpression(a_id)) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return;
 			}
-			if (a_idx < 0 || a_idx >= static_cast<int>(Registry::Expression::Profile::Scaling::Total)) {
+			if (a_idx < 0 || a_idx >= static_cast<int>(Registry::Expression::Scaling::Total)) {
 				a_vm->TraceStack("Invalid Scaling Index", a_stackID);
 				return;
 			}
-			expr->SetScaling(a_id, Registry::Expression::Profile::Scaling(a_idx));
+			expr->SetScaling(a_id, Registry::Expression::Scaling(a_idx));
 		}
 
 		std::vector<int32_t> GetLevelCounts(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			auto profile = Registry::Library::GetSingleton()->GetExpression(a_id);
 			if (!profile) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return { 0, 0 };
@@ -136,25 +136,25 @@ namespace Papyrus::ExpressionSlots
 
 		std::vector<float> GetNthValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int n)
 		{
-			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			auto profile = Registry::Library::GetSingleton()->GetExpression(a_id);
 			if (!profile) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
-				return std::vector<float>(Registry::Expression::Profile::Total);
+				return std::vector<float>(Registry::Expression::Total);
 			}
 			auto& ret = profile->data[a_female];
 			if (ret.size() <= n) {
 				a_vm->TraceStack("Invalid level", a_stackID);
-				return std::vector<float>(Registry::Expression::Profile::Total);
+				return std::vector<float>(Registry::Expression::Total);
 			}
 			return { ret[n].begin(), ret[n].end() };
 		}
 
 		std::vector<float> GetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, float a_strength)
 		{
-			auto profile = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			auto profile = Registry::Library::GetSingleton()->GetExpression(a_id);
 			if (!profile) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
-				return std::vector<float>(Registry::Expression::Profile::Total);
+				return std::vector<float>(Registry::Expression::Total);
 			}
 			auto ret = profile->GetData(a_female ? RE::SEXES::kFemale : RE::SEXES::kMale, a_strength);
 			return { ret.begin(), ret.end() };
@@ -162,12 +162,12 @@ namespace Papyrus::ExpressionSlots
 
 		void SetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
 		{
-			if (a_values.size() != Registry::Expression::Profile::Total) {
+			if (a_values.size() != Registry::Expression::Total) {
 				a_vm->TraceStack("Invalid Value Size", a_stackID);
 				return;
 			}
-			auto expr = Registry::Expression::GetSingleton();
-			if (!expr->GetProfile(a_id)) {
+			auto expr = Registry::Library::GetSingleton();
+			if (!expr->GetExpression(a_id)) {
 				a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
 				return;
 			}
@@ -176,24 +176,24 @@ namespace Papyrus::ExpressionSlots
 
 		bool CreateEmptyProfile(RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			return Registry::Expression::GetSingleton()->CreateProfile(a_id);
+			return Registry::Library::GetSingleton()->CreateExpression(a_id);
 		}
 
 		void SaveExpression(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			auto p = Registry::Expression::GetSingleton()->GetProfile(a_id);
+			auto p = Registry::Library::GetSingleton()->GetExpression(a_id);
 			if (!p) {
 				a_vm->TraceStack("Invalid Profile", a_stackID);
 				return;
 			}
-			p->Save();
+			p->has_edits = true;
 		}
 	}	 // namespace BaseExpression
 
 	std::vector<RE::BSFixedString> GetAllProfileIDs(RE::StaticFunctionTag*)
   {
 		std::vector<RE::BSFixedString> ret{};
-		Registry::Expression::GetSingleton()->ForEachProfile([&](const Registry::Expression::Profile& profile) {
+		Registry::Library::GetSingleton()->ForEachExpression([&](const Registry::Expression& profile) {
 			ret.push_back(profile.id);
       return false;
 		});
@@ -219,7 +219,7 @@ namespace Papyrus::ExpressionSlots
 			tag = "Normal";
 			break;
 		}
-		Registry::Expression::GetSingleton()->ForEachProfile([&](const Registry::Expression::Profile& profile) {
+		Registry::Library::GetSingleton()->ForEachExpression([&](const Registry::Expression& profile) {
 			if (!profile.tags.HasTag(tag)) {
 				return false;
 			}
@@ -238,7 +238,7 @@ namespace Papyrus::ExpressionSlots
 		std::vector<RE::BSFixedString> ret{};
 		auto list = Util::StringSplit(a_tags, ",");
 		Registry::TagDetails search{ list };
-		Registry::Expression::GetSingleton()->ForEachProfile([&](const Registry::Expression::Profile& profile) {
+		Registry::Library::GetSingleton()->ForEachExpression([&](const Registry::Expression& profile) {
 			if (!search.MatchTags(profile.tags)) {
 				return false;
 			}

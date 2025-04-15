@@ -444,12 +444,13 @@ namespace Papyrus::SexLabRegistry
 
 	void SetSceneEnabled(STATICARGS, RE::BSFixedString a_id, bool a_enabled)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
-		if (!scene) {
+		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+			scene->enabled = a_enabled;
+		});
+		if (!foundScene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
 		}
-		scene->enabled = a_enabled;
 	}
 
 	RE::BSFixedString GetSceneName(STATICARGS, RE::BSFixedString a_id)
@@ -764,137 +765,93 @@ namespace Papyrus::SexLabRegistry
 
 	void UpdateOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::CoordinateType a_idx)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return;
-		}
-		POSITION((void)0);
-		if (a_idx < Registry::CoordinateType::X || a_idx >= Registry::CoordinateType::Total) {
-			a_vm->TraceStack("Invalid offset idx", a_stackID);
-			return;
-		}
-		if (a_stage.empty()) {
-			scene->ForEachStage([&](Registry::Stage* a_stage) {
-				a_stage->positions[n].offset.UpdateOffset(a_value, a_idx);
-				return false;
-			});
-		} else {
-			const auto stage = scene->GetStageByID(a_stage);
-			if (!stage) {
-				a_vm->TraceStack("Invalid stage id", a_stackID);
+		bool fouundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+			POSITION((void)0);
+			if (a_idx < Registry::CoordinateType::X || a_idx >= Registry::CoordinateType::Total) {
+				a_vm->TraceStack("Invalid offset idx", a_stackID);
 				return;
 			}
-			stage->positions[n].offset.UpdateOffset(a_value, a_idx);
+			if (a_stage.empty()) {
+				scene->ForEachStage([&](Registry::Stage* a_stage) {
+					a_stage->positions[n].offset.UpdateOffset(a_value, a_idx);
+					return false;
+				});
+			} else {
+				const auto stage = scene->GetStageByID(a_stage);
+				if (!stage) {
+					a_vm->TraceStack("Invalid stage id", a_stackID);
+					return;
+				}
+				stage->positions[n].offset.UpdateOffset(a_value, a_idx);
+			}
+		});
+		if (!fouundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
 		}
 	}
 
 	void UpdateOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return;
-		}
-		POSITION((void)0);
-		if (a_newoffset.size() < Registry::CoordinateType::Total) {
-			a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
-			return;
-		}
-		const Registry::Coordinate coordinate{ a_newoffset };
-		if (a_stage.empty()) {
-			scene->ForEachStage([&](Registry::Stage* a_stage) {
-				a_stage->positions[n].offset.UpdateOffset(coordinate);
-				return false;
-			});
-		} else {
-			const auto stage = scene->GetStageByID(a_stage);
-			if (!stage) {
-				a_vm->TraceStack("Invalid stage id", a_stackID);
+		bool foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+			POSITION((void)0);
+			if (a_newoffset.size() < Registry::CoordinateType::Total) {
+				a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
 				return;
 			}
-			stage->positions[n].offset.UpdateOffset(coordinate);
+			const Registry::Coordinate coordinate{ a_newoffset };
+			if (a_stage.empty()) {
+				scene->ForEachStage([&](Registry::Stage* a_stage) {
+					a_stage->positions[n].offset.UpdateOffset(coordinate);
+					return false;
+				});
+			} else {
+				const auto stage = scene->GetStageByID(a_stage);
+				if (!stage) {
+					a_vm->TraceStack("Invalid stage id", a_stackID);
+					return;
+				}
+				stage->positions[n].offset.UpdateOffset(coordinate);
+			}
+		});
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
 		}
 	}
 
 	void ResetOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return;
-		}
-		const auto stage = scene->GetStageByID(a_stage);
-		if (!stage) {
-			a_vm->TraceStack("Invalid stage id", a_stackID);
-			return;
-		}
-		POSITION((void)0);
-		stage->positions[n].offset.ResetOffset();
-	}
-
-
-	void ResetOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage)
-	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return;
-		}
-		const auto stage = scene->GetStageByID(a_stage);
-		if (!stage) {
-			a_vm->TraceStack("Invalid stage id", a_stackID);
-			return;
-		}
-		for (auto&& pos : stage->positions) {
-			pos.offset.ResetOffset();
-		}
-	}
-
-	int32_t GetSchlongAngle(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
-	{
-		SCENE(0);
-		STAGE(0);
-		POSITION(0);
-		return stage->positions[n].schlong;
-	}
-
-	std::vector<int32_t> GetSchlongAngleA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage)
-	{
-		std::vector<int32_t> ret{};
-		SCENE(ret);
-		STAGE(ret);
-		ret.reserve(stage->positions.size());
-		for (auto&& p : stage->positions) {
-			ret.push_back(p.schlong);
-		}
-		return ret;
-	}
-
-	void SetSchlongAngle(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, int a_value)
-	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_id);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return;
-		}
-		POSITION()
-		if (a_value < 9 || a_value > 9) {
-			a_vm->TraceStack("Invalid schlong angle", a_stackID);
-			return;
-		}
-		if (a_stage.empty()) {
-			scene->ForEachStage([&](Registry::Stage* a_stage) {
-				a_stage->positions[n].schlong = static_cast<int8_t>(a_value);
-				return false;
-			});
-		} else {
+		bool foundScene = !Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
 			const auto stage = scene->GetStageByID(a_stage);
 			if (!stage) {
 				a_vm->TraceStack("Invalid stage id", a_stackID);
 				return;
 			}
-			stage->positions[n].schlong = static_cast<int8_t>(a_value);
+			POSITION((void)0);
+			stage->positions[n].offset.ResetOffset();
+		});
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+	}
+
+	void ResetOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	{
+		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+			const auto stage = scene->GetStageByID(a_stage);
+			if (!stage) {
+				a_vm->TraceStack("Invalid stage id", a_stackID);
+				return;
+			}
+			for (auto&& pos : stage->positions) {
+				pos.offset.ResetOffset();
+			}
+		});
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
 		}
 	}
 

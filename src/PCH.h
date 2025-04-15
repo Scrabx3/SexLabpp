@@ -32,33 +32,25 @@ using namespace std::literals;
 #include "Util/FormLookup.h"
 #include "Util/Misc.h"
 #include "Util/Random.h"
-#include "Util/Script.h"
 #include "Util/Singleton.h"
-#include "Util/StringUtil.h"
 
 #define ESPNAME "SexLab.esm"
-constexpr auto LEGACY_CONFIG { "Data\\SKSE\\Plugins\\SexLab\\" };
 constexpr auto YAMLPATH{ "Data\\SKSE\\SexLab\\Settings.yaml" };
 constexpr auto INIPATH{ "Data\\SKSE\\Plugins\\SexLab.ini" };
 
 #define CONFIGPATH(path) "Data\\SKSE\\SexLab\\" path
-#define SCENEPATH CONFIGPATH("Registry")
-#define FURNITUREPATH CONFIGPATH("Furniture")
-#define EXPRESSIONPATH CONFIGPATH("Expressions")
-#define SCHLONGPATH CONFIGPATH("SchlongsOfSkyrim.yaml")
-
-#define CUM_FX_PATH "Data/Textures/SexLab/CumFx/"
-
 #define USER_CONFIGS(path) CONFIGPATH("UserData\\") path
+#define SCHLONGPATH CONFIGPATH("SchlongsOfSkyrim.yaml")
 #define STRIP_PATH USER_CONFIGS("Stripping.yaml")
-#define SCENE_USER_CONFIG USER_CONFIGS("Scenes")
+#define CUM_FX_PATH "Data/Textures/SexLab/CumFx/"
 
 #ifdef SKYRIM_SUPPORT_AE
 #define OFFSET(SE, AE) AE
 #else
 #define OFFSET(SE, AE) SE
 #endif
-	namespace stl
+
+namespace stl
 {
 	using namespace SKSE::stl;
 

@@ -1,9 +1,7 @@
 #include "Papyrus/Papyrus.h"
 #include "Registry/CumFx.h"
-#include "Registry/Expression.h"
 #include "Registry/Library.h"
 #include "Registry/Stats.h"
-#include "Registry/Voice.h"
 #include "Serialization.h"
 #include "Thread/Interface/SceneMenu.h"
 #include "Thread/NiNode/NiUpdate.h"
@@ -40,12 +38,8 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 	case SKSE::MessagingInterface::kPostLoad:
 		Settings::Initialize();
 		Registry::CumFx::GetSingleton()->Initialize();
-		Registry::Library::GetSingleton()->Initialize();
-		Registry::Library::GetSingleton()->Load();
-		Registry::Expression::GetSingleton()->Initialize();
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
-		Registry::Voice::GetSingleton()->Initialize();
 		if (!GameForms::LoadData()) {
 			logger::critical("Unable to load esp objects");
 			const auto err =
@@ -56,6 +50,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 				std::_Exit(EXIT_FAILURE);
 			return;
 		}
+		Registry::Library::GetSingleton()->Initialize();
 		UserData::StripData::GetSingleton()->Load();
 		Settings::InitializeData();
 		break;
@@ -63,9 +58,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 		std::thread([]() {
 			Settings::Save();
 			Registry::Library::GetSingleton()->Save();
-			Registry::Expression::GetSingleton()->Save();
 			UserData::StripData::GetSingleton()->Save();
-			Registry::Voice::GetSingleton()->Save();
 		}).detach();
 		break;
 	case SKSE::MessagingInterface::kPostLoadGame:

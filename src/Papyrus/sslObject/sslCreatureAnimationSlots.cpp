@@ -73,7 +73,7 @@ namespace Papyrus::CreatureAnimationSlots
 					ret.clear();
 					return true;
 				}
-				if (racekey == Registry::RaceKey::Human) {
+				if (racekey.Is(Registry::RaceKey::Human)) {
 					reqtrue -= 1;
 					continue;
 				}

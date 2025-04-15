@@ -377,15 +377,15 @@ namespace Papyrus::ActorStats
 			}
 		case LegacyStatistics::Times_Males:
 			return static_cast<float>(statdata->GetNumberEncounters(a_actor, [](auto& it) {
-				return (static_cast<int32_t>(it.sex) & static_cast<int32_t>(Registry::Sex::Male)) && it.race == Registry::RaceKey::Human;
+				return (static_cast<int32_t>(it.sex) & static_cast<int32_t>(Registry::Sex::Male)) && it.race.Is(Registry::RaceKey::Human);
 			}));
 		case LegacyStatistics::Times_Females:
 			return static_cast<float>(statdata->GetNumberEncounters(a_actor, [](auto& it) {
-				return (static_cast<int32_t>(it.sex) & static_cast<int32_t>(Registry::Sex::Female)) && it.race == Registry::RaceKey::Human;
+				return (static_cast<int32_t>(it.sex) & static_cast<int32_t>(Registry::Sex::Female)) && it.race.Is(Registry::RaceKey::Human);
 			}));
 		case LegacyStatistics::Times_Creatures:
 			return static_cast<float>(statdata->GetNumberEncounters(a_actor, [](auto& it) {
-				return it.race != Registry::RaceKey::Human;
+				return !it.race.Is(Registry::RaceKey::Human);
 			}));
 		case LegacyStatistics::Times_Masturbation:
 			return stats.GetStatistic(stats.TimesMasturbated);

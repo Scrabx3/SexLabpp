@@ -9,7 +9,7 @@ namespace Papyrus::VoiceSlots
 	{
 		bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			const auto vs = Registry::Voice::GetSingleton();
+			const auto vs = Registry::Library::GetSingleton();
 			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
@@ -20,13 +20,13 @@ namespace Papyrus::VoiceSlots
 
 		void SetEnabled(RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_enabled)
 		{
-			const auto vs = Registry::Voice::GetSingleton();
-			vs->SetVoiceObjectEnabled(a_id, a_enabled);
+			const auto vs = Registry::Library::GetSingleton();
+			vs->SetVoiceEnabled(a_id, a_enabled);
 		}
 
 		std::vector<RE::BSFixedString> GetVoiceTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			const auto vs = Registry::Voice::GetSingleton();
+			const auto vs = Registry::Library::GetSingleton();
 			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
@@ -37,7 +37,7 @@ namespace Papyrus::VoiceSlots
 
 		int GetCompatibleSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			const auto vs = Registry::Voice::GetSingleton();
+			const auto vs = Registry::Library::GetSingleton();
 			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
@@ -48,7 +48,7 @@ namespace Papyrus::VoiceSlots
 
 		std::vector<RE::BSFixedString> GetCompatibleRaces(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			const auto vs = Registry::Voice::GetSingleton();
+			const auto vs = Registry::Library::GetSingleton();
 			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
@@ -82,12 +82,12 @@ namespace Papyrus::VoiceSlots
 			}
 			if (a_muffled)
 				annotation.set(Registry::VoiceAnnotation::Muffled);
-			return Registry::Voice::GetSingleton()->PickSound(a_id, static_cast<uint32_t>(a_strength), annotation);
+			return Registry::Library::GetSingleton()->PickSound(a_id, static_cast<uint32_t>(a_strength), annotation);
 		}
 
 		RE::TESSound* GetSoundObjectLeg(RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_idx)
 		{
-			return Registry::Voice::GetSingleton()->PickSound(a_id, Registry::LegacyVoice(a_idx));
+			return Registry::Library::GetSingleton()->PickSound(a_id, Registry::LegacyVoice(a_idx));
 		}
 
 		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_scene, int a_idx, bool a_muffled)
@@ -111,12 +111,12 @@ namespace Papyrus::VoiceSlots
 			}
 			if (a_muffled)
 				annotation.set(Registry::VoiceAnnotation::Muffled);
-			return Registry::Voice::GetSingleton()->PickOrgasmSound(a_id, annotation);
+			return Registry::Library::GetSingleton()->PickOrgasmSound(a_id, annotation);
 		}
 
 		RE::BSFixedString GetDisplayName(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			const auto vs = Registry::Voice::GetSingleton();
+			const auto vs = Registry::Library::GetSingleton();
 			auto it = vs->GetVoiceByName(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
@@ -127,27 +127,27 @@ namespace Papyrus::VoiceSlots
 
 		bool InitializeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			return Registry::Voice::GetSingleton()->InitializeNew(a_id);
+			return Registry::Library::GetSingleton()->CreateVoice(a_id);
 		}
 
 		void FinalizeVoiceObject(RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
-			Registry::Voice::GetSingleton()->SaveYAML(a_id);
+			Registry::Library::GetSingleton()->WriteVoiceToFile(a_id);
 		}
 
 		void SetSoundObjectLeg(RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_idx, RE::TESSound* a_set)
 		{
-			Registry::Voice::GetSingleton()->SetSound(a_id, Registry::LegacyVoice(a_idx), a_set);
+			Registry::Library::GetSingleton()->SetVoiceSound(a_id, Registry::LegacyVoice(a_idx), a_set);
 		}
 
 		void SetVoiceTags(RE::StaticFunctionTag*, RE::BSFixedString a_id, std::vector<RE::BSFixedString> a_newtags)
 		{
-			Registry::Voice::GetSingleton()->SetTags(a_id, a_newtags);
+			Registry::Library::GetSingleton()->SetVoiceTags(a_id, a_newtags);
 		}
 
 		void SetCompatibleSex(RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_set)
 		{
-			Registry::Voice::GetSingleton()->SetSex(a_id, a_set == -1 ? RE::SEXES::kNone : RE::SEXES::SEX(a_set));
+			Registry::Library::GetSingleton()->SetVoiceSex(a_id, a_set == -1 ? RE::SEXES::kNone : RE::SEXES::SEX(a_set));
 		}
 
 		void SetCompatibleRaces(RE::StaticFunctionTag*, RE::BSFixedString a_id, std::vector<RE::BSFixedString> a_set)
@@ -160,7 +160,7 @@ namespace Papyrus::VoiceSlots
 					continue;
 				races.push_back(rk);
 			}
-			Registry::Voice::GetSingleton()->SetRace(a_id, races);
+			Registry::Library::GetSingleton()->SetVoiceRace(a_id, races);
 		}
 
 	}	 // namespace BaseVoice
@@ -172,14 +172,14 @@ namespace Papyrus::VoiceSlots
 
 	RE::BSFixedString SelectVoiceByTags(RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_tags)
 	{
-		auto s = Registry::Voice::GetSingleton();
+		auto s = Registry::Library::GetSingleton();
 		auto v = a_actor ? s->GetVoice(a_actor, Registry::TagDetails{ a_tags.data() }) : s->GetVoice(Registry::TagDetails{ a_tags.data() });
 		return v ? v->name : "";
 	}
 
 	RE::BSFixedString SelectVoiceByTagsA(RE::StaticFunctionTag*, RE::Actor* a_actor, std::vector<std::string_view> a_tags)
 	{
-		auto s = Registry::Voice::GetSingleton();
+		auto s = Registry::Library::GetSingleton();
 		auto v = a_actor ? s->GetVoice(a_actor, { a_tags }) : s->GetVoice({ a_tags });
 		return v ? v->name : "";
 	}
@@ -190,7 +190,7 @@ namespace Papyrus::VoiceSlots
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return "";
 		}
-		auto v = Registry::Voice::GetSingleton()->GetSavedVoice(a_actor->GetFormID());
+		auto v = Registry::Library::GetSingleton()->GetSavedVoice(a_actor->GetFormID());
 		return v ? v->name : "";
 	}
 
@@ -200,7 +200,7 @@ namespace Papyrus::VoiceSlots
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return;
 		}
-		Registry::Voice::GetSingleton()->SaveVoice(a_actor->GetFormID(), a_voice);
+		Registry::Library::GetSingleton()->SaveVoice(a_actor->GetFormID(), a_voice);
 	}
 
 	void DeleteVoice(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
@@ -209,18 +209,18 @@ namespace Papyrus::VoiceSlots
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return;
 		}
-		Registry::Voice::GetSingleton()->ClearVoice(a_actor->GetFormID());
+		Registry::Library::GetSingleton()->ClearVoice(a_actor->GetFormID());
 	}
 
 	std::vector<RE::BSFixedString> GetAllVoices(RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
 		auto rk = a_racekey.empty() ? Registry::RaceKey{ Registry::RaceKey::None } : Registry::RaceKey{ a_racekey };
-		return Registry::Voice::GetSingleton()->GetAllVoiceNames(rk);
+		return Registry::Library::GetSingleton()->GetAllVoiceNames(rk);
 	}
 
 	std::vector<RE::Actor*> GetAllCachedUniqueActorsSorted(RE::StaticFunctionTag*, RE::Actor* a_sndprio)
 	{
-		auto saved = Registry::Voice::GetSingleton()->GetSavedActors();
+		auto saved = Registry::Library::GetSingleton()->GetSavedActors();
 		std::erase_if(saved, [&](RE::Actor* it) {
 			if (it->IsPlayerRef() || a_sndprio && it->formID == a_sndprio->formID)
 				return true;
@@ -241,7 +241,7 @@ namespace Papyrus::VoiceSlots
 
 	RE::BSFixedString SelectVoiceByRace(RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
-		auto v = Registry::Voice::GetSingleton()->GetVoice(Registry::RaceKey{ a_racekey });
+		auto v = Registry::Library::GetSingleton()->GetVoice(Registry::RaceKey{ a_racekey });
 		return v ? v->name : "";
 	}
 

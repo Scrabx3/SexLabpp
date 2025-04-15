@@ -1,9 +1,9 @@
 #include "Animation.h"
 
-#include "Library.h"
 #include "Registry/Define/RaceKey.h"
+#include "Registry/Library.h"
+#include "Registry/Util/Decode.h"
 #include "Util/Combinatorics.h"
-#include "Util/Decode.h"
 #include "Util/StringUtil.h"
 
 namespace Registry

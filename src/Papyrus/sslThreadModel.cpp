@@ -547,7 +547,7 @@ __CONTINUE_NEXT:
 			actor->data.angle.x = actor->data.angle.y = 0.0f;
 			actor->SetPosition(coordinate.AsNiPoint(), true);
 			actor->Update3DPosition(true);
-			Registry::Scale::GetSingleton()->SetScale(actor, scene->positions[i].scale);
+			Registry::Scale::GetSingleton()->SetScale(actor, scene->positions[i].data.GetScale());
 
 			const auto event = scene->GetNthAnimationEvent(stage, i);
 			actor->NotifyAnimationGraph(event);

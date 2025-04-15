@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Define/Fragment.h"
-#include "Define/Furniture.h"
-#include "Define/RaceKey.h"
-#include "Define/Sex.h"
-#include "Define/Tags.h"
-#include "Define/Transform.h"
+#include "Registry/Define/Fragment.h"
+#include "Registry/Define/Furniture.h"
+#include "Registry/Define/RaceKey.h"
+#include "Registry/Define/Sex.h"
+#include "Registry/Define/Tags.h"
+#include "Registry/Define/Transform.h"
 
 namespace Registry
 {

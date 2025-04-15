@@ -2,7 +2,7 @@
 
 namespace Registry
 {
-	Expression::Profile::Profile(const YAML::Node& a_src) :
+	Expression::Expression(const YAML::Node& a_src) :
 		id(a_src["id"].as<std::string>("Missing Name")),
 		version(static_cast<uint8_t>(a_src["version"].as<uint32_t>(0))),
 		enabled(a_src["enabled"].as<bool>(true)),
@@ -10,46 +10,43 @@ namespace Registry
 		scaling(Scaling(a_src["scaling"].as<int32_t>(std::to_underlying(Scaling::Linear))))
 	{
 		if (!a_src["data"].IsDefined())
-			throw std::exception("Missing data values");
-
-		const auto fill = [&](RE::SEXES::SEX sex) {
-			auto& fields = a_src["data"][static_cast<uint32_t>(sex)];
+			throw std::runtime_error("Missing data field");
+		for (size_t i = 0; i < RE::SEXES::kTotal; i++) {
+			auto& fields = a_src["data"][i];
 			for (auto&& arr : fields) {
 				const auto values = arr.as<std::vector<float>>();
-				if (values.size() != Profile::Total) {
-					const auto err = std::format("Invalid value field, expected {}/32 values found", values.size());
-					throw std::exception(err.c_str());
+				if (values.size() != ValueType::Total) {
+					const auto err = std::format("{}: Invalid data field: {}/32 values found at {}.", id, values.size(), i);
+					throw std::runtime_error(err);
 				}
-				auto& it = data[sex].emplace_back();
+				auto& it = data[i].emplace_back();
 				std::copy_n(values.begin(), it.size(), it.begin());
 			}
-		};
-		fill(RE::SEXES::kMale);
-		fill(RE::SEXES::kFemale);
+		}
 	}
 
-	Expression::Profile::Profile(const nlohmann::json& a_src) :
+	Expression::Expression(const nlohmann::json& a_src) :
 		id([&]() {
 			if (const auto strings = a_src.find("string"); strings != a_src.end())
 				if (const auto name = strings->find("name"); name != strings->end())
 					return name->get<std::string>();
-			throw std::exception("Missing Name field");
+			throw std::runtime_error("Missing Name field");
 		}())
 	{
 		const auto floats = a_src.find("floatList");
 		if (floats == a_src.end())
-			throw std::exception("Missing 'floatList' field");
-		auto fill = [&](RE::SEXES::SEX sex, std::string begin) mutable {
+			throw std::runtime_error("Missing 'floatList' field");
+		auto fill = [&](RE::SEXES::SEX sex, std::string prefix) mutable {
 			constexpr auto MAX_VALUE_FIELDS = 5;
 			for (size_t i = 1; i <= MAX_VALUE_FIELDS; i++) {
-				auto fieldname = begin + std::to_string(i);
+				auto fieldname = prefix + std::to_string(i);
 				auto field = floats->find(fieldname);
 				if (field == floats->end() || !field->is_array())
 					break;
 				auto values = field->get<std::vector<float>>();
-				if (values.size() != Profile::Total) {
+				if (values.size() != ValueType::Total) {
 					const auto err = std::format("Invalid value field, expected {}/32 values found in field {}", values.size(), fieldname);
-					throw std::exception(err.c_str());
+					throw std::runtime_error(err.c_str());
 				}
 				auto& it = data[sex].emplace_back();
 				std::copy_n(values.begin(), it.size(), it.begin());
@@ -58,7 +55,7 @@ namespace Registry
 		fill(RE::SEXES::kMale, "male");
 		fill(RE::SEXES::kFemale, "female");
 		if (data[RE::SEXES::kMale].empty() && data[RE::SEXES::kFemale].empty()) {
-			throw std::exception("Data fields have no values");
+			throw std::runtime_error("Data fields have no values");
 		}
 		if (const auto ints = a_src.find("int"); ints != a_src.end()) {
 			const auto get = [&](const char* fieldname) -> bool {
@@ -72,7 +69,7 @@ namespace Registry
 		}
 	}
 
-	Expression::Profile::Profile(DefaultExpression a_default) :
+	Expression::Expression(DefaultExpression a_default) :
 		id(magic_enum::enum_name(a_default)), version(1), scaling(Scaling::Linear)
 	{
 		switch (a_default) {
@@ -170,10 +167,11 @@ namespace Registry
 		}
 	}
 
-	std::array<float, Expression::Profile::Total> Expression::Profile::GetData(RE::SEXES::SEX a_sex, float a_strength) const
+	std::array<float, Expression::ValueType::Total> Expression::GetData(RE::SEXES::SEX a_sex, float a_strength) const
 	{
 		if (version < 1) {
 			if (data[a_sex].empty()) {
+				logger::error("Invalid Expression Profile, {}: No data found", id);
 				auto ret = std::array<float, Total>{};
 				ret[MoodType] = 7;
 				return ret;
@@ -182,8 +180,8 @@ namespace Registry
 			const auto idx = static_cast<size_t>(std::floor((max * a_strength) / 100));
 			assert(idx < data[a_sex].size() && idx >= 0);
 			return data[a_sex][idx];
-		} else if (data[a_sex].size() < 2) {
-			logger::error("Invalid Expression Profile, {}/2 Profiles present", data[a_sex].size());
+		} else if (data[a_sex].size() != 2) {
+			logger::error("Invalid Expression Profile, {}: {}/2 Profiles present", id, data[a_sex].size());
 			auto ret = std::array<float, Total>{};
 			ret[MoodType] = 7;
 			return ret;
@@ -226,11 +224,9 @@ namespace Registry
 		return ret;
 	}
 
-	void Expression::Profile::Save() const
+	void Expression::Save(std::string_view a_fileLocation, bool force) const
 	{
-		if (!has_edits)
-			return;
-
+		if (!has_edits && !force) return;
 		has_edits = false;
 		YAML::Node file;
 		file["id"] = id.data();
@@ -249,140 +245,36 @@ namespace Registry
 			}
 		}
 		file["enabled"] = enabled;
-		std::ofstream fout(std::format("{}\\{}.yaml", EXPRESSIONPATH, id));
+		std::ofstream fout(std::format("{}\\{}.yaml", a_fileLocation, id));
 		fout << file;
 	}
 
-	const Expression::Profile* Expression::GetProfile(const RE::BSFixedString& a_id) const
+	void Expression::UpdateValues(bool a_female, int a_level, std::vector<float> a_values)
 	{
-		auto where = _profiles.find(a_id);
-		if (where == _profiles.end())
-			return nullptr;
-
-		return &where->second;
-	}
-
-	bool Expression::CreateProfile(const RE::BSFixedString& a_id)
-	{
-		if (_profiles.contains(a_id)) {
-			logger::error("Expression {} has already been initialized", a_id);
-			return false;
+		has_edits = true;
+		auto& dataEntry = data[a_female];
+		while (dataEntry.size() <= a_level) {
+			dataEntry.emplace_back();
 		}
-		_profiles.emplace(a_id, Profile{ a_id });
-		return true;
+		std::copy_n(a_values.begin(), dataEntry[a_level].size(), dataEntry[a_level].begin());
 	}
 
-	bool Expression::ForEachProfile(std::function<bool(const Profile&)> a_func)
+	void Expression::UpdateTags(const TagData& a_newtags)
 	{
-		for (auto&& [id, profile] : _profiles) {
-			if (a_func(profile)) {
-				return true;
-			}
-		}
-		return false;
+		has_edits = true;
+		tags = a_newtags;
 	}
 
-	void Expression::UpdateValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
+	void Expression::SetScaling(Scaling a_scaling)
 	{
-		auto w = _profiles.find(a_id);
-		if (w == _profiles.end())
-			return;
-
-		w->second.has_edits = true;
-		auto& data = w->second.data[a_female];
-		while (data.size() <= a_level) {
-			data.emplace_back();
-		}
-		std::copy_n(a_values.begin(), data[a_level].size(), data[a_level].begin());
+		has_edits = true;
+		scaling = a_scaling;
 	}
 
-	void Expression::UpdateTags(RE::BSFixedString a_id, const TagData& a_newtags)
+	void Expression::SetEnabled(bool a_enabled)
 	{
-		auto w = _profiles.find(a_id);
-		if (w == _profiles.end())
-			return;
-
-		w->second.has_edits = true;
-		w->second.tags = a_newtags;
-	}
-
-	void Expression::SetScaling(RE::BSFixedString a_id, Profile::Scaling a_scaling)
-	{		
-		auto w = _profiles.find(a_id);
-		if (w == _profiles.end())
-			return;
-
-		w->second.has_edits = true;
-		w->second.scaling = a_scaling;
-	}
-
-	void Expression::SetEnabled(RE::BSFixedString a_id, bool a_enabled)
-	{
-		auto w = _profiles.find(a_id);
-		if (w == _profiles.end())
-			return;
-
-		w->second.has_edits = true;
-		w->second.enabled = a_enabled;
-	}
-
-	void Expression::Initialize()
-	{
-		logger::info("Loading Expressions");
-
-		if (fs::exists(EXPRESSIONPATH) && fs::is_directory(EXPRESSIONPATH)) {
-			for (auto& file : fs::directory_iterator{ EXPRESSIONPATH }) {
-				const auto extension = file.path().extension();
-				if (extension != ".yaml" && extension != ".yml")
-					continue;
-				const auto filename = file.path().filename().string();
-				try {
-					const auto yaml = YAML::LoadFile(file.path().string());
-					auto profile = Profile{ yaml };
-					if (_profiles.emplace(profile.id, std::move(profile)).second) {
-						logger::info("Added expression {}", filename);
-					}
-				} catch (const std::exception& e) {
-					logger::info("Failed to load {}, Error = {}", filename, e.what());
-				}
-			}
-		}
-
-		if (fs::exists(LEGACY_CONFIG) && fs::is_directory(LEGACY_CONFIG)) {
-			for (auto& file : fs::directory_iterator{ LEGACY_CONFIG }) {
-				auto filename = file.path().filename().string();
-				Util::ToLower(filename);
-				if (!filename.starts_with("expression"))
-					continue;
-				try {
-					const auto jsonfile = nlohmann::json::parse(std::ifstream(file.path().string()));
-					auto profile = Profile{ jsonfile };
-					auto succ = _profiles.emplace(profile.id, std::move(profile));
-					if (succ.second) {
-						succ.first->second.has_edits = true;
-						succ.first->second.Save();
-						logger::info("Added legacy expression {}. You may delete this file now", filename);
-					}
-				} catch (const std::exception& e) {
-					logger::info("Failed to update {}, Error = {}", filename, e.what());
-				}
-			}
-		}
-
-		constexpr auto arr = magic_enum::enum_values<DefaultExpression>();
-		for (auto&& e : arr) {
-			_profiles.emplace(magic_enum::enum_name(e), Profile{ e });
-		}
-
-		logger::info("Loaded {} expressions", _profiles.size());
-	}
-
-	void Expression::Save()
-	{
-		for (auto&& [id, profile] : _profiles) {
-			profile.Save();
-		}
-		logger::info("Finished saving expressions");
+		has_edits = true;
+		enabled = a_enabled;
 	}
 
 }	 // namespace Registry

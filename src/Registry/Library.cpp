@@ -1,132 +1,90 @@
 #include "Library.h"
 
 #include "Define/RaceKey.h"
-#include "Util/Combinatorics.h"
 
 namespace Registry
 {
-	void Library::Initialize() noexcept
+	std::vector<Scene*> Library::LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
 	{
-		logger::info("Loading files..");
-		const auto t1 = std::chrono::high_resolution_clock::now();
-
-		std::error_code ec{};
-		if (!fs::exists(SCENEPATH, ec) || fs::is_empty(SCENEPATH, ec)) {
-			const auto msg = ec ? std::format("An error occured while initializing SexLab animations: {}", ec.message()) :
-														std::format("Unable to load SexLab animations. Folder {} is empty or does not exist.", SCENEPATH);
-			logger::critical("{}", msg);
-			const auto msgBox = std::format("{}\n\nExit game now?", msg);
-			if (REX::W32::MessageBoxA(nullptr, msgBox.c_str(), "SexLab p+ Registry", 0x00000004) == 6)
-				std::_Exit(EXIT_FAILURE);
-			return;
-		}
-		std::vector<std::thread> threads{};
-		for (auto& file : fs::directory_iterator{ SCENEPATH }) {
-			if (file.path().extension() != ".slr") {
-				continue;
-			}
+		const auto tStart = std::chrono::high_resolution_clock::now();
+		ActorFragment::FragmentHash hash;
 #ifndef SKYRIMVR
-			threads.emplace_back([this, file]() {
+		std::thread _hashbuilder{ [&]() {
 #endif
-				try {
-					auto package = std::make_unique<AnimPackage>(file);
-					for (auto&& scene : package->scenes) {
-						RegisterScene(scene.get());
-					}
-					const std::unique_lock lock{ read_write_lock };
-					for (auto&& scene : package->scenes) {
-						scene_map.insert({ scene->id, scene.get() });
-					}
-					packages.push_back(std::move(package));
-				} catch (const std::exception& e) {
-					const auto filename = file.path().filename().string();
-					logger::critical("Unable to read registry file {}. The animation pack will NOT be added to the library. | Error: {}", filename, e.what());
-				}
+			std::vector<ActorFragment> fragments;
+			for (auto&& position : a_actors) {
+				const auto submissive = std::ranges::contains(a_submissives, position);
+				fragments.emplace_back(position, submissive);
+			}
+			hash = ActorFragment::MakeFragmentHash(fragments);
 #ifndef SKYRIMVR
+		} };
+#endif
+		TagDetails tags{ a_tags };
+		const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", [&] {
+			return std::accumulate(std::next(a_tags.begin()), a_tags.end(), std::string(a_tags[0]), [](std::string a, std::string_view b) {
+				return std::move(a) + ", " + b.data();
 			});
-#endif
-		}
-		for (auto& thread : threads) {
-			thread.join();
-		}
-		const auto t2 = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> ms = t2 - t1;
-		logger::info("Loaded {} Packages ({} scenes | {} categories) in {}ms", packages.size(), GetSceneCount(), scenes.size(), ms.count());
+		}());
+		_hashbuilder.join();
 
-		if (RegisterFurniture()) {
-			const auto t3 = std::chrono::high_resolution_clock::now();
-			ms = t3 - t2;
-			logger::info("Loaded {} Furnitures in {}ms", furnitures.size(), ms.count());
+		const std::shared_lock lock{ _mScenes };
+		const auto where = this->scenes.find(hash);
+		if (where == this->scenes.end()) {
+			logger::info("Invalid query: [{} | {} | {}]; No animations for given actors", a_actors.size(), hash.to_string(), tagstr);
+			return {};
 		}
-		logger::info("Initialized Data");
-	}
+		const auto& rawScenes = where->second;
 
-	void Library::RegisterScene(Scene* a_scene)
-	{
-		std::vector<std::vector<ActorFragment>> positionFragments{};
-		for (auto&& it : a_scene->positions) {
-			const auto splits = it.data.Split();
-			positionFragments.push_back(splits);
-		}
-		Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
-			std::vector<ActorFragment> argFragment{};
-			argFragment.reserve(it.size());
-			for (const auto& current : it) {
-				argFragment.push_back(*current);
-			}
-			std::stable_sort(argFragment.begin(), argFragment.end());
-			const auto key = ActorFragment::MakeFragmentHash(argFragment);
-			const std::unique_lock lock{ read_write_lock };
-			const auto where = scenes.find(key);
-			if (where == scenes.end()) {
-				scenes[key] = { a_scene };
-			} else if (!std::ranges::contains(where->second, a_scene)) {
-				where->second.push_back(a_scene);
-			}
-			return Combinatorics::CResult::Next;
+		std::vector<Scene*> ret{};
+		ret.reserve(rawScenes.size());
+		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
+			// COMEBACK: Config Tag filtering?
+			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
 		});
+		if (ret.empty()) {
+			logger::info("Invalid query: [{} | {} | {}]; 0/{} animations use requested tags", a_actors.size(), hash.to_string(), tagstr, where->second.size());
+			return {};
+		}
+		const auto tEnd = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> ms = tEnd - tStart;
+		logger::info("Found {} scenes for query [{} | {} | {}] actors in {}ms", ret.size(), a_actors.size(), hash.to_string(), tagstr, ms.count());
+		return ret;
 	}
 
-	bool Library::RegisterFurniture()
+	std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
 	{
-		std::error_code ec{};
-		if (!fs::exists(FURNITUREPATH, ec) || fs::is_empty(FURNITUREPATH, ec)) {
-			const auto msg = ec ? std::format("An error occured while attempting to read furniture info: {}", ec.message()) :
-														std::format("Unable to load furnitures. Folder {} is empty or does not exist.", FURNITUREPATH);
-			logger::critical("{}", msg);
-			return false;
-		}
-		const std::unique_lock lock{ read_write_lock };
-		for (auto& file : fs::directory_iterator{ FURNITUREPATH }) {
-			if (auto ext = file.path().extension(); ext != ".yml" && ext != ".yaml") {
+		TagDetails tags{ a_tags };
+		std::vector<Scene*> ret{};
+		ret.reserve(sceneMap.size() >> 5);
+		const std::shared_lock lock{ _mScenes };
+		for (auto&& [key, scene] : sceneMap) {
+			if (!scene->IsEnabled() || scene->IsPrivate())
 				continue;
-			}
-			const auto filename = file.path().filename().string();
-			try {
-				YAML::Node root = YAML::LoadFile(file.path().string());
-				for (auto&& it : root) {
-					furnitures.emplace(
-						RE::BSFixedString(it.first.as<std::string>()),
-						std::make_unique<FurnitureDetails>(it.second));
-				}
-				logger::info("Finished parsing file {}", filename);
-			} catch (const std::exception& e) {
-				logger::error("Unable to load furnitures in file {}; Error: {}", filename, e.what());
+			if (scene->positions.size() != a_positions)
+				continue;
+			if (!scene->IsCompatibleTags(tags))
+				continue;
+			ret.push_back(scene);
+		}
+		return ret;
+	}
+
+	const AnimPackage* Library::GetPackageFromScene(Scene* a_scene) const
+	{
+		const std::shared_lock lock{ _mScenes };
+		for (auto&& package : packages) {
+			if (std::ranges::contains(package->scenes, a_scene, [](const auto& scenePtr) { return scenePtr.get(); })) {
+				return package.get();
 			}
 		}
-		return true;
+		return nullptr;
 	}
 
 	const Scene* Library::GetSceneByID(const RE::BSFixedString& a_id) const
 	{
-		const auto where = scene_map.find(a_id);
-		return where != scene_map.end() ? where->second : nullptr;
-	}
-
-	Scene* Library::GetSceneByID(const RE::BSFixedString& a_id)
-	{
-		const auto where = scene_map.find(a_id);
-		return where != scene_map.end() ? where->second : nullptr;
+		const auto where = sceneMap.find(a_id);
+		return where != sceneMap.end() ? where->second : nullptr;
 	}
 
 	const Scene* Library::GetSceneByName(const RE::BSFixedString& a_name) const
@@ -140,163 +98,378 @@ namespace Registry
 		return nullptr;
 	}
 
-	Scene* Library::GetSceneByName(const RE::BSFixedString& a_name)
-	{
-		for (auto&& package : packages) {
-			for (auto&& scene : package->scenes) {
-				if (a_name == RE::BSFixedString(scene->name))
-					return scene.get();
-			}
-		}
-		return nullptr;
-	}
-
-	std::vector<Scene*> Library::LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
-	{
-		const auto t1 = std::chrono::high_resolution_clock::now();
-		ActorFragment::FragmentHash hash;
-		std::thread _hashbuilder{ [&]() {
-			std::vector<ActorFragment> fragments;
-			for (auto&& position : a_actors) {
-				const auto submissive = std::ranges::contains(a_submissives, position);
-				fragments.emplace_back(position, submissive);
-			}
-			hash = ActorFragment::MakeFragmentHash(fragments);
-		} };
-		TagDetails tags{ a_tags };
-		const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", [&] {
-			return std::accumulate(std::next(a_tags.begin()), a_tags.end(), std::string(a_tags[0]), [](std::string a, std::string_view b) {
-				return std::move(a) + ", " + b.data();
-			});
-		}());
-		_hashbuilder.join();
-
-		const std::shared_lock lock{ read_write_lock };
-		const auto where = this->scenes.find(hash);
-		if (where == this->scenes.end()) {
-			logger::info("Invalid query: [{} | {} | {}]; No animations for given actors", a_actors.size(), hash.to_string(), tagstr);
-			return {};
-		}
-		const auto& rawScenes = where->second;
-
-		std::vector<Scene*> ret{};
-		ret.reserve(rawScenes.size() / 2);
-		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
-			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
-		});
-		if (ret.empty()) {
-			logger::info("Invalid query: [{} | {} | {}]; 0/{} animations use requested tags", a_actors.size(), hash.to_string(), tagstr, where->second.size());
-			return {};
-		}
-		const auto t2 = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> ms = t2 - t1;
-		logger::info("Found {} scenes for query [{} | {} | {}] actors in {}ms", ret.size(), a_actors.size(), hash.to_string(), tagstr, ms.count());
-		return ret;
-	}
-
 	size_t Library::GetSceneCount() const
 	{
-		const std::shared_lock lock{ read_write_lock };
-		size_t ret = 0;
-		for (auto&& package : packages) {
-			ret += package->scenes.size();
-		}
-		return ret;
+		std::shared_lock lock{ _mScenes };
+		return sceneMap.size();
 	}
 
-	const AnimPackage* Library::GetPackageFromScene(Scene* a_scene) const
+	bool Library::EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func)
 	{
-		const std::shared_lock lock{ read_write_lock };
-		for (auto&& package : packages) {
-			if (std::ranges::contains(package->scenes, a_scene, [](const auto& scenePtr) { return scenePtr.get(); })) {
-				return package.get();
-			}
+		std::shared_lock lock{ _mScenes };
+		auto where = sceneMap.find(a_id);
+		if (where == sceneMap.end()) {
+			logger::error("Scene {} not found", a_id.c_str());
+			return false;
 		}
-		return nullptr;
+		a_func(where->second);
+		return true;
 	}
 
-	std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
+	bool Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const
 	{
-		TagDetails tags{ a_tags };
-		std::vector<Scene*> ret{};
-		ret.reserve(scene_map.size() >> 5);
-		const std::shared_lock lock{ read_write_lock };
-		for (auto&& [key, scene] : scene_map) {
-			if (!scene->IsEnabled() || scene->IsPrivate())
-				continue;
-			if (scene->positions.size() != a_positions)
-				continue;
-			if (!scene->IsCompatibleTags(tags))
-				continue;
-			ret.push_back(scene);
-		}
-		return ret;
-	}
-
-	void Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const
-	{
-		std::shared_lock lock{ read_write_lock };
+		std::shared_lock lock{ _mScenes };
 		for (auto&& package : packages) {
 			if (a_visitor(package.get()))
-				break;
+				return true;
 		}
+		return false;
 	}
 
-	void Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const
+	bool Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const
 	{
-		std::shared_lock lock{ read_write_lock };
-		for (auto&& [key, scene] : scene_map) {
+		std::shared_lock lock{ _mScenes };
+		for (auto&& [key, scene] : sceneMap) {
 			if (a_visitor(scene))
-				break;
+				return true;
 		}
+		return false;
 	}
 
-	void Library::Save()
+	std::vector<RE::BSFixedString> Library::GetAllVoiceNames(RaceKey a_race) const
 	{
-		std::shared_lock lock{ read_write_lock };
-		std::vector<std::thread> threads{};
-		for (auto&& p : packages) {
-			threads.emplace_back([&]() {
-				YAML::Node data{};
-				for (auto&& scene : p->scenes) {
-					auto node = data[scene->id];
-					scene->Save(node);
-				}
-				const auto filepath = std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, p->GetName().data(), p->GetHash());
-				std::ofstream fout(filepath);
-				fout << data;
-			});
-		}
-		for (auto&& thread : threads) {
-			thread.join();
-		}
-		logger::info("Finished saving registry settings");
+		std::shared_lock lock{ _mVoice };
+		return std::ranges::fold_left(voices, std::vector<RE::BSFixedString>{}, [&](auto acc, const auto& it) {
+			const auto& [name, voice] = it;
+			if (voice.HasRace(a_race))
+				acc.push_back(name);
+			return acc;
+		});
 	}
 
-	void Library::Load()
+	const Voice* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)
 	{
-		if (!fs::exists(SCENE_USER_CONFIG))
-			return;
-
-		std::unique_lock lock{ read_write_lock };
-		for (auto& file : fs::directory_iterator{ SCENE_USER_CONFIG }) {
-			if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
+		std::shared_lock lock{ _mVoice };
+		if (auto saved = GetSavedVoice(a_actor->GetFormID())) {
+			return saved;
+		}
+		const RaceKey actRace{ a_actor };
+		if (!actRace.IsValid()) {
+			logger::error("GetVoice: Actor {} has invalid racekey", a_actor->GetFormID());
+			return nullptr;
+		}
+		const auto base = a_actor->GetActorBase();
+		const auto sex = base ? base->GetSex() : RE::SEXES::kMale;
+		std::vector<const Voice*> ret{};
+		for (auto&& [name, voice] : voices) {
+			if (!voice.enabled || voice.sex != RE::SEXES::kNone && voice.sex != sex)
 				continue;
-			const auto filename = file.path().filename().string();
-			try {
-				const auto root = YAML::LoadFile(file.path().string());
-				for (auto&& [key, scene] : scene_map) {
-					const auto node = root[scene->id];
-					if (!node.IsDefined())
-						continue;
-					scene->Load(node);
+			if (!voice.HasRace(actRace) || !a_tags.MatchTags(voice.tags))
+				continue;
+			ret.push_back(&voice);
+		}
+		if (ret.empty())
+			return nullptr;
+		if (auto voiceForm = base->GetVoiceType()) {
+			auto where = savedPitches.find(voiceForm->formID);
+			if (where != savedPitches.end()) {
+				const auto [pitch, voice] = where->second;
+				if (voice != nullptr) return voice;
+				const auto w = std::remove_if(ret.begin(), ret.end(), [&](const auto& v) {
+					return v->pitch != Pitch::Unknown && v->pitch != pitch;
+				});
+				if (w != ret.begin() && w != ret.end()) {
+					ret.erase(w, ret.end());
 				}
-				logger::info("Loaded scene settings from file {}", filename);
-			} catch (const std::exception& e) {
-				logger::error("Error while loading scene settings from file {}: {}", filename, e.what());
 			}
 		}
-		logger::info("Finished loading registry settings");
+		return savedVoices[a_actor->formID] = ret[Random::draw<size_t>(0, ret.size() - 1)];
+	}
+
+	const Voice* Library::GetVoice(const TagDetails& tags) const
+	{
+		std::shared_lock lock{ _mVoice };
+		std::vector<const Voice*> ret{};
+		for (const auto& [_, voice] : voices) {
+			if (tags.MatchTags(voice.tags))
+				continue;
+			ret.push_back(&voice);
+		}
+		return ret.empty() ? nullptr : Random::draw(ret);
+	}
+
+	const Voice* Library::GetVoice(RaceKey a_race) const
+	{
+		std::shared_lock lock{ _mVoice };
+		std::vector<const Voice*> ret{};
+		for (auto&& [_, voice] : voices) {
+			if (!voice.HasRace(a_race))
+				continue;
+			ret.push_back(&voice);
+		}
+		return ret.empty() ? nullptr : Random::draw(ret);
+	}
+
+	const Voice* Library::GetVoiceByName(RE::BSFixedString a_voice) const
+	{
+		std::shared_lock lock{ _mVoice };
+		auto v = voices.find(a_voice);
+		return v == voices.end() ? nullptr : &v->second;
+	}
+
+	bool Library::CreateVoice(RE::BSFixedString a_voice)
+	{
+		std::unique_lock lock{ _mVoice };
+		if (voices.contains(a_voice)) {
+			logger::error("Voice {} has already been initialized", a_voice);
+			return false;
+		}
+		voices.emplace(a_voice, Voice{ a_voice });
+		return true;
+	}
+
+	void Library::WriteVoiceToFile(RE::BSFixedString a_voice) const
+	{
+		auto voice = GetVoiceByName(a_voice);
+		if (!voice) {
+			logger::error("Voice {} not found", a_voice);
+			return;
+		}
+		voice->SaveToFile(VOICE_PATH);
+	}
+
+	std::vector<RE::Actor*> Library::GetSavedActors() const
+	{
+		std::shared_lock lock{ _mVoice };
+		return std::ranges::fold_left(savedVoices, std::vector<RE::Actor*>{}, [&](auto acc, const auto& it) {
+			auto act = RE::TESForm::LookupByID<RE::Actor>(it.first);
+			if (act) acc.push_back(act);
+			return acc;
+		});
+	}
+
+	const Voice* Library::GetSavedVoice(RE::FormID a_key) const
+	{
+		std::shared_lock lock{ _mVoice };
+		auto w = savedVoices.find(a_key);
+		return w == savedVoices.end() ? nullptr : w->second;
+	}
+
+	void Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)
+	{
+		auto v = GetVoiceByName(a_voice);
+		std::unique_lock lock{ _mVoice };
+		if (v) {
+			savedVoices.insert_or_assign(a_key, v);
+		} else {
+			savedVoices.erase(a_key);
+		}
+	}
+
+	void Library::ClearVoice(RE::FormID a_key)
+	{
+		std::unique_lock lock{ _mVoice };
+		savedVoices.erase(a_key);
+	}
+
+	RE::TESSound* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const
+	{
+		auto voice = GetVoiceByName(a_voice);
+		if (!voice) {
+			logger::error("Voice {} not found", a_voice);
+			return nullptr;
+		}
+		std::shared_lock lock{ _mVoice };
+		voice->PickSound(a_legacysetting);
+	}
+
+	RE::TESSound* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const
+	{
+		auto voice = GetVoiceByName(a_voice);
+		if (!voice) {
+			logger::error("Voice {} not found", a_voice);
+			return nullptr;
+		}
+		std::shared_lock lock{ _mVoice };
+		return voice->PickSound(a_excitement, a_annotation);
+	}
+
+	RE::TESSound* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const
+	{
+		auto voice = GetVoiceByName(a_voice);
+		if (!voice) {
+			logger::error("Voice {} not found", a_voice);
+			return nullptr;
+		}
+		std::shared_lock lock{ _mVoice };
+		return voice->PickOrgasmSound(a_annotation);
+	}
+
+	void Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)
+	{
+		std::unique_lock lock{ _mVoice };
+		auto v = voices.find(a_voice);
+		if (v == voices.end()) {
+			logger::error("Voice {} not found", a_voice);
+			return;
+		}
+		v->second.enabled = a_enabled;
+	}
+
+	void Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)
+	{
+		std::unique_lock lock{ _mVoice };
+		auto v = voices.find(a_voice);
+		if (v == voices.end()) {
+			logger::error("Voice {} not found", a_voice);
+			return;
+		}
+		auto& voice = v->second;
+		if (voice.extrasets.empty()) {
+			logger::error("Voice {} has no extrasets", a_voice);
+			return;
+		}
+		switch (a_legacysetting) {
+		case LegacyVoice::Mild:
+			voice.defaultset.SetSound(true, a_sound);
+			break;
+		case LegacyVoice::Medium:
+			voice.extrasets.front().SetSound(true, a_sound);
+			break;
+		case LegacyVoice::Hot:
+			voice.defaultset.SetSound(false, a_sound);
+			voice.extrasets.front().SetSound(false, a_sound);
+			break;
+		}
+	}
+
+	void Library::SetVoiceTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)
+	{
+		std::unique_lock lock{ _mVoice };
+		auto v = voices.find(a_voice);
+		if (v == voices.end()) {
+			logger::error("Voice {} not found", a_voice);
+			return;
+		}
+		v->second.tags.AddTag(a_tags);
+	}
+
+	void Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)
+	{
+		std::unique_lock lock{ _mVoice };
+		auto v = voices.find(a_voice);
+		if (v == voices.end()) {
+			logger::error("Voice {} not found", a_voice);
+			return;
+		}
+		auto& voice = v->second;
+		if (!a_races.empty() && !std::ranges::contains(a_races, RaceKey::Human, [](auto& it) { return it.value; })) {
+			voice.tags.AddTag("Creature");
+		} else {
+			voice.tags.RemoveTag("Creature");
+		}
+		voice.races = a_races;
+	}
+
+	void Library::SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)
+	{
+		std::unique_lock lock{ _mVoice };
+		auto v = voices.find(a_voice);
+		if (v == voices.end()) {
+			logger::error("Voice {} not found", a_voice);
+			return;
+		}
+		auto& voice = v->second;
+		switch (a_sex) {
+		case RE::SEXES::kFemale:
+			voice.tags.RemoveTag("Male");
+			voice.tags.AddTag("Female");
+			break;
+		case RE::SEXES::kMale:
+			voice.tags.AddTag("Male");
+			voice.tags.RemoveTag("Female");
+			break;
+		default:
+			voice.tags.AddTag("Female");
+			voice.tags.AddTag("Male");
+			break;
+		}
+		voice.sex = a_sex;
+	}
+
+	const Expression* Library::GetExpression(const RE::BSFixedString& a_id) const
+	{
+		std::shared_lock lock{ _mExpressions };
+		auto where = expressions.find(a_id);
+		if (where == expressions.end())
+			return nullptr;
+		return &where->second;
+	}
+
+	bool Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const
+	{
+		std::shared_lock lock{ _mExpressions };
+		for (auto&& [id, expression] : expressions) {
+			if (a_func(expression)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool Library::CreateExpression(const RE::BSFixedString& a_id)
+	{
+		std::unique_lock lock{ _mExpressions };
+		if (expressions.contains(a_id)) {
+			logger::error("Expression {} has already been initialized", a_id);
+			return false;
+		}
+		expressions.emplace(a_id, Expression{ a_id });
+		return true;
+	}
+
+	void Library::UpdateValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
+	{
+		std::unique_lock lock{ _mExpressions };
+		auto w = expressions.find(a_id);
+		if (w == expressions.end()) {
+			logger::error("Expression {} not found", a_id);
+			return;
+		}
+		w->second.UpdateValues(a_female, a_level, a_values);
+	}
+
+	void Library::UpdateTags(RE::BSFixedString a_id, const TagData& a_newtags)
+	{
+		std::unique_lock lock{ _mExpressions };
+		auto w = expressions.find(a_id);
+		if (w == expressions.end()) {
+			logger::error("Expression {} not found", a_id);
+			return;
+		}
+		w->second.UpdateTags(a_newtags);
+	}
+
+	void Library::SetScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)
+	{
+		std::unique_lock lock{ _mExpressions };
+		auto w = expressions.find(a_id);
+		if (w == expressions.end()) {
+			logger::error("Expression {} not found", a_id);
+			return;
+		}
+		w->second.SetScaling(a_scaling);
+	}
+
+	void Library::SetEnabled(RE::BSFixedString a_id, bool a_enabled)
+	{
+		std::unique_lock lock{ _mExpressions };
+		auto w = expressions.find(a_id);
+		if (w == expressions.end()) {
+			logger::error("Expression {} not found", a_id);
+			return;
+		}
+		w->second.SetEnabled(a_enabled);
 	}
 
 	const FurnitureDetails* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const
@@ -306,7 +479,7 @@ namespace Registry
 		}
 		const auto ref = a_ref->GetObjectReference();
 		if (const auto tesmodel = ref ? ref->As<RE::TESModel>() : nullptr) {
-			std::shared_lock lock{ read_write_lock };
+			std::shared_lock lock{ _mFurniture };
 			const auto where = furnitures.find(tesmodel->model);
 			if (where != furnitures.end()) {
 				return where->second.get();
@@ -314,11 +487,11 @@ namespace Registry
 		}
 		switch (BedHandler::GetBedType(a_ref)) {
 		case FurnitureType::BedSingle:
-			return &offset_bedsingle;
+			return &offsetDefaultBedsingle;
 		case FurnitureType::BedDouble:
-			return &offset_beddouble;
+			return &offsetDefaultBeddouble;
 		case FurnitureType::BedRoll:
-			return &offset_bedroll;
+			return &offsetDefaultBedroll;
 		}
 		return nullptr;
 	}
