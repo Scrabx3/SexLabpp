@@ -24,7 +24,7 @@ namespace Papyrus::ThreadLibrary
 		std::vector<RE::TESObjectREFR*> ret{};
 		Util::ForEachObjectInRange(a_center, a_radius, [&](RE::TESObjectREFR* ref) {
 			if (!ref || !ref->GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusZ > 0.0f ? (std::fabs(center.z - ref->GetPosition().z) <= a_radiusZ) : true)
-				if (Registry::BedHandler::IsBed(ref))
+				if (Registry::FurnitureType::IsBedType(ref))
 					ret.push_back(ref);
 			return RE::BSContainer::ForEachResult::kContinue;
 		});
@@ -40,7 +40,7 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Reference is none", a_stackID);
 			return false;
 		}
-		return static_cast<int32_t>(Registry::BedHandler::GetBedType(a_reference));
+		return static_cast<int32_t>(Registry::FurnitureType::GetBedType(a_reference));
 	}
 
 	bool IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference)
@@ -49,7 +49,7 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Reference is none", a_stackID);
 			return false;
 		}
-		return Registry::BedHandler::IsBed(a_reference);
+		return Registry::FurnitureType::IsBedType(a_reference);
 	}
 
 	std::vector<RE::Actor*> FindAvailableActors(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::TESObjectREFR* a_center, float a_radius, LegacySex a_targetsex,

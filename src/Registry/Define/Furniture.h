@@ -42,7 +42,7 @@ namespace Registry
 			Throne = 1 << 22,
 			ThroneRiften = 1 << 23,
 			ThroneNordic = 1 << 24,
-
+			// COMEBACK: These might want to be removed?
 			XCross = 1 << 25,
 			Pillory = 1 << 26,
 		};
@@ -53,15 +53,19 @@ namespace Registry
 			value(a_value) {}
 		FurnitureType(const RE::BSFixedString& a_value);
 
-		RE::BSFixedString ToString() const;
-
-		constexpr bool IsValid() const { return value != Value::None; }
-		constexpr bool Is(FurnitureType::Value a_value) const { return value == a_value; }
+		_NODISCARD RE::BSFixedString ToString() const;
+		_NODISCARD constexpr bool IsValid() const { return value != Value::None; }
+		_NODISCARD constexpr bool Is(FurnitureType::Value a_value) const { return value == a_value; }
+		_NODISCARD constexpr bool IsBed() const { return value == Value::BedSingle || value == Value::BedDouble || value == Value::BedRoll; }
 
 	public:
-		constexpr bool operator==(const FurnitureType& a_rhs) const { return value == a_rhs.value; }
-		constexpr bool operator!=(const FurnitureType& a_rhs) const { return value != a_rhs.value; }
-		constexpr bool operator<(const FurnitureType& a_rhs) const { return value < a_rhs.value; }
+		_NODISCARD static FurnitureType GetBedType(const RE::TESObjectREFR* a_reference);
+		_NODISCARD static bool IsBedType(const RE::TESObjectREFR* a_reference);
+
+	public:
+		_NODISCARD constexpr bool operator==(const FurnitureType& a_rhs) const { return value == a_rhs.value; }
+		_NODISCARD constexpr bool operator!=(const FurnitureType& a_rhs) const { return value != a_rhs.value; }
+		_NODISCARD constexpr bool operator<(const FurnitureType& a_rhs) const { return value < a_rhs.value; }
 
 		constexpr operator Value() const { return value; }
 
@@ -96,15 +100,6 @@ namespace Registry
 
 	private:
 		std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> _data;
-	};
-
-	struct BedHandler
-	{
-		/// @brief Get the reference's bed-furnituretype
-		/// @param a_reference The reference to get the type from
-		/// @return FurnitureType, the bed type of this object, or None if the reference is not a bed
-		_NODISCARD static FurnitureType GetBedType(const RE::TESObjectREFR* a_reference);
-		_NODISCARD static bool IsBed(const RE::TESObjectREFR* a_reference);
 	};
 
 }	 // namespace Registry

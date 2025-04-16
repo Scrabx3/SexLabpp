@@ -67,6 +67,41 @@ namespace Registry
 		return "";
 	}
 
+	FurnitureType FurnitureType::GetBedType(const RE::TESObjectREFR* a_reference)
+	{
+		if (a_reference->HasKeyword(GameForms::FurnitureBedRoll)) {
+			return FurnitureType::BedRoll;
+		}
+		if (std::string name{ a_reference->GetName() }; name.empty() || Util::CastLower(name).find("bed") == std::string::npos)
+			return FurnitureType::None;
+		const auto root = a_reference->Get3D();
+		const auto extra = root ? root->GetExtraData("FRN") : nullptr;
+		const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
+		if (!node) {
+			return FurnitureType::None;
+		}
+
+		size_t sleepmarkers = 0;
+		for (auto&& marker : node->markers) {
+			if (marker.animationType.all(RE::BSFurnitureMarker::AnimationType::kSleep)) {
+				sleepmarkers += 1;
+			}
+		}
+		switch (sleepmarkers) {
+		case 0:
+			return FurnitureType::None;
+		case 1:
+			return FurnitureType::BedSingle;
+		default:
+			return FurnitureType::BedDouble;
+		}
+	}
+
+	bool FurnitureType::IsBedType(const RE::TESObjectREFR* a_reference)
+	{
+		return GetBedType(a_reference).IsBed();
+	}
+
 	FurnitureDetails::FurnitureDetails(const YAML::Node& a_node)
 	{
 		const auto parse_node = [&](const YAML::Node& it) {
@@ -204,41 +239,6 @@ __L_NEXT:;
 			}
 		}
 		return ret;
-	}
-
-	FurnitureType BedHandler::GetBedType(const RE::TESObjectREFR* a_reference)
-	{
-		if (a_reference->HasKeyword(GameForms::FurnitureBedRoll)) {
-			return FurnitureType::BedRoll;
-		}
-		if (std::string name{ a_reference->GetName() }; name.empty() || Util::CastLower(name).find("bed") == std::string::npos)
-			return FurnitureType::None;
-		const auto root = a_reference->Get3D();
-		const auto extra = root ? root->GetExtraData("FRN") : nullptr;
-		const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
-		if (!node) {
-			return FurnitureType::None;
-		}
-
-		size_t sleepmarkers = 0;
-		for (auto&& marker : node->markers) {
-			if (marker.animationType.all(RE::BSFurnitureMarker::AnimationType::kSleep)) {
-				sleepmarkers += 1;
-			}
-		}
-		switch (sleepmarkers) {
-		case 0:
-			return FurnitureType::None;
-		case 1:
-			return FurnitureType::BedSingle;
-		default:
-			return FurnitureType::BedDouble;
-		}
-	}
-
-	bool BedHandler::IsBed(const RE::TESObjectREFR* a_reference)
-	{
-		return !GetBedType(a_reference).Is(FurnitureType::None);
 	}
 
 }	 // namespace Registry

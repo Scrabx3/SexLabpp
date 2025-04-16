@@ -485,7 +485,7 @@ namespace Registry
 				return where->second.get();
 			}
 		}
-		switch (BedHandler::GetBedType(a_ref)) {
+		switch (FurnitureType::GetBedType(a_ref)) {
 		case FurnitureType::BedSingle:
 			return &offsetDefaultBedsingle;
 		case FurnitureType::BedDouble:
