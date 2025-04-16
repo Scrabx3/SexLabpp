@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Registry/Animation.h"
+#include "Registry/Define/Animation.h"
 #include "Thread/Thread.h"
 
 namespace Thread::Interface

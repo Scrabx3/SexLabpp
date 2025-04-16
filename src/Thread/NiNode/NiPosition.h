@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Registry/Animation.h"
-#include "Registry/Define/Sex.h"
 #include "Node.h"
+#include "Registry/Define/Animation.h"
+#include "Registry/Define/Sex.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 
 namespace Thread::NiNode

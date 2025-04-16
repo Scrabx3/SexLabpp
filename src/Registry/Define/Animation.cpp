@@ -158,8 +158,8 @@ namespace Registry
 		};
 		float scale;
 		RaceKey race;
-		stl::enumeration<Sex> sex;
-		stl::enumeration<Extra> extra;
+		REX::EnumSet<Sex> sex;
+		REX::EnumSet<Extra> extra;
 		a_stream.read(reinterpret_cast<char*>(&race), 1);
 		a_stream.read(reinterpret_cast<char*>(&sex), 1);
 		Decode::Read(a_stream, scale);

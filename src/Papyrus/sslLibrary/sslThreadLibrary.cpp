@@ -1,7 +1,7 @@
 #include "sslThreadLibrary.h"
 
 #include "Serialize.h"
-#include "Registry/Animation.h"
+#include "Registry/Define/Animation.h"
 #include "Registry/Define/Fragment.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Define/RaceKey.h"

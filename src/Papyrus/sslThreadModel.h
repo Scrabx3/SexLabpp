@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Registry/Animation.h"
+#include "Registry/Define/Animation.h"
 
 namespace Papyrus::ThreadModel
 {

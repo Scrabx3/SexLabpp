@@ -2,13 +2,14 @@
 
 #include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
-#include "Thread/NiNode/NiUpdate.h"
-#include "Thread/NiNode/Node.h"
 #include "Registry/Stats.h"
 #include "Registry/Util/RayCast.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 #include "Registry/Util/Scale.h"
+#include "Thread/NiNode/NiUpdate.h"
+#include "Thread/NiNode/Node.h"
 #include "UserData/StripData.h"
+#include "Util/StringUtil.h"
 #include "Util/World.h"
 
 using Offset = Registry::CoordinateType;
@@ -153,7 +154,7 @@ namespace Papyrus::ThreadModel
 				slots = a_overwrite[0];
 				weapon = a_overwrite[1];
 			} else {
-				stl::enumeration<Strip> stripnum(a_stripdata);
+				REX::EnumSet<Strip> stripnum(a_stripdata);
 				if (stripnum.all(Strip::All)) {
 					slots = static_cast<uint32_t>(-1);
 					weapon = true;

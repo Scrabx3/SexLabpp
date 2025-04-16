@@ -1,6 +1,7 @@
 #include "RaceKey.h"
 
 #include "Registry/Util/Scale.h"
+#include "Util/StringUtil.h"
 
 namespace Registry
 {

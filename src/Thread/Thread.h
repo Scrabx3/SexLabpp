@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Registry/Animation.h"
-#include "Registry/Expression.h"
-#include "Registry/Voice.h"
+#include "Registry/Define/Animation.h"
+#include "Registry/Define/Expression.h"
+#include "Registry/Define/Voice.h"
 
 namespace Thread
 {
@@ -31,10 +31,10 @@ namespace Thread
 		void SetAnimationPaused(bool a_paused);
 		void SetAnimationSpeed(int32_t a_speed);
 
-		const Registry::Expression::Profile* GetExpression(RE::Actor* a_position) const;
-		void SetExpression(RE::Actor* a_position, const Registry::Expression::Profile* a_expression);
-		const Registry::Voice::VoiceObject* GetVoice(RE::Actor* a_position) const;
-		void SetVoice(RE::Actor* a_position, const Registry::Voice::VoiceObject* a_voice);
+		const Registry::Expression* GetExpression(RE::Actor* a_position) const;
+		void SetExpression(RE::Actor* a_position, const Registry::Expression* a_expression);
+		const Registry::Voice* GetVoice(RE::Actor* a_position) const;
+		void SetVoice(RE::Actor* a_position, const Registry::Voice* a_voice);
 		bool IsGhostMode(RE::Actor* a_position) const;
 		void SetGhostMode(RE::Actor* a_position, bool a_ghostMode);
 		int32_t GetUniquePermutations(RE::Actor* a_position) const;

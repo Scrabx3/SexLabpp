@@ -1,5 +1,7 @@
 #include "Sex.h"
 
+#include "Util/StringUtil.h"
+
 namespace Registry
 {
   Sex GetSex(RE::Actor* a_actor, bool a_skipfactions)

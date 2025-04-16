@@ -2,7 +2,7 @@
 
 #include "NiPosition.h"
 #include "Node.h"
-#include "Registry/Animation.h"
+#include "Registry/Define/Animation.h"
 
 namespace Thread::NiNode
 {
