@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: Merge this into Library.h
+
 namespace Registry
 {
 	class CumFx :

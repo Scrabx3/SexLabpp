@@ -39,13 +39,13 @@ namespace Registry
 		std::vector<Scene*> ret{};
 		ret.reserve(rawScenes.size());
 		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
-			// COMEBACK: Config Tag filtering?
 			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
 		});
 		if (ret.empty()) {
 			logger::info("Invalid query: [{} | {} | {}]; 0/{} animations use requested tags", a_actors.size(), hash.to_string(), tagstr, where->second.size());
 			return {};
 		}
+		// COMEBACK: Config Tag filtering?
 		const auto tEnd = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ms = tEnd - tStart;
 		logger::info("Found {} scenes for query [{} | {} | {}] actors in {}ms", ret.size(), a_actors.size(), hash.to_string(), tagstr, ms.count());
