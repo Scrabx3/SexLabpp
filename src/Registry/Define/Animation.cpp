@@ -320,7 +320,7 @@ namespace Registry
 		return ret.get();
 	}
 
-	stl::enumeration<FurnitureType> Scene::FurnitureData::GetCompatibleFurnitures() const
+	REX::EnumSet<FurnitureType::Value> Scene::FurnitureData::GetCompatibleFurnitures() const
 	{
 		auto ret = furnitures;
 		if (allowbed) {
@@ -428,11 +428,11 @@ namespace Registry
 
 	bool Scene::IsCompatibleFurniture(FurnitureType a_furniture) const
 	{
-		if (a_furniture == FurnitureType::None) {
+		if (a_furniture.Is(FurnitureType::None)) {
 			return !UsesFurniture();
 		}
 		const auto types = furnitures.GetCompatibleFurnitures();
-		return types.any(a_furniture);
+		return types.any(a_furniture.value);
 	}
 
 	bool Scene::Legacy_IsCompatibleSexCount(int32_t a_males, int32_t a_females) const

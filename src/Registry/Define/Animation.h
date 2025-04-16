@@ -99,12 +99,12 @@ namespace Registry
 
 		struct FurnitureData
 		{
-			stl::enumeration<FurnitureType> furnitures{ FurnitureType::None };
+			REX::EnumSet<FurnitureType::Value> furnitures{ FurnitureType::None };
 			bool allowbed{ false };
 			Transform offset{};
 
 		public:
-			stl::enumeration<FurnitureType> GetCompatibleFurnitures() const;
+			REX::EnumSet<FurnitureType::Value> GetCompatibleFurnitures() const;
 		};
 
 	public:

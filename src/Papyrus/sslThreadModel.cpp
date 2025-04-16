@@ -279,7 +279,7 @@ namespace Papyrus::ThreadModel
 		}
 		const auto library = Registry::Library::GetSingleton();
 		std::unordered_map<Registry::FurnitureType, std::vector<const Registry::Scene*>> scene_map{};
-		stl::enumeration<Registry::FurnitureType> filled_types;
+		REX::EnumSet<Registry::FurnitureType::Value> filled_types;
 		for (auto&& sceneid : a_scenes) {
 			const auto scene = library->GetSceneByID(sceneid);
 			if (!scene) {

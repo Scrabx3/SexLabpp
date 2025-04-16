@@ -7,6 +7,7 @@
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Library.h"
 #include "Registry/Validation.h"
+#include "Util/World.h"
 
 namespace Papyrus::ThreadLibrary
 {
@@ -19,7 +20,18 @@ namespace Papyrus::ThreadLibrary
 			a_vm->TraceStack("Cannot find refs within a negative radius", a_stackID);
 			return {};
 		}
-		return Registry::BedHandler::GetBedsInArea(a_center, a_radius, a_radiusZ);
+		const auto center = a_center->GetPosition();
+		std::vector<RE::TESObjectREFR*> ret{};
+		Util::ForEachObjectInRange(a_center, a_radius, [&](RE::TESObjectREFR* ref) {
+			if (!ref || !ref->GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusZ > 0.0f ? (std::fabs(center.z - ref->GetPosition().z) <= a_radiusZ) : true)
+				if (Registry::BedHandler::IsBed(ref))
+					ret.push_back(ref);
+			return RE::BSContainer::ForEachResult::kContinue;
+		});
+		std::sort(ret.begin(), ret.end(), [&](RE::TESObjectREFR* a_refA, RE::TESObjectREFR* a_refB) {
+			return center.GetDistance(a_refA->GetPosition()) < center.GetDistance(a_refB->GetPosition());
+		});
+		return ret;
 	}
 
 	int32_t GetBedTypeImpl(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference)

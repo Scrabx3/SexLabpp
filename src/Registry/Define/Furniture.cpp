@@ -2,17 +2,17 @@
 
 #include "Registry/Util/RayCast.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
+#include "Util/StringUtil.h"
 
 namespace Registry
 {
 
-#define MAPENTRY(value) \
-	{                     \
-		#value, value       \
+#define MAPENTRY(value)             \
+	{                                 \
+		#value, FurnitureType::Value::value \
 	}
 
-	using enum FurnitureType;
-	static inline const std::map<RE::BSFixedString, FurnitureType, FixedStringCompare> FurniTable = {
+	static inline const std::map<RE::BSFixedString, FurnitureType::Value, FixedStringCompare> FurniTable = {
 		MAPENTRY(BedRoll),
 		MAPENTRY(BedSingle),
 		MAPENTRY(BedDouble),
@@ -43,6 +43,30 @@ namespace Registry
 		MAPENTRY(Pillory),
 	};
 
+#undef MAPENTRY
+
+	FurnitureType::FurnitureType(const RE::BSFixedString& a_value)
+	{
+		const auto where = FurniTable.find(a_value);
+		if (where != FurniTable.end()) {
+			value = where->second;
+		} else {
+			// throw std::runtime_error(std::format("Unrecognized Furniture: {}", a_value.c_str()));
+			logger::error("Unrecognized Furniture: {}", a_value.c_str());
+			value = Value::None;
+		}
+	}
+
+	RE::BSFixedString FurnitureType::ToString() const
+	{
+		for (auto&& [key, value] : FurniTable) {
+			if (value == this->value) {
+				return key;
+			}
+		}
+		return "";
+	}
+
 	FurnitureDetails::FurnitureDetails(const YAML::Node& a_node)
 	{
 		const auto parse_node = [&](const YAML::Node& it) {
@@ -52,8 +76,8 @@ namespace Registry
 				return;
 			}
 			const auto typestr = typenode.as<std::string>();
-			const auto where = FurniTable.find(typestr);
-			if (where == FurniTable.end()) {
+			const auto furniture = FurnitureType(typestr);
+			if (!furniture.IsValid()) {
 				logger::error("Unrecognized Furniture: '{}' {}", typestr, typenode.Mark());
 				return;
 			}
@@ -84,7 +108,7 @@ namespace Registry
 				logger::error("Type '{}' is defined but has no valid offsets {}", typestr, typenode.Mark());
 				return;
 			}
-			_data.emplace_back(where->second, std::move(offsets));
+			_data.emplace_back(furniture, std::move(offsets));
 		};
 		if (a_node.IsSequence()) {
 			for (auto&& it : a_node) {
@@ -95,9 +119,7 @@ namespace Registry
 		}
 	}
 
-	std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> FurnitureDetails::GetCoordinatesInBound(
-		RE::TESObjectREFR* a_ref,
-		stl::enumeration<FurnitureType> a_filter) const
+	std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> FurnitureDetails::GetCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter) const
 	{
 		const auto niobj = a_ref->Get3D();
 		const auto ninode = niobj ? niobj->AsNode() : nullptr;
@@ -118,7 +140,7 @@ namespace Registry
 		const auto ref_coords = Coordinate(a_ref);
 		std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> ret{};
 		for (auto&& [type, offsetlist] : _data) {
-			if (!a_filter.any(type)) {
+			if (!a_filter.any(type.value)) {
 				continue;
 			}
 			std::vector<Coordinate> vec{};
@@ -160,7 +182,7 @@ __L_NEXT:;
 
 	std::vector<std::pair<FurnitureType, Coordinate>> FurnitureDetails::GetClosestCoordinateInBound(
 		RE::TESObjectREFR* a_ref,
-		stl::enumeration<FurnitureType> a_filter,
+		REX::EnumSet<FurnitureType::Value> a_filter,
 		const RE::TESObjectREFR* a_center) const
 	{
 		const auto centercoordinates = Coordinate(a_center);
@@ -214,53 +236,9 @@ __L_NEXT:;
 		}
 	}
 
-	std::vector<RE::TESObjectREFR*> BedHandler::GetBedsInArea(RE::TESObjectREFR* a_center, float a_radius, float a_radiusz)
-	{
-		const auto center = a_center->GetPosition();
-		std::vector<RE::TESObjectREFR*> ret{};
-		const auto add = [&](RE::TESObjectREFR* ref) {
-			if (!ref || !ref->GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusz > 0.0f ? (std::fabs(center.z - ref->GetPosition().z) <= a_radiusz) : true)
-				if (Registry::BedHandler::IsBed(ref))
-					ret.push_back(ref);
-			return RE::BSContainer::ForEachResult::kContinue;
-		};
-		const auto TES = RE::TES::GetSingleton();
-		if (const auto interior = TES->interiorCell; interior) {
-			interior->ForEachReferenceInRange(center, a_radius, add);
-		} else if (const auto grids = TES->gridCells; grids) {
-			// Derived from: https://github.com/powerof3/PapyrusExtenderSSE
-			auto gridLength = grids->length;
-			if (gridLength > 0) {
-				float yPlus = center.y + a_radius;
-				float yMinus = center.y - a_radius;
-				float xPlus = center.x + a_radius;
-				float xMinus = center.x - a_radius;
-				for (uint32_t x = 0, y = 0; (x < gridLength && y < gridLength); x++, y++) {
-					const auto gridcell = grids->GetCell(x, y);
-					if (gridcell && gridcell->IsAttached()) {
-						auto cellCoords = gridcell->GetCoordinates();
-						if (!cellCoords)
-							continue;
-						float worldX = cellCoords->worldX;
-						float worldY = cellCoords->worldY;
-						if (worldX < xPlus && (worldX + 4096.0) > xMinus && worldY < yPlus && (worldY + 4096.0) > yMinus) {
-							gridcell->ForEachReferenceInRange(center, a_radius, add);
-						}
-					}
-				}
-			}
-			if (!ret.empty()) {
-				std::sort(ret.begin(), ret.end(), [&](RE::TESObjectREFR* a_refA, RE::TESObjectREFR* a_refB) {
-					return center.GetDistance(a_refA->GetPosition()) < center.GetDistance(a_refB->GetPosition());
-				});
-			}
-		}
-		return ret;
-	}
-
 	bool BedHandler::IsBed(const RE::TESObjectREFR* a_reference)
 	{
-		return GetBedType(a_reference) != FurnitureType::None;
+		return !GetBedType(a_reference).Is(FurnitureType::None);
 	}
 
 }	 // namespace Registry
