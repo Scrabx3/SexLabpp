@@ -49,10 +49,23 @@ Raycast::RayResult Raycast::CastRay(glm::vec4 start, glm::vec4 end, float traceH
 
 
 Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end) noexcept {
-	return hkpCastRay(start, end, {});
+	return hkpCastRay(start, end, std::vector<RE::NiAVObject*>{});
 }
 
 Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end, std::initializer_list<const RE::TESObjectREFR*> a_filter) noexcept
+{
+	std::vector<RE::NiAVObject*> filter{};
+	filter.reserve(a_filter.size());
+	for (auto&& ref : a_filter) {
+		auto niobj = ref->Get3D();
+		if (niobj) {
+			filter.push_back(niobj->AsNode());
+		}
+	}
+	return hkpCastRay(start, end, filter);
+}
+
+Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end, const std::vector<RE::NiAVObject*>& a_filter) noexcept
 {
 	const auto hkpScale = RE::bhkWorld::GetWorldScale();
 	const auto dif = end - start;
@@ -63,11 +76,8 @@ Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& 
 	info.collector = getCastCollector();
 	info.collector->reset();
 
-	for (auto&& ref : a_filter) {
-		auto niobj = ref->Get3D();
-		if (niobj) {
-			info.collector->addFilter(niobj);
-		}
+	for (auto&& niobj : a_filter) {
+		info.collector->addFilter(niobj);
 	}
 
 	const auto player = RE::PlayerCharacter::GetSingleton();

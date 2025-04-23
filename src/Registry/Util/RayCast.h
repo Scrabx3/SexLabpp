@@ -79,4 +79,5 @@ namespace Raycast
 	//		If the ray hit something, result.hit will be true.
 	RayResult hkpCastRay(const glm::vec4& start, const glm::vec4& end) noexcept;
 	RayResult hkpCastRay(const glm::vec4& start, const glm::vec4& end, std::initializer_list<const RE::TESObjectREFR*> a_filter) noexcept;
+	RayResult hkpCastRay(const glm::vec4& start, const glm::vec4& end, const std::vector<RE::NiAVObject*>& a_filter) noexcept;
 }
