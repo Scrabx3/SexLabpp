@@ -124,3 +124,62 @@ void Settings::Save()
 	fout << settings;
 	logger::info("Finished saving user settings");
 }
+
+Settings::KeyType Settings::GetKeyType(uint32_t a_keyCode)
+{
+	const auto get = [](uint32_t key) {
+		return key >= SKSE::InputMap::kMacro_GamepadOffset ? SKSE::InputMap::GamepadKeycodeToMask(key) : key;
+	};
+	if (a_keyCode == get(Settings::iKeyUp))
+		return KeyType::Up;
+	if (a_keyCode == get(Settings::iKeyDown))
+		return KeyType::Down;
+	if (a_keyCode == get(Settings::iKeyLeft))
+		return KeyType::Left;
+	if (a_keyCode == get(Settings::iKeyRight))
+		return KeyType::Right;
+	if (a_keyCode == get(Settings::iKeyAdvance))
+		return KeyType::Select;
+	if (a_keyCode == get(Settings::iKeyEnd))
+		return KeyType::End;
+	if (a_keyCode == get(Settings::iKeyExtra1))
+		return KeyType::Extra1;
+	if (a_keyCode == get(Settings::iKeyExtra2))
+		return KeyType::Extra2;
+	if (a_keyCode == get(Settings::iKeyMod))
+		return KeyType::Modes;
+	if (a_keyCode == get(Settings::iKeyReset))
+		return KeyType::Reset;
+	return KeyType::None;
+}
+
+uint32_t Settings::GetKeyCode(KeyType a_keyType)
+{
+	const auto get = [](uint32_t key) {
+		return key >= SKSE::InputMap::kMacro_GamepadOffset ? SKSE::InputMap::GamepadKeycodeToMask(key) : key;
+	};
+	switch (a_keyType) {
+	case KeyType::Up:
+		return get(Settings::iKeyUp);
+	case KeyType::Down:
+		return get(Settings::iKeyDown);
+	case KeyType::Left:
+		return get(Settings::iKeyLeft);
+	case KeyType::Right:
+		return get(Settings::iKeyRight);
+	case KeyType::Select:
+		return get(Settings::iKeyAdvance);
+	case KeyType::End:
+		return get(Settings::iKeyEnd);
+	case KeyType::Extra1:
+		return get(Settings::iKeyExtra1);
+	case KeyType::Extra2:
+		return get(Settings::iKeyExtra2);
+	case KeyType::Modes:
+		return get(Settings::iKeyMod);
+	case KeyType::Reset:
+		return get(Settings::iKeyReset);
+	default:
+		return 0;	 // Return 0 for KeyType::None or invalid KeyType
+	}
+}

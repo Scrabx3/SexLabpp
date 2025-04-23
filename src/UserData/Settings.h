@@ -11,7 +11,32 @@ struct Settings
 	static void InitializeData();	 // Post LoadData
 	static void Save();
 
+	// --- Key Codes
+	enum class KeyType
+	{
+		None,
+		Up,
+		Down,
+		Left,
+		Right,
+		Select,
+		End,
+		Extra1,
+		Extra2,
+		Modes,
+		Reset,
+	};
+	static KeyType GetKeyType(uint32_t a_keyCode);
+	static uint32_t GetKeyCode(KeyType a_keyType);
+
 	// --- MCM
+	enum class FurnitureSlection
+	{
+		Never = 0,
+		IfNotSubmissive = 1,
+		Always = 2,
+	};
+
 #define MCM_SETTING(STR, DEFAULT) static inline decltype(DEFAULT) STR{ DEFAULT };
 #include "mcm.def"
 #undef MCM_SETTING

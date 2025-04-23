@@ -46,10 +46,10 @@ MCM_SETTING(iKeyReset, 0x1D)	// Ctrl
 MCM_SETTING(iToggleFreeCamera, 81)
 MCM_SETTING(iTargetActor, 49)
 
+MCM_SETTING(bAdjustTargetStage, false)
 MCM_SETTING(fAdjustStepSize, 0.5f)
 MCM_SETTING(bAdjustStage, true)
 
-// MCM_SETTING(bAdjustTargetStage, false)
 // MCM_SETTING(iAdjustStage, 157)
 // MCM_SETTING(iBackwards, 54)
 // MCM_SETTING(iChangeAnimation, 24)
