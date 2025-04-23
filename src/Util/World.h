@@ -2,7 +2,7 @@
 
 namespace Util
 {
-	void ForEachObjectInRange(RE::TESObjectREFR* a_center, float a_radius, std::function<RE::BSContainer::ForEachResult(RE::TESObjectREFR*)> a_forEachFunc)
+	inline void ForEachObjectInRange(RE::TESObjectREFR* a_center, float a_radius, std::function<RE::BSContainer::ForEachResult(RE::TESObjectREFR*)> a_forEachFunc)
 	{
 		const auto TES = RE::TES::GetSingleton();
     const auto center_coords = a_center->GetPosition();

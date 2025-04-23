@@ -53,7 +53,7 @@ namespace Script
     case RawType::kFloat:
       return static_cast<T>(RE::BSScript::UnpackValue<float>(var));
     default:
-      logger::error("Not a trivial type: {}", type);
+      logger::error("Not a trivial type: {}", std::to_underlying(type));
       break;
 		}
     return 0;
