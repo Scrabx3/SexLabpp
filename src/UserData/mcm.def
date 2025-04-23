@@ -21,7 +21,7 @@ MCM_SETTING(bMatchMakerActive, false)
 MCM_SETTING(bLipsFixedValue, true)
 
 MCM_SETTING(iAskBed, 1)
-MCM_SETTING(iNPCBed, 0)
+MCM_SETTING(iNPCBed, 1)
 MCM_SETTING(iUseFade, 1)
 MCM_SETTING(iClimaxType, 0)
 MCM_SETTING(iFilterStrictness, 2)

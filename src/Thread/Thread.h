@@ -107,11 +107,18 @@ private:
 		SceneMapping scenes{};
 
 	private:
+		enum class CenterSelection
+		{
+			Actor,
+			Furniture,
+			SelectionMenu,
+		};
+
 		RE::Actor* InitializeReferences(const std::vector<RE::Actor*>& a_submissives);
 		std::vector<Registry::ActorFragment> InitializeScenes(const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
 		std::vector<const Registry::Scene*>& InitializeCenter(RE::Actor* centerAct, FurniturePreference furniturePreference);
 		bool InitializeFixedCenter(RE::Actor* centerAct, std::vector<const Registry::Scene*>& prioScenes, REX::EnumSet<Registry::FurnitureType::Value> sceneTypes);
-		bool IsMenuSelectionEnabled();
+		CenterSelection GetSelectionMethod(FurniturePreference furniturePreference);
 		FurnitureMapping::value_type SelectCenterRefMenu(const FurnitureMapping& a_furnitures, RE::Actor* a_tmpCenter);
 		FurnitureMapping GetUniqueFurnituesOfTypeInBound(RE::Actor* a_centerAct, REX::EnumSet<Registry::FurnitureType::Value> a_furnitureTypes);
 

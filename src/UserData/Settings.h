@@ -33,8 +33,10 @@ struct Settings
 	enum class FurnitureSlection
 	{
 		Never = 0,
-		IfNotSubmissive = 1,
+		Sometimes = 1,
 		Always = 2,
+		AskAlways = 3,
+		IfNotSubmissive = 4,
 	};
 
 #define MCM_SETTING(STR, DEFAULT) static inline decltype(DEFAULT) STR{ DEFAULT };

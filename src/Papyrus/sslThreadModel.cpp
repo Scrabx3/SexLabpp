@@ -27,19 +27,19 @@ namespace Papyrus::ThreadModel
 #define GET_POSITION(ret)                                                                 \
 	if (!a_alias) {                                                                         \
 		a_vm->TraceStack("Cannot call SetActorVoice on a none alias", a_stackID);             \
-		return;                                                                               \
+		return ret;                                                                           \
 	}                                                                                       \
 	const auto actor = a_alias->GetActorReference();                                        \
 	if (!actor) {                                                                           \
 		a_vm->TraceStack("ReferenceAlias must be filled with an actor reference", a_stackID); \
-		return;                                                                               \
+		return ret;                                                                           \
 	}                                                                                       \
 	const auto a_qst = a_alias->owningQuest;                                                \
-	GET_INSTANCE();                                                                         \
+	GET_INSTANCE(ret);                                                                      \
 	auto position = instance->GetPosition(actor);                                           \
 	if (!position) {                                                                        \
 		a_vm->TraceStack("Position not found", a_stackID);                                    \
-		return;                                                                               \
+		return ret;                                                                           \
 	}
 
 		RE::BSFixedString GetActorVoice(ALIASARGS)

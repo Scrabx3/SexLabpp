@@ -13,8 +13,8 @@ namespace Thread
 		const auto library = Registry::Library::GetSingleton();
 		voice = library->GetVoice(actor, { "" });
 		if (data.IsHuman()) {
-			RE::BSFixedString tag = submissive ? "Victim" : (dominant ? "Aggressor" : "");
-			expression = library->GetExpression(tag);
+			Registry::TagDetails tags{ submissive ? "Victim" : (dominant ? "Aggressor" : "") };
+			expression = library->GetExpression(tags);
 		} else {
 			expression = nullptr;
 		}
@@ -89,26 +89,35 @@ namespace Thread
 		});
 		if (center.ref && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
 			logger::info("Using fixed center {:X} with offset {}.", center.ref->GetFormID(), center.offset.type.ToString());
-		} else if (sceneTypes == Registry::FurnitureType::None || furniturePreference == FurniturePreference::Disallow) {
-			logger::info("No Furniture scenes or furniture is disabled for this thread. Skipping search and using actor {:X} as center.", centerAct->GetFormID());
+		} else if (sceneTypes == Registry::FurnitureType::None) {
+			logger::info("No Furniture scenes found in thread. Using actor {:X} as center.", centerAct->GetFormID());
 			center.SetReference(centerAct, {});
-		} else if (!IsMenuSelectionEnabled() && furniturePreference != FurniturePreference::Prefer && Random::draw<float>(0.0f, 1.0f) >= Settings::fFurniturePreference) {
-			logger::info("Randomly skipping furniture selection. Using actor {:X} as center.", centerAct->GetFormID());
+		}
+		const auto selectionMethod = GetSelectionMethod(furniturePreference);
+		if (selectionMethod == CenterSelection::Actor) {
+			logger::info("Using actor {:X} as center.", centerAct->GetFormID());
 			center.SetReference(centerAct, {});
-		} else if (const auto furnitureMap = GetUniqueFurnituesOfTypeInBound(centerAct, sceneTypes); furnitureMap.empty()) {
-			logger::info("Center reference {:X} has no furniture in range. Using actor {:X} as center.", center.ref->GetFormID(), centerAct->GetFormID());
+		}
+		const auto furnitureMap = GetUniqueFurnituesOfTypeInBound(centerAct, sceneTypes);
+		if (furnitureMap.empty()) {
+			logger::info("No furniture found in range. Using actor {:X} as center.", centerAct->GetFormID());
 			center.SetReference(centerAct, {});
-		} else {
-			decltype(furnitureMap)::value_type retVal;
-			if (furniturePreference == FurniturePreference::Prefer) {
-				retVal = furnitureMap.front();
-			} else if (IsMenuSelectionEnabled()) {
-				retVal = SelectCenterRefMenu(furnitureMap, centerAct);
+		} else if (selectionMethod == CenterSelection::SelectionMenu) {
+			const auto [selectedRef, selectedType] = SelectCenterRefMenu(furnitureMap, centerAct);
+			center.SetReference(selectedRef, selectedType);
+			if (selectedType.type.Is(Registry::FurnitureType::None)) {
+				logger::info("Selected actor {:X} as center.", centerAct->GetFormID());
 			} else {
-				retVal = furnitureMap.front();
+				logger::info("Selected furniture {:X} with offset {} as center.", selectedRef->GetFormID(), selectedType.type.ToString());
 			}
-			const auto& [ref, offset] = retVal;
-			center.SetReference(ref, offset);
+		} else {
+			const auto [ref, type] = furnitureMap.front();
+			center.SetReference(ref, type);
+			if (type.type.Is(Registry::FurnitureType::None)) {
+				logger::info("Using actor {:X} as center.", centerAct->GetFormID());
+			} else {
+				logger::info("Using furniture {:X} with offset {} as center.", ref->GetFormID(), type.type.ToString());
+			}
 		}
 		assert(!prioScenes.empty());
 		return prioScenes;
@@ -132,23 +141,49 @@ namespace Thread
 		return false;
 	}
 
-	bool Instance::IsMenuSelectionEnabled()
+	Instance::CenterSelection Instance::GetSelectionMethod(FurniturePreference furniturePreference)
 	{
+		if (furniturePreference == FurniturePreference::Disallow) {
+			return CenterSelection::Actor;
+		} else if (furniturePreference == FurniturePreference::Prefer) {
+			return CenterSelection::Furniture;
+		}
+		const auto pickRandom = []() {
+			return Random::draw<float>(0.0f, 1.0f) < Settings::fFurniturePreference ? CenterSelection::Furniture : CenterSelection::Actor;
+		};
 		const auto player = RE::PlayerCharacter::GetSingleton();
 		const auto position = GetPosition(player);
 		if (!position) {
-			return false;
-		}
-		switch (Settings::FurnitureSlection(Settings::iAskBed)) {
-		case Settings::FurnitureSlection::Never:
-			return false;
-		case Settings::FurnitureSlection::Always:
-			return true;
-		case Settings::FurnitureSlection::IfNotSubmissive:
-			return !position->data.IsSubmissive();
-		default:
-			logger::error("Invalid furniture selection setting: {}", Settings::iAskBed);
-			return false;
+			switch (Settings::FurnitureSlection(Settings::iNPCBed)) {
+			case Settings::FurnitureSlection::Never:
+				return CenterSelection::Actor;
+			case Settings::FurnitureSlection::Always:
+				return CenterSelection::Furniture;
+			case Settings::FurnitureSlection::Sometimes:
+				return pickRandom();
+			default:
+				logger::error("Invalid furniture selection setting (npc): {}", Settings::iNPCBed);
+				return CenterSelection::Actor;
+			}
+		} else {
+			switch (Settings::FurnitureSlection(Settings::iAskBed)) {
+			case Settings::FurnitureSlection::Never:
+				return CenterSelection::Actor;
+			case Settings::FurnitureSlection::Always:
+				return CenterSelection::Furniture;
+			case Settings::FurnitureSlection::AskAlways:
+				return CenterSelection::SelectionMenu;
+			case Settings::FurnitureSlection::IfNotSubmissive:
+				if (!position->data.IsSubmissive()) {
+					return CenterSelection::SelectionMenu;
+				}
+				__fallthrough;
+			case Settings::FurnitureSlection::Sometimes:
+				return pickRandom();
+			default:
+				logger::error("Invalid furniture selection setting (player): {}", Settings::iAskBed);
+				return CenterSelection::Actor;
+			}
 		}
 	}
 
