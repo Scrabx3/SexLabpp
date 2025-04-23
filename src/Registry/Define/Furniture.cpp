@@ -59,8 +59,8 @@ namespace Registry
 
 	RE::BSFixedString FurnitureType::ToString() const
 	{
-		for (auto&& [key, value] : FurniTable) {
-			if (value == this->value) {
+		for (const auto& [key, type] : FurniTable) {
+			if (type == this->value) {
 				return key;
 			}
 		}
@@ -112,7 +112,7 @@ namespace Registry
 			}
 			const auto typestr = typenode.as<std::string>();
 			const auto furniture = FurnitureType(typestr);
-			if (!furniture.IsValid()) {
+			if (!furniture.IsNone()) {
 				logger::error("Unrecognized Furniture: '{}' {}", typestr, typenode.Mark());
 				return;
 			}
@@ -121,29 +121,26 @@ namespace Registry
 				logger::error("Missing 'Offset' node for type '{}' {}", typestr, typenode.Mark());
 				return;
 			}
-			std::vector<Coordinate> offsets{};
+			const auto dataSize = data.size();
 			const auto push = [&](const YAML::Node& node) {
 				const auto vec = node.as<std::vector<float>>();
 				if (vec.size() != 4) {
 					logger::error("Invalid offset size. Expected 4 but got {} {}", vec.size(), node.Mark());
 					return;
 				}
-				Coordinate coords(vec);
-				offsets.push_back(coords);
+				Coordinate coords{ vec };
+				data.emplace_back(furniture, coords);
 			};
 			if (offsetnode[0].IsSequence()) {
-				offsets.reserve(offsetnode.size());
 				for (auto&& offset : offsetnode) {
 					push(offset);
 				}
 			} else {
 				push(offsetnode);
 			}
-			if (offsets.empty()) {
+			if (dataSize == data.size()) {
 				logger::error("Type '{}' is defined but has no valid offsets {}", typestr, typenode.Mark());
-				return;
 			}
-			_data.emplace_back(furniture, std::move(offsets));
 		};
 		if (a_node.IsSequence()) {
 			for (auto&& it : a_node) {
@@ -154,88 +151,94 @@ namespace Registry
 		}
 	}
 
-	std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> FurnitureDetails::GetCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter) const
+	std::vector<FurnitureOffset> FurnitureDetails::GetCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter) const
 	{
-		const auto niobj = a_ref->Get3D();
-		const auto ninode = niobj ? niobj->AsNode() : nullptr;
-		if (!ninode)
+		if (a_ref->GetAngleX() > Settings::fFurnitureTiltTolerance || a_ref->GetAngleY() > Settings::fFurnitureTiltTolerance) {
+			logger::error("GetCoordinatesInBound: Reference {} is tilted too much. X: {}, Y: {}", a_ref->GetFormID(), a_ref->GetAngleX(), a_ref->GetAngleY());
 			return {};
-		const auto boundingbox = ObjectBound::MakeBoundingBox(ninode);
-		if (!boundingbox)
+		}
+		const auto niObj = a_ref->Get3D();
+		const auto niNode = niObj ? niObj->AsNode() : nullptr;
+		if (!niNode) {
+			logger::error("GetCoordinatesInBound: No 3D object found for reference {}", a_ref->GetFormID());
 			return {};
-		auto centerstart = boundingbox->GetCenterWorld();
-		centerstart.z = boundingbox->worldBoundMax.z;
-
-		const glm::vec4 tracestart{
-			centerstart.x,
-			centerstart.y,
-			centerstart.z,
-			0.0f
+		}
+		const auto bBox = ObjectBound::MakeBoundingBox(niNode);
+		if (!bBox) {
+			logger::error("GetCoordinatesInBound: No bounding box found for reference {}", a_ref->GetFormID());
+			return {};
+		}
+		const auto bBoxWorld = bBox->GetCenterWorld();
+		const glm::vec4 traceStart{
+			bBoxWorld.x, bBoxWorld.y,
+			bBox->worldBoundMax.z, 0.0f
 		};
-		const auto ref_coords = Coordinate(a_ref);
-		std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> ret{};
-		for (auto&& [type, offsetlist] : _data) {
+		const Coordinate referenceCoordinates{ a_ref };
+		std::vector<RE::NiAVObject*> hitList{ niObj };
+		const auto castRay = [&](glm::vec4 start, const glm::vec4& end) {
+			do {
+				auto res = Raycast::hkpCastRay(start, end, hitList);
+				if (!res.hit) {
+					return true;
+				}
+				auto hitRef = res.hitObject ? res.hitObject->GetUserData() : nullptr;
+				auto base = hitRef ? hitRef->GetBaseObject() : nullptr;
+				if (!base || base->Is(RE::FormType::Static, RE::FormType::MovableStatic, RE::FormType::Furniture, RE::FormType::Door)) {
+					break;
+				}
+				const auto hitRefNi = hitRef->Get3D();
+				if (!hitRefNi) {
+					logger::error("GetCoordinatesInBound: No 3D object found for reference {}", hitRef->GetFormID());
+					break;
+				}
+				hitList.push_back(hitRefNi);
+				start = res.hitPos;
+			} while (true);
+			return false;
+		};
+		std::vector<FurnitureOffset> ret{};
+		for (auto&& it : data) {
+			const auto& [type, offset] = it;
 			if (!a_filter.any(type.value)) {
 				continue;
 			}
-			std::vector<Coordinate> vec{};
-			for (auto&& offset : offsetlist) {
-				auto coordinates = ref_coords;
-				offset.Apply(coordinates);
-				// check the place surrounding the center to see if there is anything occupying it (walls, actors, etc)
-				// add some height to the base coordinate to avoid failing from hitting a rug or gold coin. 128 is roughly a NPC height in units
-				constexpr auto radius = 32.0f;
-				constexpr auto step = 8.0f;
-				const auto& center = coordinates.location;
-				const glm::vec4 traceend_base{ center.x, center.y, center.z + 16.0f, 0.0f };
-				const glm::vec4 traceend_up{ center.x, center.y, center.z + 128.0f, 0.0f };
-				for (float x = traceend_base.x - radius; x <= traceend_base.x + radius; x += step) {
-					for (float y = traceend_base.y - radius; y <= traceend_base.y + radius; y += step) {
-						glm::vec4 point(x, y, traceend_base.z, 0.0f);
-						if (glm::distance(point, traceend_base) > radius)
-							continue;
-						const auto resA = Raycast::hkpCastRay(tracestart, point, { a_ref });
-						if (resA.hit && glm::distance(resA.hitPos, point) > 8.0) {
-							goto __L_NEXT;
-						}
-						const auto resB = Raycast::hkpCastRay(point, traceend_up, { a_ref });
-						if (resB.hit) {
-							goto __L_NEXT;
-						}
+			constexpr auto& radius = Settings::fFurnitureSquare;
+			constexpr auto& step = Settings::fFurnitureSquareStepSize;
+			const auto offsetLocation = referenceCoordinates.ApplyReturn(offset);
+			auto raycastTarget = offsetLocation.AsVec4(0.0f), raycastStart = offsetLocation.AsVec4(0.0f);
+			raycastTarget.z += Settings::fFurnitureSquareHeight;
+			raycastStart.z += Settings::fFurnitureSquareFloorSkip;
+			// check the place surrounding the center to see if there is anything occupying it (walls, furniture, etc)
+			for (float x = raycastStart.x - radius; x <= raycastStart.x + radius; x += step) {
+				for (float y = raycastStart.y - radius; y <= raycastStart.y + radius; y += step) {
+					glm::vec4 point(x, y, raycastStart.z, 0.0f);
+					if (glm::distance(point, raycastStart) > radius) continue;
+					if (!castRay(point, raycastTarget)) {
+						goto Next_Iteration;
 					}
 				}
-				// if we got here then the area around coordinates, incl a cone upwards is free of obstacles
-				vec.push_back(coordinates);
-__L_NEXT:;
 			}
-			if (!vec.empty()) {
-				ret.emplace_back(type, vec);
-			}
+			ret.push_back(it);
+Next_Iteration:;
 		}
 		return ret;
 	}
 
-	std::vector<std::pair<FurnitureType, Coordinate>> FurnitureDetails::GetClosestCoordinateInBound(
-		RE::TESObjectREFR* a_ref,
-		REX::EnumSet<FurnitureType::Value> a_filter,
-		const RE::TESObjectREFR* a_center) const
+	std::vector<FurnitureOffset> FurnitureDetails::GetClosestCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter, RE::TESObjectREFR* a_center) const
 	{
-		const auto centercoordinates = Coordinate(a_center);
+		const auto center = Coordinate(a_center);
 		const auto valids = GetCoordinatesInBound(a_ref, a_filter);
-		std::vector<std::pair<FurnitureType, Coordinate>> ret{};
+		std::map<FurnitureType, std::vector<Coordinate>> valid_map{};
 		for (auto&& [type, coordinates] : valids) {
-			float distance = std::numeric_limits<float>::max();
-			Coordinate distance_coords;
-
-			for (auto&& coords : coordinates) {
-				const auto d = glm::distance(coords.location, centercoordinates.location);
-				if (d < distance) {
-					distance_coords = coords;
-					distance = d;
-				}
-			}
-			if (distance != std::numeric_limits<float>::max()) {
-				ret.emplace_back(type, distance_coords);
+			valid_map[type].push_back(coordinates);
+		}
+		std::vector<FurnitureOffset> ret{};
+		for (auto&& [type, coordinates] : valid_map) {
+			const auto min = std::ranges::min_element(coordinates, [&](const Coordinate& a, const Coordinate& b) {
+				return a.GetDistance(center) < b.GetDistance(center);
+			});
+			if (min != coordinates.end()) {
+				ret.emplace_back(type, *min);
 			}
 		}
 		return ret;

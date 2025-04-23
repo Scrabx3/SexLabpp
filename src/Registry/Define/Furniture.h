@@ -45,6 +45,8 @@ namespace Registry
 			// COMEBACK: These might want to be removed?
 			XCross = 1 << 25,
 			Pillory = 1 << 26,
+
+			All = static_cast<std::underlying_type_t<Value>>(-1)
 		};
 
 	public:
@@ -54,13 +56,19 @@ namespace Registry
 		FurnitureType(const RE::BSFixedString& a_value);
 
 		_NODISCARD RE::BSFixedString ToString() const;
-		_NODISCARD constexpr bool IsValid() const { return value != Value::None; }
 		_NODISCARD constexpr bool Is(FurnitureType::Value a_value) const { return value == a_value; }
 		_NODISCARD constexpr bool IsBed() const { return value == Value::BedSingle || value == Value::BedDouble || value == Value::BedRoll; }
+		_NODISCARD constexpr bool IsNone() const { return value == Value::None; }
 
 	public:
 		_NODISCARD static FurnitureType GetBedType(const RE::TESObjectREFR* a_reference);
 		_NODISCARD static bool IsBedType(const RE::TESObjectREFR* a_reference);
+
+		template <Value a_value>
+		_NODISCARD static constexpr std::string_view ToString()
+		{
+			return magic_enum::enum_name<a_value>();
+		}
 
 	public:
 		_NODISCARD constexpr bool operator==(const FurnitureType& a_rhs) const { return value == a_rhs.value; }
@@ -73,33 +81,46 @@ namespace Registry
 		Value value{ Value::None };
 	};
 
+	struct FurnitureOffset
+	{
+		FurnitureType type{ FurnitureType::None };
+		Coordinate offset{ 0.0f, 0.0f, 0.0f, 0.0f };
+	};
+
 	class FurnitureDetails
 	{
 	public:
 		FurnitureDetails(const YAML::Node& a_node);
 		FurnitureDetails(FurnitureType a_type, Coordinate a_coordinate) :
-			_data({ std::make_pair(a_type, std::vector{ a_coordinate }) }) {}
+			data({ { a_type, a_coordinate } }) {}
 		~FurnitureDetails() = default;
 
-		std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> GetCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter) const;
-		std::vector<std::pair<FurnitureType, Coordinate>> GetClosestCoordinateInBound(
-			RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter, const RE::TESObjectREFR* a_center) const;
+		std::vector<FurnitureOffset> GetCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter) const;
+		std::vector<FurnitureOffset> GetClosestCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter, RE::TESObjectREFR* a_center) const;
 
 		template <typename T, typename S>
 		bool HasType(T a_container, S a_projection) const
 		{
-			return std::ranges::any_of(_data, a_container, [a_projection](auto&& it) {
+			return std::ranges::any_of(data, a_container, [a_projection](auto&& it) {
 				FurnitureType type = a_projection(it);
 				return HasType(type);
 			});
 		}
-		bool HasType(FurnitureType::Value a_type) const
+		bool HasType(FurnitureType a_type) const
 		{
-			return std::ranges::contains(_data, a_type, [](auto&& it) { return it.first.value; });
+			return std::ranges::contains(data, a_type, [](auto&& it) { return it.type; });
+		}
+		REX::EnumSet<FurnitureType::Value> GetTypes() const
+		{
+			REX::EnumSet<FurnitureType::Value> ret{ FurnitureType::None };
+			for (auto&& it : data) {
+				ret.set(it.type.value);
+			}
+			return ret;
 		}
 
 	private:
-		std::vector<std::pair<FurnitureType, std::vector<Coordinate>>> _data;
+		std::vector<FurnitureOffset> data;
 	};
 
 }	 // namespace Registry
