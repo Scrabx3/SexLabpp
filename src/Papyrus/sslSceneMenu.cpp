@@ -59,7 +59,7 @@ namespace Papyrus::SceneMenu
 	{
 		VALIDATE;
 		const auto lib = Registry::Library::GetSingleton();
-		const auto scene = lib->GetSceneByID(a_sceneId);
+		const auto scene = lib->GetSceneById(a_sceneId);
 		if (!scene) {
 			TRACESTACK("SetStage: Scene not found");
 			return;

@@ -105,6 +105,7 @@ namespace Papyrus
 {
 #define REGISTERFUNC(func, class, dont_delay) a_vm->RegisterFunction(#func##sv, class, func, dont_delay)
 #define STATICARGS VM *a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag *
+#define QUESTARGS VM *a_vm, StackID a_stackID, [[maybe_unused]] RE::TESQuest *a_qst
 #define TRACESTACK(err) a_vm->TraceStack(err, a_stackID)
 
 	using VM = RE::BSScript::IVirtualMachine;

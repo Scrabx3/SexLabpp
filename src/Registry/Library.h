@@ -29,21 +29,23 @@ namespace Registry
 		_NODISCARD std::vector<Scene*> LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& tags, const std::vector<RE::Actor*>& a_submissives) const;
 		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
 
-		_NODISCARD const AnimPackage* GetPackageFromScene(Scene* a_scene) const;
-		_NODISCARD const Scene* GetSceneByID(const RE::BSFixedString& a_id) const;
+		_NODISCARD const AnimPackage* GetPackageFromScene(const Scene* a_scene) const;
+		_NODISCARD const Scene* GetSceneById(const RE::BSFixedString& a_id) const;
 		_NODISCARD const Scene* GetSceneByName(const RE::BSFixedString& a_id) const;
 		_NODISCARD size_t GetSceneCount() const;
 
 		bool EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func);
+		void EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func);
 		bool ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const;
 		bool ForEachScene(std::function<bool(const Scene*)> a_visitor) const;
 
 	public:
-		std::vector<RE::BSFixedString> GetAllVoiceNames(RaceKey a_race) const;
+		std::vector<RE::BSFixedString> GetAllVoiceIds(RaceKey a_race) const;
+		bool ForEachVoice(std::function<bool(const Voice&)> a_visitor) const;
 		const Voice* GetVoice(RE::Actor* a_actor, const TagDetails& a_tags);
 		const Voice* GetVoice(const TagDetails& a_tags) const;
 		const Voice* GetVoice(RaceKey a_race) const;
-		const Voice* GetVoiceByName(RE::BSFixedString a_voice) const;
+		const Voice* GetVoiceById(RE::BSFixedString a_voice) const;
 		bool CreateVoice(RE::BSFixedString a_voice);
 		void WriteVoiceToFile(RE::BSFixedString a_voice) const;
 
@@ -64,6 +66,7 @@ namespace Registry
 
 	public:
 		_NODISCARD const Expression* GetExpression(const RE::BSFixedString& a_id) const;
+		_NODISCARD const Expression* GetExpression(const TagDetails& a_details) const;
 		bool ForEachExpression(std::function<bool(const Expression&)> a_visitor) const;
 		bool CreateExpression(const RE::BSFixedString& a_id);
 

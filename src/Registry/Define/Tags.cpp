@@ -1,6 +1,8 @@
 #include "Tags.h"
 
 #include "Registry/Util/Decode.h"
+#include "Util/StringUtil.h"
+
 namespace Registry
 {
 #define MAPENTRY(value) \

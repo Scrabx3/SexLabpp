@@ -10,9 +10,10 @@ namespace Registry
 		location(a_ref->data.location.x, a_ref->data.location.y, a_ref->data.location.z), rotation(a_ref->data.angle.z) {}
 	Coordinate::Coordinate(const RE::NiPoint3& a_point, float a_rotation) :
 		location(a_point.x, a_point.y, a_point.z), rotation(a_rotation) {}
+	Coordinate::Coordinate(float a_x, float a_y, float a_z, float a_rotation) :
+		location(a_x, a_y, a_z), rotation(a_rotation) {}
 	Coordinate::Coordinate(const std::vector<float>& a_coordinates) :
-		location(glm::vec3{ a_coordinates[0], a_coordinates[1], a_coordinates[2] }), rotation(a_coordinates[3])
-	{}
+		location(glm::vec3{ a_coordinates[0], a_coordinates[1], a_coordinates[2] }), rotation(a_coordinates[3]) {}
 	Coordinate::Coordinate(std::ifstream& a_stream) :
 		location([&]() {
 			glm::vec3 ret{};
@@ -34,6 +35,12 @@ namespace Registry
 		};
 		a_coordinate.location += transform;
 		a_coordinate.rotation += rotation;
+	}
+
+	Coordinate Coordinate::ApplyReturn(const Coordinate& a_coordinate) const
+	{
+		Coordinate ret{ a_coordinate };
+		return (Apply(ret), ret);
 	}
 
 	Transform::Transform(const Coordinate& a_rawoffset) :
@@ -118,7 +125,7 @@ namespace Registry
 		_offset = _raw;
 	}
 
-	Coordinate Transform::ApplyCopy(const Coordinate& a_coordinate) const
+	Coordinate Transform::ApplyReturn(const Coordinate& a_coordinate) const
 	{
 		Coordinate ret{ a_coordinate };
 		Apply(ret);

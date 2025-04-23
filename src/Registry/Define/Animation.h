@@ -97,16 +97,6 @@ namespace Registry
 			Sink = 2,
 		};
 
-		struct FurnitureData
-		{
-			REX::EnumSet<FurnitureType::Value> furnitures{ FurnitureType::None };
-			bool allowbed{ false };
-			Transform offset{};
-
-		public:
-			REX::EnumSet<FurnitureType::Value> GetCompatibleFurnitures() const;
-		};
-
 	public:
 		Scene(std::ifstream& a_stream, std::string_view a_hash, uint8_t a_version);
 		~Scene() = default;
@@ -114,7 +104,7 @@ namespace Registry
 		_NODISCARD bool IsEnabled() const;
 		_NODISCARD bool IsPrivate() const;
 		_NODISCARD bool HasCreatures() const;
-		_NODISCARD bool UsesFurniture() const;
+		_NODISCARD bool RequiresFurniture() const;
 		_NODISCARD RE::BSFixedString GetPackageHash() const;
 
 		_NODISCARD bool IsCompatibleTags(const TagData& a_tags) const;
@@ -127,6 +117,7 @@ namespace Registry
 		_NODISCARD uint32_t CountSubmissives() const;
 		_NODISCARD const PositionInfo* GetNthPosition(size_t n) const;
 
+		_NODISCARD REX::EnumSet<FurnitureType::Value> GetFurnitureTypes() const;
 		_NODISCARD std::vector<std::vector<RE::Actor*>> FindAssignments(const std::vector<ActorFragment>& a_fragments) const;
 
 		_NODISCARD size_t GetNumStages() const;
@@ -158,17 +149,18 @@ namespace Registry
 	public:
 		std::string id;
 		std::string name;
+		bool enabled;
 
 		std::vector<PositionInfo> positions;
-		FurnitureData furnitures;
+		Transform furnitureOffset;
 		TagData tags;
-		std::vector<RE::BSFixedString> annotations;
-
-		bool enabled;
 
 	private:
 		std::string_view hash;
-		bool is_private;
+
+		REX::EnumSet<FurnitureType::Value> furnitureTypes{ FurnitureType::None };
+		bool allowBed;
+		bool isPrivate;
 
 		std::vector<std::unique_ptr<Stage>> stages;
 		std::map<const Stage*, std::vector<const Stage*>> graph;

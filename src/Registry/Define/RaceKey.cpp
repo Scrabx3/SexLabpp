@@ -61,7 +61,7 @@ namespace Registry
 		{ RaceKey::Wolf, "Wolves" },
 	};
 
-	RaceKey::RaceKey(Value a_value) :
+	constexpr RaceKey::RaceKey(Value a_value) :
 		value(a_value) {}
 
 	RaceKey::RaceKey(RE::Actor* a_actor) :

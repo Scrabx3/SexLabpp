@@ -10,7 +10,7 @@ namespace Registry
 		logger::info("Loading Library");
 		const auto tStart = std::chrono::high_resolution_clock::now();
 #ifndef SKYRIMVR
-		std::vector<std::thread> threads{
+		std::array threads{
 			std::thread{ [this]() { InitializeScenes(); } },
 			std::thread{ [this]() { InitializeVoice(); } },
 			std::thread{ [this]() { InitializeExpressions(); } },
@@ -77,7 +77,11 @@ namespace Registry
 							return std::move(acc);
 						});
 						Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
-							std::vector<ActorFragment> argFragment{ it.begin(), it.end() };
+							std::vector<ActorFragment> argFragment{};
+							argFragment.reserve(it.size());
+							for (auto&& itF : it) {
+								argFragment.emplace_back(*itF);
+							}
 							const auto key = ActorFragment::MakeFragmentHash(argFragment);
 							const std::unique_lock lock{ _mScenes };
 							auto& vec = scenes[key];
@@ -104,7 +108,7 @@ namespace Registry
 		InitializeSceneSettings();
 	}
 
-	void Library::InitializeSceneSettings()
+	void Library::InitializeSceneSettings() noexcept
 	{
 		if (!FolderExists(SCENE_USER_CONFIG, false)) return;
 		std::unique_lock lock{ _mScenes };
@@ -127,7 +131,7 @@ namespace Registry
 		}
 	}
 
-	void Library::InitializeFurnitures()
+	void Library::InitializeFurnitures() noexcept
 	{
 		if (!FolderExists(FURNITURE_PATH, false)) return;
 		const std::unique_lock lock{ _mFurniture };
@@ -266,7 +270,7 @@ namespace Registry
 							logger::error("InitializeVoicePitches: Unknown Pitch {} in file {}", pitchStr, filename);
 							continue;
 						}
-						savedPitches.insert_or_assign(id, voice._Ptr);
+						savedPitches.insert_or_assign(id, &voice->second);
 					} else {
 						savedPitches.insert_or_assign(id, pitch.value());
 					}
@@ -322,7 +326,7 @@ namespace Registry
 		}
 	}
 
-	void Library::Save() const
+	void Library::Save() const noexcept
 	{
 		SaveScenes();
 		SaveExpressions();
@@ -352,7 +356,7 @@ namespace Registry
 		logger::info("Saved scenes");
 	}
 
-	void Library::SaveExpressions() const
+	void Library::SaveExpressions() const noexcept
 	{
 		std::shared_lock lock{ _mExpressions };
 		for (auto&& [id, expression] : expressions) {
@@ -361,7 +365,7 @@ namespace Registry
 		logger::info("Saved expressions");
 	}
 
-	void Library::SaveVoices() const
+	void Library::SaveVoices() const noexcept
 	{
 		const auto getSavefile = [](auto path) -> YAML::Node {
 			try {
@@ -374,11 +378,11 @@ namespace Registry
 		};
 		auto settings = getSavefile(VOICE_SETTING_PATH);
 		for (auto&& [name, voice] : voices) {
-			auto voiceNode = settings[name];
+			auto voiceNode = settings[name.data()];
 			voice.Save(voiceNode);
 		}
-		std::ofstream fout(VOICE_SETTING_PATH);
-		fout << settings;
+		std::ofstream fout_settings(VOICE_SETTING_PATH);
+		fout_settings << settings;
 
 		auto cache = getSavefile(VOICE_SETTINGS_CACHES_PATH);
 		for (auto&& [id, voice] : savedVoices) {
@@ -392,8 +396,8 @@ namespace Registry
 			auto str = Util::FormToString(form);
 			cache[str] = voice->GetId().data();
 		}
-		std::ofstream fout(VOICE_SETTINGS_CACHES_PATH);
-		fout << cache;
+		std::ofstream fout_caches(VOICE_SETTINGS_CACHES_PATH);
+		fout_caches << cache;
 		logger::info("Saved voices");
 	}
 

@@ -14,23 +14,19 @@ namespace Registry
 
 	struct Coordinate
 	{
+		Coordinate() = default;
 		Coordinate(const RE::TESObjectREFR* a_ref);
 		Coordinate(const RE::NiPoint3& a_point, float a_rotation);
+		Coordinate(float a_x, float a_y, float a_z, float a_rotation);
 		Coordinate(const std::vector<float>& a_coordinates);
 		Coordinate(std::ifstream& a_stream);
-		Coordinate() = default;
 		~Coordinate() = default;
 
 		void Apply(Coordinate& a_coordinate) const;
+		Coordinate ApplyReturn(const Coordinate& a_coordinate) const;
 
-		template <typename T>
-		void ToContainer(T& a_out) const
-		{
-			assert(a_out.size() >= 4);
-			std::copy_n(&location.x, location.length(), a_out.begin());
-			a_out[3] = rotation;
-		}
 		RE::NiPoint3 AsNiPoint() const { return { location.x, location.y, location.z }; }
+		glm::vec4 AsVec4(float w = 0.0f) const { return { location.x, location.y, location.z, w }; }
 		float GetDistance(const Coordinate& a_other) const { return glm::distance(location, a_other.location); }
 
 	public:
@@ -51,7 +47,7 @@ namespace Registry
 
 	public:
 		void Apply(Coordinate& a_coordinate) const { _offset.Apply(a_coordinate); }
-		Coordinate ApplyCopy(const Coordinate& a_coordinate) const;
+		Coordinate ApplyReturn(const Coordinate& a_coordinate) const;
 		bool HasChanges() const;
 
 		const Coordinate& GetRawOffset() const;

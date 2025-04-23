@@ -5,6 +5,8 @@
 
 namespace Registry
 {
+	ActorFragment::Value RaceKeyToValue(RaceKey a) { return ActorFragment::Value(static_cast<ActorFragment::ValueType>(a.value) << 3); }
+
 	ActorFragment::ActorFragment(REX::EnumSet<Sex> a_sex, RaceKey a_race, float a_scale, bool a_vampire, bool a_submissive, bool a_unconscious) :
 		actor(nullptr), value(Value::None), scale(a_scale)
 	{
@@ -25,7 +27,7 @@ namespace Registry
 			}
 			break;
 		default:
-			value.set(static_cast<ValueType>(a_race) << 3);
+			value.set(RaceKeyToValue(a_race));
 			break;
 		}
 		if (a_unconscious)
@@ -63,7 +65,7 @@ namespace Registry
 			}
 			break;
 		default:
-			value.set(static_cast<ValueType>(race) << 3);
+			value.set(RaceKeyToValue(race));
 			break;
 		}
 		if (a_submissive, a_actor->IsDead() || a_actor->IsUnconscious() || a_actor->GetActorValue(RE::ActorValue::kVariable05) < 0)
@@ -96,7 +98,7 @@ namespace Registry
 
 	int32_t ActorFragment::GetCompatibilityScore(const ActorFragment& a_fragment) const
 	{
-		int32_t score = 1;
+		int32_t score = 0;
 		const auto raceKey = GetRace();
 		const auto raceKeyIn = a_fragment.GetRace();
 		switch (raceKey) {
@@ -124,15 +126,12 @@ namespace Registry
 		} else if (sexIn.any(Sex::Female, Sex::Futa)) {
 			score += Settings::iWeightSexLight;
 		}
-		if (IsUnconscious() && a_fragment.IsUnconscious())
-			score += Settings::iWeightUnconscious;
-		if (IsSubmissive() && a_fragment.IsSubmissive()) {
-			score += Settings::iWeightSubmissive;
-		}
+		score += (IsUnconscious() == a_fragment.IsUnconscious() ? 1 : -1) * Settings::iWeightUnconscious;
+		score += (IsSubmissive() == a_fragment.IsSubmissive() ? 1 : -1) * Settings::iWeightSubmissive;
 		if (std::abs(scale - a_fragment.scale) <= Settings::fScaleTolerance) {
 			score += Settings::iWeightScale;
 		}
-		return score;
+		return score <= 0 ? 1 : score;
 	}
 
 	std::vector<ActorFragment> ActorFragment::Split() const
@@ -140,7 +139,6 @@ namespace Registry
 		if (!IsAbstract()) {
 			return { *this };
 		}
-		constexpr auto RaceKeyAsValue = [](RaceKey a_rk) -> Value { return Value(static_cast<ValueType>(a_rk) << 3); };
 		constexpr REX::EnumSet<Value> CONFLICT_FREE{ Human, Submissive, Unconscious };
 		const auto defaultFragment = value & CONFLICT_FREE;
 
@@ -166,9 +164,9 @@ namespace Registry
 			ret.reserve(max * (a_list.size() + 1));
 			for (size_t i = 0; i < max; i++) {
 				for (auto&& rk : a_list) {
-					ret.push_back(ret[i] | RaceKeyAsValue(rk));
+					ret.push_back(ret[i] | RaceKeyToValue(rk));
 				}
-				ret[i] |= RaceKeyAsValue(raceKey);
+				ret[i] |= RaceKeyToValue(raceKey);
 			}
 		};
 
@@ -193,9 +191,12 @@ namespace Registry
 			RaceVariant({RaceKey::BoarSingle, RaceKey::BoarMounted});
 			break;
 		default:
-			Add(RaceKeyAsValue(GetRace()));
+			Add(RaceKeyToValue(GetRace()));
 			break;
 		}
+		return std::ranges::fold_left(ret, std::vector<ActorFragment>{}, [&](auto&& acc, auto&& it) {
+			return (acc.emplace_back(it), acc);
+		});
 	}
 
 	ActorFragment::FragmentHash ActorFragment::MakeFragmentHash(std::vector<ActorFragment> a_fragments)

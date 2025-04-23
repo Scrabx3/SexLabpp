@@ -39,51 +39,53 @@ namespace Papyrus::ThreadModel
 		}
 	}	 // namespace ActorAlias
 
-	RE::TESObjectREFR* FindCenter(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
-		const std::vector<RE::BSFixedString> a_scenes, RE::reference_array<RE::BSFixedString> a_out_scenes, RE::reference_array<float> a_out_coordinates, FurniStatus a_status);
-	bool UpdateBaseCoordinates(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::BSFixedString a_sceneid, RE::reference_array<float> a_out);
-	void ApplySceneOffset(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_sceneid, RE::reference_array<float> a_out);
-
-	int SelectNextStage(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_scene, RE::BSFixedString a_stage, std::vector<RE::BSFixedString> a_tags);
-	RE::BSFixedString PlaceAndPlay(VM* a_vm, StackID a_stackID, RE::TESQuest*,
-		std::vector<RE::Actor*> a_positions, std::vector<float> a_coordinates, RE::BSFixedString a_scene, RE::BSFixedString a_stage);
-	void RePlace(VM* a_vm, StackID a_stackID, RE::TESQuest*,
-		RE::Actor* a_position, std::vector<float> a_coordinates, RE::BSFixedString a_scene, RE::BSFixedString a_stage, int32_t n);
-
+	RE::BSFixedString GetActiveScene(QUESTARGS);
+	RE::BSFixedString GetActiveStage(QUESTARGS);
+	std::vector<RE::BSFixedString> GetPlayingScenes(QUESTARGS);
+	std::vector<RE::Actor*> GetPositions(QUESTARGS);
 	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext);
-	void ShuffleScenes(RE::TESQuest*, RE::reference_array<RE::BSFixedString> a_scenes, RE::BSFixedString a_tofront);
+
+	bool CreateInstance(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref);
+	std::vector<RE::BSFixedString> GetLeadInScenes(QUESTARGS);
+	std::vector<RE::BSFixedString> GetPrimaryScenes(QUESTARGS);
+	std::vector<RE::BSFixedString> GetCustomScenes(QUESTARGS);
+	std::vector<RE::BSFixedString> AdvanceScene(QUESTARGS, std::vector<RE::BSFixedString> a_history, RE::BSFixedString a_nextStage);
+	int SelectNextStage(QUESTARGS, std::vector<RE::BSFixedString> a_tags);
+	bool SetActiveScene(QUESTARGS, RE::BSFixedString a_sceneid);
+	bool ReassignCenter(QUESTARGS, RE::TESObjectREFR* a_centeron);
+	void UpdatePlacement(QUESTARGS, RE::Actor* a_position);
 
 	bool IsCollisionRegistered(RE::TESQuest* a_qst);
-	void RegisterCollision(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene);
 	void UnregisterCollision(RE::TESQuest* a_qst);
-	std::vector<int> GetCollisionActions(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner);
-	bool HasCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner);
-	RE::Actor* GetPartnerByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
-	std::vector<RE::Actor*> GetPartnersByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
-	RE::Actor* GetPartnerByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
-	std::vector<RE::Actor*> GetPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type);
-	float GetActionVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type);
+	std::vector<int> GetCollisionActions(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner);
+	bool HasCollisionAction(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner);
+	RE::Actor* GetPartnerByAction(QUESTARGS, RE::Actor* a_position, int a_type);
+	std::vector<RE::Actor*> GetPartnersByAction(QUESTARGS, RE::Actor* a_position, int a_type);
+	RE::Actor* GetPartnerByTypeRev(QUESTARGS, RE::Actor* a_position, int a_type);
+	std::vector<RE::Actor*> GetPartnersByTypeRev(QUESTARGS, RE::Actor* a_position, int a_type);
+	float GetActionVelocity(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type);
 
-	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions,
-		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages);
-	void UpdateStatistics(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions,
-		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time);
+	void AddExperience(QUESTARGS, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages);
+	void UpdateStatistics(QUESTARGS, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time);
 
 	inline bool Register(VM* a_vm)
 	{
-		REGISTERFUNC(FindCenter, "sslThreadModel", true);
-		REGISTERFUNC(UpdateBaseCoordinates, "sslThreadModel", true);
-		REGISTERFUNC(ApplySceneOffset, "sslThreadModel", true);
+		REGISTERFUNC(GetActiveScene, "sslThreadModel", false);
+		REGISTERFUNC(GetActiveStage, "sslThreadModel", false);
+		REGISTERFUNC(GetPlayingScenes, "sslThreadModel", false);
+		REGISTERFUNC(GetPositions, "sslThreadModel", false);
 
+		REGISTERFUNC(CreateInstance, "sslThreadModel", false);
+		REGISTERFUNC(GetLeadInScenes, "sslThreadModel", false);
+		REGISTERFUNC(GetPrimaryScenes, "sslThreadModel", false);
+		REGISTERFUNC(GetCustomScenes, "sslThreadModel", false);
+		REGISTERFUNC(AdvanceScene, "sslThreadModel", false);
 		REGISTERFUNC(SelectNextStage, "sslThreadModel", false);
-		REGISTERFUNC(PlaceAndPlay, "sslThreadModel", false);
-		REGISTERFUNC(RePlace, "sslThreadModel", false);
-
-		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
-		REGISTERFUNC(ShuffleScenes, "sslThreadModel", true);
+		REGISTERFUNC(SetActiveScene, "sslThreadModel", false);
+		REGISTERFUNC(ReassignCenter, "sslThreadModel", false);
+		REGISTERFUNC(UpdatePlacement, "sslThreadModel", false);
 
 		REGISTERFUNC(IsCollisionRegistered, "sslThreadModel", true);
-		REGISTERFUNC(RegisterCollision, "sslThreadModel", true);
 		REGISTERFUNC(UnregisterCollision, "sslThreadModel", true);
 		REGISTERFUNC(GetCollisionActions, "sslThreadModel", true);
 		REGISTERFUNC(HasCollisionAction, "sslThreadModel", true);
@@ -93,6 +95,7 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(GetPartnersByTypeRev, "sslThreadModel", true);
 		REGISTERFUNC(GetActionVelocity, "sslThreadModel", true);
 
+		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
 		REGISTERFUNC(AddExperience, "sslThreadModel", true);
 		REGISTERFUNC(UpdateStatistics, "sslThreadModel", true);
 

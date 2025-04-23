@@ -63,7 +63,7 @@ namespace Registry
 			Wispmother,
 			Wolf,
 
-			None = static_cast<std::underlying_type_t<RaceKey>>(-1),
+			None = static_cast<std::underlying_type_t<Value>>(-1),
 		};
 
 		constexpr RaceKey() = default;
@@ -80,7 +80,7 @@ namespace Registry
 		_NODISCARD constexpr bool IsAnyOf(T... a_values) const
 			requires(std::same_as<T, Value>&&...)
 		{
-			return a_values == value || ...;
+			return ((a_values == value) || ...);
 		}
 		_NODISCARD constexpr bool Is(Value a_value) const { return value == a_value; }
 		_NODISCARD constexpr bool IsValid() const { return value != Value::None; }

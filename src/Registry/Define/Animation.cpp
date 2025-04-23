@@ -142,10 +142,10 @@ namespace Registry
 			graph.insert(std::make_pair(vertex, edges));
 		}
 		// --- Misc
-		a_stream.read(reinterpret_cast<char*>(&furnitures.furnitures), 4);
-		a_stream.read(reinterpret_cast<char*>(&furnitures.allowbed), 1);
-		furnitures.offset = Coordinate(a_stream);
-		a_stream.read(reinterpret_cast<char*>(&is_private), 1);
+		a_stream.read(reinterpret_cast<char*>(&furnitureTypes), 4);
+		a_stream.read(reinterpret_cast<char*>(&allowBed), 1);
+		furnitureOffset = Coordinate(a_stream);
+		a_stream.read(reinterpret_cast<char*>(&isPrivate), 1);
 	}
 
 	PositionInfo::PositionInfo(std::ifstream& a_stream, uint8_t a_version)
@@ -320,14 +320,11 @@ namespace Registry
 		return ret.get();
 	}
 
-	REX::EnumSet<FurnitureType::Value> Scene::FurnitureData::GetCompatibleFurnitures() const
+	REX::EnumSet<FurnitureType::Value> Scene::GetFurnitureTypes() const
 	{
-		auto ret = furnitures;
-		if (allowbed) {
-			ret.set(
-				FurnitureType::BedDouble,
-				FurnitureType::BedSingle,
-				FurnitureType::BedRoll);
+		auto ret = furnitureTypes;
+		if (allowBed) {
+			ret.set(FurnitureType::BedDouble, FurnitureType::BedSingle, FurnitureType::BedRoll);
 		}
 		return ret;
 	}
@@ -337,7 +334,6 @@ namespace Registry
 		if (a_key.empty()) {
 			return start_animation;
 		}
-
 		const auto where = std::find_if(stages.begin(), stages.end(), [&](const std::unique_ptr<Stage>& it) { return a_key == it->id.data(); });
 		return where == stages.end() ? nullptr : where->get();
 	}
@@ -347,34 +343,23 @@ namespace Registry
 		if (a_key.empty()) {
 			return start_animation;
 		}
-
 		const auto where = std::find_if(stages.begin(), stages.end(), [&](const std::unique_ptr<Stage>& it) { return a_key == it->id.data(); });
 		return where == stages.end() ? nullptr : where->get();
 	}
 
 	bool Scene::HasCreatures() const
 	{
-		for (auto&& info : positions) {
-			if (!info.IsHuman())
-				return true;
-		}
-		return false;
+		return std::ranges::any_of(positions, [](auto&& info) { return !info.IsHuman(); });
 	}
 
 	uint32_t Scene::CountSubmissives() const
 	{
-		uint32_t ret = 0;
-		for (auto&& info : positions) {
-			if (info.IsSubmissive()) {
-				ret++;
-			}
-		}
-		return ret;
+		return static_cast<uint32_t>(std::ranges::count_if(positions, [](auto&& info) { return info.IsSubmissive(); }));
 	}
 
 	const PositionInfo* Scene::GetNthPosition(size_t n) const
 	{
-		return &positions[n];
+		return &positions.at(n);
 	}
 
 	uint32_t Scene::CountPositions() const
@@ -389,7 +374,7 @@ namespace Registry
 
 	bool Scene::IsPrivate() const
 	{
-		return is_private;
+		return isPrivate;
 	}
 
 	bool Scene::IsCompatibleTags(const TagData& a_tags) const
@@ -401,9 +386,9 @@ namespace Registry
 		return a_details.MatchTags(tags);
 	}
 
-	bool Scene::UsesFurniture() const
+	bool Scene::RequiresFurniture() const
 	{
-		return this->furnitures.furnitures != FurnitureType::None;
+		return furnitureTypes != FurnitureType::None;
 	}
 
 	RE::BSFixedString Scene::GetPackageHash() const
@@ -419,20 +404,18 @@ namespace Registry
 
 	bool Scene::IsCompatibleFurniture(const FurnitureDetails* a_details) const
 	{
-		if (!a_details) {
-			return !UsesFurniture();
-		}
-		const auto types = furnitures.GetCompatibleFurnitures();
-		return a_details->HasType(types.get());
+		if (!a_details) return !RequiresFurniture();
+		return IsCompatibleFurniture(a_details->GetTypes().get());
 	}
 
 	bool Scene::IsCompatibleFurniture(FurnitureType a_furniture) const
 	{
-		if (a_furniture.Is(FurnitureType::None)) {
-			return !UsesFurniture();
+		if (a_furniture.IsNone()) {
+			return !RequiresFurniture();
+		} else if (a_furniture.IsBed()) {
+			return allowBed;
 		}
-		const auto types = furnitures.GetCompatibleFurnitures();
-		return types.any(a_furniture.value);
+		return GetFurnitureTypes().any(a_furniture.value);
 	}
 
 	bool Scene::Legacy_IsCompatibleSexCount(int32_t a_males, int32_t a_females) const
@@ -504,14 +487,14 @@ namespace Registry
 			return {};
 
 		const auto N = a_fragments.size();
-		std::vector<std::vector<std::pair<size_t, int32_t>>> graph;	 // fragment[i] = { { positionIdx, score }, ... }
+		std::vector<std::vector<std::pair<size_t, int32_t>>> fragmentGraph;	 // fragment[i] = { { positionIdx, score }, ... }
 		for (size_t i = 0; i < N; i++) {
 			const auto& fragment = a_fragments[i];
 			for (size_t j = 0; j < N; j++) {
 				const auto& position = positions[j];
 				const auto score = position.data.GetCompatibilityScore(fragment);
 				if (score > 0) {
-					graph[i].emplace_back(j, score);
+					fragmentGraph[i].emplace_back(j, score);
 				}
 			}
 		}
@@ -532,7 +515,7 @@ namespace Registry
 				assignments.emplace_back(current, accScore);
 				return;
 			}
-			for (auto&& [positionIdx, score] : graph[fragmentIdx]) {
+			for (auto&& [positionIdx, score] : fragmentGraph[fragmentIdx]) {
 				if (used[positionIdx]) {
 					continue;
 				}
@@ -597,10 +580,7 @@ namespace Registry
 	const std::vector<const Stage*>* Scene::GetAdjacentStages(const Stage* a_stage) const
 	{
 		const auto where = graph.find(a_stage);
-		if (where == graph.end())
-			return nullptr;
-
-		return &where->second;
+		return where != graph.end() ? &where->second : nullptr;
 	}
 
 	RE::BSFixedString Scene::GetNthAnimationEvent(const Stage* a_stage, size_t n) const
@@ -611,13 +591,9 @@ namespace Registry
 
 	std::vector<RE::BSFixedString> Scene::GetAnimationEvents(const Stage* a_stage) const
 	{
-		std::vector<RE::BSFixedString> ret{};
-		ret.reserve(a_stage->positions.size());
-		for (auto&& position : a_stage->positions) {
-			std::string event{ hash };
-			ret.push_back(event + position.event.data());
-		}
-		return ret;
+		return std::ranges::fold_left(a_stage->positions, std::vector<RE::BSFixedString>{}, [this](auto&& acc, auto&& it) {
+			return (acc.push_back(std::format("{}{}", hash, it.event)), acc);
+		});
 	}
 
 	size_t Scene::GetNumStages() const

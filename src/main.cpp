@@ -4,6 +4,7 @@
 #include "Registry/Stats.h"
 #include "Serialization.h"
 #include "Thread/Interface/SceneMenu.h"
+#include "Thread/Interface/SelectionMenu.h"
 #include "Thread/NiNode/NiUpdate.h"
 #include "UserData/StripData.h"
 
@@ -115,6 +116,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	}
 
 	Thread::Interface::SceneMenu::Register();
+	Thread::Interface::SelectionMenu::Register();
 	Thread::NiNode::NiUpdate::Install();
 
 	const auto serialization = SKSE::GetSerializationInterface();

@@ -45,7 +45,6 @@ namespace Registry
 			logger::info("Invalid query: [{} | {} | {}]; 0/{} animations use requested tags", a_actors.size(), hash.to_string(), tagstr, where->second.size());
 			return {};
 		}
-		// COMEBACK: Config Tag filtering?
 		const auto tEnd = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ms = tEnd - tStart;
 		logger::info("Found {} scenes for query [{} | {} | {}] actors in {}ms", ret.size(), a_actors.size(), hash.to_string(), tagstr, ms.count());
@@ -70,9 +69,9 @@ namespace Registry
 		return ret;
 	}
 
-	const AnimPackage* Library::GetPackageFromScene(Scene* a_scene) const
+	const AnimPackage* Library::GetPackageFromScene(const Scene* a_scene) const
 	{
-		const std::shared_lock lock{ _mScenes };
+		std::shared_lock lock{ _mScenes };
 		for (auto&& package : packages) {
 			if (std::ranges::contains(package->scenes, a_scene, [](const auto& scenePtr) { return scenePtr.get(); })) {
 				return package.get();
@@ -81,14 +80,16 @@ namespace Registry
 		return nullptr;
 	}
 
-	const Scene* Library::GetSceneByID(const RE::BSFixedString& a_id) const
+	const Scene* Library::GetSceneById(const RE::BSFixedString& a_id) const
 	{
+		std::shared_lock lock{ _mScenes };
 		const auto where = sceneMap.find(a_id);
 		return where != sceneMap.end() ? where->second : nullptr;
 	}
 
 	const Scene* Library::GetSceneByName(const RE::BSFixedString& a_name) const
 	{
+		std::shared_lock lock{ _mScenes };
 		for (auto&& package : packages) {
 			for (auto&& scene : package->scenes) {
 				if (a_name == RE::BSFixedString(scene->name))
@@ -106,14 +107,20 @@ namespace Registry
 
 	bool Library::EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func)
 	{
-		std::shared_lock lock{ _mScenes };
-		auto where = sceneMap.find(a_id);
-		if (where == sceneMap.end()) {
+		auto scene = GetSceneById(a_id);
+		if (!scene) {
 			logger::error("Scene {} not found", a_id.c_str());
 			return false;
 		}
-		a_func(where->second);
+		EditScene(scene, a_func);
 		return true;
+	}
+
+	void Library::EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func)
+	{
+		std::unique_lock lock{ _mScenes };
+		const auto scene = const_cast<Scene*>(a_scene);
+		a_func(scene);
 	}
 
 	bool Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const
@@ -136,7 +143,7 @@ namespace Registry
 		return false;
 	}
 
-	std::vector<RE::BSFixedString> Library::GetAllVoiceNames(RaceKey a_race) const
+	std::vector<RE::BSFixedString> Library::GetAllVoiceIds(RaceKey a_race) const
 	{
 		std::shared_lock lock{ _mVoice };
 		return std::ranges::fold_left(voices, std::vector<RE::BSFixedString>{}, [&](auto acc, const auto& it) {
@@ -145,6 +152,16 @@ namespace Registry
 				acc.push_back(name);
 			return acc;
 		});
+	}
+
+	bool Library::ForEachVoice(std::function<bool(const Voice&)> a_visitor) const
+	{
+		std::shared_lock lock{ _mVoice };
+		for (auto&& [name, voice] : voices) {
+			if (a_visitor(voice))
+				return true;
+		}
+		return false;
 	}
 
 	const Voice* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)
@@ -210,7 +227,7 @@ namespace Registry
 		return ret.empty() ? nullptr : Random::draw(ret);
 	}
 
-	const Voice* Library::GetVoiceByName(RE::BSFixedString a_voice) const
+	const Voice* Library::GetVoiceById(RE::BSFixedString a_voice) const
 	{
 		std::shared_lock lock{ _mVoice };
 		auto v = voices.find(a_voice);
@@ -230,7 +247,7 @@ namespace Registry
 
 	void Library::WriteVoiceToFile(RE::BSFixedString a_voice) const
 	{
-		auto voice = GetVoiceByName(a_voice);
+		auto voice = GetVoiceById(a_voice);
 		if (!voice) {
 			logger::error("Voice {} not found", a_voice);
 			return;
@@ -257,7 +274,7 @@ namespace Registry
 
 	void Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)
 	{
-		auto v = GetVoiceByName(a_voice);
+		auto v = GetVoiceById(a_voice);
 		std::unique_lock lock{ _mVoice };
 		if (v) {
 			savedVoices.insert_or_assign(a_key, v);
@@ -274,18 +291,18 @@ namespace Registry
 
 	RE::TESSound* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const
 	{
-		auto voice = GetVoiceByName(a_voice);
+		auto voice = GetVoiceById(a_voice);
 		if (!voice) {
 			logger::error("Voice {} not found", a_voice);
 			return nullptr;
 		}
 		std::shared_lock lock{ _mVoice };
-		voice->PickSound(a_legacysetting);
+		return voice->PickSound(a_legacysetting);
 	}
 
 	RE::TESSound* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const
 	{
-		auto voice = GetVoiceByName(a_voice);
+		auto voice = GetVoiceById(a_voice);
 		if (!voice) {
 			logger::error("Voice {} not found", a_voice);
 			return nullptr;
@@ -296,7 +313,7 @@ namespace Registry
 
 	RE::TESSound* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const
 	{
-		auto voice = GetVoiceByName(a_voice);
+		auto voice = GetVoiceById(a_voice);
 		if (!voice) {
 			logger::error("Voice {} not found", a_voice);
 			return nullptr;
@@ -401,9 +418,19 @@ namespace Registry
 	{
 		std::shared_lock lock{ _mExpressions };
 		auto where = expressions.find(a_id);
-		if (where == expressions.end())
-			return nullptr;
-		return &where->second;
+		return where == expressions.end() ? nullptr : &where->second;
+	}
+
+	const Expression* Library::GetExpression(const TagDetails& a_details) const
+	{
+		std::shared_lock lock{ _mExpressions };
+		std::vector<const Expression*> ret{};
+		for (auto&& [id, expression] : expressions) {
+			if (a_details.MatchTags(expression.GetTags())) {
+				ret.push_back(&expression);
+			}
+		}
+		return ret.empty() ? nullptr : Random::draw(ret);
 	}
 
 	bool Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const

@@ -1,6 +1,5 @@
 #include "sslThreadModel.h"
 
-#include "Registry/Define/Furniture.h"
 #include "Registry/Library.h"
 #include "Registry/Stats.h"
 #include "Registry/Util/RayCast.h"
@@ -10,7 +9,7 @@
 #include "Thread/NiNode/Node.h"
 #include "UserData/StripData.h"
 #include "Util/StringUtil.h"
-#include "Util/World.h"
+#include "Thread/Thread.h"
 
 using Offset = Registry::CoordinateType;
 
@@ -87,13 +86,6 @@ namespace Papyrus::ThreadModel
 			case STATUS05::Unconscious:
 				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kUnconcious;
 				break;
-			// case STATUS05::Dying:
-			// 	{
-			// 		const float hp = actor->GetActorValue(RE::ActorValue::kHealth);
-			// 		const auto killer = actor->myKiller.get().get();
-			// 		actor->KillImpl(killer, hp + 1, false, true);
-			// 	}
-			// 	break;
 			default:
 				actor->actorState1.lifeState = RE::ACTOR_LIFE_STATE::kAlive;
 				break;
@@ -228,380 +220,45 @@ namespace Papyrus::ThreadModel
 
 	}	 // namespace ActorAlias
 
-	static inline std::pair<RE::TESObjectREFR*, RE::TESObjectREFR*> GetAliasRefs(RE::TESQuest* a_qst)
-	{
-		std::pair<RE::TESObjectREFR*, RE::TESObjectREFR*> ret{ nullptr, nullptr };
-		a_qst->aliasAccessLock.LockForRead();
-		for (auto&& alias : a_qst->aliases) {
-			if (!alias)
-				continue;
-			if (alias->aliasName == "CenterAlias") {
-				const auto aliasref = skyrim_cast<RE::BGSRefAlias*>(alias);
-				if (aliasref) {
-					ret.first = aliasref->GetReference();
-				}
-			} else {
-				const auto aliasref = skyrim_cast<RE::BGSRefAlias*>(alias);
-				if (!aliasref)
-					continue;
-				const auto ref = aliasref->GetReference();
-				if (ref && (!ret.second || ref->IsPlayerRef())) {
-					ret.second = ref;
-				}
-			}
-		}
-		a_qst->aliasAccessLock.UnlockForRead();
-		return ret;
+#define GET_INSTANCE(ret)                                     \
+	auto instance = Thread::Instance::GetInstance(a_qst);       \
+	if (!instance) {                                            \
+		a_vm->TraceStack("Thread instance not found", a_stackID); \
+		return ret;                                               \
 	}
 
-	RE::TESObjectREFR* FindCenter(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst,
-		const std::vector<RE::BSFixedString> a_scenes,
-		RE::reference_array<RE::BSFixedString> a_out_scenes,
-		RE::reference_array<float> a_out_coordinates,
-		FurniStatus a_status)
+	RE::BSFixedString GetActiveScene(QUESTARGS)
 	{
-		if (a_scenes.empty()) {
-			a_vm->TraceStack("Missing scenes", a_stackID);
-			return nullptr;
+		GET_INSTANCE("");
+		if (const auto& scene = instance->GetActiveScene()) {
+			return scene->id;
 		}
-		if (a_out_scenes.empty()) {
-			a_vm->TraceStack("Result scene array must be allocated", a_stackID);
-			return nullptr;
-		}
-		if (a_out_coordinates.size() != 4) {
-			a_vm->TraceStack("Result coordinates must have length 4", a_stackID);
-			return nullptr;
-		}
-		const auto& [center, actor] = GetAliasRefs(a_qst);
-		if (!actor) {
-			a_vm->TraceStack("Quest must have some actor positions filled", a_stackID);
-			return nullptr;
-		}
-		const auto library = Registry::Library::GetSingleton();
-		std::unordered_map<Registry::FurnitureType, std::vector<const Registry::Scene*>> scene_map{};
-		REX::EnumSet<Registry::FurnitureType::Value> filled_types;
-		for (auto&& sceneid : a_scenes) {
-			const auto scene = library->GetSceneByID(sceneid);
-			if (!scene) {
-				a_vm->TraceStack("Invalid scene id in array", a_stackID);
-				return nullptr;
-			}
-			if (scene->UsesFurniture()) {
-				if (a_status == FurniStatus::Disallow) {
-					continue;
-				}
-				filled_types.set(scene->furnitures.furnitures.get());
-				const auto types = Registry::FlagToComponents(scene->furnitures.furnitures.get());
-				for (auto&& flag : types) {
-					auto& it = scene_map[flag];
-					if (std::ranges::find(it, scene) == it.end()) {
-						it.push_back(scene);
-					}
-				}
-			} else {
-				if (scene->furnitures.allowbed && a_status != FurniStatus::Disallow) {
-					std::array bedtypes{
-						Registry::FurnitureType::BedSingle,
-						Registry::FurnitureType::BedDouble,
-						Registry::FurnitureType::BedRoll
-					};
-					for (auto&& type : bedtypes) {
-						auto& it = scene_map[type];
-						if (std::ranges::find(it, scene) == it.end()) {
-							filled_types.set(type);
-							it.push_back(scene);
-						}
-					}
-				}
-				auto& it = scene_map[Registry::FurnitureType::None];
-				if (std::ranges::find(it, scene) == it.end()) {
-					it.push_back(scene);
-				}
-			}
-		}
-		assert(!scene_map.empty() && std::ranges::find_if(scene_map, [](auto& typevec) { return typevec.second.empty(); }) == scene_map.end());
-		const auto ReturnData = [&](Registry::FurnitureType a_where, const Registry::Coordinate& a_coordinate) -> bool {
-			if (!scene_map.contains(a_where)) {
-				return false;
-			}
-			const auto& scenes = scene_map[a_where];
-			const auto count = std::min<size_t>(a_out_scenes.size(), scenes.size());
-			for (size_t i = 0; i < count; i++) {
-				a_out_scenes[i] = scenes[i]->id;
-			}
-			a_coordinate.ToContainer(a_out_coordinates);
-			return true;
-		};
+		a_vm->TraceStack("No active scene", a_stackID);
+		return RE::BSFixedString{};
+	}
 
-		if (center) {
-			const auto details = library->GetFurnitureDetails(center);
-			if (!details) {
-				Registry::Coordinate coord{ center };
-				return ReturnData(Registry::FurnitureType::None, coord) ? center : nullptr;
-			}
-			const auto coords = details->GetClosestCoordinateInBound(center, filled_types, actor);
-			if (coords.empty()) {
-				return nullptr;
-			}
-			const auto i = Random::draw<size_t>(0, coords.size() - 1);
-			return ReturnData(coords[i].first, coords[i].second) ? center : nullptr;
+	RE::BSFixedString GetActiveStage(QUESTARGS)
+	{
+		GET_INSTANCE("");
+		if (const auto& stage = instance->GetActiveStage()) {
+			return stage->id;
 		}
-		if (a_status == FurniStatus::Disallow) {
-			Registry::Coordinate coord{ actor };
-			return ReturnData(Registry::FurnitureType::None, coord) ? actor : nullptr;
-		} else if (a_status != FurniStatus::Prefer && !Random::draw<int>(0, Settings::iFurniturePrefWeight)) {
-			Registry::Coordinate coord{ actor };
-			if (ReturnData(Registry::FurnitureType::None, coord)) {
-				return actor;
-			}
-		}
+		a_vm->TraceStack("No active stage", a_stackID);
+		return RE::BSFixedString{};
+	}
 
-		std::vector<std::pair<RE::TESObjectREFR*, glm::vec4>> thread_heads{};
-		a_qst->aliasAccessLock.LockForRead();
-		for (auto&& alias : a_qst->aliases) {
-			if (!alias)
-				continue;
-			const auto aliasref = skyrim_cast<RE::BGSRefAlias*>(alias);
-			if (!aliasref)
-				continue;
-			const auto ref = aliasref->GetReference();
-			if (!ref || ref == center)
-				continue;
-			auto head = ref->GetNodeByName(Thread::NiNode::Node::HEAD);
-			if (!head)
-				continue;
-			auto& t = head->world.translate;
-			thread_heads.emplace_back(ref, glm::vec4{ t.x, t.y, t.z, 0.0f });
-		}
-		a_qst->aliasAccessLock.UnlockForRead();
-
-		std::vector<RE::TESObjectREFR*> used_furnitures{};
-		const auto processlist = RE::ProcessLists::GetSingleton();
-		for (auto&& ithandle : processlist->highActorHandles) {
-			const auto it = ithandle.get();
-			if (!it || it.get() == actor || it.get() == center)
-				continue;
-			const auto furni = it->GetOccupiedFurniture().get();
-			if (!furni)
-				continue;
-			used_furnitures.push_back(furni.get());
-		}
-
-		std::vector<std::pair<RE::TESObjectREFR*, const Registry::FurnitureDetails*>> found_objects;
-		Util::ForEachObjectInRange(actor, Settings::fScanRadius, [&](RE::TESObjectREFR* a_ref) {
-			if (!a_ref || std::ranges::contains(used_furnitures, a_ref)) {
-				return RE::BSContainer::ForEachResult::kContinue;
-			}
-			const auto details = library->GetFurnitureDetails(a_ref);
-			if (!details || !details->HasType(scene_map, [](auto& it) { return it.first; })) {
-				return RE::BSContainer::ForEachResult::kContinue;
-			}
-			auto obj = a_ref->Get3D();
-			auto node = obj ? obj->AsNode() : nullptr;
-			auto box = node ? ObjectBound::MakeBoundingBox(node) : std::nullopt;
-			if (!box) {
-				return RE::BSContainer::ForEachResult::kContinue;
-			}
-			auto center = box->GetCenterWorld();
-			auto end = glm::vec4(center, 0.0f);
-			for (auto&& it : thread_heads) {
-				auto startref = it.first;
-				auto start = it.second;
-				do {
-					auto res = Raycast::hkpCastRay(start, end, { a_ref, startref });
-					if (!res.hit) {
-						found_objects.emplace_back(a_ref, details);
-						goto __CONTINUE_NEXT;
-					}
-					auto hitref = res.hitObject ? res.hitObject->GetUserData() : nullptr;
-					auto base = hitref ? hitref->GetBaseObject() : nullptr;
-					if (!base || base->Is(RE::FormType::Static, RE::FormType::MovableStatic, RE::FormType::Furniture))
-						break;
-					if (base->Is(RE::FormType::Door) && hitref->IsLocked())
-						break;
-					startref = hitref;
-					start = res.hitPos;
-				} while (true);
-			}
-__CONTINUE_NEXT:
-			return RE::BSContainer::ForEachResult::kContinue;
+	std::vector<RE::BSFixedString> GetPlayingScenes(QUESTARGS)
+	{
+		GET_INSTANCE({});
+		return std::ranges::fold_left(instance->GetThreadScenes(), std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
+			return (acc.push_back(it->id), acc);
 		});
-		std::vector<std::tuple<Registry::FurnitureType, Registry::Coordinate, RE::TESObjectREFR*>> coords{};
-		for (auto&& [ref, details] : found_objects) {
-			const auto res = details->GetClosestCoordinateInBound(ref, filled_types, actor);
-			for (auto&& pair : res) {
-				coords.push_back(std::make_tuple(pair.first, pair.second, ref));
-			}
-		}
-		if (!coords.empty()) {
-			// IDEA: Give player an alphabetical list of all found options here
-			std::sort(coords.begin(), coords.end(), [&](auto& a, auto& b) {
-				return std::get<1>(a).GetDistance(actor) < std::get<1>(b).GetDistance(actor);
-			});
-			const auto& res = coords[0];
-			if (ReturnData(std::get<0>(res), std::get<1>(res))) {
-				return std::get<2>(res);
-			}
-		}
-		Registry::Coordinate coord{ actor };
-		return ReturnData(Registry::FurnitureType::None, coord) ? actor : nullptr;
 	}
 
-	bool UpdateBaseCoordinates(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::BSFixedString a_sceneid, RE::reference_array<float> a_out)
+	std::vector<RE::Actor*> GetPositions(QUESTARGS)
 	{
-		const auto& [center, actor] = GetAliasRefs(a_qst);
-		if (!actor || !center) {
-			a_vm->TraceStack("Invalid aliases", a_stackID);
-			return false;
-		}
-		const auto library = Registry::Library::GetSingleton();
-		const auto scene = library->GetSceneByID(a_sceneid);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return false;
-		}
-		const auto details = library->GetFurnitureDetails(center);
-		if (!details)	 // nothing to do
-			return true;
-		auto res = details->GetClosestCoordinateInBound(center, scene->furnitures.furnitures, actor);
-		if (res.empty())
-			return false;
-		scene->furnitures.offset.Apply(res[0].second);
-		res[0].second.ToContainer(a_out);
-		return true;
-	}
-
-	void ApplySceneOffset(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_sceneid, RE::reference_array<float> a_out)
-	{
-		const auto library = Registry::Library::GetSingleton();
-		const auto scene = library->GetSceneByID(a_sceneid);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return;
-		}
-		Registry::Coordinate ret{ a_out };
-		scene->furnitures.offset.Apply(ret);
-		ret.ToContainer(a_out);
-	}
-
-	int SelectNextStage(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_scene, RE::BSFixedString a_stage, std::vector<RE::BSFixedString> a_tags)
-	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return 0;
-		}
-		const auto stage = scene->GetStageByID(a_stage);
-		if (!stage) {
-			a_vm->TraceStack("Invalid stage id", a_stackID);
-			return 0;
-		}
-		auto adj = scene->GetAdjacentStages(stage);
-		if (!adj || adj->empty()) {
-			return 0;
-		}
-		Registry::TagData tags{ a_tags };
-		std::vector<int> weights{};
-		int n = 0;
-		for (auto&& i : *adj) {
-			auto c = i->tags.CountTags(tags);
-			weights.resize(weights.size() + c + 1, n++);
-		}
-		return weights[Random::draw<size_t>(0, weights.size() - 1)];
-	}
-
-	RE::BSFixedString PlaceAndPlay(VM* a_vm, StackID a_stackID, RE::TESQuest*,
-		std::vector<RE::Actor*> a_positions,
-		std::vector<float> a_coordinates,
-		RE::BSFixedString a_scene,
-		RE::BSFixedString a_stage)
-	{
-		if (a_coordinates.size() != Offset::Total) {
-			a_vm->TraceStack("Invalid offset", a_stackID);
-			return "";
-		}
-
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return "";
-		} else if (a_positions.size() != scene->positions.size()) {
-			a_vm->TraceStack("Number positions do not match number of scene positions", a_stackID);
-			return "";
-		} else if (std::find(a_positions.begin(), a_positions.end(), nullptr) != a_positions.end()) {
-			a_vm->TraceStack("Array contains a none reference", a_stackID);
-			return "";
-		}
-
-		const auto stage = scene->GetStageByID(a_stage);
-		if (!stage) {
-			a_vm->TraceStack("Invalid stage id", a_stackID);
-			return "";
-		}
-
-		for (size_t i = 0; i < a_positions.size(); i++) {
-			const auto& actor = a_positions[i];
-			Registry::Coordinate coordinate{ a_coordinates };
-			stage->positions[i].offset.Apply(coordinate);
-
-			actor->data.angle.z = coordinate.rotation;
-			actor->data.angle.x = actor->data.angle.y = 0.0f;
-			actor->SetPosition(coordinate.AsNiPoint(), true);
-			actor->Update3DPosition(true);
-			Registry::Scale::GetSingleton()->SetScale(actor, scene->positions[i].data.GetScale());
-
-			const auto event = scene->GetNthAnimationEvent(stage, i);
-			actor->NotifyAnimationGraph(event);
-			const auto schlong = std::format("SOSBend{}", stage->positions[i].schlong);
-			actor->NotifyAnimationGraph(schlong);
-		}
-
-		return stage->id;
-	}
-
-	void RePlace(VM* a_vm, StackID a_stackID, RE::TESQuest*,
-		RE::Actor* a_position,
-		std::vector<float> a_coordinates,
-		RE::BSFixedString a_scene,
-		RE::BSFixedString a_stage,
-		int32_t n)
-	{
-		if (!a_position) {
-			a_vm->TraceStack("Actor is none", a_stackID);
-			return;
-		}
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return;
-		}
-		const auto stage = scene->GetStageByID(a_stage);
-		if (!stage) {
-			a_vm->TraceStack("Invalid stage id", a_stackID);
-			return;
-		}
-		if (n < 0 || n >= stage->positions.size()) {
-			a_vm->TraceStack("Invalid stage id", a_stackID);
-			return;
-		}
-		Registry::Coordinate coordinate{ a_coordinates };
-		stage->positions[n].offset.Apply(coordinate);
-		a_position->data.angle.z = coordinate.rotation;
-		a_position->SetPosition(coordinate.AsNiPoint(), true);
-	}
-
-	bool GetIsCompatiblecenter(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center)
-	{
-		if (!a_center) {
-			a_vm->TraceStack("Cannot validate a none reference center", a_stackID);
-			return false;
-		}
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_sceneid);
-		if (!scene) {
-			a_vm->TraceStack("Invalid scene id", a_stackID);
-			return false;
-		}
-		return scene->IsCompatibleFurniture(a_center);
+		GET_INSTANCE({});
+		return instance->GetActors();
 	}
 
 	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext)
@@ -618,24 +275,134 @@ __CONTINUE_NEXT:
 		return a_oldcontext;
 	}
 
-	void ShuffleScenes(RE::TESQuest*, RE::reference_array<RE::BSFixedString> a_scenes, RE::BSFixedString a_tofront)
+	bool CreateInstance(QUESTARGS,
+		std::vector<RE::Actor*> a_submissives,
+		std::vector<RE::BSFixedString> a_scenesPrimary,
+		std::vector<RE::BSFixedString> a_scenesLeadIn,
+		std::vector<RE::BSFixedString> a_scenesCustom,
+		int a_furniturepref)
 	{
-		if (a_scenes.empty()) {
-			return;
+		const auto library = Registry::Library::GetSingleton();
+		const auto toVector = [&](const auto& a_list) {
+			return std::ranges::fold_left(a_list, std::vector<const Registry::Scene*>{}, [&](auto&& acc, const auto& it) {
+				const auto scene = library->GetSceneById(it);
+				if (!scene) {
+					const auto err = std::format("Invalid scene id {}", it);
+					a_vm->TraceStack(err.c_str(), a_stackID);
+					return acc;
+				}
+				return (acc.push_back(scene), acc);
+			});
+		};
+		Thread::Instance::FurniturePreference preference{ a_furniturepref };
+		Thread::Instance::SceneMapping scenes{
+			toVector(a_scenesPrimary),
+			toVector(a_scenesLeadIn),
+			toVector(a_scenesCustom)
+		};
+		return Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference);
+	}
+
+	std::vector<RE::BSFixedString> GetLeadInScenes(QUESTARGS)
+	{
+		GET_INSTANCE({});
+		const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::LeadIn);
+		return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
+			return (acc.push_back(it->id), acc);
+		});
+	}
+
+	std::vector<RE::BSFixedString> GetPrimaryScenes(QUESTARGS)
+	{
+		GET_INSTANCE({});
+		const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Primary);
+		return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
+			return (acc.push_back(it->id), acc);
+		});
+	}
+
+	std::vector<RE::BSFixedString> GetCustomScenes(QUESTARGS)
+	{
+		GET_INSTANCE({});
+		const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Custom);
+		return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
+			return (acc.push_back(it->id), acc);
+		});
+	}
+
+	std::vector<RE::BSFixedString> AdvanceScene(QUESTARGS, std::vector<RE::BSFixedString> a_history, RE::BSFixedString a_nextStage)
+	{
+		GET_INSTANCE(a_history);
+		auto stage = instance->GetActiveScene()->GetStageByID(a_nextStage);
+		if (!stage) {
+			a_vm->TraceStack("Invalid stage id", a_stackID);
+			return a_history;
 		}
-		auto start = a_scenes.begin();
-		if (!a_tofront.empty() && Registry::Library::GetSingleton()->GetSceneByID(a_tofront)) {
-			auto where = std::ranges::find(a_scenes, a_tofront);
-			if (where == a_scenes.end()) {
-				a_scenes[0] = a_tofront;
-			} else {
-				std::iter_swap(a_scenes.begin(), where);
-			}
-			start++;
+		instance->AdvanceScene(stage);
+		a_history.push_back(a_nextStage);
+		return a_history;
+	}
+
+	int SelectNextStage(QUESTARGS, std::vector<RE::BSFixedString> a_tags)
+	{
+		GET_INSTANCE(0);
+		const auto& scene = instance->GetActiveScene();
+		const auto& stage = instance->GetActiveStage();
+		if (!scene || !stage) {
+			a_vm->TraceStack("No active scene or stage", a_stackID);
+			return 0;
 		}
-		std::random_device rd;
-		std::mt19937 gen{ rd() };
-		std::ranges::shuffle(start, a_scenes.end(), gen);
+		const auto& adj = scene->GetAdjacentStages(stage);
+		if (!adj || adj->empty()) return 0;
+		Registry::TagData tags{ a_tags };
+		std::vector<int> weights{};
+		int n = 0;
+		for (auto&& i : *adj) {
+			auto c = i->tags.CountTags(tags);
+			weights.resize(weights.size() + c + 1, n++);
+		}
+		return Random::draw(weights);
+	}
+
+	bool SetActiveScene(QUESTARGS, RE::BSFixedString a_sceneid)
+	{
+		GET_INSTANCE(false);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneById(a_sceneid);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return false;
+		}
+		return instance->SetActiveScene(scene);
+	}
+
+	bool ReassignCenter(QUESTARGS, RE::TESObjectREFR* a_centeron)
+	{
+		GET_INSTANCE(false);
+		if (!a_centeron) {
+			a_vm->TraceStack("Cannot reassign a none reference center", a_stackID);
+			return false;
+		}
+		return instance->ReplaceCenterRef(a_centeron);
+	}
+
+	void UpdatePlacement(QUESTARGS, RE::Actor* a_position)
+	{
+		GET_INSTANCE();
+		instance->UpdatePlacement(a_position);
+	}
+
+	bool GetIsCompatiblecenter(QUESTARGS, RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center)
+	{
+		if (!a_center) {
+			a_vm->TraceStack("Cannot validate a none reference center", a_stackID);
+			return false;
+		}
+		const auto scene = Registry::Library::GetSingleton()->GetSceneById(a_sceneid);
+		if (!scene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return false;
+		}
+		return scene->IsCompatibleFurniture(a_center);
 	}
 
 	bool IsCollisionRegistered(RE::TESQuest* a_qst)
@@ -643,22 +410,12 @@ __CONTINUE_NEXT:
 		return Thread::NiNode::NiUpdate::IsRegistered(a_qst->formID);
 	}
 
-	void RegisterCollision(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_activescene)
-	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_activescene);
-		if (!scene || scene->CountPositions() != a_positions.size()) {
-			a_vm->TraceStack("Invalid scene", a_stackID);
-			return;
-		}
-		Thread::NiNode::NiUpdate::Register(a_qst->formID, a_positions, scene);
-	}
-
 	void UnregisterCollision(RE::TESQuest* a_qst)
 	{
 		Thread::NiNode::NiUpdate::Unregister(a_qst->formID);
 	}
 
-	std::vector<int> GetCollisionActions(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner)
+	std::vector<int> GetCollisionActions(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)
 	{
 		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
@@ -679,7 +436,7 @@ __CONTINUE_NEXT:
 		return ret;
 	}
 
-	bool HasCollisionAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, int a_type, RE::Actor* a_position, RE::Actor* a_partner)
+	bool HasCollisionAction(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)
 	{
 		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
@@ -700,7 +457,7 @@ __CONTINUE_NEXT:
 		});
 	}
 
-	RE::Actor* GetPartnerByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	RE::Actor* GetPartnerByAction(QUESTARGS, RE::Actor* a_position, int a_type)
 	{
 		if (!a_position) {
 			a_vm->TraceStack("Actor is none", a_stackID);
@@ -726,7 +483,7 @@ __CONTINUE_NEXT:
 		return ret;
 	}
 
-	std::vector<RE::Actor*> GetPartnersByAction(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	std::vector<RE::Actor*> GetPartnersByAction(QUESTARGS, RE::Actor* a_position, int a_type)
 	{
 		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
@@ -747,7 +504,7 @@ __CONTINUE_NEXT:
 		return ret;
 	}
 
-	RE::Actor* GetPartnerByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	RE::Actor* GetPartnerByTypeRev(QUESTARGS, RE::Actor* a_position, int a_type)
 	{
 		if (!a_position) {
 			a_vm->TraceStack("Actor is none", a_stackID);
@@ -774,7 +531,7 @@ __CONTINUE_NEXT:
 		return ret;
 	}
 
-	std::vector<RE::Actor*> GetPartnersByTypeRev(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, int a_type)
+	std::vector<RE::Actor*> GetPartnersByTypeRev(QUESTARGS, RE::Actor* a_position, int a_type)
 	{
 		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
 		if (!process) {
@@ -795,7 +552,7 @@ __CONTINUE_NEXT:
 		return ret;
 	}
 
-	float GetActionVelocity(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, RE::Actor* a_position, RE::Actor* a_partner, int a_type)
+	float GetActionVelocity(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)
 	{
 		if (!a_position) {
 			a_vm->TraceStack("Actor is none", a_stackID);
@@ -827,10 +584,9 @@ __CONTINUE_NEXT:
 		return ret;
 	}
 
-	void AddExperience(VM* a_vm, StackID a_stackID, RE::TESQuest*, std::vector<RE::Actor*> a_positions,
-		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages)
+	void AddExperience(QUESTARGS, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneById(a_scene);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;
@@ -860,15 +616,13 @@ __CONTINUE_NEXT:
 		}
 	}
 
-
-	void UpdateStatistics(VM* a_vm, StackID a_stackID, RE::TESQuest*, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions,
-		RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time)
+	void UpdateStatistics(QUESTARGS, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time)
 	{
 		if (!a_actor) {
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return;
 		}
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_scene);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneById(a_scene);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id", a_stackID);
 			return;

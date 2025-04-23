@@ -1,6 +1,5 @@
 #include "sslVoiceSlots.h"
 
-#include "Registry/Voice.h"
 #include "Registry/Library.h"
 
 namespace Papyrus::VoiceSlots
@@ -10,7 +9,7 @@ namespace Papyrus::VoiceSlots
 		bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Library::GetSingleton();
-			auto it = vs->GetVoiceByName(a_id);
+			auto it = vs->GetVoiceById(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return false;
@@ -27,7 +26,7 @@ namespace Papyrus::VoiceSlots
 		std::vector<RE::BSFixedString> GetVoiceTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Library::GetSingleton();
-			auto it = vs->GetVoiceByName(a_id);
+			auto it = vs->GetVoiceById(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return {};
@@ -38,7 +37,7 @@ namespace Papyrus::VoiceSlots
 		int GetCompatibleSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Library::GetSingleton();
-			auto it = vs->GetVoiceByName(a_id);
+			auto it = vs->GetVoiceById(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return {};
@@ -49,7 +48,7 @@ namespace Papyrus::VoiceSlots
 		std::vector<RE::BSFixedString> GetCompatibleRaces(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Library::GetSingleton();
-			auto it = vs->GetVoiceByName(a_id);
+			auto it = vs->GetVoiceById(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return {};
@@ -64,7 +63,7 @@ namespace Papyrus::VoiceSlots
 		RE::TESSound* GetSoundObject(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, int a_strength, RE::BSFixedString a_scene, int a_idx, bool a_muffled)
 		{
 			const auto lib = Registry::Library::GetSingleton();
-			auto scene = lib->GetSceneByID(a_scene);
+			auto scene = lib->GetSceneById(a_scene);
 			if (!scene) {
 				a_vm->TraceStack("Invalid scene id", a_stackID);
 				return nullptr;
@@ -93,7 +92,7 @@ namespace Papyrus::VoiceSlots
 		RE::TESSound* GetOrgasmSound(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, RE::BSFixedString a_scene, int a_idx, bool a_muffled)
 		{
 			const auto lib = Registry::Library::GetSingleton();
-			auto scene = lib->GetSceneByID(a_scene);
+			auto scene = lib->GetSceneById(a_scene);
 			if (!scene) {
 				a_vm->TraceStack("Invalid scene id", a_stackID);
 				return nullptr;
@@ -117,7 +116,7 @@ namespace Papyrus::VoiceSlots
 		RE::BSFixedString GetDisplayName(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
 		{
 			const auto vs = Registry::Library::GetSingleton();
-			auto it = vs->GetVoiceByName(a_id);
+			auto it = vs->GetVoiceById(a_id);
 			if (!it) {
 				a_vm->TraceStack("Invalid voice form", a_stackID);
 				return "";
@@ -215,7 +214,7 @@ namespace Papyrus::VoiceSlots
 	std::vector<RE::BSFixedString> GetAllVoices(RE::StaticFunctionTag*, RE::BSFixedString a_racekey)
 	{
 		auto rk = a_racekey.empty() ? Registry::RaceKey{ Registry::RaceKey::None } : Registry::RaceKey{ a_racekey };
-		return Registry::Library::GetSingleton()->GetAllVoiceNames(rk);
+		return Registry::Library::GetSingleton()->GetAllVoiceIds(rk);
 	}
 
 	std::vector<RE::Actor*> GetAllCachedUniqueActorsSorted(RE::StaticFunctionTag*, RE::Actor* a_sndprio)

@@ -1,14 +1,13 @@
 #include "SexLabRegistry.h"
 
-#include "Registry/Animation.h"
-#include "Registry/Define/RaceKey.h"
 #include "Registry/Library.h"
+#include "Util/StringUtil.h"
 
 namespace Papyrus::SexLabRegistry
 {
 #define SCENE(argRet)                                 \
 	const auto lib = Registry::Library::GetSingleton(); \
-	const auto scene = lib->GetSceneByID(a_id);         \
+	const auto scene = lib->GetSceneById(a_id);         \
 	if (!scene) {                                       \
 		a_vm->TraceStack("Invalid scene id", a_stackID);  \
 		return argRet;                                    \
@@ -216,7 +215,7 @@ namespace Papyrus::SexLabRegistry
 				}
 			} else if (a_furniturepref == FurniturePreference::Prefer) {
 				const auto where = std::remove_if(scenes.begin(), scenes.end(), [&](Registry::Scene* a_scene) {
-					return !a_scene->UsesFurniture();
+					return !a_scene->RequiresFurniture();
 				});
 				if (where != scenes.begin()) {
 					scenes.erase(where, scenes.end());
@@ -225,7 +224,7 @@ namespace Papyrus::SexLabRegistry
 				}
 			} else if (a_furniturepref == FurniturePreference::Disallow) {
 				std::erase_if(scenes, [&](Registry::Scene* a_scene) {
-					return a_scene->UsesFurniture();
+					return a_scene->RequiresFurniture();
 				});
 			}
 			logger::info("Validated Center; Returning {}/{} scenes", scenes.size(), pretrim);
@@ -281,7 +280,7 @@ namespace Papyrus::SexLabRegistry
 		const auto tagdetail = Registry::TagDetails{ a_tags };
 		const auto lib = Registry::Library::GetSingleton();
 		for (auto&& sceneid : a_sceneids) {
-			const auto scene = lib->GetSceneByID(sceneid);
+			const auto scene = lib->GetSceneById(sceneid);
 			if (!scene) {
 				a_vm->TraceStack("Invalid scene id ", a_stackID);
 				break;
@@ -303,7 +302,7 @@ namespace Papyrus::SexLabRegistry
 			return false;
 		}
 		const auto lib = Registry::Library::GetSingleton();
-		const auto scene = lib->GetSceneByID(a_sceneid);
+		const auto scene = lib->GetSceneById(a_sceneid);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id ", a_stackID);
 			return false;
@@ -337,7 +336,7 @@ namespace Papyrus::SexLabRegistry
 			return false;
 		}
 		const auto lib = Registry::Library::GetSingleton();
-		const auto scene = lib->GetSceneByID(a_sceneid);
+		const auto scene = lib->GetSceneById(a_sceneid);
 		if (!scene) {
 			a_vm->TraceStack("Invalid scene id ", a_stackID);
 			return false;
@@ -362,7 +361,7 @@ namespace Papyrus::SexLabRegistry
 		}
 		const auto lib = Registry::Library::GetSingleton();
 		for (size_t i = 0; i < a_sceneids.size(); i++) {
-			const auto scene = lib->GetSceneByID(a_sceneids[i]);
+			const auto scene = lib->GetSceneById(a_sceneids[i]);
 			if (!scene) {
 				a_vm->TraceStack("Invalid scene id ", a_stackID);
 				break;
@@ -393,7 +392,7 @@ namespace Papyrus::SexLabRegistry
 		}
 		const auto lib = Registry::Library::GetSingleton();
 		for (size_t i = 0; i < a_sceneids.size(); i++) {
-			const auto scene = lib->GetSceneByID(a_sceneids[i]);
+			const auto scene = lib->GetSceneById(a_sceneids[i]);
 			if (!scene) {
 				a_vm->TraceStack("Invalid scene id ", a_stackID);
 				break;
@@ -414,7 +413,7 @@ namespace Papyrus::SexLabRegistry
 
 	bool SceneExists(RE::StaticFunctionTag*, RE::BSFixedString a_sceneid)
 	{
-		return Registry::Library::GetSingleton()->GetSceneByID(a_sceneid);
+		return Registry::Library::GetSingleton()->GetSceneById(a_sceneid);
 	}
 
 	std::vector<RE::BSFixedString> SceneExistA(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_sceneids)
@@ -423,7 +422,7 @@ namespace Papyrus::SexLabRegistry
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(a_sceneids.size());
 		for (auto&& id : a_sceneids) {
-			if (!lib->GetSceneByID(id))
+			if (!lib->GetSceneById(id))
 				continue;
 			ret.push_back(id);
 		}
@@ -505,7 +504,7 @@ namespace Papyrus::SexLabRegistry
 		const auto lib = Registry::Library::GetSingleton();
 		Registry::TagData ret{};
 		for (auto&& sceneid : a_ids) {
-			const auto scene = lib->GetSceneByID(sceneid);
+			const auto scene = lib->GetSceneById(sceneid);
 			if (!scene) {
 				a_vm->TraceStack("Invalid scene id", a_stackID);
 				break;

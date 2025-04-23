@@ -1,6 +1,5 @@
 #include "sslAnimationSlots.h"
 
-#include "Registry/Animation.h"
 #include "Registry/Library.h"
 
 namespace Papyrus::AnimationSlots

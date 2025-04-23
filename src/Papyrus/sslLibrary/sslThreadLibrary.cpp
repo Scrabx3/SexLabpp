@@ -198,7 +198,7 @@ namespace Papyrus::ThreadLibrary
 	std::vector<RE::Actor*> FindAnimationPartnersImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
 		RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center, float a_radius, std::vector<RE::Actor*> a_includes)
 	{
-		const auto scene = Registry::Library::GetSingleton()->GetSceneByID(a_sceneid);
+		const auto scene = Registry::Library::GetSingleton()->GetSceneById(a_sceneid);
 		if (!scene) {
 			a_vm->TraceStack("Cannot find actors for a none scene", a_stackID);
 			return {};
@@ -252,7 +252,7 @@ namespace Papyrus::ThreadLibrary
 			return {};
 		}
 		const auto library = Registry::Library::GetSingleton();
-		const auto scene = library->GetSceneByID(a_sceneid);
+		const auto scene = library->GetSceneById(a_sceneid);
 		if (!scene) {
 			a_vm->TraceStack("Cannot sort actors by a none scene", a_stackID);
 			return a_positions;

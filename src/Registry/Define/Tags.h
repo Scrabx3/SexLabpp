@@ -69,12 +69,14 @@ namespace Registry
 		template <class T>
 		TagData(const std::vector<T>& a_tags)
 		{
-			for (auto&& it : a_tags)
+			for (auto&& it : a_tags) {
 				AddTag(it);
+			}
 		}
 		TagData(std::ifstream& a_stream);
 		TagData() = default;
 		~TagData() = default;
+
 	public:
 		/// @brief Add (all of) the arguments tags to this
 		void AddTag(Tag a_tag);
@@ -97,6 +99,10 @@ namespace Registry
 		/// @brief If this data contains any tags
 		_NODISCARD bool IsEmpty() const;
 
+		/// @brief Get the annotated (editable) tags
+		std::vector<RE::BSFixedString>& GetAnnotations() { return _annotations; }
+		const std::vector<RE::BSFixedString>& GetAnnotations() const { return _annotations; }
+
 	public:
 		/// @brief visitor returns true to stop cycling
 		void ForEachExtra(std::function<bool(const std::string_view)> a_visitor) const;
@@ -111,6 +117,7 @@ namespace Registry
 
 		stl::enumeration<Tag> _basetags;
 		std::vector<RE::BSFixedString> _extratags;
+		std::vector<RE::BSFixedString> _annotations;
 	};
 
 	class TagDetails

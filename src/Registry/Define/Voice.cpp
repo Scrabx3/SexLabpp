@@ -1,5 +1,7 @@
 #include "Voice.h"
 
+#include "Util/StringUtil.h"
+
 namespace Registry
 {
 	Voice::Voice(const YAML::Node& a_node) :

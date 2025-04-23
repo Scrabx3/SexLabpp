@@ -1,6 +1,7 @@
 #include "sslExpressionSlots.h"
 
 #include "Registry/Library.h"
+#include "Util/StringUtil.h"
 
 namespace Papyrus::ExpressionSlots
 {
@@ -216,7 +217,7 @@ namespace Papyrus::ExpressionSlots
 			tag = "Aggressor";
 			break;
 		default:
-			tag = "Normal";
+			tag = "";
 			break;
 		}
 		Registry::Library::GetSingleton()->ForEachExpression([&](const Registry::Expression& profile) {

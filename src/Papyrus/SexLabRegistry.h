@@ -93,9 +93,6 @@ namespace Papyrus::SexLabRegistry
 	void UpdateOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset);
 	void ResetOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	void ResetOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage);
-	int32_t GetSchlongAngle(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
-	std::vector<int32_t> GetSchlongAngleA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage);
-	void SetSchlongAngle(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, int a_value);
 
 	int32_t GetStripData(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	std::vector<int32_t> GetStripDataA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage);
@@ -184,9 +181,6 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(UpdateOffsetA, "SexLabRegistry", true);
 		REGISTERFUNC(ResetOffset, "SexLabRegistry", true);
 		REGISTERFUNC(ResetOffsetA, "SexLabRegistry", true);
-		REGISTERFUNC(GetSchlongAngle, "SexLabRegistry", true);
-		REGISTERFUNC(GetSchlongAngleA, "SexLabRegistry", true);
-		REGISTERFUNC(SetSchlongAngle, "SexLabRegistry", true);
 
 		REGISTERFUNC(GetStripData, "SexLabRegistry", true);
 		REGISTERFUNC(GetStripDataA, "SexLabRegistry", true);
