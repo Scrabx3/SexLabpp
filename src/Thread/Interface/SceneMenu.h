@@ -5,23 +5,6 @@
 
 namespace Thread::Interface
 {
-	enum class KeyType
-	{
-		None,
-		Up,
-		Down,
-		Left,
-		Right,
-		Select,
-		End,
-		Extra1,
-		Extra2,
-		Modes,
-		Reset,
-	};
-	KeyType GetKeyType(uint32_t a_keyCode);
-	uint32_t GetKeyCode(KeyType a_keyType);
-
 	class SceneMenu :
 		public RE::IMenu,
 		public RE::BSTEventSink<RE::InputEvent*>
@@ -38,7 +21,7 @@ namespace Thread::Interface
 
 		SceneMenu();
 		~SceneMenu() = default;
-		static void Register();
+		static void Register() { (RE::UI::GetSingleton()->Register(NAME, Create), logger::info("Registered Menu: {}", NAME)); }
 		static RE::IMenu* Create() { return new SceneMenu(); }
 
 	public:
@@ -62,30 +45,25 @@ namespace Thread::Interface
 			RE::Actor* GetActorByReferenceId(Params& a_args, size_t argIdx);
 		};
 
-			// clang-format off
+		// clang-format off
 		struct GetHotkeyCombination : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetActiveSceneName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetActiveSceneAuthor : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetActiveSceneOrigin : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetActiveSceneTags : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetActiveAnnotations : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct SetActiveSceneAnnotations : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct GetActiveFurnitureName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetOffset : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct SetOffset : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct ResetOffsets : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetOffsetStepSize : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct AdjustOffsetStepSize : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetAdjustStageOnly : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct SetAdjustStageOnly : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetActiveFurnitureName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetAlternateScenes : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct SetActiveScene : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct PickRandomScene : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct ToggleAnimationPaused : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct ToggleAutoPlay : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct IsAutoPlay : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct MoveScene : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct EndScene : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetPositions : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct GetPermutationData : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct SelectNextPermutation : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };

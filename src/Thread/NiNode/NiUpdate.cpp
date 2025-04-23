@@ -10,7 +10,7 @@ namespace Thread::NiNode
 			v.reserve(a_positions.size());
 			for (size_t i = 0; i < a_positions.size(); i++) {
 				auto& it = a_positions[i];
-				auto sex = a_scene->GetNthPosition(i)->sex.get();
+				auto sex = a_scene->GetNthPosition(i)->data.GetSex().get();
 				v.emplace_back(it, sex);
 			}
 			return v;

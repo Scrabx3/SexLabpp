@@ -1,0 +1,236 @@
+#include "Thread.h"
+
+#include "Registry/Util/RayCast.h"
+#include "Registry/Util/RayCast/ObjectBound.h"
+#include "Thread/Interface/SelectionMenu.h"
+#include "Util/World.h"
+
+namespace Thread
+{
+	Instance::Position::Position(RE::BGSRefAlias* alias, RE::Actor* actor, bool submissive, bool dominant) :
+		alias(alias), data(actor, submissive)
+	{
+		const auto library = Registry::Library::GetSingleton();
+		voice = library->GetVoice(actor, { "" });
+		if (data.IsHuman()) {
+			RE::BSFixedString tag = submissive ? "Victim" : (dominant ? "Aggressor" : "");
+			expression = library->GetExpression(tag);
+		} else {
+			expression = nullptr;
+		}
+	}
+
+	Instance::Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturepref) :
+		linkedQst(a_linkedQst), center(nullptr), scenes({})
+	{
+		const auto centerAct = InitializeReferences(a_submissives);
+		const auto fragments = InitializeScenes(a_scenes, a_furniturepref);
+		auto& priorityScenes = InitializeCenter(centerAct, a_furniturepref);
+		const auto& centerTy = center.offset.type;
+		for (auto&& sceneArr : scenes) {
+			const auto removed = std::erase_if(sceneArr, [&](const auto& scene) {
+				return !scene->IsCompatibleFurniture(centerTy);
+			});
+			if (sceneArr.begin() == priorityScenes.begin()) {
+				if (sceneArr.empty())
+					throw std::runtime_error("No compatible scenes found for thread.");
+				const auto centerName = center.ref->GetDisplayFullName();
+				const auto centerId = center.ref->GetFormID();
+				const auto totalScenes = sceneArr.size() + removed;
+				logger::info("Thread validated. Center: {}, {:X}, Scenes: {}/{} scenes are compatible.", centerName, centerId, sceneArr.size(), totalScenes);
+			}
+		}
+		const auto firstScene = Random::draw(scenes[SceneType::LeadIn].empty() ? priorityScenes : scenes[SceneType::LeadIn]);
+		[[maybe_unused]] const auto success = SetActiveScene(firstScene);
+		assert(success && "Failed to set active scene.");
+	}
+
+	RE::Actor* Instance::InitializeReferences(const std::vector<RE::Actor*>& a_submissives)
+	{
+		RE::Actor* centerAct{ nullptr };
+		linkedQst->aliasAccessLock.LockForRead();
+		for (auto&& alias : linkedQst->aliases) {
+			const auto aliasref = alias ? skyrim_cast<RE::BGSRefAlias*>(alias) : nullptr;
+			if (!aliasref) continue;
+			if (alias->aliasName == CENTER_REF_NAME) {
+				center = { aliasref };
+			} else if (const auto ref = aliasref->GetActorReference()) {
+				positions.emplace_back(aliasref, ref, std::ranges::contains(a_submissives, ref), !a_submissives.empty());
+				if (ref->IsPlayerRef() || !centerAct) {
+					centerAct = ref;
+				}
+			}
+		}
+		linkedQst->aliasAccessLock.UnlockForRead();
+		return centerAct;
+	}
+
+	std::vector<Registry::ActorFragment> Instance::InitializeScenes(const SceneMapping& a_scenes, FurniturePreference a_furniturepref)
+	{
+		const auto fragments = std::ranges::fold_left(positions, std::vector<Registry::ActorFragment>{}, [&](auto&& acc, const auto& it) {
+			return (acc.push_back(it.data), acc);
+		});
+		for (size_t i = 0; i < SceneType::Total; i++) {
+			scenes[i] = std::ranges::fold_left(a_scenes[i], std::vector<const Registry::Scene*>{}, [&](auto&& acc, const auto& it) {
+				if ((a_furniturepref != FurniturePreference::Disallow || !it->RequiresFurniture()) && !it->FindAssignments(fragments).empty())
+					acc.emplace_back(it);
+				return acc;
+			});
+		}
+		return fragments;
+
+	}
+
+	std::vector<const Registry::Scene*>& Instance::InitializeCenter(RE::Actor* centerAct, FurniturePreference furniturePreference)
+	{
+		auto& prioScenes = scenes[SceneType::Custom].empty() ? scenes[SceneType::Primary] : scenes[SceneType::Custom];
+		const auto sceneTypes = std::ranges::fold_left(prioScenes, REX::EnumSet{ Registry::FurnitureType::None }, [](auto&& acc, const auto& it) {
+			return acc | it->GetFurnitureTypes();
+		});
+		if (center.ref && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
+			logger::info("Using fixed center {:X} with offset {}.", center.ref->GetFormID(), center.offset.type.ToString());
+		} else if (sceneTypes == Registry::FurnitureType::None || furniturePreference == FurniturePreference::Disallow) {
+			logger::info("No Furniture scenes or furniture is disabled for this thread. Skipping search and using actor {:X} as center.", centerAct->GetFormID());
+			center.SetReference(centerAct, {});
+		} else if (!IsMenuSelectionEnabled() && furniturePreference != FurniturePreference::Prefer && Random::draw<float>(0.0f, 1.0f) >= Settings::fFurniturePreference) {
+			logger::info("Randomly skipping furniture selection. Using actor {:X} as center.", centerAct->GetFormID());
+			center.SetReference(centerAct, {});
+		} else if (const auto furnitureMap = GetUniqueFurnituesOfTypeInBound(centerAct, sceneTypes); furnitureMap.empty()) {
+			logger::info("Center reference {:X} has no furniture in range. Using actor {:X} as center.", center.ref->GetFormID(), centerAct->GetFormID());
+			center.SetReference(centerAct, {});
+		} else {
+			decltype(furnitureMap)::value_type retVal;
+			if (furniturePreference == FurniturePreference::Prefer) {
+				retVal = furnitureMap.front();
+			} else if (IsMenuSelectionEnabled()) {
+				retVal = SelectCenterRefMenu(furnitureMap, centerAct);
+			} else {
+				retVal = furnitureMap.front();
+			}
+			const auto& [ref, offset] = retVal;
+			center.SetReference(ref, offset);
+		}
+		assert(!prioScenes.empty());
+		return prioScenes;
+	}
+
+	bool Instance::InitializeFixedCenter(RE::Actor* centerAct, std::vector<const Registry::Scene*>& prioScenes, REX::EnumSet<Registry::FurnitureType::Value> sceneTypes)
+	{
+		const auto& details = center.details = Registry::Library::GetSingleton()->GetFurnitureDetails(center.ref);
+		auto inBounds = details ? details->GetClosestCoordinatesInBound(center.ref, sceneTypes, centerAct) : std::vector<Registry::FurnitureOffset>{};
+		for (auto i = inBounds.begin(); i < inBounds.end(); i++) {
+			if (std::ranges::any_of(prioScenes, [type = i->type](const auto& scene) { return scene->IsCompatibleFurniture(type); })) {
+				center.offset = *i;
+				return true;
+			}
+		}
+		if (std::ranges::any_of(prioScenes, [](const auto& scene) { return scene->IsCompatibleFurniture(Registry::FurnitureType::None); })) {
+			center.offset = { Registry::FurnitureType::None, {} };
+			return true;
+		}
+		logger::warn("Center reference {:X} is not compatible with any scene.", center.ref->GetFormID());
+		return false;
+	}
+
+	bool Instance::IsMenuSelectionEnabled()
+	{
+		const auto player = RE::PlayerCharacter::GetSingleton();
+		const auto position = GetPosition(player);
+		if (!position) {
+			return false;
+		}
+		switch (Settings::FurnitureSlection(Settings::iAskBed)) {
+		case Settings::FurnitureSlection::Never:
+			return false;
+		case Settings::FurnitureSlection::Always:
+			return true;
+		case Settings::FurnitureSlection::IfNotSubmissive:
+			return !position->data.IsSubmissive();
+		default:
+			logger::error("Invalid furniture selection setting: {}", Settings::iAskBed);
+			return false;
+		}
+	}
+
+	Instance::FurnitureMapping::value_type Instance::SelectCenterRefMenu(const FurnitureMapping& a_furnitures, RE::Actor* a_tmpCenter)
+	{
+		std::vector<Interface::SelectionMenu::Item> items;
+		const auto actName = std::format("{}, 0x{:X}", a_tmpCenter->GetDisplayFullName(), a_tmpCenter->GetFormID());
+		items.emplace_back(actName, "None");
+		for (const auto& [ref, offset] : a_furnitures) {
+			const auto itemName = std::format("{}, 0x{:X}", ref->GetDisplayFullName(), ref->GetFormID());
+			const auto itemValue = std::format("{}", offset.type.ToString());
+			items.emplace_back(itemName, itemValue);
+		}
+		auto it = Interface::SelectionMenu::CreateSelectionAndWait(items);
+		if (it == items.end() || it == items.begin()) {
+			return { a_tmpCenter, {} };
+		}
+		const auto selected = std::distance(items.cbegin(), it);
+		return a_furnitures.at(selected - 1);
+	}
+
+	Instance::FurnitureMapping Instance::GetUniqueFurnituesOfTypeInBound(RE::Actor* a_centerAct, REX::EnumSet<Registry::FurnitureType::Value> a_furnitureTypes)
+	{
+		std::vector<RE::TESObjectREFR*> inUseFurniture{};
+		std::vector<std::pair<RE::TESObjectREFR*, glm::vec4>> raycastStart{};
+		const auto processlist = RE::ProcessLists::GetSingleton();
+		for (auto&& handle : processlist->highActorHandles) {
+			const auto it = handle.get().get();
+			if (!it || GetPosition(it)) continue;
+			if (const auto furni = it->GetOccupiedFurniture().get()) {
+				inUseFurniture.push_back(furni.get());
+			}
+		}
+		FurnitureMapping retVal{};
+		const auto library = Registry::Library::GetSingleton();
+		Util::ForEachObjectInRange(a_centerAct, Settings::fFurnitureScanRadius, [&](RE::TESObjectREFR* a_ref) {
+			if (std::ranges::contains(inUseFurniture, a_ref)) {
+				return RE::BSContainer::ForEachResult::kContinue;
+			}
+			const auto details = library->GetFurnitureDetails(a_ref);
+			if (!details || details->GetTypes().none(a_furnitureTypes.get())) {
+				return RE::BSContainer::ForEachResult::kContinue;
+			}
+			const auto coordinates = details->GetClosestCoordinatesInBound(a_ref, a_furnitureTypes, a_centerAct);
+			if (coordinates.empty()) {
+				return RE::BSContainer::ForEachResult::kContinue;
+			}
+			auto obj = a_ref->Get3D();
+			auto node = obj ? obj->AsNode() : nullptr;
+			auto box = node ? ObjectBound::MakeBoundingBox(node) : std::nullopt;
+			if (!box) {
+				return RE::BSContainer::ForEachResult::kContinue;
+			}
+			const auto endPoint = glm::vec4(box->GetCenterWorld(), 0.0f);
+			const auto isReachable = std::ranges::any_of(raycastStart, [&](auto&& it) {
+				auto [startRef, startPoint] = it;
+				do {
+					auto res = Raycast::hkpCastRay(startPoint, endPoint, { a_ref, startRef });
+					if (!res.hit) {
+						return true;
+					}
+					auto hitRef = res.hitObject ? res.hitObject->GetUserData() : nullptr;
+					auto base = hitRef ? hitRef->GetBaseObject() : nullptr;
+					if (!base || base->Is(RE::FormType::Static, RE::FormType::MovableStatic, RE::FormType::Furniture)) {
+						break;
+					}
+					if (base->Is(RE::FormType::Door) && hitRef->IsLocked()) {
+						break;
+					}
+					startRef = hitRef;
+					startPoint = res.hitPos;
+				} while (true);
+				return false;
+			});
+			if (isReachable) {
+				for (auto&& coordinate : coordinates) {
+					retVal.emplace_back(a_ref, coordinate);
+				}
+			}
+			return RE::BSContainer::ForEachResult::kContinue;
+		});
+		return retVal;
+	}
+
+}	 // namespace Thread
