@@ -32,6 +32,11 @@ namespace Papyrus::ThreadModel
 
 		inline bool Register(VM* a_vm)
 		{
+			REGISTERFUNC(GetActorVoice, "sslActorAlias", false);
+			REGISTERFUNC(GetActorExpression, "sslActorAlias", false);
+			REGISTERFUNC(SetActorVoiceImpl, "sslActorAlias", false);
+			REGISTERFUNC(SetActorExpressionImpl, "sslActorAlias", false);
+
 			REGISTERFUNC(LockActorImpl, "sslActorAlias", false);
 			REGISTERFUNC(UnlockActorImpl, "sslActorAlias", false);
 
