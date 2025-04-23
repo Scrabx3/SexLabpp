@@ -65,15 +65,15 @@ namespace Registry
 		void SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex);
 
 	public:
-		_NODISCARD const Expression* GetExpression(const RE::BSFixedString& a_id) const;
+		_NODISCARD const Expression* GetExpressionById(const RE::BSFixedString& a_id) const;
 		_NODISCARD const Expression* GetExpression(const TagDetails& a_details) const;
 		bool ForEachExpression(std::function<bool(const Expression&)> a_visitor) const;
 		bool CreateExpression(const RE::BSFixedString& a_id);
 
-		void UpdateValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values);
-		void UpdateTags(RE::BSFixedString a_id, const TagData& a_newtags);
-		void SetScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling);
-		void SetEnabled(RE::BSFixedString a_id, bool a_enabled);
+		void UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values);
+		void UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags);
+		void SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling);
+		void SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled);
 
 	public:
 		_NODISCARD const FurnitureDetails* GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const;

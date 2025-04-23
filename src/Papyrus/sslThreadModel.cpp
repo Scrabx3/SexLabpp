@@ -7,17 +7,68 @@
 #include "Registry/Util/Scale.h"
 #include "Thread/NiNode/NiUpdate.h"
 #include "Thread/NiNode/Node.h"
+#include "Thread/Thread.h"
 #include "UserData/StripData.h"
 #include "Util/StringUtil.h"
-#include "Thread/Thread.h"
 
 using Offset = Registry::CoordinateType;
 
 namespace Papyrus::ThreadModel
 {
+#define GET_INSTANCE(ret)                                     \
+	auto instance = Thread::Instance::GetInstance(a_qst);       \
+	if (!instance) {                                            \
+		a_vm->TraceStack("Thread instance not found", a_stackID); \
+		return ret;                                               \
+	}
+
 	namespace ActorAlias
 	{
-		void LockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias)
+#define GET_POSITION(ret)                                                                 \
+	if (!a_alias) {                                                                         \
+		a_vm->TraceStack("Cannot call SetActorVoice on a none alias", a_stackID);             \
+		return;                                                                               \
+	}                                                                                       \
+	const auto actor = a_alias->GetActorReference();                                        \
+	if (!actor) {                                                                           \
+		a_vm->TraceStack("ReferenceAlias must be filled with an actor reference", a_stackID); \
+		return;                                                                               \
+	}                                                                                       \
+	const auto a_qst = a_alias->owningQuest;                                                \
+	GET_INSTANCE();                                                                         \
+	auto position = instance->GetPosition(actor);                                           \
+	if (!position) {                                                                        \
+		a_vm->TraceStack("Position not found", a_stackID);                                    \
+		return;                                                                               \
+	}
+
+		RE::BSFixedString GetActorVoice(ALIASARGS)
+		{
+			GET_POSITION(RE::BSFixedString{});
+			const auto& voice = position->voice;
+			return voice ? voice->GetId() : RE::BSFixedString{};
+		}
+
+		RE::BSFixedString GetActorExpression(ALIASARGS)
+		{
+			GET_POSITION(RE::BSFixedString{});
+			const auto& expression = position->expression;
+			return expression ? expression->GetId() : RE::BSFixedString{};
+		}
+
+		void SetActorVoiceImpl(ALIASARGS, RE::BSFixedString a_voice)
+		{
+			GET_POSITION();
+			position->voice = Registry::Library::GetSingleton()->GetVoiceById(a_voice);
+		}
+
+		void SetActorExpressionImpl(ALIASARGS, RE::BSFixedString a_expression)
+		{
+			GET_POSITION();
+			position->expression = Registry::Library::GetSingleton()->GetExpressionById(a_expression);
+		}
+
+		void LockActorImpl(ALIASARGS)
 		{
 			const auto actor = a_alias->GetActorReference();
 			if (!actor) {
@@ -74,7 +125,7 @@ namespace Papyrus::ThreadModel
 			actor->StopMoving(1.0f);
 		}
 
-		void UnlockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias)
+		void UnlockActorImpl(ALIASARGS)
 		{
 			const auto actor = a_alias->GetActorReference();
 			if (!actor) {
@@ -98,18 +149,13 @@ namespace Papyrus::ThreadModel
 			actor->SetCollision(true);
 		}
 
-		std::vector<RE::TESForm*> StripByData(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias,
-			Registry::Position::StripData a_stripdata, std::vector<uint32_t> a_defaults, std::vector<uint32_t> a_overwrite)
+		std::vector<RE::TESForm*> StripByData(ALIASARGS, int32_t a_stripdata, std::vector<uint32_t> a_defaults, std::vector<uint32_t> a_overwrite)
 		{
-			if (!a_alias) {
-				a_vm->TraceStack("Cannot call StripByData on a none alias", a_stackID);
-				return {};
-			}
 			return StripByDataEx(a_vm, a_stackID, a_alias, a_stripdata, a_defaults, a_overwrite, {});
 		}
 
-		std::vector<RE::TESForm*> StripByDataEx(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias,
-			Registry::Position::StripData a_stripdata,
+		std::vector<RE::TESForm*> StripByDataEx(ALIASARGS,
+			int32_t a_stripdata,
 			std::vector<uint32_t> a_defaults,				// use if a_stripData == default
 			std::vector<uint32_t> a_overwrite,			// use if exists
 			std::vector<RE::TESForm*> a_mergewith)	// [HighHeelSpell, WeaponRight, WeaponLeft, Armor...]
@@ -136,8 +182,9 @@ namespace Papyrus::ThreadModel
 			if (a_mergewith.size() < 3) {
 				a_mergewith.resize(3, nullptr);
 			}
-			if (a_stripdata == Strip::None) {
-				logger::info("Stripping, Policy: NONE");
+			REX::EnumSet<Strip> stripnum(static_cast<Strip>(a_stripdata));
+			if (stripnum == Strip::None) {
+				logger::info("Using stripping policy: None");
 				return a_mergewith;
 			}
 			uint32_t slots;
@@ -145,29 +192,25 @@ namespace Papyrus::ThreadModel
 			if (a_overwrite.size() >= 2) {
 				slots = a_overwrite[0];
 				weapon = a_overwrite[1];
+			} else if (stripnum.all(Strip::All)) {
+				slots = static_cast<uint32_t>(-1);
+				weapon = true;
 			} else {
-				REX::EnumSet<Strip> stripnum(a_stripdata);
-				if (stripnum.all(Strip::All)) {
-					slots = static_cast<uint32_t>(-1);
-					weapon = true;
+				if (stripnum.all(Strip::Default) && a_defaults.size() >= 2) {
+					slots = a_defaults[0];
+					weapon = a_defaults[1];
 				} else {
-					if (stripnum.all(Strip::Default) && a_defaults.size() >= 2) {
-						slots = a_defaults[0];
-						weapon = a_defaults[1];
-					} else {
-						logger::error("Strip Policy uses faulty default settings");
-						slots = 0;
-						weapon = 0;
-					}
-					if (stripnum.all(Strip::Boots)) {
-						slots |= static_cast<uint32_t>(SlotMask::kFeet);
-					}
-					if (stripnum.all(Strip::Gloves)) {
-						slots |= static_cast<uint32_t>(SlotMask::kHands);
-					}
-					if (stripnum.all(Strip::Helmet)) {
-						slots |= static_cast<uint32_t>(SlotMask::kHead);
-					}
+					slots = 0;
+					weapon = 0;
+				}
+				if (stripnum.all(Strip::Boots)) {
+					slots |= static_cast<uint32_t>(SlotMask::kFeet);
+				}
+				if (stripnum.all(Strip::Gloves)) {
+					slots |= static_cast<uint32_t>(SlotMask::kHands);
+				}
+				if (stripnum.all(Strip::Helmet)) {
+					slots |= static_cast<uint32_t>(SlotMask::kHead);
 				}
 			}
 			const auto stripconfig = UserData::StripData::GetSingleton();
@@ -218,14 +261,8 @@ namespace Papyrus::ThreadModel
 			return a_mergewith;
 		}
 
+#undef GET_POSITION
 	}	 // namespace ActorAlias
-
-#define GET_INSTANCE(ret)                                     \
-	auto instance = Thread::Instance::GetInstance(a_qst);       \
-	if (!instance) {                                            \
-		a_vm->TraceStack("Thread instance not found", a_stackID); \
-		return ret;                                               \
-	}
 
 	RE::BSFixedString GetActiveScene(QUESTARGS)
 	{

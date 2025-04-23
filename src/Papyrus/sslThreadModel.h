@@ -19,13 +19,16 @@ namespace Papyrus::ThreadModel
 			Dying = -10,
 		};
 
-		void LockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias);
-		void UnlockActorImpl(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias);
+		RE::BSFixedString GetActorVoice(ALIASARGS);
+		RE::BSFixedString GetActorExpression(ALIASARGS);
+		void SetActorVoiceImpl(ALIASARGS, RE::BSFixedString a_voice);
+		void SetActorExpressionImpl(ALIASARGS, RE::BSFixedString a_expression);
 
-		std::vector<RE::TESForm*> StripByData(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias,
-			Registry::Position::StripData a_stripdata, std::vector<uint32_t> a_defaults, std::vector<uint32_t> a_overwrite);
-		std::vector<RE::TESForm*> StripByDataEx(VM* a_vm, StackID a_stackID, RE::BGSRefAlias* a_alias,
-			Registry::Position::StripData a_stripdata, std::vector<uint32_t> a_defaults, std::vector<uint32_t> a_overwrite, std::vector<RE::TESForm*> a_mergewith);
+		void LockActorImpl(ALIASARGS);
+		void UnlockActorImpl(ALIASARGS);
+
+		std::vector<RE::TESForm*> StripByData(ALIASARGS, int32_t a_stripdata, std::vector<uint32_t> a_defaults, std::vector<uint32_t> a_overwrite);
+		std::vector<RE::TESForm*> StripByDataEx(ALIASARGS, int32_t a_stripdata, std::vector<uint32_t> a_defaults, std::vector<uint32_t> a_overwrite, std::vector<RE::TESForm*> a_mergewith);
 
 		inline bool Register(VM* a_vm)
 		{
@@ -74,6 +77,7 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(GetActiveStage, "sslThreadModel", false);
 		REGISTERFUNC(GetPlayingScenes, "sslThreadModel", false);
 		REGISTERFUNC(GetPositions, "sslThreadModel", false);
+		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
 
 		REGISTERFUNC(CreateInstance, "sslThreadModel", false);
 		REGISTERFUNC(GetLeadInScenes, "sslThreadModel", false);
@@ -95,7 +99,6 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(GetPartnersByTypeRev, "sslThreadModel", true);
 		REGISTERFUNC(GetActionVelocity, "sslThreadModel", true);
 
-		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
 		REGISTERFUNC(AddExperience, "sslThreadModel", true);
 		REGISTERFUNC(UpdateStatistics, "sslThreadModel", true);
 

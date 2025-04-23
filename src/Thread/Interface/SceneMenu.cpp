@@ -491,7 +491,7 @@ namespace Thread::Interface
 			return;
 		}
 		const auto expressionId = a_args.args[1].GetString();
-		const auto expression = Registry::Library::GetSingleton()->GetExpression(expressionId);
+		const auto expression = Registry::Library::GetSingleton()->GetExpressionById(expressionId);
 		if (!expression) {
 			logger::warn("SetExpression: No such expression registered: {}", expressionId);
 			return;

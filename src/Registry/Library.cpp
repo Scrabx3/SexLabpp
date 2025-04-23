@@ -414,7 +414,7 @@ namespace Registry
 		voice.sex = a_sex;
 	}
 
-	const Expression* Library::GetExpression(const RE::BSFixedString& a_id) const
+	const Expression* Library::GetExpressionById(const RE::BSFixedString& a_id) const
 	{
 		std::shared_lock lock{ _mExpressions };
 		auto where = expressions.find(a_id);
@@ -455,7 +455,7 @@ namespace Registry
 		return true;
 	}
 
-	void Library::UpdateValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
+	void Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
 	{
 		std::unique_lock lock{ _mExpressions };
 		auto w = expressions.find(a_id);
@@ -466,7 +466,7 @@ namespace Registry
 		w->second.UpdateValues(a_female, a_level, a_values);
 	}
 
-	void Library::UpdateTags(RE::BSFixedString a_id, const TagData& a_newtags)
+	void Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)
 	{
 		std::unique_lock lock{ _mExpressions };
 		auto w = expressions.find(a_id);
@@ -477,7 +477,7 @@ namespace Registry
 		w->second.UpdateTags(a_newtags);
 	}
 
-	void Library::SetScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)
+	void Library::SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)
 	{
 		std::unique_lock lock{ _mExpressions };
 		auto w = expressions.find(a_id);
@@ -488,7 +488,7 @@ namespace Registry
 		w->second.SetScaling(a_scaling);
 	}
 
-	void Library::SetEnabled(RE::BSFixedString a_id, bool a_enabled)
+	void Library::SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled)
 	{
 		std::unique_lock lock{ _mExpressions };
 		auto w = expressions.find(a_id);
