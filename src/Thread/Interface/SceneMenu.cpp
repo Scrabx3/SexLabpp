@@ -133,8 +133,8 @@ namespace Thread::Interface
 	void SceneMenu::HUDMenu_ShowMessageEx::Call(Params& a_args)
 	{
 		const auto ui = RE::UI::GetSingleton();
-		if (SceneMenu::IsOpen()) {
-			auto scene = ui->GetMovieView(SceneMenu::NAME);
+		if (SceneMenu::IsOpen() && !ui->IsMenuOpen(RE::HUDMenu::MENU_NAME)) {
+			auto scene = ui->GetMovieView(SceneMenu::MENU_NAME);
 			scene->InvokeNoReturn("_root.main.ShowMessage", a_args.args, a_args.argCount);
 		} else {
 			auto hud = ui->GetMovieView(RE::HUDMenu::MENU_NAME);

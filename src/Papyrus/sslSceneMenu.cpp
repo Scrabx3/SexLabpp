@@ -37,7 +37,7 @@ namespace Papyrus::SceneMenu
 	{
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([a_positions = std::move(a_positions)]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::MENU_NAME);
 			std::vector<RE::GFxValue> args{};
 			args.reserve(a_positions.size());
 			for (const auto& pos : a_positions) {
@@ -70,7 +70,7 @@ namespace Papyrus::SceneMenu
 			return;
 		}
 		SKSE::GetTaskInterface()->AddUITask([=]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::MENU_NAME);
 			const auto& edges = scene->GetAdjacentStages(stage);
 			std::vector<RE::GFxValue> args{};
 			if (edges && !edges->empty()) {
@@ -108,7 +108,7 @@ namespace Papyrus::SceneMenu
 	{
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([=]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::MENU_NAME);
 			RE::GFxValue arg { afTime };
 			view->InvokeNoReturn("_root.main.setTimer", &arg, 1);
 		});
@@ -118,7 +118,7 @@ namespace Papyrus::SceneMenu
 	{
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([=]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::MENU_NAME);
 			std::vector<RE::GFxValue> args{};
 			args.emplace_back(a_position->GetFormID());
 			args.emplace_back(a_enjoyment);
@@ -130,7 +130,7 @@ namespace Papyrus::SceneMenu
 	{
 		VALIDATE;
 		SKSE::GetTaskInterface()->AddUITask([=]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::MENU_NAME);
 			std::vector<RE::GFxValue> args{};
 			args.emplace_back(a_position->GetFormID());
 			args.emplace_back(a_enjoyment);

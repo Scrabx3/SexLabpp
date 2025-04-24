@@ -15,19 +15,19 @@ namespace Thread::Interface
 		static constexpr std::string_view EVENT_END_SCENE{ "SL_EndScene" };
 
 	public:
-		static constexpr std::string_view NAME{ "SLSceneMenu" };
+		static constexpr std::string_view MENU_NAME{ "SLSceneMenu" };
 		static constexpr std::string_view FILEPATH{ "SexLab\\SceneMenu" };
 		static constexpr int8_t DEPTH_PRIORITY{ 4 };
 
 		SceneMenu();
 		~SceneMenu() = default;
-		static void Register() { (RE::UI::GetSingleton()->Register(NAME, Create), logger::info("Registered Menu: {}", NAME)); }
+		static void Register() { (RE::UI::GetSingleton()->Register(MENU_NAME, Create), logger::info("Registered Menu: {}", MENU_NAME)); }
 		static RE::IMenu* Create() { return new SceneMenu(); }
 
 	public:
-		static void Show() { RE::UIMessageQueue::GetSingleton()->AddMessage(NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr); }
-		static void Hide() { RE::UIMessageQueue::GetSingleton()->AddMessage(NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr); }
-		static bool IsOpen() { return RE::UI::GetSingleton()->IsMenuOpen(NAME); }
+		static void Show() { RE::UIMessageQueue::GetSingleton()->AddMessage(MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr); }
+		static void Hide() { RE::UIMessageQueue::GetSingleton()->AddMessage(MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr); }
+		static bool IsOpen() { return RE::UI::GetSingleton()->IsMenuOpen(MENU_NAME); }
 
 	protected:
 		// IMenu
