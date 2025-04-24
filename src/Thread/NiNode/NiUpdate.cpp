@@ -4,7 +4,7 @@
 
 namespace Thread::NiNode
 {
-	NiUpdate::Process::Process(const std::vector<RE::Actor*>& a_positions, const Registry::Scene* a_scene) :
+	NiInstance::NiInstance(const std::vector<RE::Actor*>& a_positions, const Registry::Scene* a_scene) :
 		positions([&]() {
 			std::vector<NiNode::NiPosition> v{};
 			v.reserve(a_positions.size());
@@ -16,7 +16,7 @@ namespace Thread::NiNode
 			return v;
 		}()) {}
 
-	bool NiUpdate::Process::VisitPositions(std::function<bool(const NiPosition&)> a_visitor) const
+	bool NiInstance::VisitPositions(std::function<bool(const NiPosition&)> a_visitor) const
 	{
 		std::scoped_lock lk{ _m };
 		for (auto&& pos : positions) {
@@ -26,7 +26,7 @@ namespace Thread::NiNode
 		return false;
 	}
 
-	void NiUpdate::Process::UpdateInteractions(float a_delta)
+	void NiInstance::UpdateInteractions(float a_delta)
 	{
 		std::unique_lock lk{ _m, std::defer_lock };
 		if (!lk.try_lock()) {
@@ -60,7 +60,7 @@ namespace Thread::NiNode
 		}
 	}
 
-	void NiUpdate::Process::GetInteractionsMale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
+	void NiInstance::GetInteractionsMale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
 	{
 		if (it.position.sex.any(Registry::Sex::Female))
 			return;
@@ -80,7 +80,7 @@ namespace Thread::NiNode
 		}
 	}
 
-	void NiUpdate::Process::GetInteractionsFemale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
+	void NiInstance::GetInteractionsFemale(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
 	{
 		if (it.position.sex.any(Registry::Sex::Male))
 			return;
@@ -93,7 +93,7 @@ namespace Thread::NiNode
 		}
 	}
 
-	void NiUpdate::Process::GetInteractionsNeutral(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
+	void NiInstance::GetInteractionsNeutral(std::vector<NiPosition::Snapshot>& list, const NiPosition::Snapshot& it)
 	{
 		for (auto&& snd : list) {
 			if (it != snd) {
@@ -129,18 +129,23 @@ namespace Thread::NiNode
 		}
 	}
 
-
-	void NiUpdate::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Registry::Scene* a_scene) noexcept
+	std::shared_ptr<NiInstance> NiUpdate::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Registry::Scene* a_scene) noexcept
 	{
 		try {
 			const auto where = std::ranges::find(processes, a_id, [](auto& it) { return it.first; });
 			if (where != processes.end()) {
-				processes.erase(where);
+				logger::info("Object with ID {:X} already registered. Resetting NiInstance.", a_id);
+				std::swap(*where, processes.back());
+				processes.pop_back();
 			}
-			auto process = std::make_unique<Process>(a_positions, a_scene);
-			processes.emplace_back(a_id, std::move(process));
+			auto process = std::make_shared<NiInstance>(a_positions, a_scene);
+			return processes.emplace_back(a_id, process).second;
 		} catch (const std::exception& e) {
-			logger::error("Cannot register sound processing unit, Error: {}", e.what());
+			logger::error("Failed to register NiInstance: {}", e.what());
+			return nullptr;
+		} catch (...) {
+			logger::error("Failed to register NiInstance: Unknown error");
+			return nullptr;
 		}
 	}
 
@@ -152,17 +157,6 @@ namespace Thread::NiNode
 			return;
 		}
 		processes.erase(where);
-	}
-
-	bool NiUpdate::IsRegistered(RE::FormID a_id) noexcept
-	{
-		return std::ranges::contains(processes, a_id, [](auto& it) { return it.first; });
-	}
-
-	const NiUpdate::Process* NiUpdate::GetProcess(RE::FormID a_id) noexcept
-	{
-		const auto where = std::ranges::find(processes, a_id, [](auto& it) { return it.first; });
-		return where == processes.end() ? nullptr : where->second.get();
 	}
 
 }	 // namespace Thread::NiNode

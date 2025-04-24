@@ -3,7 +3,6 @@
 #include "Registry/Library.h"
 #include "Registry/Util/Scale.h"
 #include "Thread/Interface/SceneMenu.h"
-#include "Thread/NiNode/NiUpdate.h"
 #include "Util/Script.h"
 
 namespace Thread
@@ -70,10 +69,9 @@ namespace Thread
 	void Instance::AdvanceScene(const Registry::Stage* a_nextStage)
 	{
 		assert(activeScene && activeScene->GetStageNodeType(a_nextStage) != Registry::Scene::NodeType::None);
-    if (!NiNode::NiUpdate::IsRegistered(linkedQst->formID)) {
-      // TODO: Update if activeScene changes.. or completetly rework this. Idk. Move NiUpdate Process into Instance?
-      NiNode::NiUpdate::Register(linkedQst->formID, activeAssignment, activeScene);
-    }
+		if (niInstance == nullptr) {
+			niInstance = NiNode::NiUpdate::Register(linkedQst->formID, activeAssignment, activeScene);
+		}
 		activeStage = a_nextStage;
 		const auto scaling = Registry::Scale::GetSingleton();
 		for (size_t i = 0; i < activeAssignment.size(); i++) {

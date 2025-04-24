@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Registry/Library.h"
+#include "Thread/NiNode/NiUpdate.h"
 
 namespace Thread
 {
@@ -64,6 +65,10 @@ namespace Thread
 		static Instance* GetInstance(RE::TESQuest* a_linkedQst);
 
 	public:
+		bool HasNiInstance() const { return niInstance != nullptr; }
+		NiNode::NiInstance* GetNiInstance() { return niInstance.get(); }
+		void UnregisterNiInstance() { (NiNode::NiUpdate::Unregister(linkedQst->GetFormID()), niInstance = nullptr); }
+
 		bool ControlsMenu();
 		bool TryOpenMenu();
 		bool TryCloseMenu();
@@ -101,6 +106,7 @@ namespace Thread
 
 	private:
 		RE::TESQuest* linkedQst;
+		std::shared_ptr<NiNode::NiInstance> niInstance{ nullptr };
 
 		Center center;
 		std::vector<Position> positions;

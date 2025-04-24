@@ -67,8 +67,8 @@ namespace Papyrus::ThreadModel
 	bool ReassignCenter(QUESTARGS, RE::TESObjectREFR* a_centeron);
 	void UpdatePlacement(QUESTARGS, RE::Actor* a_position);
 
-	bool IsCollisionRegistered(RE::TESQuest* a_qst);
-	void UnregisterCollision(RE::TESQuest* a_qst);
+	bool IsCollisionRegistered(QUESTARGS);
+	void UnregisterCollision(QUESTARGS);
 	std::vector<int> GetCollisionActions(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner);
 	bool HasCollisionAction(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner);
 	RE::Actor* GetPartnerByAction(QUESTARGS, RE::Actor* a_position, int a_type);

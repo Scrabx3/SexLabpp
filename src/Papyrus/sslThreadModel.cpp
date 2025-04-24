@@ -5,7 +5,6 @@
 #include "Registry/Util/RayCast.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
 #include "Registry/Util/Scale.h"
-#include "Thread/NiNode/NiUpdate.h"
 #include "Thread/NiNode/Node.h"
 #include "Thread/Thread.h"
 #include "UserData/StripData.h"
@@ -445,19 +444,22 @@ namespace Papyrus::ThreadModel
 		return scene->IsCompatibleFurniture(a_center);
 	}
 
-	bool IsCollisionRegistered(RE::TESQuest* a_qst)
+	bool IsCollisionRegistered(QUESTARGS)
 	{
-		return Thread::NiNode::NiUpdate::IsRegistered(a_qst->formID);
+		GET_INSTANCE(false);
+		return instance->HasNiInstance();
 	}
 
-	void UnregisterCollision(RE::TESQuest* a_qst)
+	void UnregisterCollision(QUESTARGS)
 	{
-		Thread::NiNode::NiUpdate::Unregister(a_qst->formID);
+		GET_INSTANCE();
+		instance->UnregisterNiInstance();
 	}
 
 	std::vector<int> GetCollisionActions(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)
 	{
-		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
+		GET_INSTANCE({});
+		auto process = instance->GetNiInstance();
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -478,7 +480,8 @@ namespace Papyrus::ThreadModel
 
 	bool HasCollisionAction(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)
 	{
-		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
+		GET_INSTANCE({});
+		auto process = instance->GetNiInstance();
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return false;
@@ -503,7 +506,8 @@ namespace Papyrus::ThreadModel
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return nullptr;
 		}
-		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
+		GET_INSTANCE({});
+		auto process = instance->GetNiInstance();
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return nullptr;
@@ -525,7 +529,8 @@ namespace Papyrus::ThreadModel
 
 	std::vector<RE::Actor*> GetPartnersByAction(QUESTARGS, RE::Actor* a_position, int a_type)
 	{
-		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
+		GET_INSTANCE({});
+		auto process = instance->GetNiInstance();
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -550,7 +555,8 @@ namespace Papyrus::ThreadModel
 			a_vm->TraceStack("Actor is none", a_stackID);
 			return {};
 		}
-		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
+		GET_INSTANCE({});
+		auto process = instance->GetNiInstance();
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -573,7 +579,8 @@ namespace Papyrus::ThreadModel
 
 	std::vector<RE::Actor*> GetPartnersByTypeRev(QUESTARGS, RE::Actor* a_position, int a_type)
 	{
-		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
+		GET_INSTANCE({});
+		auto process = instance->GetNiInstance();
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return {};
@@ -602,7 +609,8 @@ namespace Papyrus::ThreadModel
 			a_vm->TraceStack("Type cant be 'any'", a_stackID);
 			return 0.0f;
 		}
-		auto process = Thread::NiNode::NiUpdate::GetProcess(a_qst->formID);
+		GET_INSTANCE({});
+		auto process = instance->GetNiInstance();
 		if (!process) {
 			a_vm->TraceStack("Not registered", a_stackID);
 			return 0.0f;
