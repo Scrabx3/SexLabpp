@@ -25,10 +25,6 @@ namespace Papyrus::ThreadModel
 	namespace ActorAlias
 	{
 #define GET_POSITION(ret)                                                                 \
-	if (!a_alias) {                                                                         \
-		a_vm->TraceStack("Cannot call SetActorVoice on a none alias", a_stackID);             \
-		return ret;                                                                           \
-	}                                                                                       \
 	const auto actor = a_alias->GetActorReference();                                        \
 	if (!actor) {                                                                           \
 		a_vm->TraceStack("ReferenceAlias must be filled with an actor reference", a_stackID); \
@@ -259,6 +255,13 @@ namespace Papyrus::ThreadModel
 			}());
 			actor->Update3DModel();
 			return a_mergewith;
+		}
+
+		void UpdateEnjoyment(ALIASARGS, float a_enjoyment)
+		{
+			const auto& a_qst = a_alias->owningQuest;
+			GET_INSTANCE();
+			instance->SetEnjoyment(a_alias->GetActorReference(), a_enjoyment);
 		}
 
 #undef GET_POSITION
@@ -736,6 +739,30 @@ namespace Papyrus::ThreadModel
 			stats.AddStatistic(stats.TimesOral, 1);
 			stats.AddStatistic(stats.XP_Oral, oral * 1.25f);
 		}
+	}
+
+	bool IsOwningSceneMenu(QUESTARGS)
+	{
+		GET_INSTANCE(false);
+		return instance->ControlsMenu();
+	}
+
+	bool TryOpenSceneMenu(QUESTARGS)
+	{
+		GET_INSTANCE(false);
+		return instance->TryOpenMenu();
+	}
+
+	bool TryCloseSceneMenu(QUESTARGS)
+	{
+		GET_INSTANCE(false);
+		return instance->TryCloseMenu();
+	}
+
+	void TryUpdateMenuTimer(QUESTARGS, float a_time)
+	{
+		GET_INSTANCE();
+		instance->UpdateTimer(a_time);
 	}
 
 }	 // namespace Papyrus::ThreadModel

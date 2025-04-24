@@ -25,9 +25,17 @@ namespace Thread::Interface
 		static RE::IMenu* Create() { return new SceneMenu(); }
 
 	public:
-		static void Show() { RE::UIMessageQueue::GetSingleton()->AddMessage(MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr); }
+		static void Show(Instance* instance) { (threadInstance = instance, RE::UIMessageQueue::GetSingleton()->AddMessage(MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr)); }
 		static void Hide() { RE::UIMessageQueue::GetSingleton()->AddMessage(MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr); }
 		static bool IsOpen() { return RE::UI::GetSingleton()->IsMenuOpen(MENU_NAME); }
+
+		static bool IsInstance(Instance* a_instance) { return threadInstance == a_instance; }
+		static void UpdateSlider(RE::FormID a_actorId, float a_enjoyment);
+		static void SetSliderTo(RE::FormID a_actorId, float a_enjoyment);
+		static void UpdatePositions(std::vector<RE::Actor*> a_positions);
+		static void UpdateStageInfo();
+		static void UpdateTimer(float a_time);
+		static void DisableTimer();
 
 	protected:
 		// IMenu

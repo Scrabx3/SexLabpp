@@ -55,9 +55,12 @@ namespace Thread::Interface
 		const auto input = RE::BSInputDeviceManager::GetSingleton();
 		switch (*a_message.type) {
 		case Type::kShow:
+			assert(threadInstance);
+			UpdatePositions(threadInstance->GetActors());
 			input->AddEventSink<RE::InputEvent*>(this);
 			return Result::kHandled;
 		case Type::kHide:
+			threadInstance = nullptr;
 			input->RemoveEventSink(this);
 			return Result::kHandled;
 		case Type::kUserEvent:
@@ -66,6 +69,105 @@ namespace Thread::Interface
 		default:
 			return RE::IMenu::ProcessMessage(a_message);
 		}
+	}
+
+	void SceneMenu::UpdateSlider(RE::FormID a_actorId, float a_enjoyment)
+	{
+		assert(IsOpen() && threadInstance);
+		SKSE::GetTaskInterface()->AddUITask([=]() {
+			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			std::vector<RE::GFxValue> args{};
+			args.emplace_back(a_actorId);
+			args.emplace_back(a_enjoyment);
+			view->InvokeNoReturn("_root.main.updateSliderPct", args.data(), static_cast<uint32_t>(args.size()));
+		});
+	}
+
+	void SceneMenu::SetSliderTo(RE::FormID a_actorId, float a_enjoyment)
+	{
+		SKSE::GetTaskInterface()->AddUITask([=]() {
+			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			std::vector<RE::GFxValue> args{};
+			args.emplace_back(a_actorId);
+			args.emplace_back(a_enjoyment);
+			view->InvokeNoReturn("_root.main.setSliderPct", args.data(), static_cast<uint32_t>(args.size()));
+		});
+	}
+
+
+	void SceneMenu::UpdatePositions(std::vector<RE::Actor*> a_positions)
+	{
+		assert(IsOpen() && threadInstance);
+		SKSE::GetTaskInterface()->AddUITask([a_positions = std::move(a_positions)]() {
+			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			std::vector<RE::GFxValue> args{};
+			args.reserve(a_positions.size());
+			for (const auto& pos : a_positions) {
+				if (!pos) {
+					logger::warn("UpdatePositions: Invalid actor reference");
+					continue;
+				}
+				RE::GFxValue arg;
+				view->CreateObject(&arg);
+				arg.SetMember("id", { pos->GetFormID() });
+				arg.SetMember("name", { pos->GetName() });
+				args.push_back(arg);
+			}
+			view->InvokeNoReturn("_root.main.setSliders", args.data(), static_cast<uint32_t>(args.size()));
+		});
+	}
+
+	void SceneMenu::UpdateStageInfo() 
+	{
+		SKSE::GetTaskInterface()->AddUITask([]() {
+			const auto activeScene = threadInstance->GetActiveScene();
+			const auto activeStage = threadInstance->GetActiveStage();
+			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			const auto& edges = activeScene->GetAdjacentStages(activeStage);
+			std::vector<RE::GFxValue> args{};
+			if (edges && !edges->empty()) {
+				args.reserve(edges->size());
+				for (const auto& edge : *edges) {
+					RE::GFxValue arg;
+					view->CreateObject(&arg);
+					arg.SetMember("id", { edge->id.c_str() });
+					arg.SetMember("name", { edge->navtext.c_str() });
+					arg.SetMember("length", { edge->fixedlength > 0 });
+					bool hasClimax = false;
+					for (const auto& pos : edge->positions) {
+						if (pos.climax) {
+							hasClimax = true;
+							break;
+						}
+					}
+					arg.SetMember("climax", { hasClimax });
+					bool endNode = activeScene->GetNumAdjacentStages(edge) == 0;
+					arg.SetMember("end", { endNode });
+					args.push_back(arg);
+				}
+			} else {
+				RE::GFxValue arg;
+				view->CreateObject(&arg);
+				arg.SetMember("id", { "" });
+				arg.SetMember("name", { "$SL_EndScene" });
+				args.push_back(arg);
+			}
+			view->InvokeNoReturn("_root.main.setStages", args.data(), static_cast<uint32_t>(args.size()));
+		});
+	}
+
+	void SceneMenu::UpdateTimer(float a_time)
+	{
+		SKSE::GetTaskInterface()->AddUITask([=]() {
+			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::MENU_NAME);
+			RE::GFxValue arg{ a_time };
+			view->InvokeNoReturn("_root.main.setTimer", &arg, 1);
+		});
+	}
+
+	void SceneMenu::DisableTimer()
+	{
+		UpdateTimer(0.0f);
 	}
 
 	RE::BSEventNotifyControl SceneMenu::ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>*)

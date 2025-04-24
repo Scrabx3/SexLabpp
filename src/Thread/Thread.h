@@ -64,8 +64,12 @@ namespace Thread
 		static Instance* GetInstance(RE::TESQuest* a_linkedQst);
 
 	public:
-		void AdvanceScene(const Registry::Stage* a_nextStage);
+		bool ControlsMenu();
+		bool TryOpenMenu();
+		bool TryCloseMenu();
+		void UpdateTimer(float a_timer);
 
+		void AdvanceScene(const Registry::Stage* a_nextStage);
 		bool SetActiveScene(const Registry::Scene* a_scene);
 		const Registry::Scene* GetActiveScene() { return activeScene; }
 		const Registry::Stage* GetActiveStage() { return activeStage; }
@@ -84,6 +88,7 @@ namespace Thread
 		bool GetAutoplayEnabled();
 		void SetAutoplayEnabled(bool a_enabled);
 
+		void SetEnjoyment(RE::Actor* a_position, float a_enjoyment);
 		const Registry::Expression* GetExpression(RE::Actor* a_position);
 		void SetExpression(RE::Actor* a_position, const Registry::Expression* a_expression);
 		const Registry::Voice* GetVoice(RE::Actor* a_position);
@@ -94,7 +99,7 @@ namespace Thread
 		int32_t GetCurrentPermutation(RE::Actor* a_position);
 		void SetNextPermutation(RE::Actor* a_position);
 
-private:
+	private:
 		RE::TESQuest* linkedQst;
 
 		Center center;

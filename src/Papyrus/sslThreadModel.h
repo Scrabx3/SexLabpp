@@ -30,6 +30,8 @@ namespace Papyrus::ThreadModel
 		std::vector<RE::TESForm*> StripByData(ALIASARGS, int32_t a_stripdata, std::vector<uint32_t> a_defaults, std::vector<uint32_t> a_overwrite);
 		std::vector<RE::TESForm*> StripByDataEx(ALIASARGS, int32_t a_stripdata, std::vector<uint32_t> a_defaults, std::vector<uint32_t> a_overwrite, std::vector<RE::TESForm*> a_mergewith);
 
+		void UpdateEnjoyment(ALIASARGS, float a_enjoyment);
+
 		inline bool Register(VM* a_vm)
 		{
 			REGISTERFUNC(GetActorVoice, "sslActorAlias", false);
@@ -42,6 +44,8 @@ namespace Papyrus::ThreadModel
 
 			REGISTERFUNC(StripByData, "sslActorAlias", false);
 			REGISTERFUNC(StripByDataEx, "sslActorAlias", false);
+
+			REGISTERFUNC(UpdateEnjoyment, "sslActorAlias", false);
 
 			return true;
 		}
@@ -76,6 +80,11 @@ namespace Papyrus::ThreadModel
 	void AddExperience(QUESTARGS, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages);
 	void UpdateStatistics(QUESTARGS, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time);
 
+	bool IsOwningSceneMenu(QUESTARGS);
+	bool TryOpenSceneMenu(QUESTARGS);
+	bool TryCloseSceneMenu(QUESTARGS);
+	void TryUpdateMenuTimer(QUESTARGS, float a_time);
+
 	inline bool Register(VM* a_vm)
 	{
 		REGISTERFUNC(GetActiveScene, "sslThreadModel", false);
@@ -106,6 +115,11 @@ namespace Papyrus::ThreadModel
 
 		REGISTERFUNC(AddExperience, "sslThreadModel", true);
 		REGISTERFUNC(UpdateStatistics, "sslThreadModel", true);
+
+		REGISTERFUNC(IsOwningSceneMenu, "sslThreadModel", true);
+		REGISTERFUNC(TryOpenSceneMenu, "sslThreadModel", true);
+		REGISTERFUNC(TryCloseSceneMenu, "sslThreadModel", true);
+		REGISTERFUNC(TryUpdateMenuTimer, "sslThreadModel", true);
 
 		return ActorAlias::Register(a_vm);
 	}

@@ -2,6 +2,7 @@
 
 #include "Registry/Library.h"
 #include "Registry/Util/Scale.h"
+#include "Thread/Interface/SceneMenu.h"
 #include "Thread/NiNode/NiUpdate.h"
 #include "Util/Script.h"
 
@@ -41,6 +42,31 @@ namespace Thread
 		details = Registry::Library::GetSingleton()->GetFurnitureDetails(a_ref);
 	}
 
+	bool Instance::ControlsMenu()
+	{
+		return Interface::SceneMenu::IsInstance(this);
+	}
+
+	bool Instance::TryOpenMenu()
+	{
+		if (Interface::SceneMenu::IsOpen()) return false;
+		Interface::SceneMenu::Show(this);
+		return true;
+	}
+
+	bool Instance::TryCloseMenu()
+	{
+		if (!Interface::SceneMenu::IsOpen()) return false;
+		Interface::SceneMenu::Hide();
+		return true;
+	}
+
+	void Instance::UpdateTimer(float a_timer)
+	{
+		if (!ControlsMenu()) return;
+		Interface::SceneMenu::UpdateTimer(a_timer);
+	}
+
 	void Instance::AdvanceScene(const Registry::Stage* a_nextStage)
 	{
 		assert(activeScene && activeScene->GetStageNodeType(a_nextStage) != Registry::Scene::NodeType::None);
@@ -62,6 +88,9 @@ namespace Thread
 			actor->SetPosition(coordinate.AsNiPoint(), true);
 			actor->Update3DPosition(true);
 			actor->NotifyAnimationGraph(animationEvent);
+		}
+		if (ControlsMenu()) {
+			Interface::SceneMenu::UpdateStageInfo();
 		}
 	}
 
@@ -195,6 +224,13 @@ namespace Thread
 		Script::SetProperty(scriptObj, "AutoAdvance", a_enabled);
 	}
 
+	void Instance::SetEnjoyment(RE::Actor* a_position, float a_enjoyment)
+	{
+		// COMEBACK: If enjoyment is moved into backend, update this
+		if (ControlsMenu()) {
+			Interface::SceneMenu::UpdateSlider(a_position->GetFormID(), a_enjoyment);
+		}
+	}
 
 	const Registry::Expression* Instance::GetExpression(RE::Actor* a_actor)
 	{
