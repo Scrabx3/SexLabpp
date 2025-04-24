@@ -23,7 +23,7 @@ namespace Thread::Interface
 				return;
 			std::vsnprintf(buffer, length, msg.c_str(), a_argList);
 
-			logger::info("{} -> {}", T::NAME, buffer);
+			logger::info("{} -> {}", T::MENU_NAME, buffer);
 			free(buffer);
 		}
 	};
