@@ -34,8 +34,8 @@ namespace Thread
 			if (sceneArr.begin() == priorityScenes.begin()) {
 				if (sceneArr.empty())
 					throw std::runtime_error("No compatible scenes found for thread.");
-				const auto centerName = center.ref->GetDisplayFullName();
-				const auto centerId = center.ref->GetFormID();
+				const auto centerName = center.GetRef()->GetDisplayFullName();
+				const auto centerId = center.GetRef()->GetFormID();
 				const auto totalScenes = sceneArr.size() + removed;
 				logger::info("Thread validated. Center: {}, {:X}, Scenes: {}/{} scenes are compatible.", centerName, centerId, sceneArr.size(), totalScenes);
 			}
@@ -87,8 +87,8 @@ namespace Thread
 		const auto sceneTypes = std::ranges::fold_left(prioScenes, REX::EnumSet{ Registry::FurnitureType::None }, [](auto&& acc, const auto& it) {
 			return acc | it->GetFurnitureTypes();
 		});
-		if (center.ref && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
-			logger::info("Using fixed center {:X} with offset {}.", center.ref->GetFormID(), center.offset.type.ToString());
+		if (center.GetRef() && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
+			logger::info("Using fixed center {:X} with offset {}.", center.GetRef()->GetFormID(), center.offset.type.ToString());
 		} else if (sceneTypes == Registry::FurnitureType::None) {
 			logger::info("No Furniture scenes found in thread. Using actor {:X} as center.", centerAct->GetFormID());
 			center.SetReference(centerAct, {});
@@ -125,8 +125,8 @@ namespace Thread
 
 	bool Instance::InitializeFixedCenter(RE::Actor* centerAct, std::vector<const Registry::Scene*>& prioScenes, REX::EnumSet<Registry::FurnitureType::Value> sceneTypes)
 	{
-		const auto& details = center.details = Registry::Library::GetSingleton()->GetFurnitureDetails(center.ref);
-		auto inBounds = details ? details->GetClosestCoordinatesInBound(center.ref, sceneTypes, centerAct) : std::vector<Registry::FurnitureOffset>{};
+		const auto& details = center.details = Registry::Library::GetSingleton()->GetFurnitureDetails(center.GetRef());
+		auto inBounds = details ? details->GetClosestCoordinatesInBound(center.GetRef(), sceneTypes, centerAct) : std::vector<Registry::FurnitureOffset>{};
 		for (auto i = inBounds.begin(); i < inBounds.end(); i++) {
 			if (std::ranges::any_of(prioScenes, [type = i->type](const auto& scene) { return scene->IsCompatibleFurniture(type); })) {
 				center.offset = *i;
@@ -137,7 +137,7 @@ namespace Thread
 			center.offset = { Registry::FurnitureType::None, {} };
 			return true;
 		}
-		logger::warn("Center reference {:X} is not compatible with any scene.", center.ref->GetFormID());
+		logger::warn("Center reference {:X} is not compatible with any scene.", center.GetRef()->GetFormID());
 		return false;
 	}
 

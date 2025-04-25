@@ -46,13 +46,13 @@ namespace Thread
 		struct Center
 		{
 			Center(RE::BGSRefAlias* alias) :
-				alias(alias), ref(alias ? alias->GetReference() : nullptr) {}
+				alias(alias) {}
 			~Center() = default;
 
 			void SetReference(RE::TESObjectREFR* a_ref, Registry::FurnitureOffset a_offset);
+			RE::TESObjectREFR* GetRef() { return alias->GetReference(); }
 
 			RE::BGSRefAlias* alias;
-			RE::TESObjectREFR* ref{ nullptr };
 			Registry::FurnitureOffset offset{};
 			const Registry::FurnitureDetails* details{ nullptr };
 		};
@@ -86,7 +86,7 @@ namespace Thread
 		const Registry::PositionInfo* GetPositionInfo(RE::Actor* a_actor);
 		void UpdatePlacement(RE::Actor* a_actor);
 
-		RE::TESObjectREFR* GetCenterRef() { return center.ref; }
+		RE::TESObjectREFR* GetCenterRef() { return center.GetRef(); }
 		Registry::FurnitureType GetFurnitureType() { return center.offset.type; }
 		bool ReplaceCenterRef(RE::TESObjectREFR* a_ref);
 

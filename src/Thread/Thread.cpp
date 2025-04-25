@@ -96,7 +96,7 @@ namespace Thread
   {
     assert(a_scene);
     if (a_scene->GetFurnitureTypes().none(center.offset.type.value)) {
-      logger::warn("Scene {} is not compatible with center reference {}.", a_scene->id, center.ref->GetFormID());
+			logger::warn("Scene {} is not compatible with center reference {}.", a_scene->id, center.GetRef()->GetFormID());
       return false;
     }
 		const auto fragments = std::ranges::fold_left(positions, std::vector<Registry::ActorFragment>{}, [](auto&& acc, const auto& it) {
@@ -182,13 +182,13 @@ namespace Thread
 	}
 
 	bool Instance::ReplaceCenterRef(RE::TESObjectREFR* a_ref)
-  {
-    assert(a_ref);
-    if (a_ref == center.ref) {
-      return false;
+	{
+		assert(a_ref);
+		if (a_ref == center.GetRef()) {
+			return false;
 		}
 		const auto centerStr = center.offset.type.ToString();
-		const auto& details = center.details = Registry::Library::GetSingleton()->GetFurnitureDetails(center.ref);
+		const auto& details = center.details = Registry::Library::GetSingleton()->GetFurnitureDetails(center.GetRef());
 		if (!details) {
 			if (!center.offset.type.IsNone()) {
 				constexpr auto nonStr = Registry::FurnitureType::ToString<Registry::FurnitureType::None>();
@@ -197,18 +197,18 @@ namespace Thread
 			}
 			center.SetReference(a_ref, {});
 		} else {
-			const auto inBounds = details->GetClosestCoordinatesInBound(a_ref, center.offset.type.value, center.ref);
+			const auto inBounds = details->GetClosestCoordinatesInBound(a_ref, center.offset.type.value, center.GetRef());
 			if (inBounds.empty()) {
 				logger::warn("Reference {:X} is not compatible with any scene.", a_ref->GetFormID());
 				return false;
 			}
 			center.SetReference(a_ref, inBounds.front());
 		}
-		baseCoordinates = center.offset.offset.ApplyReturn(center.ref);
+		baseCoordinates = center.offset.offset.ApplyReturn(center.GetRef());
 		activeScene->furnitureOffset.Apply(baseCoordinates);
 		AdvanceScene(activeStage);
 		return true;
-  }
+	}
 
 	bool Instance::GetAutoplayEnabled()
 	{
