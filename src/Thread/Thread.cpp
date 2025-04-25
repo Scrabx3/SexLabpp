@@ -350,7 +350,7 @@ namespace Thread
 		const auto i = static_cast<size_t>(iTmp);
 		const auto idx = static_cast<size_t>(idxTmp);
 		assert(i < assignments.size() && idx < assignments[i].size());
-		for (size_t j = (i + 1); j != i - 1; j = (j + 1) % assignments.size()) {
+		for (size_t j = (i + 1) % assignments.size(); j != i - 1; j = (j + 1) % assignments.size()) {
 			if (assignments[j][idx] != a_actor) {
 				activeAssignment = assignments[j];
 				AdvanceScene(activeStage);
