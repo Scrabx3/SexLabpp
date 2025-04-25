@@ -147,8 +147,8 @@ namespace Thread::Interface
 			} else {
 				RE::GFxValue arg;
 				view->CreateObject(&arg);
-				arg.SetMember("id", { "" });
-				arg.SetMember("name", { "$SL_EndScene" });
+				arg.SetMember("id", { ""sv });
+				arg.SetMember("name", { "$SL_EndScene"sv });
 				args.push_back(arg);
 			}
 			view->InvokeNoReturn("_root.main.setStages", args.data(), static_cast<uint32_t>(args.size()));
@@ -269,18 +269,13 @@ namespace Thread::Interface
 
 	RE::Actor* SceneMenu::GFxFunctionHandlerWrapper::GetActorByReferenceId(Params& a_args, size_t argIdx)
 	{
-		assert(a_args.argCount > argIdx);
-		if (a_args.args[argIdx].GetType() != RE::GFxValue::ValueType::kNumber) {
-			logger::warn("GetPermutationData: Expected number argument");
-			return nullptr;
-		}
-		const auto formId = a_args.args->GetUInt();
+		assert(a_args.argCount > argIdx && a_args.args[argIdx].GetType() == RE::GFxValue::ValueType::kNumber);
+		const auto formId = a_args.args[argIdx].GetUInt();
 		const auto positions = threadInstance->GetActors();
 		for (auto&& actor : positions) {
-			if (actor->GetFormID() != formId) {
-				continue;
+			if (actor->GetFormID() == formId) {
+				return actor;
 			}
-			return actor;
 		}
 		logger::warn("GetActorByReferenceId: Invalid form ID {}", formId);
 		return nullptr;
@@ -318,13 +313,8 @@ namespace Thread::Interface
 
 	void SceneMenu::SLAPI_GetHotkeyCombination::Call(Params& a_args)
 	{
-		assert(a_args.argCount == 1);
-		auto& idArg = a_args.args[0];
-		if (idArg.GetType() != RE::GFxValue::ValueType::kString) {
-			logger::warn("GetHotkeyCombination: Expected string argument");
-			return a_args.retVal->SetString("");
-		}
-		std::string idStr{ idArg.GetString() };
+		assert(a_args.argCount == 1 && a_args.args->GetType() == RE::GFxValue::ValueType::kString);
+		std::string idStr{ a_args.args->GetString() };
 		const auto enumName = magic_enum::enum_cast<Settings::KeyType>(idStr, magic_enum::case_insensitive);
 		const auto keyCode = Settings::GetKeyCode(enumName.value_or(Settings::KeyType::None));
 		if (keyCode == 0) {
@@ -355,7 +345,7 @@ namespace Thread::Interface
 		const auto activeScene = threadInstance->GetActiveScene();
 		const auto activeStage = threadInstance->GetActiveStage();
 		auto offsets = &activeScene->furnitureOffset;
-		if (a_args.argCount > 1) {
+		if (a_args.argCount > 1 && a_args.args[1].GetType() == RE::GFxValue::ValueType::kNumber) {
 			auto act = GetActorByReferenceId(a_args, 1);
 			if (!act) {
 				logger::warn("GetOffset: Invalid actor reference ID {}", a_args.args[1].GetUInt());
@@ -363,7 +353,7 @@ namespace Thread::Interface
 			}
 			const auto threadAct = threadInstance->GetActors();
 			const auto i = std::distance(threadAct.begin(), std::find(threadAct.begin(), threadAct.end(), act));
-			assert(i > 0);
+			assert(i >= 0);
 			if (static_cast<size_t>(i) >= threadAct.size()) {
 				logger::warn("GetOffset: Actor {} is not part of the current scene", act->GetFormID());
 				return a_args.retVal->SetNumber(0.0f);
@@ -379,7 +369,7 @@ namespace Thread::Interface
 		const auto activeScene = threadInstance->GetActiveScene();
 		const auto activeStage = threadInstance->GetActiveStage();
 		Registry::Library::GetSingleton()->EditScene(activeScene, [&](Registry::Scene* scene) {
-			if (a_args.argCount > 0) {
+			if (a_args.argCount > 0 && a_args.args[0].GetType() == RE::GFxValue::ValueType::kNumber) {
 				auto act = GetActorByReferenceId(a_args, 0);
 				if (!act) {
 					logger::warn("GetOffset: Invalid actor reference ID {}", a_args.args[1].GetUInt());
@@ -408,18 +398,14 @@ namespace Thread::Interface
 
 	void SceneMenu::SLAPI_AdjustOffsetStepSize::Call(Params& a_args)
 	{
-		assert(a_args.argCount > 0);
-		if (a_args.args->GetType() != RE::GFxValue::ValueType::kBoolean) {
-			logger::warn("AdjustOffsetStepSize: Expected boolean argument");
+		assert(a_args.argCount > 0 && a_args.args->GetType() == RE::GFxValue::ValueType::kBoolean);
+		bool upward = a_args.args->GetBool();
+		if (upward) {
+			Settings::fAdjustStepSize += Settings::fAdjustStepSizeIncrement;
 		} else {
-			bool upward = a_args.args->GetBool();
-			if (upward) {
-				Settings::fAdjustStepSize += Settings::fAdjustStepSizeIncrement;
-			} else {
-				Settings::fAdjustStepSize -= Settings::fAdjustStepSizeIncrement;
-			}
+			Settings::fAdjustStepSize -= Settings::fAdjustStepSizeIncrement;
 		}
-		return a_args.retVal->SetNumber(Settings::fAdjustStepSize);
+		a_args.retVal->SetNumber(Settings::fAdjustStepSize);
 	}
 
 	void SceneMenu::SLAPI_GetAdjustStageOnly::Call(Params& a_args)
@@ -429,26 +415,19 @@ namespace Thread::Interface
 
 	void SceneMenu::SLAPI_SetAdjustStageOnly::Call(Params& a_args)
 	{
-		assert(a_args.argCount > 0);
-		if (a_args.args->GetType() != RE::GFxValue::ValueType::kBoolean) {
-			logger::warn("SetAdjustStageOnly: Expected boolean argument");
-		} else {
-			Settings::bAdjustStage = a_args.args->GetBool();
-		}
+		assert(a_args.argCount > 0 && a_args.args->GetType() == RE::GFxValue::ValueType::kBoolean);
+		Settings::bAdjustStage = a_args.args->GetBool();
 	}
 
 	void SceneMenu::SLAPI_GetAlternateScenes::Call(Params& a_args)
 	{
+		a_args.movie->CreateArray(a_args.retVal);
 		const auto scenes = threadInstance->GetThreadScenes();
 		for (const auto& scene : scenes) {
 			RE::GFxValue object;
 			a_args.movie->CreateObject(&object);
-			RE::GFxValue name{ RE::GFxValue::ValueType::kString };
-			RE::GFxValue id{ RE::GFxValue::ValueType::kString };
-			name.SetString(scene->name.c_str());
-			id.SetString(scene->id.c_str());
-			object.SetMember("name", name);
-			object.SetMember("id", id);
+			object.SetMember("name", { std::string_view{ scene->name } });
+			object.SetMember("id", { std::string_view{ scene->id } });
 			a_args.retVal->PushBack(object);
 		}
 	}
@@ -469,18 +448,13 @@ namespace Thread::Interface
 		const auto actor = GetActorByReferenceId(a_args, 0);
 		if (!actor) {
 			logger::warn("GetPermutationData: Invalid actor reference ID");
+			a_args.retVal->SetString("ERROR");
 			return;
 		}
 		const auto totalPermutations = threadInstance->GetUniquePermutations(actor);
 		const auto currentPermutation = threadInstance->GetCurrentPermutation(actor);
-		RE::GFxValue value{ RE::GFxValue::ValueType::kObject };
-		a_args.movie->CreateObject(&value);
-		RE::GFxValue total{ RE::GFxValue::ValueType::kNumber }, current{ RE::GFxValue::ValueType::kNumber };
-		total.SetNumber(totalPermutations);
-		current.SetNumber(currentPermutation);
-		value.SetMember("total", total);
-		value.SetMember("current", current);
-		a_args.retVal->PushBack(value);
+		const auto value = std::format("{} / {}", (currentPermutation + 1), totalPermutations);
+		a_args.retVal->SetString(value);
 	}
 
 	void SceneMenu::SLAPI_SelectNextPermutation::Call(Params& a_args)
@@ -508,14 +482,10 @@ namespace Thread::Interface
 
 	void SceneMenu::SLAPI_SetGhostMode::Call(Params& a_args)
 	{
-		assert(a_args.argCount == 2);
+		assert(a_args.argCount == 2 && a_args.args[1].GetType() == RE::GFxValue::ValueType::kBoolean);
 		const auto actor = GetActorByReferenceId(a_args, 0);
 		if (!actor) {
 			logger::warn("SetGhostMode: Invalid actor reference ID");
-			return;
-		}
-		if (a_args.args[1].GetType() != RE::GFxValue::ValueType::kBoolean) {
-			logger::warn("SetGhostMode: Expected boolean argument");
 			return;
 		}
 		const bool ghostMode = a_args.args[1].GetBool();
@@ -540,14 +510,10 @@ namespace Thread::Interface
 
 	void SceneMenu::SLAPI_SetExpression::Call(Params& a_args)
 	{
-		assert(a_args.argCount == 2);
+		assert(a_args.argCount == 2 && a_args.args[1].GetType() == RE::GFxValue::ValueType::kString);
 		const auto actor = GetActorByReferenceId(a_args, 0);
 		if (!actor) {
 			logger::warn("SetExpression: Invalid actor reference ID");
-			return;
-		}
-		if (a_args.args[1].GetType() != RE::GFxValue::ValueType::kString) {
-			logger::warn("SetExpression: Expected string argument");
 			return;
 		}
 		const auto expressionId = a_args.args[1].GetString();
@@ -562,25 +528,28 @@ namespace Thread::Interface
 	void SceneMenu::SLAPI_GetExpressions::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
+		a_args.movie->CreateArray(a_args.retVal);
 		const auto actor = GetActorByReferenceId(a_args, 0);
 		if (!actor) {
 			logger::warn("SetExpression: Invalid actor reference ID");
-			return;
-		}
-		Registry::Library::GetSingleton()->ForEachExpression([&](const auto& expression) {
-			if (!expression.enabled) {
+			a_args.retVal->SetArraySize(0);
+		} else if (!Registry::RaceKey(actor).Is(Registry::RaceKey::Value::Human)) {
+			logger::info("SetExpression: Actor {} is not a human", actor->GetDisplayFullName());
+			a_args.retVal->SetArraySize(0);
+		} else {
+			const auto lib = Registry::Library::GetSingleton();
+			lib->ForEachExpression([&](const auto& expression) {
+				if (!expression.enabled) {
+					return false;
+				}
+				RE::GFxValue object;
+				a_args.movie->CreateObject(&object);
+				object.SetMember("id", { std::string_view{ expression.GetId() } });
+				object.SetMember("name", { std::string_view{ expression.GetId() } });
+				a_args.retVal->PushBack(object);
 				return false;
-			}
-			RE::GFxValue object;
-			a_args.movie->CreateObject(&object);
-			RE::GFxValue id{ RE::GFxValue::ValueType::kString }, name{ RE::GFxValue::ValueType::kString };
-			id.SetString(expression.GetId());
-			object.SetMember("id", id);
-			name.SetString(expression.GetId());
-			object.SetMember("name", name);
-			a_args.retVal->PushBack(object);
-			return false;
-		});
+			});
+		}
 	}
 
 	void SceneMenu::SLAPI_GetVoiceName::Call(Params& a_args)
@@ -601,14 +570,10 @@ namespace Thread::Interface
 
 	void SceneMenu::SLAPI_SetVoice::Call(Params& a_args)
 	{
-		assert(a_args.argCount == 2);
+		assert(a_args.argCount == 2 && a_args.args[1].GetType() == RE::GFxValue::ValueType::kString);
 		const auto actor = GetActorByReferenceId(a_args, 0);
 		if (!actor) {
 			logger::warn("SetVoice: Invalid actor reference ID");
-			return;
-		}
-		if (a_args.args[1].GetType() != RE::GFxValue::ValueType::kString) {
-			logger::warn("SetVoice: Expected string argument");
 			return;
 		}
 		const auto voiceId = a_args.args[1].GetString();
@@ -623,9 +588,11 @@ namespace Thread::Interface
 	void SceneMenu::SLAPI_GetVoices::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
+		a_args.movie->CreateArray(a_args.retVal);
 		const auto actor = GetActorByReferenceId(a_args, 0);
 		if (!actor) {
 			logger::warn("SetVoice: Invalid actor reference ID");
+			a_args.retVal->SetArraySize(0);
 			return;
 		}
 		const auto actRace = Registry::RaceKey{ actor };
@@ -635,11 +602,8 @@ namespace Thread::Interface
 			}
 			RE::GFxValue object;
 			a_args.movie->CreateObject(&object);
-			RE::GFxValue id{ RE::GFxValue::ValueType::kString }, name{ RE::GFxValue::ValueType::kString };
-			id.SetString(voice.GetId());
-			object.SetMember("id", id);
-			name.SetString(voice.GetDisplayName());
-			object.SetMember("name", name);
+			object.SetMember("id", { std::string_view{ voice.GetId() } });
+			object.SetMember("name", { std::string_view{ voice.GetDisplayName() } });
 			a_args.retVal->PushBack(object);
 			return false;
 		});
