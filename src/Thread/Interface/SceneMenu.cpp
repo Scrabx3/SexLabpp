@@ -61,7 +61,9 @@ namespace Thread::Interface
 			return Result::kHandled;
 		case Type::kUserEvent:
 		case Type::kScaleformEvent:
-			return Result::kPassOn;
+			if (RE::ControlMap::GetSingleton()->textEntryCount <= 0)
+				return Result::kPassOn;
+			__fallthrough;
 		default:
 			return RE::IMenu::ProcessMessage(a_message);
 		}
