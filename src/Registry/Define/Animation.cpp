@@ -412,8 +412,8 @@ namespace Registry
 	{
 		if (a_furniture.IsNone()) {
 			return !RequiresFurniture();
-		} else if (a_furniture.IsBed()) {
-			return allowBed;
+		} else if (a_furniture.IsBed() && allowBed) {
+			return true;
 		}
 		return GetFurnitureTypes().any(a_furniture.value);
 	}
