@@ -487,7 +487,7 @@ namespace Registry
 			return {};
 
 		const auto N = a_fragments.size();
-		std::vector<std::vector<std::pair<size_t, int32_t>>> fragmentGraph;	 // fragment[i] = { { positionIdx, score }, ... }
+		std::vector fragmentGraph(N, std::vector<std::pair<size_t, int32_t>>{});	 // fragment[i] = { { positionIdx, score }, ... }
 		for (size_t i = 0; i < N; i++) {
 			const auto& fragment = a_fragments[i];
 			for (size_t j = 0; j < N; j++) {
