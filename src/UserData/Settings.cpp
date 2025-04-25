@@ -180,6 +180,7 @@ uint32_t Settings::GetKeyCode(KeyType a_keyType)
 	case KeyType::Reset:
 		return get(Settings::iKeyReset);
 	default:
+		logger::warn("GetKeyCode: Invalid KeyType {}", static_cast<int>(a_keyType));
 		return 0;	 // Return 0 for KeyType::None or invalid KeyType
 	}
 }

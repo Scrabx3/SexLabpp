@@ -16,6 +16,11 @@ option("copy_to_papyrus")
     set_description("Copy finished build to Papyrus SKSE folder")
 option_end()
 
+option("skyrim_se")
+    set_default(false)
+    set_description("Enable support for Skyrim 1.5")
+option_end()
+
 option("skyrim_vr")
     set_default(false)
     set_description("Enable support for Skyrim VR")
@@ -26,10 +31,15 @@ option_end()
 -- https://github.com/xmake-io/xmake-repo/tree/dev
 add_requires("yaml-cpp", "magic_enum", "nlohmann_json", "simpleini", "glm", "eigen")
 
-if has_config("skyrim_vr") then
+if get_config("skyrim_vr") then
     includes("lib/commonlibvr")
 else
     includes("lib/commonlibsse")
+    if get_config("skyrim_se") then
+        set_config("skyrim_ae", false)
+    else
+        set_config("skyrim_ae", true)
+    end
 end
 
 -- policies
