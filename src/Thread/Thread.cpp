@@ -35,7 +35,7 @@ namespace Thread
 
 	void Instance::Center::SetReference(RE::TESObjectREFR* a_ref, Registry::FurnitureOffset a_offset)
 	{
-		assert(alias && ref);
+		assert(alias && a_ref);
 		alias->ForceRefTo(a_ref);
 		offset = a_offset;
 		details = Registry::Library::GetSingleton()->GetFurnitureDetails(a_ref);
@@ -81,8 +81,8 @@ namespace Thread
 			const auto& positionInfo = activeScene->GetNthPosition(i);
 			const auto& animationEvent = activeScene->GetNthAnimationEvent(a_nextStage, i);
 
-      scaling->SetScale(actor, positionInfo->data.GetScale());
-      actor->SetAngle({ 0.0f, 0.0f, coordinate.rotation });
+			scaling->SetScale(actor, positionInfo->data.GetScale());
+			actor->SetAngle({ 0.0f, 0.0f, coordinate.rotation });
 			actor->SetPosition(coordinate.AsNiPoint(), true);
 			actor->Update3DPosition(true);
 			actor->NotifyAnimationGraph(animationEvent);
@@ -93,20 +93,22 @@ namespace Thread
 	}
 
 	bool Instance::SetActiveScene(const Registry::Scene* a_scene)
-  {
-    assert(a_scene);
-    if (a_scene->GetFurnitureTypes().none(center.offset.type.value)) {
+	{
+		assert(a_scene);
+		if (!a_scene->IsCompatibleFurniture(center.offset.type)) {
 			logger::warn("Scene {} is not compatible with center reference {}.", a_scene->id, center.GetRef()->GetFormID());
-      return false;
-    }
+			return false;
+		}
 		const auto fragments = std::ranges::fold_left(positions, std::vector<Registry::ActorFragment>{}, [](auto&& acc, const auto& it) {
-      return (acc.push_back(it.data), acc);
+			return (acc.push_back(it.data), acc);
 		});
-		assignments = a_scene->FindAssignments(fragments);
-		if (assignments.empty()) {
+		const auto newAssignments = a_scene->FindAssignments(fragments);
+		if (newAssignments.empty()) {
 			logger::warn("Scene {} has no valid assignments.", a_scene->id);
 			return false;
 		}
+		assignments = newAssignments;
+		activeScene = a_scene;
 		std::map<RE::Actor*, uint8_t> positionCounts;
 		for (const auto& permutation : assignments) {
 			for (size_t i = 0; i < permutation.size(); i++) {
@@ -116,13 +118,17 @@ namespace Thread
 		for (auto&& p : positions) {
 			p.uniquePermutations = positionCounts[p.data.GetActor()];
 		}
-		baseCoordinates = center.offset.offset.ApplyReturn(center.ref);
+		baseCoordinates = center.offset.offset.ApplyReturn(center.GetRef());
 		activeScene->furnitureOffset.Apply(baseCoordinates);
 		activeAssignment = assignments.front();
-    return true;
+		if (ControlsMenu()) {
+			Interface::SceneMenu::UpdateActiveScene();
+		}
+		return true;
 	}
 
-	std::vector<const Registry::Scene*> Instance::GetThreadScenes(SceneType a_type) { 
+	std::vector<const Registry::Scene*> Instance::GetThreadScenes(SceneType a_type)
+	{
 		assert(a_type < SceneType::Total);
 		return scenes[a_type];
 	}
@@ -319,7 +325,7 @@ namespace Thread
 			logger::warn("Actor {} is not part of the current scene.", a_actor->GetFormID());
 			return 0;
 		}
-	 return position->currentPermutation;
+		return position->currentPermutation;
 	}
 
 	void Instance::SetNextPermutation(RE::Actor* a_actor)
