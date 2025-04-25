@@ -32,8 +32,9 @@ namespace Thread::Interface
 		static bool IsInstance(Instance* a_instance) { return threadInstance == a_instance; }
 		static void UpdateSlider(RE::FormID a_actorId, float a_enjoyment);
 		static void SetSliderTo(RE::FormID a_actorId, float a_enjoyment);
-		static void UpdatePositions(std::vector<RE::Actor*> a_positions);
+		static void UpdatePositions();
 		static void UpdateStageInfo();
+		static void UpdateActiveScene();
 		static void UpdateTimer(float a_time);
 		static void DisableTimer();
 
@@ -47,6 +48,9 @@ namespace Thread::Interface
 	private:
 		static inline Instance* threadInstance{ nullptr };
 
+	private:
+		void AttachSexLabAPIFunctions(RE::GPtr<RE::GFxMovieView> a_view);
+
 		struct GFxFunctionHandlerWrapper : public RE::GFxFunctionHandler
 		{
 		protected:
@@ -54,35 +58,27 @@ namespace Thread::Interface
 		};
 
 		// clang-format off
-		struct GetHotkeyCombination : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetActiveSceneName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetActiveSceneAuthor : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetActiveSceneOrigin : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetActiveSceneTags : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetActiveAnnotations : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetActiveFurnitureName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetOffset : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct ResetOffsets : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetOffsetStepSize : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct AdjustOffsetStepSize : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetAdjustStageOnly : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct SetAdjustStageOnly : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetAlternateScenes : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct SetActiveScene : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct PickRandomScene : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct ToggleAutoPlay : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct IsAutoPlay : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetPositions : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetPermutationData : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct SelectNextPermutation : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetGhostMode : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct SetGhostMode : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetExpressionName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct SetExpression : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetExpressions : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetVoiceName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct SetVoice : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
-		struct GetVoices : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetHotkeyCombination : public RE::GFxFunctionHandler { void Call(Params& a_args) override; };
+		struct SLAPI_GetActiveFurnitureName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetOffset : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_ResetOffsets : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetOffsetStepSize : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_AdjustOffsetStepSize : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetAdjustStageOnly : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_SetAdjustStageOnly : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetAlternateScenes : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_ToggleAutoPlay : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_IsAutoPlay : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetPermutationData : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_SelectNextPermutation : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetGhostMode : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_SetGhostMode : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetExpressionName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_SetExpression : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetExpressions : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetVoiceName : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_SetVoice : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetVoices : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		// clang-format on
 
 	private:

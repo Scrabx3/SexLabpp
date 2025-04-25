@@ -9,6 +9,8 @@ namespace Thread::Interface
 	SceneMenu::SceneMenu() :
 		RE::IMenu()
 	{
+		logger::info("Creating Scene Menu");	// TODO: Remove this line after testing
+
 		this->inputContext = Context::kNone;
 		this->depthPriority = DEPTH_PRIORITY;
 		this->menuFlags.set(
@@ -27,24 +29,17 @@ namespace Thread::Interface
 		auto view = this->uiMovie;
 		view->SetMouseCursorCount(0);
 		FunctionManager::AttachSKSEFunctions(view);
+		AttachSexLabAPIFunctions(view);
 
-		static auto hijackShowMessage = [&]() {
-			auto hud = RE::UI::GetSingleton()->GetMovieView(RE::HUDMenu::MENU_NAME);
-			RE::GFxValue hudMain, showMessage;
-			success = hud->GetVariable(&hudMain, "_root.HUDMovieBaseInstance");
-			assert(success);
-			success = hudMain.GetMember("ShowMessage", &showMessage);
-			assert(success);
-			success = hudMain.SetMember("ShowMessage_SEXLABREROUTE", showMessage);
-			assert(success);
-
-			RE::GFxFunctionHandler* fn = new HUDMenu_ShowMessageEx;
-			RE::GFxValue dst;
-			hud->CreateFunction(&dst, fn);
-			success = hudMain.SetMember("ShowMessage", dst);
-			assert(success);
-			return 0;
-		}();
+		auto hud = RE::UI::GetSingleton()->GetMovieView(RE::HUDMenu::MENU_NAME);
+		RE::GFxValue hudMain, showMessage;
+		success = hud->GetVariable(&hudMain, "_root.HUDMovieBaseInstance");
+		assert(success);
+		success = hudMain.GetMember("ShowMessage", &showMessage);
+		assert(success);
+		success = hudMain.SetMember("ShowMessage_SEXLABREROUTE", showMessage);
+		assert(success);
+		FunctionManager::AttachFunction<HUDMenu_ShowMessageEx>(hud, hudMain, "ShowMessage");
 	}
 
 	RE::UI_MESSAGE_RESULTS SceneMenu::ProcessMessage(RE::UIMessage& a_message)
@@ -56,7 +51,8 @@ namespace Thread::Interface
 		switch (*a_message.type) {
 		case Type::kShow:
 			assert(threadInstance);
-			UpdatePositions(threadInstance->GetActors());
+			UpdatePositions();
+			UpdateActiveScene();
 			input->AddEventSink<RE::InputEvent*>(this);
 			return Result::kHandled;
 		case Type::kHide:
@@ -73,9 +69,9 @@ namespace Thread::Interface
 
 	void SceneMenu::UpdateSlider(RE::FormID a_actorId, float a_enjoyment)
 	{
-		assert(IsOpen() && threadInstance);
 		SKSE::GetTaskInterface()->AddUITask([=]() {
 			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			assert(view);
 			std::vector<RE::GFxValue> args{};
 			args.emplace_back(a_actorId);
 			args.emplace_back(a_enjoyment);
@@ -87,6 +83,7 @@ namespace Thread::Interface
 	{
 		SKSE::GetTaskInterface()->AddUITask([=]() {
 			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			assert(view);
 			std::vector<RE::GFxValue> args{};
 			args.emplace_back(a_actorId);
 			args.emplace_back(a_enjoyment);
@@ -94,26 +91,27 @@ namespace Thread::Interface
 		});
 	}
 
-
-	void SceneMenu::UpdatePositions(std::vector<RE::Actor*> a_positions)
+	void SceneMenu::UpdatePositions()
 	{
-		assert(IsOpen() && threadInstance);
-		SKSE::GetTaskInterface()->AddUITask([a_positions = std::move(a_positions)]() {
+		assert(threadInstance);
+		SKSE::GetTaskInterface()->AddUITask([]() {
+			const auto positions = threadInstance->GetActors();
 			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			assert(view);
 			std::vector<RE::GFxValue> args{};
-			args.reserve(a_positions.size());
-			for (const auto& pos : a_positions) {
-				if (!pos) {
-					logger::warn("UpdatePositions: Invalid actor reference");
-					continue;
-				}
+			args.reserve(positions.size());
+			for (const auto& pos : positions) {
+				assert(pos);
+				const auto& pInfo = threadInstance->GetPosition(pos);
+				assert(pInfo);
 				RE::GFxValue arg;
 				view->CreateObject(&arg);
 				arg.SetMember("id", { pos->GetFormID() });
 				arg.SetMember("name", { pos->GetName() });
+				arg.SetMember("submissive", { pInfo->data.IsSubmissive() });
 				args.push_back(arg);
 			}
-			view->InvokeNoReturn("_root.main.setSliders", args.data(), static_cast<uint32_t>(args.size()));
+			view->InvokeNoReturn("_root.main.updatePositions", args.data(), static_cast<uint32_t>(args.size()));
 		});
 	}
 
@@ -123,6 +121,7 @@ namespace Thread::Interface
 			const auto activeScene = threadInstance->GetActiveScene();
 			const auto activeStage = threadInstance->GetActiveStage();
 			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			assert(view && activeScene && activeStage);
 			const auto& edges = activeScene->GetAdjacentStages(activeStage);
 			std::vector<RE::GFxValue> args{};
 			if (edges && !edges->empty()) {
@@ -156,10 +155,34 @@ namespace Thread::Interface
 		});
 	}
 
+	void SceneMenu::UpdateActiveScene()
+	{	
+		SKSE::GetTaskInterface()->AddUITask([=]() {
+			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			const auto activeScene = threadInstance->GetActiveScene();
+			assert(view && activeScene);
+			const auto activePackage = Registry::Library::GetSingleton()->GetPackageFromScene(activeScene);
+			assert(activePackage);
+			const auto tagVec = activeScene->tags.AsVector();
+			const auto tagStr = Util::StringJoin(tagVec, ", ");
+			const auto annotations = activeScene->tags.GetAnnotations();
+			const auto annotationStr = Util::StringJoin(annotations, ", ");
+			RE::GFxValue arg;
+			view->CreateObject(&arg);
+			arg.SetMember("name", { activeScene->name.c_str() });
+			arg.SetMember("author", { activePackage->GetAuthor().c_str() });
+			arg.SetMember("package", { activePackage->GetName().c_str() });
+			arg.SetMember("tags", { tagStr.c_str() });
+			arg.SetMember("annotations", { annotationStr.c_str() });
+			view->InvokeNoReturn("_root.main.setActiveScene", &arg, 1);
+		});
+	}
+
 	void SceneMenu::UpdateTimer(float a_time)
 	{
 		SKSE::GetTaskInterface()->AddUITask([=]() {
-			const auto view = RE::UI::GetSingleton()->GetMovieView(Thread::Interface::SceneMenu::MENU_NAME);
+			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
+			assert(view);
 			RE::GFxValue arg{ a_time };
 			view->InvokeNoReturn("_root.main.setTimer", &arg, 1);
 		});
@@ -263,7 +286,37 @@ namespace Thread::Interface
 		return nullptr;
 	}
 
-	void Thread::Interface::SceneMenu::GetHotkeyCombination::Call(Params& a_args)
+	void SceneMenu::AttachSexLabAPIFunctions(RE::GPtr<RE::GFxMovieView> a_view)
+	{
+		auto sexLabAPI = FunctionManager::MakeFunctionObject(a_view, "SexLabAPI");
+		if (!sexLabAPI) {
+			logger::warn("Failed to create SexLabAPI function object");
+			return;
+		}
+		FunctionManager::AttachFunction<SLAPI_GetHotkeyCombination>(a_view, *sexLabAPI, "GetHotkeyCombination");
+		FunctionManager::AttachFunction<SLAPI_GetActiveFurnitureName>(a_view, *sexLabAPI, "GetActiveFurnitureName");
+		FunctionManager::AttachFunction<SLAPI_GetOffset>(a_view, *sexLabAPI, "GetOffset");
+		FunctionManager::AttachFunction<SLAPI_ResetOffsets>(a_view, *sexLabAPI, "ResetOffsets");
+		FunctionManager::AttachFunction<SLAPI_GetOffsetStepSize>(a_view, *sexLabAPI, "GetOffsetStepSize");
+		FunctionManager::AttachFunction<SLAPI_AdjustOffsetStepSize>(a_view, *sexLabAPI, "AdjustOffsetStepSize");
+		FunctionManager::AttachFunction<SLAPI_GetAdjustStageOnly>(a_view, *sexLabAPI, "GetAdjustStageOnly");
+		FunctionManager::AttachFunction<SLAPI_SetAdjustStageOnly>(a_view, *sexLabAPI, "SetAdjustStageOnly");
+		FunctionManager::AttachFunction<SLAPI_GetAlternateScenes>(a_view, *sexLabAPI, "GetAlternateScenes");
+		FunctionManager::AttachFunction<SLAPI_ToggleAutoPlay>(a_view, *sexLabAPI, "ToggleAutoPlay");
+		FunctionManager::AttachFunction<SLAPI_IsAutoPlay>(a_view, *sexLabAPI, "IsAutoPlay");
+		FunctionManager::AttachFunction<SLAPI_GetPermutationData>(a_view, *sexLabAPI, "GetPermutationData");
+		FunctionManager::AttachFunction<SLAPI_SelectNextPermutation>(a_view, *sexLabAPI, "SelectNextPermutation");
+		FunctionManager::AttachFunction<SLAPI_GetGhostMode>(a_view, *sexLabAPI, "GetGhostMode");
+		FunctionManager::AttachFunction<SLAPI_SetGhostMode>(a_view, *sexLabAPI, "SetGhostMode");
+		FunctionManager::AttachFunction<SLAPI_GetExpressionName>(a_view, *sexLabAPI, "GetExpressionName");
+		FunctionManager::AttachFunction<SLAPI_SetExpression>(a_view, *sexLabAPI, "SetExpression");
+		FunctionManager::AttachFunction<SLAPI_GetExpressions>(a_view, *sexLabAPI, "GetExpressions");
+		FunctionManager::AttachFunction<SLAPI_GetVoiceName>(a_view, *sexLabAPI, "GetVoiceName");
+		FunctionManager::AttachFunction<SLAPI_SetVoice>(a_view, *sexLabAPI, "SetVoice");
+		FunctionManager::AttachFunction<SLAPI_GetVoices>(a_view, *sexLabAPI, "GetVoices");
+	}
+
+	void SceneMenu::SLAPI_GetHotkeyCombination::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
 		auto& idArg = a_args.args[0];
@@ -282,50 +335,7 @@ namespace Thread::Interface
 		a_args.retVal->SetString(nameStr.c_str());
 	}
 
-	void Thread::Interface::SceneMenu::GetActiveSceneName::Call(Params& a_args)
-	{
-		const auto activeScene = threadInstance->GetActiveScene();
-		a_args.retVal->SetString(activeScene->name.c_str());
-	}
-
-	void Thread::Interface::SceneMenu::GetActiveSceneAuthor::Call(Params& a_args)
-	{
-		const auto activeScene = threadInstance->GetActiveScene();
-		const auto package = Registry::Library::GetSingleton()->GetPackageFromScene(activeScene);
-		assert(package);
-		a_args.retVal->SetString(package->GetAuthor().c_str());
-	}
-
-	void Thread::Interface::SceneMenu::GetActiveSceneOrigin::Call(Params& a_args)
-	{
-		const auto activeScene = threadInstance->GetActiveScene();
-		const auto package = Registry::Library::GetSingleton()->GetPackageFromScene(activeScene);
-		assert(package);
-		a_args.retVal->SetString(package->GetName().c_str());
-	}
-
-	void Thread::Interface::SceneMenu::GetActiveSceneTags::Call(Params& a_args)
-	{
-		const auto activeScene = threadInstance->GetActiveScene();
-		const auto tags = activeScene->tags.AsVector();
-		for (const auto& tag : tags) {
-			RE::GFxValue value{ RE::GFxValue::ValueType::kString };
-			value.SetString(tag.c_str());
-			a_args.retVal->PushBack(value);
-		}
-	}
-
-	void Thread::Interface::SceneMenu::GetActiveAnnotations::Call(Params& a_args)
-	{
-		const auto activeScene = threadInstance->GetActiveScene();
-		for (const auto& annotation : activeScene->tags.GetAnnotations()) {
-			RE::GFxValue value;
-			value.SetString(annotation.c_str());
-			a_args.retVal->PushBack(value);
-		}
-	}
-
-	void Thread::Interface::SceneMenu::GetActiveFurnitureName::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetActiveFurnitureName::Call(Params& a_args)
 	{
 		const auto type = threadInstance->GetFurnitureType();
 		const auto name = threadInstance->GetCenterRef()->GetDisplayFullName();
@@ -333,7 +343,7 @@ namespace Thread::Interface
 		a_args.retVal->SetString(nameStr.c_str());
 	}
 
-	void Thread::Interface::SceneMenu::GetOffset::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetOffset::Call(Params& a_args)
 	{
 		assert(a_args.argCount > 0 && a_args.args[0].GetType() == RE::GFxValue::ValueType::kString);
 		const auto argStr = a_args.args[0].GetString();
@@ -364,7 +374,7 @@ namespace Thread::Interface
 		a_args.retVal->SetNumber(offset);
 	}
 
-	void Thread::Interface::SceneMenu::ResetOffsets::Call(Params& a_args)
+	void SceneMenu::SLAPI_ResetOffsets::Call(Params& a_args)
 	{
 		const auto activeScene = threadInstance->GetActiveScene();
 		const auto activeStage = threadInstance->GetActiveStage();
@@ -391,12 +401,12 @@ namespace Thread::Interface
 		threadInstance->AdvanceScene(activeStage);
 	}
 
-	void Thread::Interface::SceneMenu::GetOffsetStepSize::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetOffsetStepSize::Call(Params& a_args)
 	{
 		a_args.retVal->SetNumber(Settings::fAdjustStepSize);
 	}
 
-	void Thread::Interface::SceneMenu::AdjustOffsetStepSize::Call(Params& a_args)
+	void SceneMenu::SLAPI_AdjustOffsetStepSize::Call(Params& a_args)
 	{
 		assert(a_args.argCount > 0);
 		if (a_args.args->GetType() != RE::GFxValue::ValueType::kBoolean) {
@@ -412,12 +422,12 @@ namespace Thread::Interface
 		return a_args.retVal->SetNumber(Settings::fAdjustStepSize);
 	}
 
-	void Thread::Interface::SceneMenu::GetAdjustStageOnly::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetAdjustStageOnly::Call(Params& a_args)
 	{
 		a_args.retVal->SetBoolean(Settings::bAdjustStage);
 	}
 
-	void Thread::Interface::SceneMenu::SetAdjustStageOnly::Call(Params& a_args)
+	void SceneMenu::SLAPI_SetAdjustStageOnly::Call(Params& a_args)
 	{
 		assert(a_args.argCount > 0);
 		if (a_args.args->GetType() != RE::GFxValue::ValueType::kBoolean) {
@@ -427,7 +437,7 @@ namespace Thread::Interface
 		}
 	}
 
-	void Thread::Interface::SceneMenu::GetAlternateScenes::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetAlternateScenes::Call(Params& a_args)
 	{
 		const auto scenes = threadInstance->GetThreadScenes();
 		for (const auto& scene : scenes) {
@@ -443,69 +453,17 @@ namespace Thread::Interface
 		}
 	}
 
-	void Thread::Interface::SceneMenu::SetActiveScene::Call(Params& a_args)
-	{
-		assert(a_args.argCount == 1);
-		if (a_args.args->GetType() != RE::GFxValue::ValueType::kString) {
-			logger::warn("SetActiveScene: Expected string argument");
-			return;
-		}
-		const auto sceneId = a_args.args->GetString();
-		const auto scenes = threadInstance->GetThreadScenes();
-		for (const auto& scene : scenes) {
-			if (scene->id == sceneId) {
-				threadInstance->SetActiveScene(scene);
-				return;
-			}
-		}
-		logger::warn("SetActiveScene: No such scene registered: {}", sceneId);
-	}
-
-	void Thread::Interface::SceneMenu::PickRandomScene::Call(Params&)
-	{
-		const auto scenes = threadInstance->GetThreadScenes();
-		if (scenes.size() <= 1) {
-			logger::warn("PickRandomScene: No other scenes available");
-			return;
-		}
-		const auto activeScene = threadInstance->GetActiveScene();
-		do {
-			const auto i = Random::draw<size_t>(0, scenes.size() - 1);
-			if (scenes[i] != activeScene) {
-				threadInstance->SetActiveScene(scenes[i]);
-				return;
-			}
-		} while (true);
-	}
-
-	void Thread::Interface::SceneMenu::ToggleAutoPlay::Call(Params&)
+	void SceneMenu::SLAPI_ToggleAutoPlay::Call(Params&)
 	{
 		threadInstance->SetAutoplayEnabled(!threadInstance->GetAutoplayEnabled());
 	}
 
-	void Thread::Interface::SceneMenu::IsAutoPlay::Call(Params& a_args)
+	void SceneMenu::SLAPI_IsAutoPlay::Call(Params& a_args)
 	{
 		a_args.retVal->SetBoolean(threadInstance->GetAutoplayEnabled());
 	}
 
-	void Thread::Interface::SceneMenu::GetPositions::Call(Params& a_args)
-	{
-		const auto positions = threadInstance->GetActors();
-		for (const auto& position : positions) {
-			const auto& infoData = threadInstance->GetPositionInfo(position)->data;
-			RE::GFxValue value{ RE::GFxValue::ValueType::kObject }, name{ RE::GFxValue::ValueType::kString };
-			RE::GFxValue id{ RE::GFxValue::ValueType::kNumber };
-			auto nameStr = (infoData.IsSubmissive() ? "[S] "s : ""s) + position->GetDisplayFullName();
-			name.SetString(nameStr);
-			id.SetNumber(position->GetFormID());
-			a_args.movie->CreateObject(&value);
-			value.SetMember("name", name);
-			value.SetMember("id", id);
-			a_args.retVal->PushBack(value);
-		}
-	}
-
-	void Thread::Interface::SceneMenu::GetPermutationData::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetPermutationData::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
 		const auto actor = GetActorByReferenceId(a_args, 0);
@@ -525,7 +483,7 @@ namespace Thread::Interface
 		a_args.retVal->PushBack(value);
 	}
 
-	void Thread::Interface::SceneMenu::SelectNextPermutation::Call(Params& a_args)
+	void SceneMenu::SLAPI_SelectNextPermutation::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
 		const auto actor = GetActorByReferenceId(a_args, 0);
@@ -536,7 +494,7 @@ namespace Thread::Interface
 		threadInstance->SetNextPermutation(actor);
 	}
 
-	void Thread::Interface::SceneMenu::GetGhostMode::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetGhostMode::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
 		const auto actor = GetActorByReferenceId(a_args, 0);
@@ -548,7 +506,7 @@ namespace Thread::Interface
 		a_args.retVal->SetBoolean(ghostMode);
 	}
 
-	void Thread::Interface::SceneMenu::SetGhostMode::Call(Params& a_args)
+	void SceneMenu::SLAPI_SetGhostMode::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 2);
 		const auto actor = GetActorByReferenceId(a_args, 0);
@@ -564,7 +522,7 @@ namespace Thread::Interface
 		threadInstance->SetGhostMode(actor, ghostMode);
 	}
 
-	void Thread::Interface::SceneMenu::GetExpressionName::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetExpressionName::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
 		const auto actor = GetActorByReferenceId(a_args, 0);
@@ -580,7 +538,7 @@ namespace Thread::Interface
 		a_args.retVal->SetString(expression->id.c_str());
 	}
 
-	void Thread::Interface::SceneMenu::SetExpression::Call(Params& a_args)
+	void SceneMenu::SLAPI_SetExpression::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 2);
 		const auto actor = GetActorByReferenceId(a_args, 0);
@@ -601,7 +559,7 @@ namespace Thread::Interface
 		threadInstance->SetExpression(actor, expression);
 	}
 
-	void Thread::Interface::SceneMenu::GetExpressions::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetExpressions::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
 		const auto actor = GetActorByReferenceId(a_args, 0);
@@ -625,7 +583,7 @@ namespace Thread::Interface
 		});
 	}
 
-	void Thread::Interface::SceneMenu::GetVoiceName::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetVoiceName::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
 		const auto actor = GetActorByReferenceId(a_args, 0);
@@ -641,7 +599,7 @@ namespace Thread::Interface
 		a_args.retVal->SetString(voice->displayName.c_str());
 	}
 
-	void Thread::Interface::SceneMenu::SetVoice::Call(Params& a_args)
+	void SceneMenu::SLAPI_SetVoice::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 2);
 		const auto actor = GetActorByReferenceId(a_args, 0);
@@ -662,7 +620,7 @@ namespace Thread::Interface
 		threadInstance->SetVoice(actor, voice);
 	}
 
-	void Thread::Interface::SceneMenu::GetVoices::Call(Params& a_args)
+	void SceneMenu::SLAPI_GetVoices::Call(Params& a_args)
 	{
 		assert(a_args.argCount == 1);
 		const auto actor = GetActorByReferenceId(a_args, 0);
