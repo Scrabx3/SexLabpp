@@ -71,6 +71,7 @@ namespace Thread::Interface
 		{
 			auto skse = MakeFunctionObject(a_view, "skse");
 			if (!skse) {
+				logger::error("Failed to create SKSE function object");
 				return;
 			}
 			AttachFunction<SKSEScaleform_OpenMenu>(a_view, *skse, "OpenMenu");
