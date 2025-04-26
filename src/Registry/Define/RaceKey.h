@@ -67,7 +67,8 @@ namespace Registry
 		};
 
 		constexpr RaceKey() = default;
-		constexpr RaceKey(Value a_value);
+		constexpr RaceKey(Value a_value) :
+			value(a_value) {}
 		RaceKey(RE::Actor* a_actor);
 		RaceKey(const RE::BSFixedString& a_raceStr);
 		RaceKey(const RE::TESRace* a_race, float a_scale = 0.0f, RE::SEXES::SEX a_sex = RE::SEXES::SEX::kMale);
