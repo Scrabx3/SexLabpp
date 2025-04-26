@@ -93,8 +93,12 @@ namespace Registry
 	{
 		_basetags.set(a_tag._basetags.get());
 		_extratags.reserve(_extratags.size() + a_tag._extratags.size());
+		_annotations.reserve(_annotations.size() + a_tag._annotations.size());
 		for (auto&& tag : a_tag._extratags) {
 			AddExtraTag(tag);
+		}
+		for (auto&& tag : a_tag._annotations) {
+			AddAnnotation(tag);
 		}
 	}
 
@@ -143,37 +147,35 @@ namespace Registry
 	}
 
 	bool TagData::HasTags(const TagData& a_tag, bool a_all) const
-	{		
+	{
 		if (a_all) {
-			if (!_basetags.all(a_tag._basetags.get()))
-				return false;
-		} else if (_basetags.any(a_tag._basetags.get())) {
-			return true;
+			return _basetags.all(a_tag._basetags.get()) &&
+						 std::ranges::all_of(_extratags, [&](const auto& tag) { return a_tag.HasTag(tag); }) &&
+						 std::ranges::all_of(_annotations, [&](const auto& tag) { return a_tag.HasTag(tag); });
+		} else {
+			return _basetags.any(a_tag._basetags.get()) ||
+						 std::ranges::any_of(_extratags, [&](const auto& tag) { return a_tag.HasTag(tag); }) ||
+						 std::ranges::any_of(_annotations, [&](const auto& tag) { return a_tag.HasTag(tag); });
 		}
-		for (auto&& tag : a_tag._extratags) {
-			bool has = HasTag(tag);
-			if (a_all) {
-				if (!has)
-					return false;
-			} else if (has) {
-				return true;
-			}
-		}
-		return a_all;
 	}
-	
+
 	uint32_t TagData::CountTags(const TagData& a_tag) const
 	{
-		uint32_t ret = 0;
-		for (auto&& tag : a_tag._extratags) {
-			ret += HasTag(tag);
-		}
-		return ret;
+		return std::popcount((a_tag._basetags & _basetags).underlying()) +
+					 std::ranges::count_if(_extratags, [&](const auto& tag) { return a_tag.HasTag(tag); }) +
+					 std::ranges::count_if(_annotations, [&](const auto& tag) { return a_tag.HasTag(tag); });
 	}
 
 	bool TagData::IsEmpty() const
 	{
-		return _basetags.underlying() == 0 && _extratags.empty();
+		return _basetags.underlying() == 0 && _extratags.empty() && _annotations.empty();
+	}
+
+	void TagData::AddAnnotation(RE::BSFixedString a_tag)
+	{
+		if (std::find(_annotations.begin(), _annotations.end(), a_tag) != _annotations.end())
+			return;
+		_annotations.push_back(a_tag);
 	}
 
 	void TagData::ForEachExtra(std::function<bool(const std::string_view)> a_visitor) const

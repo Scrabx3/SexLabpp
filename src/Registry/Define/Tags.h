@@ -82,6 +82,7 @@ namespace Registry
 		void AddTag(Tag a_tag);
 		void AddTag(const TagData& a_tag);
 		void AddTag(RE::BSFixedString a_tag);
+		void AddAnnotation(RE::BSFixedString a_tag);
 
 		/// @brief Remove (all of) the arguments tags from this
 		void RemoveTag(Tag a_tag);
