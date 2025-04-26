@@ -135,6 +135,14 @@ namespace Registry
 		}
 	}
 
+	void TagData::RemoveAnnotation(const RE::BSFixedString& a_tag)
+	{
+		const auto where = std::find(_annotations.begin(), _annotations.end(), a_tag);
+		if (where == _annotations.end())
+			return;
+		_annotations.erase(where);
+	}
+
 	bool TagData::HasTag(Tag a_tag) const
 	{
 		return _basetags.all(a_tag);
@@ -162,13 +170,18 @@ namespace Registry
 	uint32_t TagData::CountTags(const TagData& a_tag) const
 	{
 		return std::popcount((a_tag._basetags & _basetags).underlying()) +
-					 std::ranges::count_if(_extratags, [&](const auto& tag) { return a_tag.HasTag(tag); }) +
-					 std::ranges::count_if(_annotations, [&](const auto& tag) { return a_tag.HasTag(tag); });
+					 static_cast<uint32_t>(std::ranges::count_if(_extratags, [&](const auto& tag) { return a_tag.HasTag(tag); })) +
+					 static_cast<uint32_t>(std::ranges::count_if(_annotations, [&](const auto& tag) { return a_tag.HasTag(tag); }));
 	}
 
 	bool TagData::IsEmpty() const
 	{
 		return _basetags.underlying() == 0 && _extratags.empty() && _annotations.empty();
+	}
+
+	bool TagData::HasAnnotation(const RE::BSFixedString& a_tag) const
+	{
+		return std::find(_annotations.begin(), _annotations.end(), a_tag) != _annotations.end();
 	}
 
 	void TagData::AddAnnotation(RE::BSFixedString a_tag)

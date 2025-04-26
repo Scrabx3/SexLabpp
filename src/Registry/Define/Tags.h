@@ -82,7 +82,6 @@ namespace Registry
 		void AddTag(Tag a_tag);
 		void AddTag(const TagData& a_tag);
 		void AddTag(RE::BSFixedString a_tag);
-		void AddAnnotation(RE::BSFixedString a_tag);
 
 		/// @brief Remove (all of) the arguments tags from this
 		void RemoveTag(Tag a_tag);
@@ -99,6 +98,12 @@ namespace Registry
 
 		/// @brief If this data contains any tags
 		_NODISCARD bool IsEmpty() const;
+
+	public:
+		bool HasAnnotation(const RE::BSFixedString& a_tag) const;
+		void AddAnnotation(RE::BSFixedString a_tag);
+		void RemoveAnnotation(const RE::BSFixedString& a_tag);
+		void SetAnnotations(const std::vector<RE::BSFixedString>& a_tags) { _annotations = a_tags; }
 
 		/// @brief Get the annotated (editable) tags
 		std::vector<RE::BSFixedString>& GetAnnotations() { return _annotations; }

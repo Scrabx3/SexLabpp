@@ -97,9 +97,15 @@ namespace Papyrus::SexLabRegistry
 	int32_t GetStripData(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	std::vector<int32_t> GetStripDataA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 
-	bool HasExtraCustom(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_extra);
-	std::vector<RE::BSFixedString> GetExtraCustom(STATICARGS, RE::BSFixedString a_id, int n);
-	std::vector<RE::BSFixedString> GetExtraCustomA(STATICARGS, RE::BSFixedString a_id);
+	bool HasSceneAnnotation(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag);
+	void RemoveSceneAnnotation(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag);
+	void AddSceneAnnotation(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag);
+	std::vector<RE::BSFixedString> GetSceneAnnotations(STATICARGS, RE::BSFixedString a_id);
+
+	bool HasPositionAnnotation(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_tag);
+	void RemovePositionAnnotation(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_tag);
+	void AddPositionAnnotation(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_tag);
+	std::vector<RE::BSFixedString> GetPositionAnnotations(STATICARGS, RE::BSFixedString a_id, int n);
 
 	inline bool Register(VM* a_vm)
 	{
@@ -184,6 +190,16 @@ namespace Papyrus::SexLabRegistry
 
 		REGISTERFUNC(GetStripData, "SexLabRegistry", true);
 		REGISTERFUNC(GetStripDataA, "SexLabRegistry", true);
+
+		REGISTERFUNC(HasSceneAnnotation, "SexLabRegistry", true);
+		REGISTERFUNC(RemoveSceneAnnotation, "SexLabRegistry", true);
+		REGISTERFUNC(AddSceneAnnotation, "SexLabRegistry", true);
+		REGISTERFUNC(GetSceneAnnotations, "SexLabRegistry", true);
+
+		REGISTERFUNC(HasPositionAnnotation, "SexLabRegistry", true);
+		REGISTERFUNC(RemovePositionAnnotation, "SexLabRegistry", true);
+		REGISTERFUNC(AddPositionAnnotation, "SexLabRegistry", true);
+		REGISTERFUNC(GetPositionAnnotations, "SexLabRegistry", true);
 
 		return true;
 	}

@@ -874,30 +874,82 @@ namespace Papyrus::SexLabRegistry
 		return ret;
 	}
 
-	bool HasExtraCustom(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_extra)
+	bool HasSceneAnnotation(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag)
+	{
+		SCENE(false);
+		return scene->tags.HasAnnotation(a_tag);
+	}
+
+	void RemoveSceneAnnotation(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag)
+	{
+		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+			scene->tags.RemoveAnnotation(a_tag);
+		});
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+	}
+
+	void AddSceneAnnotation(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag)
+	{
+		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+			scene->tags.AddAnnotation(a_tag);
+		});
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+	}
+
+	std::vector<RE::BSFixedString> GetSceneAnnotations(STATICARGS, RE::BSFixedString a_id)
+	{
+		SCENE({});
+		return scene->tags.GetAnnotations();
+	}
+
+	bool HasPositionAnnotation(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_tag)
 	{
 		SCENE(false);
 		POSITION(false);
-		return scene->positions[n].HasExtraCstm(a_extra);
+		const auto& annotations = scene->positions[n].annotations;
+		return std::ranges::find(annotations, a_tag) != annotations.end();
+	}
+	void RemovePositionAnnotation(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_tag)
+	{
+		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+			POSITION((void)0);
+			auto& annotations = scene->positions[n].annotations;
+			const auto w = std::remove(annotations.begin(), annotations.end(), a_tag);
+			scene->positions[n].annotations.erase(w, annotations.end());
+		});
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
 	}
 
-	std::vector<RE::BSFixedString> GetExtraCustom(STATICARGS, RE::BSFixedString a_id, int n)
+	void AddPositionAnnotation(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_tag)
+	{
+		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+			POSITION((void)0);
+			const auto& annotations = scene->positions[n].annotations;
+			if (std::ranges::find(annotations, a_tag) != annotations.end()) {
+				return;
+			}
+			scene->positions[n].annotations.push_back(a_tag);
+		});
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+	}
+
+	std::vector<RE::BSFixedString> GetPositionAnnotations(STATICARGS, RE::BSFixedString a_id, int n)
 	{
 		SCENE({});
 		POSITION({});
 		return scene->positions[n].annotations;
-	}
-
-	std::vector<RE::BSFixedString> GetExtraCustomA(STATICARGS, RE::BSFixedString a_id)
-	{
-		SCENE({});
-		std::vector<RE::BSFixedString> ret{};
-		ret.reserve(scene->positions.size());
-		for (auto&& it : scene->positions) {
-			const auto list = it.ConcatExtraCstm();
-			ret.push_back(list);
-		}
-		return ret;
 	}
 
 }	 // namespace Papyrus::SexLabRegistry

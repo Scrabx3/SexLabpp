@@ -232,20 +232,25 @@ namespace Registry
 
 	void Stage::Save(YAML::Node& a_node) const
 	{
-		bool skip = std::find_if(positions.begin(), positions.end(), [](auto& position) {
-			return position.offset.HasChanges();
-		}) == positions.end();
-		if (skip)
-			return;
-
-		for (size_t i = 0; i < positions.size(); i++) {
-			auto node = a_node[i];
-			positions[i].Save(node);
+		for (auto&& annotation : tags.GetAnnotations()) {
+			a_node["annotations"].push_back(annotation.data());
+		}
+		const auto hasChanges = std::ranges::find_if(positions, [](auto& position) { return position.offset.HasChanges(); });
+		if (hasChanges != positions.end()) {
+			for (size_t i = 0; i < positions.size(); i++) {
+				auto node = a_node[i];
+				positions[i].Save(node);
+			}
 		}
 	}
 
 	void Stage::Load(const YAML::Node& a_node)
 	{
+		if (auto annotations = a_node["annotations"]; annotations.IsDefined()) {
+			for (auto&& annotation : annotations) {
+				tags.AddAnnotation(annotation.as<std::string>());
+			}
+		}
 		for (size_t i = 0; i < positions.size(); i++) {
 			if (auto node = a_node[i]; node.IsDefined()) {
 				positions[i].Load(node);
