@@ -342,6 +342,11 @@ namespace Papyrus::ThreadModel
 		return Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference);
 	}
 
+	void DestroyInstance(RE::TESQuest* a_qst)
+	{
+		Thread::Instance::DestroyInstance(a_qst);
+	}
+
 	std::vector<RE::BSFixedString> GetLeadInScenes(QUESTARGS)
 	{
 		GET_INSTANCE({});

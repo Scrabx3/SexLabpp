@@ -58,6 +58,7 @@ namespace Papyrus::ThreadModel
 	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext);
 
 	bool CreateInstance(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref);
+	void DestroyInstance(RE::TESQuest* a_qst);
 	std::vector<RE::BSFixedString> GetLeadInScenes(QUESTARGS);
 	std::vector<RE::BSFixedString> GetPrimaryScenes(QUESTARGS);
 	std::vector<RE::BSFixedString> GetCustomScenes(QUESTARGS);
@@ -94,6 +95,7 @@ namespace Papyrus::ThreadModel
 		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
 
 		REGISTERFUNC(CreateInstance, "sslThreadModel", false);
+		REGISTERFUNC(DestroyInstance, "sslThreadModel", false);
 		REGISTERFUNC(GetLeadInScenes, "sslThreadModel", false);
 		REGISTERFUNC(GetPrimaryScenes, "sslThreadModel", false);
 		REGISTERFUNC(GetCustomScenes, "sslThreadModel", false);
