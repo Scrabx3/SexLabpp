@@ -47,6 +47,7 @@ namespace Papyrus::SexLabRegistry
 	bool IsSceneEnabled(STATICARGS, RE::BSFixedString a_sceneid);
 	void SetSceneEnabled(STATICARGS, RE::BSFixedString a_sceneid, bool a_enabled);
 	RE::BSFixedString GetSceneName(STATICARGS, RE::BSFixedString a_sceneid);
+	bool IsCompatibleCenter(STATICARGS, RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center);
 
 	bool IsSceneTag(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag);
 	bool IsSceneTagA(STATICARGS, RE::BSFixedString a_id, std::vector<std::string_view> a_tags);
@@ -141,6 +142,7 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(IsSceneEnabled, "SexLabRegistry", true);
 		REGISTERFUNC(SetSceneEnabled, "SexLabRegistry", true);
 		REGISTERFUNC(GetSceneName, "SexLabRegistry", true);
+		REGISTERFUNC(IsCompatibleCenter, "SexLabRegistry", true);
 
 		REGISTERFUNC(IsSceneTag, "SexLabRegistry", true);
 		REGISTERFUNC(IsSceneTagA, "SexLabRegistry", true);

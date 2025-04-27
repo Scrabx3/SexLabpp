@@ -458,6 +458,17 @@ namespace Papyrus::SexLabRegistry
 		return scene->name;
 	}
 
+	bool IsCompatibleCenter(STATICARGS, RE::BSFixedString a_id, RE::TESObjectREFR* a_center)
+	{
+		SCENE(false);
+		if (!a_center) {
+			a_vm->TraceStack("None center ref", a_stackID);
+			return false;
+		}
+		const auto details = Registry::Library::GetSingleton()->GetFurnitureDetails(a_center);
+		return scene->IsCompatibleFurniture(details);
+	}
+
 	bool IsSceneTag(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag)
 	{
 		SCENE(false);
