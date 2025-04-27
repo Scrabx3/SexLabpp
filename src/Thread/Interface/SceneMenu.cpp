@@ -209,7 +209,7 @@ namespace Thread::Interface
 		bool reset = false;
 		for (const RE::InputEvent* input = *a_event; input; input = input->next) {
 			const auto buttonEvent = input->AsButtonEvent();
-			if (!buttonEvent || !buttonEvent->IsDown())
+			if (!buttonEvent)
 				continue;
 			const auto idEvent = input->AsIDEvent();
 			if (RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) {
@@ -231,13 +231,13 @@ namespace Thread::Interface
 			case Settings::KeyType::None:
 				break;
 			case Settings::KeyType::Reset:
-				reset = true;
+				if (buttonEvent->IsPressed()) reset = true;
 				break;
 			case Settings::KeyType::Modes:
-				mode = true;
+				if (buttonEvent->IsPressed()) mode = true;
 				break;
 			default:
-				navType = type;
+				if (buttonEvent->IsDown()) navType = type;
 				break;
 			}
 		}
