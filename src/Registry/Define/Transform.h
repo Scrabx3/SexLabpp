@@ -27,6 +27,7 @@ namespace Registry
 
 		RE::NiPoint3 AsNiPoint() const { return { location.x, location.y, location.z }; }
 		glm::vec4 AsVec4(float w = 0.0f) const { return { location.x, location.y, location.z, w }; }
+		std::vector<float> AsVector() const { return { location.x, location.y, location.z, rotation }; }
 		float GetDistance(const Coordinate& a_other) const { return glm::distance(location, a_other.location); }
 
 	public:
@@ -54,9 +55,8 @@ namespace Registry
 		const Coordinate& GetOffset() const;
 		float GetOffset(CoordinateType a_type) const;
 		void SetOffset(float a_value, CoordinateType a_type);
-		void UpdateOffset(const Coordinate& a_coordinate);
-		void UpdateOffset(float x, float y, float z, float rot);
-		void UpdateOffset(float a_value, CoordinateType a_where);
+		void SetOffset(const Coordinate& a_coordinate);
+		void SetOffset(float x, float y, float z, float rot);
 		void ResetOffset();
 
 		void Save(YAML::Node& a_node) const;

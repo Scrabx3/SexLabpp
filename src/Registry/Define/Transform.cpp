@@ -75,47 +75,34 @@ namespace Registry
 		return 0.0f;
 	}
 
+	void Transform::SetOffset(const Coordinate& a_newoffset)
+	{
+		_offset = a_newoffset;
+	}
+
+	void Transform::SetOffset(float x, float y, float z, float rot)
+	{
+		_offset.location = { x, y, z };
+		_offset.rotation = glm::radians(rot);
+	}
+
 	void Transform::SetOffset(float a_value, CoordinateType a_type)
 	{
 		switch (a_type) {
 		case CoordinateType::X:
 			_offset.location.x = a_value;
+			break;
 		case CoordinateType::Y:
 			_offset.location.y = a_value;
+			break;
 		case CoordinateType::Z:
 			_offset.location.z = a_value;
-		case CoordinateType::R:
-			_offset.rotation = a_value;
-		}
-	}
-
-	void Transform::UpdateOffset(const Coordinate& a_newoffset)
-	{
-		_offset = a_newoffset;
-	}
-
-	void Transform::UpdateOffset(float x, float y, float z, float rot)
-	{
-		_offset.location = {
-			x, y, z
-		};
-		_offset.rotation = glm::radians(rot);
-	}
-
-	void Transform::UpdateOffset(float a_value, CoordinateType a_type)
-	{
-		switch (a_type) {
-		case CoordinateType::X:
-			_offset.location.x += a_value;
-			break;
-		case CoordinateType::Y:
-			_offset.location.y += a_value;
-			break;
-		case CoordinateType::Z:
-			_offset.location.z += a_value;
 			break;
 		case CoordinateType::R:
-			_offset.rotation += glm::radians(a_value);
+			_offset.rotation = glm::radians(a_value);
+			break;
+		default:
+			logger::error("Invalid offset type: {}", std::to_underlying(a_type));
 			break;
 		}
 	}

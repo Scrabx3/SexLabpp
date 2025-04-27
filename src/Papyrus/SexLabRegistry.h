@@ -88,12 +88,17 @@ namespace Papyrus::SexLabRegistry
 	RE::BSFixedString GetRaceKeyPosition(STATICARGS, RE::BSFixedString a_id, int n);
 	std::vector<RE::BSFixedString> GetRaceKeyPositionA(STATICARGS, RE::BSFixedString a_id);
 
-	std::vector<float> GetOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
-	std::vector<float> GetOffsetRaw(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
-	void UpdateOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::CoordinateType a_idx);
-	void UpdateOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset);
-	void ResetOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
-	void ResetOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage);
+	std::vector<float> GetSceneOffset(STATICARGS, RE::BSFixedString a_id);
+	std::vector<float> GetSceneOffsetRaw(STATICARGS, RE::BSFixedString a_id);
+	void SetSceneOffset(STATICARGS, RE::BSFixedString a_id, float a_value, Registry::CoordinateType a_idx);
+	void SetSceneOffsetA(STATICARGS, RE::BSFixedString a_id, std::vector<float> a_newoffset);
+	void ResetSceneOffset(STATICARGS, RE::BSFixedString a_id);
+	std::vector<float> GetStageOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	std::vector<float> GetStageOffsetRaw(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	void SetStageOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::CoordinateType a_idx);
+	void SetStageOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset);
+	void ResetStageOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
+	void ResetStageOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage);
 
 	int32_t GetStripData(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n);
 	std::vector<int32_t> GetStripDataA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage);
@@ -183,13 +188,18 @@ namespace Papyrus::SexLabRegistry
 		REGISTERFUNC(GetRaceKeyPosition, "SexLabRegistry", true);
 		REGISTERFUNC(GetRaceKeyPositionA, "SexLabRegistry", true);
 
-		REGISTERFUNC(GetOffset, "SexLabRegistry", true);
-		REGISTERFUNC(GetOffsetRaw, "SexLabRegistry", true);
-		REGISTERFUNC(UpdateOffset, "SexLabRegistry", true);
-		REGISTERFUNC(UpdateOffsetA, "SexLabRegistry", true);
-		REGISTERFUNC(ResetOffset, "SexLabRegistry", true);
-		REGISTERFUNC(ResetOffsetA, "SexLabRegistry", true);
-
+		REGISTERFUNC(GetSceneOffset, "SexLabRegistry", true);
+		REGISTERFUNC(GetSceneOffsetRaw, "SexLabRegistry", true);
+		REGISTERFUNC(SetSceneOffset, "SexLabRegistry", true);
+		REGISTERFUNC(SetSceneOffsetA, "SexLabRegistry", true);
+		REGISTERFUNC(ResetSceneOffset, "SexLabRegistry", true);
+		REGISTERFUNC(GetStageOffset, "SexLabRegistry", true);
+		REGISTERFUNC(GetStageOffsetRaw, "SexLabRegistry", true);
+		REGISTERFUNC(SetStageOffset, "SexLabRegistry", true);
+		REGISTERFUNC(SetStageOffsetA, "SexLabRegistry", true);
+		REGISTERFUNC(ResetStageOffset, "SexLabRegistry", true);
+		REGISTERFUNC(ResetStageOffsetA, "SexLabRegistry", true);
+		
 		REGISTERFUNC(GetStripData, "SexLabRegistry", true);
 		REGISTERFUNC(GetStripDataA, "SexLabRegistry", true);
 

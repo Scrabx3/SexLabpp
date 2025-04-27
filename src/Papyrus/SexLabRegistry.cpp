@@ -753,27 +753,83 @@ namespace Papyrus::SexLabRegistry
 		return ret;
 	}
 
-	std::vector<float> GetOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	std::vector<float> GetSceneOffset(STATICARGS, RE::BSFixedString a_id)
+	{
+		std::vector<float> argRet{ 0, 0, 0, 0 };
+		SCENE(argRet);
+		return scene->furnitureOffset.GetOffset().AsVector();
+	}
+
+	std::vector<float> GetSceneOffsetRaw(STATICARGS, RE::BSFixedString a_id)
+	{
+		std::vector<float> argRet{ 0, 0, 0, 0 };
+		SCENE(argRet);
+		return scene->furnitureOffset.GetRawOffset().AsVector();
+	}
+
+	void SetSceneOffset(STATICARGS, RE::BSFixedString a_id, float a_value, Registry::CoordinateType a_idx)
+	{
+		if (a_idx < Registry::CoordinateType::X || a_idx >= Registry::CoordinateType::Total) {
+			a_vm->TraceStack("Invalid offset idx", a_stackID);
+			return;
+		}
+		const auto& func = [&](auto scene) {
+			scene->furnitureOffset.SetOffset(a_value, a_idx);
+		};
+		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, func);
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+	}
+
+	void SetSceneOffsetA(STATICARGS, RE::BSFixedString a_id, std::vector<float> a_newoffset)
+	{
+		if (a_newoffset.size() < Registry::CoordinateType::Total) {
+			a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
+			return;
+		}
+		const auto& func = [&](auto scene) {
+			const Registry::Coordinate coordinate{ a_newoffset };
+			scene->furnitureOffset.SetOffset(coordinate);
+		};
+		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, func);
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+	}
+
+	void ResetSceneOffset(STATICARGS, RE::BSFixedString a_id)
+	{
+		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+			scene->furnitureOffset.ResetOffset();
+		});
+		if (!foundScene) {
+			a_vm->TraceStack("Invalid scene id", a_stackID);
+			return;
+		}
+	}
+
+	std::vector<float> GetStageOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
 	{
 		std::vector<float> argRet{ 0, 0, 0, 0 };
 		SCENE(argRet);
 		STAGE(argRet);
 		POSITION(argRet);
-		const auto& ret = stage->positions[n].offset.GetOffset();
-		return { ret.location.x, ret.location.y, ret.location.z, ret.rotation };
+		return stage->positions[n].offset.GetOffset().AsVector();
 	}
 
-	std::vector<float> GetOffsetRaw(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	std::vector<float> GetStageOffsetRaw(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
 	{
 		std::vector<float> argRet{ 0, 0, 0, 0 };
 		SCENE(argRet);
 		STAGE(argRet);
 		POSITION(argRet);
-		const auto& ret = stage->positions[n].offset.GetRawOffset();
-		return { ret.location.x, ret.location.y, ret.location.z, ret.rotation };
+		return stage->positions[n].offset.GetRawOffset().AsVector();
 	}
 
-	void UpdateOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::CoordinateType a_idx)
+	void SetStageOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, float a_value, Registry::CoordinateType a_idx)
 	{
 		bool fouundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
 			POSITION((void)0);
@@ -783,7 +839,7 @@ namespace Papyrus::SexLabRegistry
 			}
 			if (a_stage.empty()) {
 				scene->ForEachStage([&](Registry::Stage* a_stage) {
-					a_stage->positions[n].offset.UpdateOffset(a_value, a_idx);
+					a_stage->positions[n].offset.SetOffset(a_value, a_idx);
 					return false;
 				});
 			} else {
@@ -792,7 +848,7 @@ namespace Papyrus::SexLabRegistry
 					a_vm->TraceStack("Invalid stage id", a_stackID);
 					return;
 				}
-				stage->positions[n].offset.UpdateOffset(a_value, a_idx);
+				stage->positions[n].offset.SetOffset(a_value, a_idx);
 			}
 		});
 		if (!fouundScene) {
@@ -801,7 +857,7 @@ namespace Papyrus::SexLabRegistry
 		}
 	}
 
-	void UpdateOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset)
+	void SetStageOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n, std::vector<float> a_newoffset)
 	{
 		bool foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
 			POSITION((void)0);
@@ -812,7 +868,7 @@ namespace Papyrus::SexLabRegistry
 			const Registry::Coordinate coordinate{ a_newoffset };
 			if (a_stage.empty()) {
 				scene->ForEachStage([&](Registry::Stage* a_stage) {
-					a_stage->positions[n].offset.UpdateOffset(coordinate);
+					a_stage->positions[n].offset.SetOffset(coordinate);
 					return false;
 				});
 			} else {
@@ -821,7 +877,7 @@ namespace Papyrus::SexLabRegistry
 					a_vm->TraceStack("Invalid stage id", a_stackID);
 					return;
 				}
-				stage->positions[n].offset.UpdateOffset(coordinate);
+				stage->positions[n].offset.SetOffset(coordinate);
 			}
 		});
 		if (!foundScene) {
@@ -830,7 +886,7 @@ namespace Papyrus::SexLabRegistry
 		}
 	}
 
-	void ResetOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
+	void ResetStageOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
 	{
 		bool foundScene = !Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
 			const auto stage = scene->GetStageByID(a_stage);
@@ -847,7 +903,7 @@ namespace Papyrus::SexLabRegistry
 		}
 	}
 
-	void ResetOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage)
+	void ResetStageOffsetA(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage)
 	{
 		const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
 			const auto stage = scene->GetStageByID(a_stage);
