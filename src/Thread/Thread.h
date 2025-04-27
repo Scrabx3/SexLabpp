@@ -62,6 +62,7 @@ namespace Thread
 		~Instance() = default;
 
 		static bool CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
+		static void DestroyInstance(RE::TESQuest* a_linkedQst);
 		static Instance* GetInstance(RE::TESQuest* a_linkedQst);
 
 	public:

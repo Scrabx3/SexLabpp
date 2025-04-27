@@ -23,6 +23,11 @@ namespace Thread
 		}
 	}
 
+	void Instance::DestroyInstance(RE::TESQuest* a_linkedQst)
+	{
+		std::erase_if(instances, [&](const auto& instance) { return instance->linkedQst == a_linkedQst; });
+	}
+
 	Instance* Instance::GetInstance(RE::TESQuest* a_linkedQst)
 	{
 		for (auto&& instance : instances) {
