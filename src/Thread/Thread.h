@@ -40,7 +40,6 @@ namespace Thread
 			const Registry::Expression* expression{ nullptr };
 			std::optional<float> ghostAlpha{ std::nullopt };
 			uint8_t uniquePermutations{ 0 };
-			uint8_t currentPermutation{ 0 };
 		};
 
 		struct Center
@@ -112,8 +111,8 @@ namespace Thread
 		Center center;
 		std::vector<Position> positions;
 		Registry::Coordinate baseCoordinates{};
-		std::vector<RE::Actor*> activeAssignment{};
 		std::vector<std::vector<RE::Actor*>> assignments{};
+		std::vector<std::vector<RE::Actor*>>::iterator activeAssignment{ assignments.end() };
 		const Registry::Scene* activeScene{ nullptr };
 		const Registry::Stage* activeStage{ nullptr };
 		SceneMapping scenes{};

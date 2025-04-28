@@ -75,12 +75,12 @@ namespace Thread
 	{
 		assert(activeScene && activeScene->GetStageNodeType(a_nextStage) != Registry::Scene::NodeType::None);
 		if (niInstance == nullptr) {
-			niInstance = NiNode::NiUpdate::Register(linkedQst->formID, activeAssignment, activeScene);
+			niInstance = NiNode::NiUpdate::Register(linkedQst->formID, *activeAssignment, activeScene);
 		}
 		activeStage = a_nextStage;
 		const auto scaling = Registry::Scale::GetSingleton();
-		for (size_t i = 0; i < activeAssignment.size(); i++) {
-			const auto& actor = activeAssignment[i];
+		for (size_t i = 0; i < activeAssignment->size(); i++) {
+			const auto& actor = activeAssignment->at(i);
 			const auto& position = a_nextStage->positions[i];
 			const auto& coordinate = position.offset.ApplyReturn(baseCoordinates);
 			const auto& positionInfo = activeScene->GetNthPosition(i);
@@ -125,7 +125,7 @@ namespace Thread
 		}
 		baseCoordinates = center.offset.offset.ApplyReturn(center.GetRef());
 		activeScene->furnitureOffset.Apply(baseCoordinates);
-		activeAssignment = assignments.front();
+		activeAssignment = assignments.begin();
 		if (ControlsMenu()) {
 			Interface::SceneMenu::UpdateActiveScene();
 		}
@@ -150,7 +150,8 @@ namespace Thread
 
 	const std::vector<RE::Actor*>& Instance::GetActors()
 	{
-		return activeAssignment;
+		assert(activeAssignment != assignments.end());
+		return *activeAssignment;
 	}
 
 	Instance::Position* Instance::GetPosition(RE::Actor* a_actor)
@@ -167,9 +168,9 @@ namespace Thread
 	const Registry::PositionInfo* Instance::GetPositionInfo(RE::Actor* a_actor)
 	{
 		assert(a_actor);
-		const auto i = std::distance(activeAssignment.begin(), std::find(activeAssignment.begin(), activeAssignment.end(), a_actor));
+		const auto i = std::distance(activeAssignment->begin(), std::find(activeAssignment->begin(), activeAssignment->end(), a_actor));
 		assert(i >= 0);
-		if (static_cast<size_t>(i) >= activeAssignment.size()) {
+		if (static_cast<size_t>(i) >= activeAssignment->size()) {
 			logger::warn("Actor {} is not part of the current scene.", a_actor->GetFormID());
 			return nullptr;
 		}
@@ -179,9 +180,9 @@ namespace Thread
 	void Instance::UpdatePlacement(RE::Actor* a_actor)
 	{
 		assert(a_actor);
-		const auto i = std::distance(activeAssignment.begin(), std::find(activeAssignment.begin(), activeAssignment.end(), a_actor));
+		const auto i = std::distance(activeAssignment->begin(), std::find(activeAssignment->begin(), activeAssignment->end(), a_actor));
 		assert(i >= 0);
-		if (static_cast<size_t>(i) >= activeAssignment.size()) {
+		if (static_cast<size_t>(i) >= activeAssignment->size()) {
 			logger::warn("Actor {} is not part of the current scene.", a_actor->GetFormID());
 			return;
 		}
@@ -327,43 +328,52 @@ namespace Thread
 	{
 		const auto position = GetPosition(a_actor);
 		if (!position) {
-			logger::warn("Actor {} is not part of the current scene.", a_actor->GetFormID());
+			logger::error("Actor {} is not part of the current scene.", a_actor->GetFormID());
 			return 0;
 		}
-		return position->currentPermutation;
+		std::set<ptrdiff_t> seenPermutations;
+		for (auto it = assignments.begin(); it < assignments.end(); it++) {
+			const auto idx = std::distance(it->begin(), std::find(it->begin(), it->end(), a_actor));
+			seenPermutations.insert(idx);
+			if (it == activeAssignment) {
+				return static_cast<int32_t>(seenPermutations.size());
+			}
+		}
+		throw std::runtime_error("Failed to find current permutation for actor.");
 	}
 
 	void Instance::SetNextPermutation(RE::Actor* a_actor)
 	{
 		const auto position = GetPosition(a_actor);
 		if (!position) {
-			logger::warn("Actor {} is not part of the current scene.", a_actor->GetFormID());
+			logger::error("Actor {} is not part of the current scene.", a_actor->GetFormID());
 			return;
 		}
 		if (position->uniquePermutations < 2) {
-			logger::warn("Actor {} has no alternative permutations.", a_actor->GetFormID());
+			logger::info("Actor {} has no alternative permutations.", a_actor->GetFormID());
 			return;
 		}
-		if (position->currentPermutation >= position->uniquePermutations) {
-			position->currentPermutation = 0;
-		} else {
-			position->currentPermutation++;
+		auto targetPermutation = GetCurrentPermutation(a_actor) + 1;
+		if (targetPermutation > position->uniquePermutations) {
+			targetPermutation = 1;
 		}
-		const auto idxTmp = std::distance(activeAssignment.begin(), std::find(activeAssignment.begin(), activeAssignment.end(), a_actor));
-		const auto iTmp = std::distance(assignments.begin(), std::find(assignments.begin(), assignments.end(), activeAssignment));
-		assert(iTmp >= 0 && idxTmp >= 0);
-		const auto i = static_cast<size_t>(iTmp);
-		const auto idx = static_cast<size_t>(idxTmp);
-		assert(i < assignments.size() && idx < assignments[i].size());
-		for (size_t j = (i + 1) % assignments.size(); j != i - 1; j = (j + 1) % assignments.size()) {
-			if (assignments[j][idx] != a_actor) {
-				activeAssignment = assignments[j];
-				AdvanceScene(activeStage);
-				logger::info("Actor {} changed to permutation {}.", a_actor->GetFormID(), position->currentPermutation);
+		std::set<ptrdiff_t> seenPermutations;
+		for (auto it = assignments.begin(); it < assignments.end(); it++) {
+			const auto idx = std::distance(it->begin(), std::find(it->begin(), it->end(), a_actor));
+			if (idx < 0 || static_cast<size_t>(idx) == it->size()) {
+				logger::warn("Actor {} is not part of the current assignment.", a_actor->GetFormID());
 				return;
+			} else if (!seenPermutations.contains(idx)) {
+				seenPermutations.insert(idx);
+				if (seenPermutations.size() == targetPermutation) {
+					activeAssignment = it;
+					AdvanceScene(activeStage);
+					logger::info("Actor {} changed to permutation {}.", a_actor->GetFormID(), targetPermutation);
+					return;
+				}
 			}
 		}
-		logger::warn("Failed to find next permutation for actor {}.", a_actor->GetFormID());
+		logger::warn("Actor {} has no alternative permutations.", a_actor->GetFormID());
 	}
 
 }	 // namespace Thread
