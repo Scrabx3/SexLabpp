@@ -30,6 +30,12 @@ namespace Thread::Interface
 
 		auto view = this->uiMovie;
 		view->SetMouseCursorCount(this->menuFlags.all(Flag::kUsesCursor) ? 1 : 0);
+		FunctionManager::AttachSKSEFunctions(view);
+
+		RE::GFxValue main;
+		success = view->GetVariable(&main, "_root.main");
+		assert(success);
+		FunctionManager::AttachFunction<SetSelection>(view, main, "SetSelection");
 	}
 
 	std::vector<SelectionMenu::Item>::const_iterator SelectionMenu::CreateSelectionAndWait(const std::vector<Item>& a_items)
