@@ -158,12 +158,12 @@ namespace Registry
 	{
 		if (a_all) {
 			return _basetags.all(a_tag._basetags.get()) &&
-						 std::ranges::all_of(_extratags, [&](const auto& tag) { return a_tag.HasTag(tag); }) &&
-						 std::ranges::all_of(_annotations, [&](const auto& tag) { return a_tag.HasTag(tag); });
+						 std::ranges::all_of(a_tag._extratags, [&](const auto& tag) { return HasTag(tag); }) &&
+						 std::ranges::all_of(a_tag._annotations, [&](const auto& tag) { return HasTag(tag); });
 		} else {
 			return _basetags.any(a_tag._basetags.get()) ||
-						 std::ranges::any_of(_extratags, [&](const auto& tag) { return a_tag.HasTag(tag); }) ||
-						 std::ranges::any_of(_annotations, [&](const auto& tag) { return a_tag.HasTag(tag); });
+						 std::ranges::any_of(a_tag._extratags, [&](const auto& tag) { return HasTag(tag); }) ||
+						 std::ranges::any_of(a_tag._annotations, [&](const auto& tag) { return HasTag(tag); });
 		}
 	}
 
