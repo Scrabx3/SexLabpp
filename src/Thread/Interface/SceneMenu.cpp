@@ -455,7 +455,7 @@ namespace Thread::Interface
 		}
 		const auto totalPermutations = threadInstance->GetUniquePermutations(actor);
 		const auto currentPermutation = threadInstance->GetCurrentPermutation(actor);
-		const auto value = std::format("{} / {}", (currentPermutation + 1), totalPermutations);
+		const auto value = std::format("{} / {}", currentPermutation, totalPermutations);
 		a_args.retVal->SetString(value);
 	}
 
@@ -468,6 +468,10 @@ namespace Thread::Interface
 			return;
 		}
 		threadInstance->SetNextPermutation(actor);
+		const auto totalPermutations = threadInstance->GetUniquePermutations(actor);
+		const auto currentPermutation = threadInstance->GetCurrentPermutation(actor);
+		const auto value = std::format("{} / {}", currentPermutation, totalPermutations);
+		a_args.retVal->SetString(value);
 	}
 
 	void SceneMenu::SLAPI_GetGhostMode::Call(Params& a_args)
