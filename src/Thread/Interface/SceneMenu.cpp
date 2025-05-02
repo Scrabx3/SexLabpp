@@ -9,8 +9,6 @@ namespace Thread::Interface
 	SceneMenu::SceneMenu() :
 		RE::IMenu()
 	{
-		logger::info("Creating Scene Menu");	// TODO: Remove this line after testing
-
 		this->inputContext = Context::kNone;
 		this->depthPriority = DEPTH_PRIORITY;
 		this->menuFlags.set(
