@@ -84,6 +84,9 @@ namespace Thread
 	std::vector<const Registry::Scene*>& Instance::InitializeCenter(RE::Actor* centerAct, FurniturePreference furniturePreference)
 	{
 		auto& prioScenes = scenes[SceneType::Custom].empty() ? scenes[SceneType::Primary] : scenes[SceneType::Custom];
+		if (prioScenes.empty()) {
+			throw std::runtime_error("No primary scenes found for thread.");
+		}
 		const auto sceneTypes = std::ranges::fold_left(prioScenes, REX::EnumSet{ Registry::FurnitureType::None }, [](auto&& acc, const auto& it) {
 			return acc | it->GetFurnitureTypes();
 		});
