@@ -53,11 +53,16 @@ namespace Util
 	template <class T>
 	static inline std::string StringJoin(const std::vector<T>& a_vec, std::string_view a_delimiter)
 	{
-		return std::ranges::fold_left(a_vec, std::string{}, [&](std::string&& acc, const auto& str) {
-			if (str.empty()) return acc;
-			acc += a_delimiter.data();
-			return acc + str.data();
-		});
+		std::string ret;
+		if (a_vec.empty())
+			return ret;
+		ret.reserve(a_vec.size() * 2); // reserve twice the size to avoid reallocations
+		for (const auto& str : a_vec) {
+			ret += str;
+			ret += a_delimiter;
+		}
+		ret.resize(ret.size() - a_delimiter.length()); // remove last delimiter
+		return ret;
 	}
 
 	static inline bool IsNumericString(const std::string& a_str)
