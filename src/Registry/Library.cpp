@@ -200,7 +200,7 @@ namespace Registry
 				}
 			}
 		}
-		return savedVoices[a_actor->formID] = ret[Random::draw<size_t>(0, ret.size() - 1)];
+		return savedVoices[a_actor->formID] = Random::draw(ret);
 	}
 
 	const Voice* Library::GetVoice(const TagDetails& tags) const
@@ -208,7 +208,7 @@ namespace Registry
 		std::shared_lock lock{ _mVoice };
 		std::vector<const Voice*> ret{};
 		for (const auto& [_, voice] : voices) {
-			if (tags.MatchTags(voice.tags))
+			if (!tags.MatchTags(voice.tags))
 				continue;
 			ret.push_back(&voice);
 		}
