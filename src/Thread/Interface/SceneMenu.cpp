@@ -432,9 +432,11 @@ namespace Thread::Interface
 		}
 	}
 
-	void SceneMenu::SLAPI_ToggleAutoPlay::Call(Params&)
+	void SceneMenu::SLAPI_ToggleAutoPlay::Call(Params& a_args)
 	{
-		threadInstance->SetAutoplayEnabled(!threadInstance->GetAutoplayEnabled());
+		assert(a_args.argCount == 1 && a_args.args[0].GetType() == RE::GFxValue::ValueType::kBoolean);
+		bool enable = a_args.args->GetBool();
+		threadInstance->SetAutoplayEnabled(enable);
 	}
 
 	void SceneMenu::SLAPI_IsAutoPlay::Call(Params& a_args)
@@ -569,7 +571,8 @@ namespace Thread::Interface
 			logger::warn("GetVoiceName: No voice found for actor {}", actor->GetDisplayFullName());
 			return;
 		}
-		a_args.retVal->SetString(voice->displayName.c_str());
+		const auto name = voice->GetDisplayName();
+		a_args.retVal->SetString(name);
 	}
 
 	void SceneMenu::SLAPI_SetVoice::Call(Params& a_args)

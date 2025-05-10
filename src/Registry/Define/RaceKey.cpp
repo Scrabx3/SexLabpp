@@ -62,7 +62,7 @@ namespace Registry
 	};
 
 	RaceKey::RaceKey(RE::Actor* a_actor) :
-		RaceKey(a_actor->GetRace(), Scale::GetSingleton()->GetScale(a_actor), a_actor->GetActorBase()->GetSex()) {}
+		RaceKey(a_actor->GetRace(), Scale::GetSingleton()->GetScale(a_actor), [&]() { auto base = a_actor->GetActorBase(); return base ? base->GetSex() : RE::SEXES::kMale; }()) {}
 
 	RaceKey::RaceKey(const RE::BSFixedString& a_raceStr) :
 		value(magic_enum::enum_cast<Value>(a_raceStr, magic_enum::case_insensitive).value_or(Value::None))
@@ -128,7 +128,8 @@ namespace Registry
 		const auto where = behaviorfiles.find(root);
 		if (where == behaviorfiles.end()) {
 			logger::error("Unrecognized Behavior: {} (Used by Race {:X})", root, a_race->GetFormID());
-			throw std::runtime_error("Unrecognized Behavior: " + std::string{ root });
+			value = Value::None;
+			return;
 		}
 		switch (where->second) {
 		case Value::BoarAny:
