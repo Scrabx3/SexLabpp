@@ -62,23 +62,33 @@ namespace Thread
 			}
 		}
 		linkedQst->aliasAccessLock.UnlockForRead();
+		const auto centerId = center.GetRef() ? center.GetRef()->GetFormID() : 0;
+		const auto centerName = center.GetRef() ? center.GetRef()->GetDisplayFullName() : "None";
+		logger::info("Thread initialized. Center: {}, {:X}, Actors: {}.", centerName, centerId, positions.size());
 		return centerAct;
 	}
 
 	std::vector<Registry::ActorFragment> Instance::InitializeScenes(const SceneMapping& a_scenes, FurniturePreference a_furniturepref)
 	{
+		logger::info("Initializing scenes: [{},{},{}].", a_scenes[SceneType::Primary].size(), a_scenes[SceneType::LeadIn].size(), a_scenes[SceneType::Custom].size());
 		const auto fragments = std::ranges::fold_left(positions, std::vector<Registry::ActorFragment>{}, [&](auto&& acc, const auto& it) {
 			return (acc.push_back(it.data), acc);
 		});
 		for (size_t i = 0; i < SceneType::Total; i++) {
-			scenes[i] = std::ranges::fold_left(a_scenes[i], std::vector<const Registry::Scene*>{}, [&](auto&& acc, const auto& it) {
-				if ((a_furniturepref != FurniturePreference::Disallow || !it->RequiresFurniture()) && !it->FindAssignments(fragments).empty())
-					acc.emplace_back(it);
+			scenes[i] = std::ranges::fold_left(a_scenes[i], std::vector<const Registry::Scene*>{}, [&](auto&& acc, const Registry::Scene* it) {
+				if (it->FindAssignments(fragments).empty()) {
+					logger::warn("Scene {}, {} has no assignments.", it->id, it->name);
+					return acc;
+				} else if (it->RequiresFurniture() && a_furniturepref == FurniturePreference::Disallow) {
+					logger::warn("Scene {}, {} requires furniture, but furniture is disallowed.", it->id, it->name);
+					return acc;
+				}
+				acc.push_back(it);
 				return acc;
 			});
 		}
+		logger::info("Scenes initialized: [{}, {}, {}].", scenes[SceneType::Primary].size(), scenes[SceneType::LeadIn].size(), scenes[SceneType::Custom].size());
 		return fragments;
-
 	}
 
 	std::vector<const Registry::Scene*>& Instance::InitializeCenter(RE::Actor* centerAct, FurniturePreference furniturePreference)
