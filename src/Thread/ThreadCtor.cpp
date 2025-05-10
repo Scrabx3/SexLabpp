@@ -92,14 +92,17 @@ namespace Thread
 		});
 		if (center.GetRef() && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
 			logger::info("Using fixed center {:X} with offset {}.", center.GetRef()->GetFormID(), center.offset.type.ToString());
+			return prioScenes;
 		} else if (sceneTypes == Registry::FurnitureType::None) {
 			logger::info("No Furniture scenes found in thread. Using actor {:X} as center.", centerAct->GetFormID());
 			center.SetReference(centerAct, {});
+			return prioScenes;
 		}
 		const auto selectionMethod = GetSelectionMethod(furniturePreference);
 		if (selectionMethod == CenterSelection::Actor) {
 			logger::info("Using actor {:X} as center.", centerAct->GetFormID());
 			center.SetReference(centerAct, {});
+			return prioScenes;
 		}
 		const auto furnitureMap = GetUniqueFurnituesOfTypeInBound(centerAct, sceneTypes);
 		if (furnitureMap.empty()) {
