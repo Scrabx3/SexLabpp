@@ -86,8 +86,25 @@ namespace Thread
 				acc.push_back(it);
 				return acc;
 			});
+			if (i == SceneType::Primary && scenes[i].empty()) {
+				logger::warn("No primary scenes found for thread.");
+				const auto lib = Registry::Library::GetSingleton();
+				auto [pos, subm] = std::ranges::fold_left(positions, std::pair{ std::vector<RE::Actor*>(), std::vector<RE::Actor*>() }, [&](auto&& acc, const auto& it) {
+					const auto actor = it.data.GetActor();
+					if (it.data.IsSubmissive()) {
+						acc.second.push_back(actor);
+					}
+					acc.first.push_back(actor);
+					return acc;
+				});
+				do {
+					scenes[i] = lib->LookupScenes(pos, {}, subm);
+					if (!scenes[i].empty()) break;
+					subm.pop_back();
+				} while (!subm.empty());				
+			}
 		}
-		logger::info("Scenes initialized: [{}, {}, {}].", scenes[SceneType::Primary].size(), scenes[SceneType::LeadIn].size(), scenes[SceneType::Custom].size());
+		logger::info("Scenes initialized: [{},{},{}].", scenes[SceneType::Primary].size(), scenes[SceneType::LeadIn].size(), scenes[SceneType::Custom].size());
 		return fragments;
 	}
 

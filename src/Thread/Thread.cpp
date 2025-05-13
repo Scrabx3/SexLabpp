@@ -86,7 +86,7 @@ namespace Thread
 			const auto& positionInfo = activeScene->GetNthPosition(i);
 			const auto& animationEvent = activeScene->GetNthAnimationEvent(a_nextStage, i);
 
-			scaling->SetScale(actor, positionInfo->data.GetScale());
+			scaling->SetScale(actor, positionInfo->data.GetRace(), positionInfo->data.GetScale());
 			actor->SetAngle({ 0.0f, 0.0f, coordinate.rotation });
 			actor->SetPosition(coordinate.AsNiPoint(), true);
 			actor->Update3DPosition(true);
