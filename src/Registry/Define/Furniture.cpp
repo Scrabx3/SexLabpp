@@ -51,7 +51,6 @@ namespace Registry
 		if (where != FurniTable.end()) {
 			value = where->second;
 		} else {
-			// throw std::runtime_error(std::format("Unrecognized Furniture: {}", a_value.c_str()));
 			logger::error("Unrecognized Furniture: {}", a_value.c_str());
 			value = Value::None;
 		}
@@ -111,8 +110,8 @@ namespace Registry
 				return;
 			}
 			const auto typestr = typenode.as<std::string>();
-			const auto furniture = FurnitureType(typestr);
-			if (!furniture.IsNone()) {
+			const FurnitureType furniture{ typestr };
+			if (furniture.IsNone()) {
 				logger::error("Unrecognized Furniture: '{}' {}", typestr, typenode.Mark());
 				return;
 			}
