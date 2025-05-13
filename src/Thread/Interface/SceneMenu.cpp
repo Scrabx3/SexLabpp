@@ -148,7 +148,7 @@ namespace Thread::Interface
 				RE::GFxValue arg;
 				view->CreateObject(&arg);
 				arg.SetMember("id", { ""sv });
-				arg.SetMember("name", { "$SL_EndScene"sv });
+				arg.SetMember("name", { "$SSL_EndScene"sv });
 				args.push_back(arg);
 			}
 			view->InvokeNoReturn("_root.main.setStages", args.data(), static_cast<uint32_t>(args.size()));

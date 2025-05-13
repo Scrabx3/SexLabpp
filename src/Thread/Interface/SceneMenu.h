@@ -12,8 +12,6 @@ namespace Thread::Interface
 		using GRefCountBaseStatImpl::operator new;
 		using GRefCountBaseStatImpl::operator delete;
 
-		static constexpr std::string_view EVENT_END_SCENE{ "SL_EndScene" };
-
 	public:
 		static constexpr std::string_view MENU_NAME{ "SLSceneMenu" };
 		static constexpr std::string_view FILEPATH{ "SexLab\\SceneMenu" };
