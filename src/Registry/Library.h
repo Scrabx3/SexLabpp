@@ -26,8 +26,8 @@ namespace Registry
 		static constexpr const char* FURNITURE_PATH{ CONFIGPATH("Furniture") };
 
 	public:
-		_NODISCARD std::vector<Scene*> LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& tags, const std::vector<RE::Actor*>& a_submissives) const;
-		_NODISCARD std::vector<Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
+		_NODISCARD std::vector<const Scene*> LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& tags, const std::vector<RE::Actor*>& a_submissives) const;
+		_NODISCARD std::vector<const Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
 
 		_NODISCARD const AnimPackage* GetPackageFromScene(const Scene* a_scene) const;
 		_NODISCARD const Scene* GetSceneById(const RE::BSFixedString& a_id) const;

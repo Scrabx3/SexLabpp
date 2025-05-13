@@ -4,7 +4,7 @@
 
 namespace Registry
 {
-	std::vector<Scene*> Library::LookupScenes(std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
+	std::vector<const Scene*> Library::LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
 	{
 		const auto tStart = std::chrono::high_resolution_clock::now();
 		ActorFragment::FragmentHash hash;
@@ -36,7 +36,7 @@ namespace Registry
 		}
 		const auto& rawScenes = where->second;
 
-		std::vector<Scene*> ret{};
+		std::vector<const Scene*> ret{};
 		ret.reserve(rawScenes.size());
 		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
 			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
@@ -51,10 +51,10 @@ namespace Registry
 		return ret;
 	}
 
-	std::vector<Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
+	std::vector<const Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
 	{
 		TagDetails tags{ a_tags };
-		std::vector<Scene*> ret{};
+		std::vector<const Scene*> ret{};
 		ret.reserve(sceneMap.size() >> 5);
 		const std::shared_lock lock{ _mScenes };
 		for (auto&& [key, scene] : sceneMap) {

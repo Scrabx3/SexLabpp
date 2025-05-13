@@ -4,7 +4,7 @@
 
 namespace Papyrus::AnimationSlots
 {
-	inline std::vector<RE::BSFixedString> ScenesToString(std::vector<Registry::Scene*> a_scenes)
+	inline std::vector<RE::BSFixedString> ScenesToString(const std::vector<const Registry::Scene*>& a_scenes)
 	{
 		std::vector<RE::BSFixedString> ret{};
 		ret.reserve(a_scenes.size());
@@ -45,7 +45,7 @@ namespace Papyrus::AnimationSlots
 		const auto lib = Registry::Library::GetSingleton();
 		auto scenes = lib->GetByTags(a_actorcount, a_tags);
 		const auto size = scenes.size();
-		const auto end = std::remove_if(scenes.begin(), scenes.end(), [&](Registry::Scene* a_scene) {
+		const auto end = std::remove_if(scenes.begin(), scenes.end(), [&](const Registry::Scene* a_scene) {
 			return !a_scene->Legacy_IsCompatibleSexCount(a_males, a_females);
 		});
 		scenes.erase(end, scenes.end());

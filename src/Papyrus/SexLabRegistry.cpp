@@ -209,12 +209,12 @@ namespace Papyrus::SexLabRegistry
 			if (a_center) {
 				const auto details = lib->GetFurnitureDetails(a_center);
 				if (details) {
-					std::erase_if(scenes, [&](Registry::Scene* a_scene) {
+					std::erase_if(scenes, [&](const Registry::Scene* a_scene) {
 						return !a_scene->IsCompatibleFurniture(details);
 					});
 				}
 			} else if (a_furniturepref == FurniturePreference::Prefer) {
-				const auto where = std::remove_if(scenes.begin(), scenes.end(), [&](Registry::Scene* a_scene) {
+				const auto where = std::remove_if(scenes.begin(), scenes.end(), [&](const Registry::Scene* a_scene) {
 					return !a_scene->RequiresFurniture();
 				});
 				if (where != scenes.begin()) {
@@ -223,7 +223,7 @@ namespace Papyrus::SexLabRegistry
 					logger::info("Validating Center; Prefering furnitures but no furniture animations in set");
 				}
 			} else if (a_furniturepref == FurniturePreference::Disallow) {
-				std::erase_if(scenes, [&](Registry::Scene* a_scene) {
+				std::erase_if(scenes, [&](const Registry::Scene* a_scene) {
 					return a_scene->RequiresFurniture();
 				});
 			}
