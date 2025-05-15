@@ -208,9 +208,8 @@ namespace Registry
 
 	std::vector<RE::BSFixedString> RaceKey::GetAllRaceKeys(bool a_ignoreAmbiguous)
 	{
-		auto raceKeys = magic_enum::enum_entries<Value>();
 		std::vector<RE::BSFixedString> ret;
-		for (auto [enumVal, name] : raceKeys) {
+		for (auto [enumVal, name] : LegacyRaceKeys) {
 			if (a_ignoreAmbiguous && (enumVal == Value::BoarAny || enumVal == Value::Canine)) {
 				continue;
 			}
