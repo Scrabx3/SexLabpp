@@ -5,7 +5,7 @@ namespace Util
 	inline void ForEachObjectInRange(RE::TESObjectREFR* a_center, float a_radius, std::function<RE::BSContainer::ForEachResult(RE::TESObjectREFR*)> a_forEachFunc)
 	{
 		const auto TES = RE::TES::GetSingleton();
-    const auto center_coords = a_center->GetPosition();
+		const auto center_coords = a_center->GetPosition();
 		if (const auto interior = TES->interiorCell; interior) {
 			interior->ForEachReferenceInRange(center_coords, a_radius, a_forEachFunc);
 		} else if (const auto grids = TES->gridCells; grids) {
@@ -31,5 +31,4 @@ namespace Util
 			}
 		}
 	}
-} // namespace CellCrawler
-
+}	 // namespace CellCrawler
