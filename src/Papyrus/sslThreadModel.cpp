@@ -8,6 +8,7 @@
 #include "Thread/NiNode/Node.h"
 #include "Thread/Thread.h"
 #include "UserData/StripData.h"
+#include "Util/Script.h"
 #include "Util/StringUtil.h"
 
 using Offset = Registry::CoordinateType;
@@ -314,7 +315,7 @@ namespace Papyrus::ThreadModel
 		return a_oldcontext;
 	}
 
-	bool CreateInstance(QUESTARGS,
+	void CreateInstance(QUESTARGS,
 		std::vector<RE::Actor*> a_submissives,
 		std::vector<RE::BSFixedString> a_scenesPrimary,
 		std::vector<RE::BSFixedString> a_scenesLeadIn,
@@ -339,7 +340,12 @@ namespace Papyrus::ThreadModel
 			toVector(a_scenesLeadIn),
 			toVector(a_scenesCustom)
 		};
-		return Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference);
+		std::thread([=]() {
+			bool result = Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference);
+			auto handle = Script::GetScriptObject(a_qst, "sslThreadModel");
+			Script::CallbackPtr callbackPtr{};
+			Script::DispatchMethodCall(handle, "ContinueSetup", callbackPtr, std::move(result));
+		}).detach();
 	}
 
 	void DestroyInstance(RE::TESQuest* a_qst)

@@ -117,22 +117,35 @@ namespace Thread
 		const auto sceneTypes = std::ranges::fold_left(prioScenes, REX::EnumSet{ Registry::FurnitureType::None }, [](auto&& acc, const auto& it) {
 			return acc | it->GetFurnitureTypes();
 		});
-		if (center.GetRef() && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
-			logger::info("Using fixed center {:X} with offset {}.", center.GetRef()->GetFormID(), center.offset.type.ToString());
-			return prioScenes;
-		} else if (sceneTypes == Registry::FurnitureType::None) {
-			logger::info("No Furniture scenes found in thread. Using actor {:X} as center.", centerAct->GetFormID());
-			center.SetReference(centerAct, {});
-			return prioScenes;
-		}
+		std::condition_variable cv;
+		std::mutex mtx;
+		std::unique_lock lock(mtx);
+		FurnitureMapping furnitureMap;
+		bool returnAfterTask{ true };
 		const auto selectionMethod = GetSelectionMethod(furniturePreference);
-		if (selectionMethod == CenterSelection::Actor) {
-			logger::info("Using actor {:X} as center.", centerAct->GetFormID());
-			center.SetReference(centerAct, {});
+		SKSE::GetTaskInterface()->AddUITask([&]() mutable {
+			try {
+				if (center.GetRef() && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
+					logger::info("Using fixed center {:X} with offset {}.", center.GetRef()->GetFormID(), center.offset.type.ToString());
+				} else if (sceneTypes == Registry::FurnitureType::None) {
+					logger::info("No Furniture scenes found in thread. Using actor {:X} as center.", centerAct->GetFormID());
+					center.SetReference(centerAct, {});
+				} else if (selectionMethod == CenterSelection::Actor) {
+					logger::info("Using actor {:X} as center.", centerAct->GetFormID());
+					center.SetReference(centerAct, {});
+				} else {
+					furnitureMap = GetUniqueFurnituesOfTypeInBound(centerAct, sceneTypes);
+					returnAfterTask = false;
+				}
+			} catch (const std::exception& e) {
+				logger::error("Thread initialization failed: {}", e.what());
+			}
+			cv.notify_all();
+		});
+		cv.wait(lock);
+		if (returnAfterTask) {
 			return prioScenes;
-		}
-		const auto furnitureMap = GetUniqueFurnituesOfTypeInBound(centerAct, sceneTypes);
-		if (furnitureMap.empty()) {
+		} else if (furnitureMap.empty()) {
 			logger::info("No furniture found in range. Using actor {:X} as center.", centerAct->GetFormID());
 			center.SetReference(centerAct, {});
 		} else if (selectionMethod == CenterSelection::SelectionMenu) {
@@ -224,7 +237,7 @@ namespace Thread
 	{
 		std::vector<Interface::SelectionMenu::Item> items;
 		const auto actName = std::format("{}, 0x{:X}", a_tmpCenter->GetDisplayFullName(), a_tmpCenter->GetFormID());
-		items.emplace_back(actName, "None");
+		items.emplace_back(actName, "$SSL_None");
 		for (const auto& [ref, offset] : a_furnitures) {
 			const auto itemName = std::format("{}, 0x{:X}", ref->GetDisplayFullName(), ref->GetFormID());
 			const auto itemValue = std::format("{}", offset.type.ToString());
@@ -241,7 +254,6 @@ namespace Thread
 	Instance::FurnitureMapping Instance::GetUniqueFurnituesOfTypeInBound(RE::Actor* a_centerAct, REX::EnumSet<Registry::FurnitureType::Value> a_furnitureTypes)
 	{
 		std::vector<RE::TESObjectREFR*> inUseFurniture{};
-		std::vector<std::pair<RE::TESObjectREFR*, glm::vec4>> raycastStart{};
 		const auto processlist = RE::ProcessLists::GetSingleton();
 		for (auto&& handle : processlist->highActorHandles) {
 			const auto it = handle.get().get();
@@ -249,6 +261,15 @@ namespace Thread
 			if (const auto furni = it->GetOccupiedFurniture().get()) {
 				inUseFurniture.push_back(furni.get());
 			}
+		}
+		std::vector<std::pair<RE::TESObjectREFR*, glm::vec4>> raycastStart{};
+		for (auto&& p : positions) {
+			auto act = p.data.GetActor();
+			assert(act);
+			auto head = act->GetNodeByName(Thread::NiNode::Node::HEAD);
+			if (!head) continue;
+			auto& t = head->world.translate;
+			raycastStart.emplace_back(act, glm::vec4{ t.x, t.y, t.z, 0.0f });
 		}
 		FurnitureMapping retVal{};
 		const auto library = Registry::Library::GetSingleton();

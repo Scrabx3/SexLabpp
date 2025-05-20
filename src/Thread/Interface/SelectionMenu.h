@@ -18,11 +18,16 @@ namespace Thread::Interface
 	public:
 		struct Item
 		{
-			Item(std::string_view a_name, std::string_view a_value) :
+		private:
+			std::string name;
+			std::string value;
+
+		public:
+			Item(const std::string& a_name, const std::string& a_value) :
 				name(a_name), value(a_value) {}
 
-			RE::GFxValue name;
-			RE::GFxValue value;
+			RE::GFxValue GetGFxName() const { return { std::string_view{ name } }; }
+			RE::GFxValue GetGFxValue() const { return { std::string_view{ value } }; }
 		};
 
 	public:

@@ -57,7 +57,7 @@ namespace Papyrus::ThreadModel
 	std::vector<RE::Actor*> GetPositions(QUESTARGS);
 	std::vector<RE::BSFixedString> AddContextExImpl(RE::TESQuest*, std::vector<RE::BSFixedString> a_oldcontext, std::string a_newcontext);
 
-	bool CreateInstance(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref);
+	void CreateInstance(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref);
 	void DestroyInstance(RE::TESQuest* a_qst);
 	std::vector<RE::BSFixedString> GetLeadInScenes(QUESTARGS);
 	std::vector<RE::BSFixedString> GetPrimaryScenes(QUESTARGS);
@@ -88,19 +88,19 @@ namespace Papyrus::ThreadModel
 
 	inline bool Register(VM* a_vm)
 	{
-		REGISTERFUNC(GetActiveScene, "sslThreadModel", false);
-		REGISTERFUNC(GetActiveStage, "sslThreadModel", false);
-		REGISTERFUNC(GetPlayingScenes, "sslThreadModel", false);
-		REGISTERFUNC(GetPositions, "sslThreadModel", false);
+		REGISTERFUNC(GetActiveScene, "sslThreadModel", true);
+		REGISTERFUNC(GetActiveStage, "sslThreadModel", true);
+		REGISTERFUNC(GetPlayingScenes, "sslThreadModel", true);
+		REGISTERFUNC(GetPositions, "sslThreadModel", true);
 		REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
 
-		REGISTERFUNC(CreateInstance, "sslThreadModel", false);
-		REGISTERFUNC(DestroyInstance, "sslThreadModel", false);
-		REGISTERFUNC(GetLeadInScenes, "sslThreadModel", false);
-		REGISTERFUNC(GetPrimaryScenes, "sslThreadModel", false);
-		REGISTERFUNC(GetCustomScenes, "sslThreadModel", false);
+		REGISTERFUNC(CreateInstance, "sslThreadModel", true);
+		REGISTERFUNC(DestroyInstance, "sslThreadModel", true);
+		REGISTERFUNC(GetLeadInScenes, "sslThreadModel", true);
+		REGISTERFUNC(GetPrimaryScenes, "sslThreadModel", true);
+		REGISTERFUNC(GetCustomScenes, "sslThreadModel", true);
 		REGISTERFUNC(AdvanceScene, "sslThreadModel", false);
-		REGISTERFUNC(SelectNextStage, "sslThreadModel", false);
+		REGISTERFUNC(SelectNextStage, "sslThreadModel", true);
 		REGISTERFUNC(SetActiveScene, "sslThreadModel", false);
 		REGISTERFUNC(ReassignCenter, "sslThreadModel", false);
 		REGISTERFUNC(UpdatePlacement, "sslThreadModel", false);

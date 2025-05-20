@@ -40,7 +40,7 @@ namespace Thread::Interface
 
 	std::vector<SelectionMenu::Item>::const_iterator SelectionMenu::CreateSelectionAndWait(const std::vector<Item>& a_items)
 	{
-		std::unique_lock lock(_m);
+		std::unique_lock lock{ _m };
 		items = &a_items;
 		Show();
 		_cv.wait(lock);
@@ -63,13 +63,13 @@ namespace Thread::Interface
 					RE::GFxValue value;
 					this->uiMovie->CreateObject(&value);
 					RE::GFxValue index{ static_cast<double>(i) };
-					value.SetMember("name", item.name);
-					value.SetMember("value", item.value);
+					value.SetMember("name", item.GetGFxName());
+					value.SetMember("type", item.GetGFxValue());
 					value.SetMember("index", index);
 					values.push_back(value);
 				}
 				SelectionMenu::selectedItem = items->end();
-				this->uiMovie->InvokeNoReturn("_root.main.setItems", values.data(), static_cast<uint32_t>(values.size()));
+				this->uiMovie->InvokeNoReturn("_root.main.loadList", values.data(), static_cast<uint32_t>(values.size()));
 			}
 			return Result::kHandled;
 		case Type::kForceHide:
