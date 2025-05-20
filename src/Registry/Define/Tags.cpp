@@ -161,8 +161,9 @@ namespace Registry
 						 std::ranges::all_of(a_tag._extratags, [&](const auto& tag) { return HasTag(tag); }) &&
 						 std::ranges::all_of(a_tag._annotations, [&](const auto& tag) { return HasTag(tag); });
 		} else {
-			return _basetags.any(a_tag._basetags.get()) ||
-						 std::ranges::any_of(a_tag._extratags, [&](const auto& tag) { return HasTag(tag); }) ||
+			if (_basetags.any(a_tag._basetags.get())) return true;
+			if (a_tag._extratags.empty() && a_tag._annotations.empty()) return true;
+			return std::ranges::any_of(a_tag._extratags, [&](const auto& tag) { return HasTag(tag); }) ||
 						 std::ranges::any_of(a_tag._annotations, [&](const auto& tag) { return HasTag(tag); });
 		}
 	}
