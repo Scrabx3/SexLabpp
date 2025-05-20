@@ -21,7 +21,6 @@ struct Settings
 		Right,
 		Select,
 		End,
-		Extra1,
 		Extra2,
 		Modes,
 		Reset,

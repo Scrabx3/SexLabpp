@@ -38,7 +38,6 @@ MCM_SETTING(iKeyLeft, 0x1E)		// A
 MCM_SETTING(iKeyRight, 0x20)	// D
 MCM_SETTING(iKeyAdvance, 0x39)	// Space
 MCM_SETTING(iKeyEnd, 0xCF)		// End
-MCM_SETTING(iKeyExtra1, 0x10)	// Q
 MCM_SETTING(iKeyExtra2, 0x12)	// E
 MCM_SETTING(iKeyMod, 0x2A)		// Shift
 MCM_SETTING(iKeyReset, 0x1D)	// Ctrl
