@@ -125,13 +125,15 @@ namespace Registry
 			score += Settings::iWeightSexStrict;
 		} else if (sexIn.any(Sex::Female, Sex::Futa)) {
 			score += Settings::iWeightSexLight;
+		} else {
+			score += Settings::iWeightSexMismatch;
 		}
 		score += (IsUnconscious() == a_fragment.IsUnconscious() ? 1 : -1) * Settings::iWeightUnconscious;
 		score += (IsSubmissive() == a_fragment.IsSubmissive() ? 1 : -1) * Settings::iWeightSubmissive;
 		if (std::abs(scale - a_fragment.scale) <= Settings::fScaleTolerance) {
 			score += Settings::iWeightScale;
 		}
-		return score <= 0 ? 1 : score;
+		return score < Settings::iScoreAcceptThreshold ? 0 : score;
 	}
 
 	std::vector<ActorFragment> ActorFragment::Split() const
