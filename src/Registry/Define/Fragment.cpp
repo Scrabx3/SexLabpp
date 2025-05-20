@@ -14,9 +14,6 @@ namespace Registry
 			value.set(Male);
 		if (a_sex.all(Sex::Female))
 			value.set(Female);
-		if (a_sex.all(Sex::Futa)) {
-			value.set(Futa);
-		}
 		switch (a_race) {
 		case RaceKey::None:
 			throw std::runtime_error("Cannt build fragment from Actor: Invalid RaceKey");
@@ -24,6 +21,9 @@ namespace Registry
 			value.set(Human);
 			if (a_vampire) {
 				value.set(Vampire);
+			}
+			if (a_sex.all(Sex::Futa)) {
+				value.set(Futa);
 			}
 			break;
 		default:
