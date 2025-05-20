@@ -31,7 +31,7 @@ namespace Registry
 		const std::shared_lock lock{ _mScenes };
 		const auto where = this->scenes.find(hash);
 		if (where == this->scenes.end()) {
-			logger::info("Invalid query: [{} | {} | {}]; No animations for given actors", a_actors.size(), hash.to_string(), tagstr);
+			logger::warn("Invalid query: [{} | {} | {}]; No animations for given actors", a_actors.size(), hash.to_string(), tagstr);
 			return {};
 		}
 		const auto& rawScenes = where->second;
@@ -39,10 +39,17 @@ namespace Registry
 		std::vector<const Scene*> ret{};
 		ret.reserve(rawScenes.size());
 		std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
-			return a_scene->IsEnabled() && !a_scene->IsPrivate() && a_scene->IsCompatibleTags(tags);
+			return a_scene->IsEnabled() && !a_scene->IsPrivate();
 		});
 		if (ret.empty()) {
-			logger::info("Invalid query: [{} | {} | {}]; 0/{} animations use requested tags", a_actors.size(), hash.to_string(), tagstr, where->second.size());
+			logger::warn("Invalid query: [{} | {} | {}]; 0/{} animations are enabled", a_actors.size(), hash.to_string(), tagstr, where->second.size());
+			return {};
+		}
+		const auto removed = std::erase_if(ret, [&](const Scene* a_scene) {
+			return !a_scene->IsCompatibleTags(tags);
+		});
+		if (ret.empty()) {
+			logger::warn("Invalid query: [{} | {} | {}]; 0/{} animations use requested tags", a_actors.size(), hash.to_string(), tagstr, removed);
 			return {};
 		}
 		const auto tEnd = std::chrono::high_resolution_clock::now();
