@@ -62,7 +62,7 @@ namespace Registry
 	};
 
 	RaceKey::RaceKey(RE::Actor* a_actor) :
-		RaceKey(a_actor->GetRace(), Scale::GetSingleton()->GetScale(a_actor), [&]() { auto base = a_actor->GetActorBase(); return base ? base->GetSex() : RE::SEXES::kMale; }()) {}
+		RaceKey(a_actor->GetRace(), [&]() { auto base = a_actor->GetActorBase(); return base ? base->GetSex() : RE::SEXES::kMale; }()) {}
 
 	RaceKey::RaceKey(const RE::BSFixedString& a_raceStr) :
 		value(magic_enum::enum_cast<Value>(a_raceStr, magic_enum::case_insensitive).value_or(Value::None))
@@ -73,7 +73,7 @@ namespace Registry
 		value = (where == LegacyRaceKeys.end()) ? Value::None : where->first;
 	}
 
-	RaceKey::RaceKey(const RE::TESRace* a_race, float a_scale, RE::SEXES::SEX a_sex)
+	RaceKey::RaceKey(const RE::TESRace* a_race, RE::SEXES::SEX a_sex)
 	{
 		const std::string_view rootTMP{ a_race->rootBehaviorGraphNames[a_sex].data() };
 		const auto root{ rootTMP.substr(rootTMP.rfind('\\') + 1) };
@@ -131,6 +131,7 @@ namespace Registry
 			value = Value::None;
 			return;
 		}
+		const auto editorId = Util::CastLower(std::string{ a_race->formEditorID });
 		switch (where->second) {
 		case Value::BoarAny:
 			if (a_race->HasKeyword(GameForms::DLC2RieklingMountedKeyword)) {
@@ -140,23 +141,23 @@ namespace Registry
 			}
 			break;
 		case Value::Chaurus:
-			if ((a_scale == 0.0 ? a_race->data.height[a_sex] : a_scale) < 1.0) {
-				value = Value::Chaurus;
-			} else {
+			if (editorId.find("reaper") != std::string::npos) {
 				value = Value::ChaurusReaper;
+			} else {
+				value = Value::Chaurus;
 			}
 			break;
 		case Value::Spider:
-			if (const auto scale = (a_scale == 0.0) ? a_race->data.height[a_sex] : a_scale; scale < 0.9) {
-				value = Value::Spider;
-			} else if (scale < 1.5) {
+			if (editorId.find("giant") != std::string::npos) {
+				value = Value::GiantSpider;
+			} else if (editorId.find("large") != std::string::npos) {
 				value = Value::LargeSpider;
 			} else {
-				value = Value::GiantSpider;
+				value = Value::Spider;
 			}
 			break;
 		case Value::Wolf:
-			if (Util::CastLower(std::string{ a_race->formEditorID }).find("fox") != std::string::npos) {
+			if (editorId.find("fox") != std::string::npos) {
 				value = Value::Fox;
 			} else {
 				value = Value::Wolf;
@@ -166,6 +167,7 @@ namespace Registry
 			value = where->second;
 			break;
 		}
+		logger::info("Race: {} {:X}, Havok Behavior Id: {} => {}", a_race->formEditorID, a_race->formID, std::to_underlying(where->second.value), std::to_underlying(value));
 	}
 
 	RE::BSFixedString RaceKey::AsString() const
