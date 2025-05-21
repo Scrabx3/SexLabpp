@@ -14,8 +14,8 @@ A high performance and stability patch for SexLab for Skyrim SE.
 
 ## Building
 ```
-git clone https://github.com/Scrabx3/NightmareNight-SKSE.git
-cd NightmareNight-SKSE
+git clone https://github.com/Scrabx3/SexLabpp.git
+cd SexLabpp
 git submodule update --init --recursive
 xmake f -m release [
 	--copy_to_papyrus=(y/n)		# copy build to the papyrus mod instance
