@@ -5,9 +5,12 @@ namespace Registry
 	float Scale::GetScale(RE::TESObjectREFR* a_reference)
 	{
 		assert(a_reference);
-    auto ret = a_reference->GetScale();
 		const auto node = a_reference->GetNodeByName(basenode);
-		return node ? ret * node->local.scale : ret;
+    const auto baseScale = a_reference->GetScale();
+		const auto nodeScale = node ? node->local.scale : 1.0f;
+		const auto retVal = baseScale * nodeScale;
+		logger::info("GetScale: {:X} -> Base = {}, Skeleton = {} => {}", a_reference->GetFormID(), baseScale, nodeScale, retVal);
+		return retVal;
 	}
 
 	void Scale::SetScale(RE::Actor* a_actor, float a_absolutescale)
