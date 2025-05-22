@@ -46,14 +46,20 @@ namespace Thread::Interface
 		using Result = RE::UI_MESSAGE_RESULTS;
 
 		const auto input = RE::BSInputDeviceManager::GetSingleton();
+		const auto controls = RE::ControlMap::GetSingleton();
 		switch (*a_message.type) {
 		case Type::kShow:
 			assert(threadInstance);
 			UpdatePositions();
 			UpdateActiveScene();
 			input->AddEventSink<RE::InputEvent*>(this);
+			controls->ToggleControls(RE::ControlMap::UEFlag::kActivate, false);
+			controls->ToggleControls(RE::ControlMap::UEFlag::kMovement, false);
 			return Result::kHandled;
+		case Type::kForceHide:
 		case Type::kHide:
+			controls->ToggleControls(RE::ControlMap::UEFlag::kActivate, true);
+			controls->ToggleControls(RE::ControlMap::UEFlag::kMovement, true);
 			threadInstance = nullptr;
 			input->RemoveEventSink(this);
 			return Result::kHandled;
