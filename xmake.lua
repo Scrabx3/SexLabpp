@@ -5,7 +5,7 @@ PROJECT_NAME = "SexLabUtil"
 
 -- Project
 set_project(PROJECT_NAME)
-set_version("2.15.2")
+set_version("2.15.5")
 set_languages("cxx23")
 set_license("apache-2.0")
 set_warnings("allextra", "error")
