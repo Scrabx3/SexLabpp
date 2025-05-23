@@ -151,7 +151,10 @@ namespace Registry
 	bool TagData::HasTag(const RE::BSFixedString& a_tag) const
 	{
 		const auto where = TagTable.find(a_tag);
-		return where == TagTable.end() ? HasExtraTag(a_tag) : _basetags.all(where->second);
+		if (where != TagTable.end()) {
+			return _basetags.all(where->second);
+		}
+		return HasExtraTag(a_tag) || HasAnnotation(a_tag);
 	}
 
 	bool TagData::HasTags(const TagData& a_tag, bool a_all) const
