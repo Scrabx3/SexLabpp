@@ -118,14 +118,10 @@ namespace Thread
 		const auto sceneTypes = std::ranges::fold_left(prioScenes, REX::EnumSet{ Registry::FurnitureType::None }, [](auto&& acc, const auto& it) {
 			return acc | it->GetFurnitureTypes();
 		});
-		std::condition_variable cv;
-		std::mutex mtx;
-		std::unique_lock lock(mtx);
 		FurnitureMapping furnitureMap;
-		std::promise<void> promise;
+		std::promise<bool> promise;
 		auto future = promise.get_future();
 		const auto selectionMethod = GetSelectionMethod(furniturePreference);
-		bool returnImmediate = true;
 		SKSE::GetTaskInterface()->AddUITask([&]() mutable {
 			try {
 				if (center.GetRef() && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
@@ -138,15 +134,16 @@ namespace Thread
 					center.SetReference(centerAct, {});
 				} else {
 					furnitureMap = GetUniqueFurnituesOfTypeInBound(centerAct, sceneTypes);
-					returnImmediate = false;
+					promise.set_value(false);
+					return;
 				}
 			} catch (const std::exception& e) {
 				logger::error("Thread initialization failed: {}", e.what());
 			}
-			promise.set_value();
+			promise.set_value(true);
 		});
 		future.wait();
-		if (returnImmediate) {
+		if (future.get()) {
 			return prioScenes;
 		} else if (furnitureMap.empty()) {
 			logger::info("No furniture found in range. Using actor {:X} as center.", centerAct->GetFormID());
