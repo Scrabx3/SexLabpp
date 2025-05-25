@@ -128,11 +128,9 @@ namespace Registry
 		} else {
 			score += Settings::iWeightSexMismatch;
 		}
-		score += (IsUnconscious() == a_fragment.IsUnconscious() ? 1 : -1) * Settings::iWeightUnconscious;
-		score += (IsSubmissive() == a_fragment.IsSubmissive() ? 1 : -1) * Settings::iWeightSubmissive;
-		if (std::abs(scale - a_fragment.scale) <= Settings::fScaleTolerance) {
-			score += Settings::iWeightScale;
-		}
+		score += IsUnconscious() == a_fragment.IsUnconscious() ? Settings::iWeightUnconscious : 0;
+		score += IsSubmissive() == a_fragment.IsSubmissive() ? Settings::iWeightSubmissive : 0;
+		score += std::abs(scale - a_fragment.scale) <= Settings::fScaleTolerance ? Settings::iWeightScale : 0;
 		return score < Settings::iScoreAcceptThreshold ? 0 : score;
 	}
 

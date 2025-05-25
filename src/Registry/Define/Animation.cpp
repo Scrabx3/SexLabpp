@@ -288,7 +288,7 @@ namespace Registry
 
 	bool PositionInfo::CanFillPosition(const ActorFragment& a_fragment) const
 	{
-		return data.GetCompatibilityScore(a_fragment) > 0;
+		return data.GetCompatibilityScore(a_fragment) != 0;
 	}
 
 	bool PositionInfo::CanFillPosition(const PositionInfo& a_other) const
@@ -498,7 +498,7 @@ namespace Registry
 			for (size_t j = 0; j < N; j++) {
 				const auto& position = positions[j];
 				const auto score = position.data.GetCompatibilityScore(fragment);
-				if (score > 0) {
+				if (score != 0) {
 					fragmentGraph[i].emplace_back(j, score);
 				}
 			}
