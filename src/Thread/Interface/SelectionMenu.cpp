@@ -42,8 +42,9 @@ namespace Thread::Interface
 	{
 		std::unique_lock lock{ _m };
 		items = &a_items;
+		_cvDone = false;
 		Show();
-		_cv.wait(lock);
+		_cv.wait(lock, []() { return _cvDone; });
 		return selectedItem;
 	}
 
@@ -74,7 +75,11 @@ namespace Thread::Interface
 			return Result::kHandled;
 		case Type::kForceHide:
 		case Type::kHide:
-			_cv.notify_all();
+			{
+				std::unique_lock lock{ _m };
+				_cvDone = true;
+				_cv.notify_all();
+			}
 			return Result::kHandled;
 		default:
 			return RE::IMenu::ProcessMessage(a_message);

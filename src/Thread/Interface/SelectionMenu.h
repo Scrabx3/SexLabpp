@@ -59,6 +59,7 @@ namespace Thread::Interface
 	private:
 		static inline std::mutex _m;
 		static inline std::condition_variable _cv;
+		static inline bool _cvDone{ false };
 		static inline const std::vector<Item>* items;
 		static inline std::vector<Item>::const_iterator selectedItem;
 	};
