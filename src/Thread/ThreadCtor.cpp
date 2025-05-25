@@ -4,6 +4,7 @@
 #include "Registry/Util/RayCast/ObjectBound.h"
 #include "Thread/Interface/SelectionMenu.h"
 #include "Util/World.h"
+#include <future>
 
 namespace Thread
 {
@@ -121,8 +122,10 @@ namespace Thread
 		std::mutex mtx;
 		std::unique_lock lock(mtx);
 		FurnitureMapping furnitureMap;
-		bool returnAfterTask{ true };
+		std::promise<void> promise;
+		auto future = promise.get_future();
 		const auto selectionMethod = GetSelectionMethod(furniturePreference);
+		bool returnImmediate = true;
 		SKSE::GetTaskInterface()->AddUITask([&]() mutable {
 			try {
 				if (center.GetRef() && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
@@ -135,15 +138,15 @@ namespace Thread
 					center.SetReference(centerAct, {});
 				} else {
 					furnitureMap = GetUniqueFurnituesOfTypeInBound(centerAct, sceneTypes);
-					returnAfterTask = false;
+					returnImmediate = false;
 				}
 			} catch (const std::exception& e) {
 				logger::error("Thread initialization failed: {}", e.what());
 			}
-			cv.notify_all();
+			promise.set_value();
 		});
-		cv.wait(lock);
-		if (returnAfterTask) {
+		future.wait();
+		if (returnImmediate) {
 			return prioScenes;
 		} else if (furnitureMap.empty()) {
 			logger::info("No furniture found in range. Using actor {:X} as center.", centerAct->GetFormID());
@@ -165,7 +168,6 @@ namespace Thread
 				logger::info("Using furniture {:X} with offset {} as center.", ref->GetFormID(), type.type.ToString());
 			}
 		}
-		assert(!prioScenes.empty());
 		return prioScenes;
 	}
 
