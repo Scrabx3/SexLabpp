@@ -49,6 +49,7 @@ namespace Thread::Interface
 		const auto controls = RE::ControlMap::GetSingleton();
 		switch (*a_message.type) {
 		case Type::kShow:
+			logger::info("SceneMenu opened.");
 			assert(threadInstance);
 			UpdatePositions();
 			UpdateActiveScene();
@@ -58,6 +59,7 @@ namespace Thread::Interface
 			return Result::kHandled;
 		case Type::kForceHide:
 		case Type::kHide:
+			logger::info("SceneMenu closed.");
 			controls->ToggleControls(RE::ControlMap::UEFlag::kActivate, true);
 			controls->ToggleControls(RE::ControlMap::UEFlag::kMovement, true);
 			threadInstance = nullptr;
