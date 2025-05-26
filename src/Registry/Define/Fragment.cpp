@@ -139,7 +139,7 @@ namespace Registry
 		if (!IsAbstract()) {
 			return { *this };
 		}
-		constexpr REX::EnumSet<Value> CONFLICT_FREE{ Human, Submissive, Unconscious };
+		constexpr REX::EnumSet<Value> CONFLICT_FREE{ Human }; // , Submissive, Unconscious };
 		const auto defaultFragment = value & CONFLICT_FREE;
 
 		const auto raceKey = GetRace();
@@ -178,11 +178,11 @@ namespace Registry
 		case RaceKey::Human:
 			if (value.any(Futa))
 				ret.push_back(defaultFragment | Value::Futa);
-			if (IsVampire()) {
-				Add(Value::Vampire);
-			} else {
+			// if (IsVampire()) {
+			// 	Add(Value::Vampire);
+			// } else {
 				Duplicate(Value::Vampire);
-			}
+			// }
 			break;
 		case RaceKey::Canine:
 			RaceVariant({ RaceKey::Dog, RaceKey::Wolf });
@@ -194,6 +194,8 @@ namespace Registry
 			Add(RaceKeyToValue(GetRace()));
 			break;
 		}
+		Duplicate(Value::Submissive);
+		Duplicate(Value::Unconscious);
 		return std::ranges::fold_left(ret, std::vector<ActorFragment>{}, [&](auto&& acc, auto&& it) {
 			return (acc.emplace_back(it), acc);
 		});
