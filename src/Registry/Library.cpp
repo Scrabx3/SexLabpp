@@ -155,7 +155,7 @@ namespace Registry
 		std::shared_lock lock{ _mVoice };
 		return std::ranges::fold_left(voices, std::vector<RE::BSFixedString>{}, [&](auto acc, const auto& it) {
 			const auto& [name, voice] = it;
-			if (voice.HasRace(a_race))
+			if (a_race.Is(RaceKey::None) || voice.HasRace(a_race))
 				acc.push_back(name);
 			return acc;
 		});
