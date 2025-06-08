@@ -190,7 +190,7 @@ namespace Registry
 					logger::error("GetCoordinatesInBound: No 3D object found for reference {}", hitRef->GetFormID());
 					break;
 				}
-				hitList.push_back(hitRefNi);
+				hitList.push_back(res.hitObject);
 				start = res.hitPos;
 			} while (true);
 			return false;
