@@ -142,7 +142,7 @@ namespace Registry
 			graph.insert(std::make_pair(vertex, edges));
 		}
 		// --- Misc
-		a_stream.read(reinterpret_cast<char*>(&furnitureTypes), 4);
+		Decode::Read(a_stream, *reinterpret_cast<uint32_t*>(&furnitureTypes));
 		a_stream.read(reinterpret_cast<char*>(&allowBed), 1);
 		furnitureOffset = Coordinate(a_stream);
 		a_stream.read(reinterpret_cast<char*>(&isPrivate), 1);
