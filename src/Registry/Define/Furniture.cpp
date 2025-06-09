@@ -128,6 +128,7 @@ namespace Registry
 					return;
 				}
 				Coordinate coords{ vec };
+				coords.rotation = glm::radians(coords.rotation);
 				data.emplace_back(furniture, coords);
 			};
 			if (offsetnode[0].IsSequence()) {

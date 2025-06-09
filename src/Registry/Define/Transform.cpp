@@ -26,8 +26,8 @@ namespace Registry
 
 	void Coordinate::Apply(Coordinate& a_coordinate) const
 	{
-		const float cosAngle = std::cos(a_coordinate.rotation);
-		const float sinAngle = std::sin(a_coordinate.rotation);
+		const float cosAngle = std::cos(-a_coordinate.rotation);
+		const float sinAngle = std::sin(-a_coordinate.rotation);
 		const glm::vec3 transform{
 			location.x * cosAngle - location.y * sinAngle,
 			location.x * sinAngle + location.y * cosAngle,
