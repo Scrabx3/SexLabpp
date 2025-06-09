@@ -67,6 +67,8 @@ namespace Thread::Interface
 		struct SLAPI_GetAlternateScenes : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct SLAPI_ToggleAutoPlay : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct SLAPI_IsAutoPlay : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_SetHideHUD : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
+		struct SLAPI_GetHideHUD : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct SLAPI_GetPermutationData : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct SLAPI_SelectNextPermutation : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };
 		struct SLAPI_GetGhostMode : public GFxFunctionHandlerWrapper { void Call(Params& a_args) override; };

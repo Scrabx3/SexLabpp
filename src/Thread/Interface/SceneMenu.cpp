@@ -56,14 +56,19 @@ namespace Thread::Interface
 			input->AddEventSink<RE::InputEvent*>(this);
 			controls->ToggleControls(RE::ControlMap::UEFlag::kActivate, false);
 			controls->ToggleControls(RE::ControlMap::UEFlag::kMovement, false);
+			if (Settings::bHideHUD) {
+				RE::UIMessageQueue::GetSingleton()->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
+			}
 			return Result::kHandled;
 		case Type::kForceHide:
 		case Type::kHide:
 			logger::info("SceneMenu closed.");
+			RE::UIMessageQueue::GetSingleton()->AddMessage(RE::HUDMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr);
 			controls->ToggleControls(RE::ControlMap::UEFlag::kActivate, true);
 			controls->ToggleControls(RE::ControlMap::UEFlag::kMovement, true);
-			threadInstance = nullptr;
+			controls->AllowTextInput(false);
 			input->RemoveEventSink(this);
+			threadInstance = nullptr;
 			return Result::kHandled;
 		case Type::kUserEvent:
 		case Type::kScaleformEvent:
@@ -123,7 +128,7 @@ namespace Thread::Interface
 		});
 	}
 
-	void SceneMenu::UpdateStageInfo() 
+	void SceneMenu::UpdateStageInfo()
 	{
 		SKSE::GetTaskInterface()->AddUITask([]() {
 			const auto activeScene = threadInstance->GetActiveScene();
@@ -164,7 +169,7 @@ namespace Thread::Interface
 	}
 
 	void SceneMenu::UpdateActiveScene()
-	{	
+	{
 		SKSE::GetTaskInterface()->AddUITask([=]() {
 			const auto view = RE::UI::GetSingleton()->GetMovieView(MENU_NAME);
 			const auto activeScene = threadInstance->GetActiveScene();
@@ -307,6 +312,8 @@ namespace Thread::Interface
 		FunctionManager::AttachFunction<SLAPI_GetAlternateScenes>(a_view, *sexLabAPI, "GetAlternateScenes");
 		FunctionManager::AttachFunction<SLAPI_ToggleAutoPlay>(a_view, *sexLabAPI, "ToggleAutoPlay");
 		FunctionManager::AttachFunction<SLAPI_IsAutoPlay>(a_view, *sexLabAPI, "IsAutoPlay");
+		FunctionManager::AttachFunction<SLAPI_SetHideHUD>(a_view, *sexLabAPI, "SetHUDVisible");
+		FunctionManager::AttachFunction<SLAPI_GetHideHUD>(a_view, *sexLabAPI, "GetHUDVisible");
 		FunctionManager::AttachFunction<SLAPI_GetPermutationData>(a_view, *sexLabAPI, "GetPermutationData");
 		FunctionManager::AttachFunction<SLAPI_SelectNextPermutation>(a_view, *sexLabAPI, "SelectNextPermutation");
 		FunctionManager::AttachFunction<SLAPI_GetGhostMode>(a_view, *sexLabAPI, "GetGhostMode");
@@ -450,6 +457,22 @@ namespace Thread::Interface
 	void SceneMenu::SLAPI_IsAutoPlay::Call(Params& a_args)
 	{
 		a_args.retVal->SetBoolean(threadInstance->GetAutoplayEnabled());
+	}
+
+	void SceneMenu::SLAPI_SetHideHUD::Call(Params& a_args)
+	{
+		assert(a_args.argCount == 1 && a_args.args[0].GetType() == RE::GFxValue::ValueType::kBoolean);
+		const bool visible = a_args.args[0].GetBool();
+		RE::UIMessageQueue::GetSingleton()->AddMessage(
+			RE::HUDMenu::MENU_NAME,
+			visible ? RE::UI_MESSAGE_TYPE::kShow : RE::UI_MESSAGE_TYPE::kHide,
+			nullptr);
+	}
+
+	void SceneMenu::SLAPI_GetHideHUD::Call(Params& a_args)
+	{
+		const bool open = RE::UI::GetSingleton()->IsMenuOpen(RE::HUDMenu::MENU_NAME);
+		a_args.retVal->SetBoolean(open);
 	}
 
 	void SceneMenu::SLAPI_GetPermutationData::Call(Params& a_args)

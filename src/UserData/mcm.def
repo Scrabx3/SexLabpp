@@ -32,22 +32,24 @@ MCM_SETTING(iLovenseStrengthOrgasm, 20)
 MCM_SETTING(fLovenseDurationOrgasm, 8)
 
 // KeyBinds/Scene Control Related
-MCM_SETTING(iKeyUp, 0x11)		// W
-MCM_SETTING(iKeyDown, 0x1F)		// S
-MCM_SETTING(iKeyLeft, 0x1E)		// A
-MCM_SETTING(iKeyRight, 0x20)	// D
+MCM_SETTING(iKeyUp, 0x11)				// W
+MCM_SETTING(iKeyDown, 0x1F)			// S
+MCM_SETTING(iKeyLeft, 0x1E)			// A
+MCM_SETTING(iKeyRight, 0x20)		// D
 MCM_SETTING(iKeyAdvance, 0x39)	// Space
-MCM_SETTING(iKeyEnd, 0xCF)		// End
-MCM_SETTING(iKeyExtra2, 0x12)	// E
-MCM_SETTING(iKeyMod, 0x2A)		// Shift
-MCM_SETTING(iKeyReset, 0x1D)	// Ctrl
+MCM_SETTING(iKeyEnd, 0xCF)			// End
+MCM_SETTING(iKeyExtra2, 0x12)		// E
+MCM_SETTING(iKeyMod, 0x2A)			// Shift
+MCM_SETTING(iKeyReset, 0x1D)		// Ctrl
 
 MCM_SETTING(iToggleFreeCamera, 81)
 MCM_SETTING(iTargetActor, 49)
 
+// TODO: Add these to MCM
 MCM_SETTING(bAdjustTargetStage, false)
 MCM_SETTING(fAdjustStepSize, 0.5f)
 MCM_SETTING(bAdjustStage, true)
+MCM_SETTING(bHideHUD, false)
 
 // MCM_SETTING(iAdjustStage, 157)
 // MCM_SETTING(iBackwards, 54)
