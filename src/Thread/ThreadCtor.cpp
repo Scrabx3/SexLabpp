@@ -101,8 +101,9 @@ namespace Thread
 				do {
 					scenes[i] = lib->LookupScenes(pos, {}, subm);
 					if (!scenes[i].empty()) break;
+					if (subm.empty()) break;
 					subm.pop_back();
-				} while (!subm.empty());				
+				} while (true);
 			}
 		}
 		logger::info("Scenes initialized: [{},{},{}].", scenes[SceneType::Primary].size(), scenes[SceneType::LeadIn].size(), scenes[SceneType::Custom].size());
