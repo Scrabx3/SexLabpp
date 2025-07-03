@@ -11,8 +11,8 @@ namespace Serialization
 		std::string ret{};
 		ret.resize(size);
 		const char* it = reinterpret_cast<char*>(&a_type);
-		for (size_t i = 0, j = size - 2; i < size - 1; i++, j--)
-			ret[j] = it[i];
+		for (size_t i = 0, j = size - 1; i < size; i++, j--)
+			ret[j] = std::isprint(it[i]) ? it[i] : '_';
 
 		return ret;
 	}
